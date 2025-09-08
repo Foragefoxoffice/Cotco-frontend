@@ -26,25 +26,25 @@ const TEAM_SECTIONS = [
       {
         name: "Nam",
         role: "Technical Manager",
-        phone: "+84 962 824 098",
+        phone: "0962 824 098",
         email: "nam@cotco-vn.com",
       },
       {
         name: "David",
         role: "Technican",
-        phone: "+84 903 189 969",
+        phone: "0903 189 969",
         email: "tien@cotco-vn.com",
       },
       {
         name: "Eric",
         role: "Logistics Executive",
-        phone: "+84 909 199 383",
+        phone: "0909 199 383",
         email: "eric@cotco-vn.com",
       },
       {
         name: "Luna",
         role: "Sales Admin",
-        phone: "+84 932 387 592",
+        phone: "0932 387 592",
         email: "luna@cotco-vn.com",
       },
     ],
@@ -74,7 +74,7 @@ const TEAM_SECTIONS = [
       {
         name: "Mei",
         role: "Marketing Executive",
-        phone: "+84 936 206 974",
+        phone: "0936 206 974",
         email: "tram@cotco-vn.com",
       },
     ],
@@ -83,7 +83,7 @@ const TEAM_SECTIONS = [
     title: "Other Inquiries or Recruitmen",
     members: [
       { phone: "0936 206 974", email: "info@cotco-vn.com" },
-      {  phone: "+84 (28) 3589 9978", email: "Trading@cotco-vn.com",
+      {  phone: "0(28) 3589 9978", email: "Trading@cotco-vn.com",
  },
      
     ],

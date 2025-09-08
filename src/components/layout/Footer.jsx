@@ -6,8 +6,10 @@ import {
   FaInstagram,
   FaLinkedinIn,
   FaPhoneAlt,
-  FaEnvelope
+  FaEnvelope,
+  FaYoutube,
 } from "react-icons/fa";
+import { SiZalo } from "react-icons/si";
 
 const Footer = () => {
   return (
@@ -23,8 +25,12 @@ const Footer = () => {
               <a href="https://www.facebook.com/COTCO-Cotton-Yarn-Textile-Machine-111059494909474" className="p-2 rounded border border-gray-500 hover:bg-white group">
                 <FaFacebookF className="text-white group-hover:text-[#0A1C2E]" />
               </a>
-              <a href="tel:+84(28)3589 9978" className="p-2 rounded border border-gray-500 hover:bg-white group">
-                <FaPhoneAlt className="text-white group-hover:text-[#0A1C2E]" />
+              
+               <a href="https://www.youtube.com/@CotcoCompanyLimited" className="p-2 rounded border border-gray-500 hover:bg-white group">
+                <FaYoutube className="text-white group-hover:text-[#0A1C2E]" />
+              </a>
+              <a href="https://zalo.me/576585541050449132" className="p-2 rounded border border-gray-500 hover:bg-white group">
+                <SiZalo  className="text-white group-hover:text-[#0A1C2E]" />
               </a>
               <a href="trading@cotco-vn.com" className="p-2 rounded border border-gray-500 hover:bg-white group">
                 <FaEnvelope className="text-white group-hover:text-[#0A1C2E]" />

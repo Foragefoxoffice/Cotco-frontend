@@ -11,13 +11,13 @@ const TEAM_SECTIONS = [
       {
         name: "Sohpie",
         role: "Sales Manager",
-        phone: "+84 969 003 600",
+        phone: "0969 003 600",
         email: "sophie@cotco-vn.com",
       },
       {
         name: "Max",
         role: "Logistics Executive",
-        phone: "+84 965 647 670",
+        phone: "0965 647 670",
         email: "anpham@cotco-vn.com",
       },
     ],
