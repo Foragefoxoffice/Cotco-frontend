@@ -37,14 +37,14 @@ const Navbar = () => {
 
   const navClasses = `top-0 left-0 w-full z-50 transition-all duration-300 ${
     showNavbar ? "translate-y-0" : "-translate-y-full"
-  } ${scrolled ? "bg-white shadow-md fixed" : "bg-transparent fixed"}`;
+  } ${scrolled ? "bg-[#0A1C2E] shadow-md fixed" : "bg-transparent fixed"}`;
 
   const getLinkClass = (href) =>
     `transition-colors duration-300 font-medium ${
       location.pathname === href
         ? "text-[#0D3B66] font-semibold"
         : scrolled
-        ? "text-[#121E2B] hover:text-[#121E2B]"
+        ? "text-[#fff] hover:text-[#fff]"
         : "text-[#fff] hover:text-[#fff]"
     }`;
 
@@ -69,7 +69,7 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center gap-2 font-bold text-xl text-blue-700">
             <Link to="/">
-              <img src="/logo/logo2.png" alt="Logo" className="h-18 w-auto bg-white p-2 rounded-lg" />
+              <img src="/img/home/footerLogo.png" alt="Logo" className="h-22 w-auto" />
             </Link>
           </div>
 
