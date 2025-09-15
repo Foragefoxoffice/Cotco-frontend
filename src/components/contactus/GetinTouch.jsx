@@ -103,7 +103,7 @@ const GetinTouch = () => {
                 </h3>
                 <p className="mt-2 text-slate-600 leading-7">
                   Villa 105 | D2 Street | The Classia Khang Dien |<br />
-                  Ward Phu Huu | Thu Duc City |<br />
+                 
                   Ho Chi Minh City, Vietnam
                 </p>
                 <a

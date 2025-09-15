@@ -9,7 +9,7 @@ export default function CottonTrustSection() {
         <div>
           
 <TitleAnimation
-            text={" GROW IN TRUST, QUALITY \n AND SERVICE"}
+            text={"GROW IN TRUST, QUALITY AND SERVICE"}
             className="heading "
              align="center" mdAlign="left" lgAlign="right"
             delay={0.05}

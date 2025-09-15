@@ -45,7 +45,7 @@ export default function HeroSection() {
       {/* Text Content */}
       <div className="absolute md:bottom-0 bottom-10 md:px-12 p-6 pb-20 text-white max-w-4xl">
         <h1 className="text-4xl md:text-6xl font-semibold leading-tight">
-          Your Trusted Partner in Quality Cotton, Fibers & Textile Machinery
+          Your Trusted Partner <br /> in Quality Cotton, Fibers & Textile Machinery
         </h1>
         <p className="mt-4 text-lg">
           Empowering Vietnam’s Textile Industry Since 2016

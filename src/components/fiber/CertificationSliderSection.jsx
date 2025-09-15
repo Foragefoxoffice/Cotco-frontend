@@ -56,7 +56,7 @@ export default function CertificationSliderSection() {
         <div className="text-center md:text-left">
          
           <TitleAnimation
-            text={"GROW IN TRUST \n AND QUALITY "}
+            text={"GROW IN TRUST AND QUALITY "}
             className="heading mb-6 leading-snug text-black"
              align="center" mdAlign="left" lgAlign="right"
             delay={0.05}

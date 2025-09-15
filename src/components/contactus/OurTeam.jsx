@@ -20,31 +20,31 @@ const TEAM_SECTIONS = [
        {
         name: "Cris Hoang",
         role: "Sales Manager",
-        phone: "0397 127 025",
+        phone: "+84 39 712 7025",
         email: "machine@cotco-vn.com",
       },
       {
         name: "Nam",
         role: "Technical Manager",
-        phone: "0962 824 098",
+        phone: "+84 96 282 4098",
         email: "nam@cotco-vn.com",
       },
       {
         name: "David",
         role: "Technican",
-        phone: "0903 189 969",
+        phone: "+84 90 318 9969",
         email: "tien@cotco-vn.com",
       },
       {
         name: "Eric",
         role: "Logistics Executive",
-        phone: "0909 199 383",
+        phone: "+84 90 919 9383",
         email: "eric@cotco-vn.com",
       },
       {
         name: "Luna",
         role: "Sales Admin",
-        phone: "0932 387 592",
+        phone: "+84 93 238 7592",
         email: "luna@cotco-vn.com",
       },
     ],
@@ -55,7 +55,7 @@ const TEAM_SECTIONS = [
       {
         name: "Sophie ",
         email: "fiber@cotco-vn.com",
-        phone: "0969 00 36 00",
+        phone: "+84 96 900 3600",
       },
       {
         email: "trading@cotco-vn.com",
@@ -74,7 +74,7 @@ const TEAM_SECTIONS = [
       {
         name: "Mei",
         role: "Marketing Executive",
-        phone: "0936 206 974",
+        phone: "+84 93 620 6974",
         email: "tram@cotco-vn.com",
       },
     ],
@@ -82,8 +82,8 @@ const TEAM_SECTIONS = [
   {
     title: "Other Inquiries or Recruitmen",
     members: [
-      { phone: "0936 206 974", email: "info@cotco-vn.com" },
-      {  phone: "0(28) 3589 9978", email: "Trading@cotco-vn.com",
+      { phone: "+84 936 206 974", email: "info@cotco-vn.com" },
+      {  phone: "+84 028 3 589 9978", email: "trading@cotco-vn.com",
  },
      
     ],
@@ -127,7 +127,7 @@ function MemberCard({ name, role, phone, email, taxCode }) {
 
 export default function MeetOurTeam() {
   // Open "Machine" by default to match the screenshot
-  const [openIndex, setOpenIndex] = useState(1);
+  const [openIndex, setOpenIndex] = useState();
 
   return (
     <section className="pt-6 md:pt-20">
@@ -146,7 +146,7 @@ export default function MeetOurTeam() {
             once={true}
           />
           <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
-           We're here to assist you with any inquiries about our cotton, fibre, or
+           We're here to assist you with any inquiries about our cotton, fiber, or
 machinery products.
           </p>
         </div>

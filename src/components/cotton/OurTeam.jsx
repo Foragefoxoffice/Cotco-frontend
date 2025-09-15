@@ -10,37 +10,37 @@ const TEAM_SECTIONS = [
       {
         name: "Maria",
         role: "Cotton Trader",
-        phone: "0934 110 120",
+        phone: "+84 93 411 0120",
         email: "maria@cotco-vn.com",
       },
       {
         name: "Lisa",
         role: "Cotton Trader",
-        phone: "0913 796 683",
+        phone: "+84 91 379 6683",
         email: "lisa@cotco-vn.com",
       },
       {
         name: "Memole",
         role: "Cotton Trader",
-        phone: "0909 234 906",
+        phone: "+84 90 923 4906",
         email: "nganhth@cotco-vn.com",
       },
       {
         name: "Martin",
         role: "Cotton Trader",
-        phone: "0984 557 888",
+        phone: "+84 98 455 7888",
         email: "nganhth@cotco-vn.com",
       },
       {
         name: "Giao",
         role: "Logistics Executive",
-        phone: "0943 447 973",
+        phone: "+84 94 344 7973",
         email: "giao@cotco-vn.com",
       },
       {
         name: "Christ",
         role: "Logistics Executive",
-        phone: "0943 447 973",
+        phone: "+84 94 344 7973",
         email: "trihong@cotcousa.com",
       },
     ],
@@ -83,7 +83,7 @@ function MemberCard({ name, role, phone, email }) {
 
 export default function MeetOurTeam() {
   // Open "Machine" by default to match the screenshot
-  const [openIndex, setOpenIndex] = useState(1);
+  const [openIndex, setOpenIndex] = useState();
 
   return (
     <section className="pb-10 md:pb-32">

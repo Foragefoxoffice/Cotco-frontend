@@ -58,7 +58,7 @@ export default function CertificationSliderSection() {
         <div>
         
           <TitleAnimation
-            text={" PROUD member of the \n International Cotton Association \n (ICA)"}
+            text={"PROUD member of the International Cotton Association (ICA)"}
             className="heading mb-6 leading-snug text-black"
              align="center" mdAlign="left" lgAlign="right"
             delay={0.05}

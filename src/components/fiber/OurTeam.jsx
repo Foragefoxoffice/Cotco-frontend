@@ -6,18 +6,18 @@ import TitleAnimation from "../common/AnimatedTitle";
 const TEAM_SECTIONS = [
 
   {
-    title: "Fibre",
+    title: "Fiber",
     members: [
       {
         name: "Sohpie",
         role: "Sales Manager",
-        phone: "0969 003 600",
+        phone: "+84 96 900 3600",
         email: "sophie@cotco-vn.com",
       },
       {
         name: "Max",
         role: "Logistics Executive",
-        phone: "0965 647 670",
+        phone: "+84 96 564 7670",
         email: "anpham@cotco-vn.com",
       },
     ],
@@ -61,7 +61,7 @@ function MemberCard({ name, role, phone, email }) {
 
 export default function MeetOurTeam() {
   // Open "Machine" by default to match the screenshot
-  const [openIndex, setOpenIndex] = useState(1);
+  const [openIndex, setOpenIndex] = useState();
 
   return (
     <section className="pb-10 md:pb-32">
