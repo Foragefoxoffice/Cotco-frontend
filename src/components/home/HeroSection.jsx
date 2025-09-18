@@ -37,7 +37,7 @@ export default function HeroSection() {
         muted
         playsInline
         preload="none"
-        poster="/img/fallback/home.png"
+        poster="/img/fallback/home.jpg"
         src="/video/hero.webm"
       />
 
