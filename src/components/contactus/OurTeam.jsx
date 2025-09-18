@@ -80,7 +80,7 @@ const TEAM_SECTIONS = [
     ],
   },
   {
-    title: "Other Inquiries or Recruitmen",
+    title: "Other Inquiries or Recruitment",
     members: [
       { phone: "+84 936 206 974", email: "info@cotco-vn.com" },
       {  phone: "+84 028 3 589 9978", email: "trading@cotco-vn.com",

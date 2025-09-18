@@ -33,10 +33,7 @@ export default function CustomerBenefits({
               relative z-10 w-full md:max-w-[880px] rounded-2xl
               bg-[#163A63] p-6 pr-24 text-white shadow-xl md:p-8 md:pr-44
             "
-            style={{
-              clipPath:
-                "polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%)",
-            }}
+           
           >
            
             <TitleAnimation

@@ -40,13 +40,13 @@ const Navbar = () => {
   } ${scrolled ? "bg-[#0A1C2E] shadow-md fixed" : "bg-transparent fixed"}`;
 
   const getLinkClass = (href) =>
-    `transition-colors duration-300 font-medium ${
-      location.pathname === href
-        ? "text-[#0D3B66] font-semibold"
-        : scrolled
-        ? "text-[#fff] hover:text-[#fff]"
-        : "text-[#fff] hover:text-[#fff]"
-    }`;
+  `relative transition-colors duration-300 font-medium 
+   ${
+     location.pathname === href
+       ? "text-white font-semibold after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[3px] after:w-full after:bg-white after:scale-x-100 after:origin-left after:transition-transform after:duration-300"
+       : "text-[#fff] hover:text-[#fff] after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[3px] after:w-full after:bg-white after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-300"
+   }`;
+
 
   // Contact pill styles (desktop + mobile)
   const contactClasses = (active = false) =>

@@ -7,12 +7,7 @@ const TEAM_SECTIONS = [
   {
     title: "Cotton",
     members: [
-      {
-        name: "Maria",
-        role: "Cotton Trader",
-        phone: "+84 93 411 0120",
-        email: "maria@cotco-vn.com",
-      },
+      
       {
         name: "Lisa",
         role: "Cotton Trader",

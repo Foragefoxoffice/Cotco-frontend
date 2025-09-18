@@ -141,7 +141,9 @@ export default function FiberHero() {
             muted
             loop
             playsInline
-            src="/video/fiber.mp4"
+            preload="none"
+        poster="/img/fallback/fiber.png"
+            src="/video/fiber.webm"
             className={`w-full rounded-xl  hidden md:block  ${
               scrolled ? "rounded-3xl " : "rounded-none"
             }`}
@@ -156,7 +158,9 @@ export default function FiberHero() {
               muted
               loop
               playsInline
-              src="/video/fiber-mobile.mp4"
+              preload="none"
+        poster="/img/fallback/fiber.png"
+              src="/video/fiber-mobile.webm"
               className={`absolute top-0 left-0 w-screen h-screen object-cover  ${
                 scrolled ? "rounded-xl " : "rounded-none"
               }`}
