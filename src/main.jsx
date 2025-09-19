@@ -12,6 +12,10 @@ import Contactus from './pages/Contactus';
 import Products from './pages/products';
 import ScrollToTop from './ScrollToTop';
 import BlogList from './pages/BlogList';
+import Login from './admin/Login/Login';
+import SideBar from './admin/Dashboard/SideBar';
+import Homepage from './admin/Dashboard/HomePage';
+import Dashboard from './admin/Dashboard/Dashboard';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -25,6 +29,10 @@ createRoot(document.getElementById('root')).render(
         <Route path="/machines" element={<Products />} />
         <Route path="/contact" element={<Contactus />} />
         <Route path="/blog" element={<BlogList />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/homepage" element={<Homepage />} />
+        <Route path="/sidebar" element={<SideBar />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
