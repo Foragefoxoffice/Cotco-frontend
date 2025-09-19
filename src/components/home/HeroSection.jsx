@@ -36,7 +36,9 @@ export default function HeroSection() {
         loop
         muted
         playsInline
-        src="/video/hero.mp4"
+        preload="none"
+        poster="/img/fallback/home.jpg"
+        src="/video/hero.webm"
       />
 
       {/* Dark overlay */}

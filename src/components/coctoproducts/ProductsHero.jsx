@@ -144,7 +144,9 @@ export default function ProductsHero() {
             muted
             loop
             playsInline
-            src="/video/products.mp4"
+            preload="none"
+        poster="/img/fallback/product.png"
+            src="/video/products.webm"
             className="w-full rounded-xl  hidden md:block"
             whileHover={{ scale: 1.01 }}
             transition={{ duration: 0.3 }}

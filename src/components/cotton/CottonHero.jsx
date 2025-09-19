@@ -133,7 +133,9 @@ export default function CottonHero() {
             muted
             loop
             playsInline
-            src="/video/cotton.mp4"
+            preload="none"
+            poster="/img/fallback/cotton.jpg"
+            src="/video/cotton.webm"
             className={`w-full hidden md:block ${
               scrolled ? "rounded-3xl " : "rounded-none"
             }`}
@@ -147,7 +149,9 @@ export default function CottonHero() {
               muted
               loop
               playsInline
-              src="/video/cotton-mobile.mp4"
+              preload="none"
+        poster="/img/fallback/cotton.jpg"
+              src="/video/cotton-mobile.webm"
               className={`absolute top-0 left-0 w-screen h-screen object-cover  ${
                 scrolled ? "rounded-xl " : "rounded-none"
               }`}

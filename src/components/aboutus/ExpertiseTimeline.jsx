@@ -11,7 +11,7 @@ const expertiseData = [
   {
     year: "2019",
     description:
-      "Became exclusive agency of Louis Dreyfus Company (LDC) for premium cotton supply; joined and maintained membership in the International Cotton Association (ICA), affirming global credibility.",
+      "Became agency of Louis Dreyfus Company (LDC) for premium cotton supply; joined and maintained membership in the International Cotton Association (ICA), affirming global credibility.",
     image: "/img/timeline/2019.png",
   },
   {

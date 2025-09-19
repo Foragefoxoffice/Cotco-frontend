@@ -24,13 +24,6 @@ const TEAM_SECTIONS = [
         phone: "+84 90 923 4906",
         email: "nganhth@cotco-vn.com",
       },
-      
-      {
-        name: "Martin",
-        role: "Cotton Trader",
-        phone: "+84 98 455 7888",
-        email: "nganhth@cotco-vn.com",
-      },
       {
         name: "Giao",
         role: "Logistics Executive",
@@ -191,17 +184,18 @@ export default function MeetOurTeam() {
             const isOpen = openIndex === idx;
             return (
               <div key={section.title} className="rounded-2xl">
-                <button
-                  type="button"
-                  onClick={() => setOpenIndex(isOpen ? 0 : idx)}
-                  className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100"
-                  aria-expanded={isOpen}
-                >
-                  <span className="text-[20px] font-bold uppercase tracking-wide text-slate-700">
-                    {section.title}
-                  </span>
-                  <PlusIcon open={isOpen} />
-                </button>
+            <button
+  type="button"
+  onClick={() => setOpenIndex(isOpen ? null : idx)}
+  className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100"
+  aria-expanded={isOpen}
+>
+  <span className="text-[20px] font-bold uppercase tracking-wide text-slate-700">
+    {section.title}
+  </span>
+  <PlusIcon open={isOpen} />
+</button>
+
 
                 {/* Collapsible content */}
                 <div
