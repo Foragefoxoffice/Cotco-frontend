@@ -1,9 +1,8 @@
-import SideBar from "./SideBar"
+import SideBar from "./Dashboard"
 
 export default function Homepage() {
     return (
         <div>
-            <SideBar />
             sddsdd
         </div>
     )

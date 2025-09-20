@@ -13,9 +13,9 @@ import Products from './pages/products';
 import ScrollToTop from './ScrollToTop';
 import BlogList from './pages/BlogList';
 import Login from './admin/Login/Login';
-import SideBar from './admin/Dashboard/SideBar';
 import Homepage from './admin/Dashboard/HomePage';
 import Dashboard from './admin/Dashboard/Dashboard';
+import Blogs from './admin/Blog/Blog';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -32,7 +32,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/homepage" element={<Homepage />} />
-        <Route path="/sidebar" element={<SideBar />} />
+        <Route path="/blogs" element={<Blogs />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
