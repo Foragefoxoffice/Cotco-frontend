@@ -15,6 +15,15 @@ export const getPosts = async () => {
     }
 };
 
+export const addPost = async (payload) => {
+    try {
+        const response = await api.post("/api/posts", payload);
+        return response;
+    } catch (error) {
+        throw error;
+    }
+};
+
 
 export const removePost = async (id) => {
     try {

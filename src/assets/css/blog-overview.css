@@ -1,0 +1,21 @@
+.premium-metadata-item {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 2px 0;
+    gap: 7px;
+    margin-top: 25px;
+}
+
+.premium-divider {
+  margin: 8px 0 !important;
+  background: #63636302;
+}
+
+.premium-layout-2 .premium-metadata-item{
+    margin-top: 0px !important;
+}
+
+.premium-layout-4 .premium-metadata-item{
+    margin-top: 0px !important;
+}

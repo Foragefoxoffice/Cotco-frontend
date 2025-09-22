@@ -15,12 +15,26 @@ import BlogList from './pages/BlogList';
 import Login from './admin/Login/Login';
 import Homepage from './admin/Dashboard/HomePage';
 import Dashboard from './admin/Dashboard/Dashboard';
-import Blogs from './admin/Blog/Blog';
+import AddBlogs from './admin/Blog/AddBlogs';
+import { ToastContainer } from 'react-toastify';
+import Blogs from './Blogs/Blogs';
+import BlogOverview from './Blogs/BlogOverview';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <ScrollToTop />
+      <ToastContainer
+        position="top-right"
+        autoClose={1500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/aboutus" element={<Aboutus />} />
@@ -32,7 +46,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/homepage" element={<Homepage />} />
+        <Route path="/blog-widgets" element={<AddBlogs />} />
         <Route path="/blogs" element={<Blogs />} />
+        <Route path="/blogs/:id" element={<BlogOverview />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
