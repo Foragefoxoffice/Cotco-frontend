@@ -1,45 +1,35 @@
 import axios from "axios";
 
-// In Vite, env vars must be prefixed with VITE_ (not REACT_APP_)
+// In Vite, env vars must be prefixed with VITE_
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    headers: { "Content-Type": "application/json" },
+  baseURL: import.meta.env.VITE_API_URL,
+  headers: { "Content-Type": "application/json" },
 });
 
-export const getPosts = async () => {
-    try {
-        const response = await api.get("/api/posts");
-        return response;
-    } catch (error) {
-        throw error;
-    }
-};
+// ✅ Attach token automatically if available
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-export const addPost = async (payload) => {
-    try {
-        const response = await api.post("/api/posts", payload);
-        return response;
-    } catch (error) {
-        throw error;
-    }
-};
+// ----------------- Posts -----------------
+export const getPosts = () => api.get("/api/posts");
 
+export const addPost = (payload) => api.post("/api/posts", payload);
 
-export const removePost = async (id) => {
-    try {
-        const response = await api.delete(`/api/posts/${id}`);
-        return response;
-    } catch (error) {
-        throw error;
-    }
-};
+export const removePost = (id) => api.delete(`/api/posts/${id}`);
 
+export const updatePost = (id, payload) => api.put(`/api/posts/${id}`, payload);
 
-export const login = async (payload) => {
-    try {
-        const response = await api.post("/api/auth/login", payload);
-        return response;
-    } catch (error) {
-        throw error;
-    }
-};
+// ----------------- Auth -----------------
+export const login = (payload) => api.post("/api/auth/login", payload);
+
+// ----------------- Users (Admin Only) -----------------
+export const getUsers = () => api.get("/api/users");
+
+export const addUser = (payload) => api.post("/api/users", payload);
+
+export const deleteUser = (id) => api.delete(`/api/users/${id}`);
