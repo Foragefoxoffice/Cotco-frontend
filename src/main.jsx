@@ -17,10 +17,10 @@ import Homepage from "./admin/Dashboard/HomePage";
 import Dashboard from "./admin/Dashboard/Dashboard";
 import AddBlogs from "./admin/Blog/AddBlogs";
 import { ToastContainer } from "react-toastify";
-import Blogs from "./Blogs/Blogs";
 import BlogOverview from "./Blogs/BlogOverview";
 import BlogLists from "./admin/Blog/BlogLists";
 import Users from "./admin/Users/Users";
+import Blogs from "./pages/Blogs";
 
 // 🔒 Protect dashboard-related routes
 const ProtectedRoute = ({ children }) => {
