@@ -1,24 +1,16 @@
-
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  FileText,
-  Package,
-  Newspaper,
-  Phone,
-  Settings,
-  ChevronRight,
-  Cpu
-} from 'lucide-react';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { LayoutDashboard, Newspaper, ChevronRight } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext"; // ✅ use your theme
 
 const Sidebar = () => {
   const location = useLocation();
+  const { theme } = useTheme();
 
   const getInitialMenuState = () => ({
-    pages: location.pathname.startsWith('/pages'),
-    products: location.pathname.startsWith('/products'),
-    news: location.pathname.startsWith('/news'),
+    pages: location.pathname.startsWith("/admin/pages"),
+    products: location.pathname.startsWith("/admin/products"),
+    news: location.pathname.startsWith("/admin/news"),
   });
 
   const [openMenus, setOpenMenus] = React.useState(getInitialMenuState);
@@ -26,54 +18,38 @@ const Sidebar = () => {
   React.useEffect(() => {
     setOpenMenus(getInitialMenuState());
   }, [location.pathname]);
-  
+
   const toggleMenu = (key) => {
-    setOpenMenus(prev => ({ ...prev, [key]: !prev[key] }));
+    setOpenMenus((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const menuItems = [
-    { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-    { 
-      label: 'Pages', 
-      icon: <FileText size={20} />, 
-      key: 'pages',
+    { path: "/admin", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
+    {
+      label: "News",
+      icon: <Newspaper size={20} />,
+      key: "news",
       subItems: [
-        { path: '/admin/pages', label: 'All Pages' },
-        { path: '/admin/pages/homepage', label: 'Homepage' },
-      ] 
+        { path: "/admin/news", label: "All Articles" },
+        { path: "/admin/news/categories", label: "Categories" },
+      ],
     },
-    { 
-      label: 'Products', 
-      icon: <Package size={20} />, 
-      key: 'products',
-      subItems: [
-        { path: '/admin/products', label: 'Categories' },
-      ]
-    },
-    { path: '/admin/machines', icon: <Cpu size={20} />, label: 'Machines' },
-    { 
-      label: 'News', 
-      icon: <Newspaper size={20} />, 
-      key: 'news',
-      subItems: [
-        { path: '/admin/news', label: 'All Articles' },
-        { path: '/admin/news/categories', label: 'Categories' },
-      ]
-    },
-    { path: '/admin/contact', icon: <Phone size={20} />, label: 'Contact' },
-    { path: '/admin/settings', icon: <Settings size={20} />, label: 'Global Settings' },
   ];
 
-  // FIX: Made the className prop optional with a default value to fix type errors where it was not provided.
-  const NavLink = ({ to, children, className = '' }) => {
+  // ✅ Custom NavLink with theme awareness
+  const NavLink = ({ to, children, className = "" }) => {
     const isActive = location.pathname === to;
     return (
       <Link
         to={to}
-        className={`flex items-center px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
+        className={`flex items-center px-4 py-2 mb-2 mt-2 text-sm rounded-md transition-colors duration-200 ${
           isActive
-            ? 'bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-white font-medium'
-            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ? theme === "light"
+              ? "bg-indigo-50 text-[#101828] font-medium"
+              : "bg-gray-700 text-white font-medium"
+            : theme === "light"
+            ? "text-gray-700 hover:bg-gray-100"
+            : "text-gray-300 hover:bg-gray-700"
         } ${className}`}
       >
         {children}
@@ -82,11 +58,36 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-full flex flex-col">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400">Orchid CMS</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">COTCO Admin</p>
+    <div
+      className={`w-64 border-r h-full flex flex-col transition-colors duration-300 ${
+        theme === "light"
+          ? "bg-white border-gray-200"
+          : "bg-gray-800 border-gray-700"
+      }`}
+    >
+      {/* Logo */}
+      <div
+        className={`p-4 border-b ${
+          theme === "light" ? "border-gray-200" : "border-gray-700"
+        }`}
+      >
+        <img
+          alt="Cotco Logo"
+          src="/img/home/footerLogo.png"
+          className={`h-22 transition filter 
+    ${theme === "light" ? "brightness-50" : "brightness-100"}`}
+        />
+
+        <p
+          className={`text-sm text-center ${
+            theme === "light" ? "text-gray-500" : "text-gray-400"
+          }`}
+        >
+          COTCO Admin
+        </p>
       </div>
+
+      {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4">
         <ul>
           {menuItems.map((item) => (
@@ -95,23 +96,36 @@ const Sidebar = () => {
                 <>
                   <button
                     onClick={() => toggleMenu(item.key)}
-                    className={`flex items-center justify-between w-full px-4 py-2 text-sm rounded-md text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${location.pathname.startsWith(`/${item.key}`) && 'font-medium'}`}
+                    className={`flex items-center justify-between w-full px-4 py-2 text-sm rounded-md text-left transition-colors ${
+                      theme === "light"
+                        ? "text-gray-700 hover:bg-gray-100"
+                        : "text-gray-300 hover:bg-gray-700"
+                    } ${
+                      location.pathname.startsWith(`/admin/${item.key}`) &&
+                      "font-medium"
+                    }`}
                   >
                     <div className="flex items-center">
                       <span className="mr-3">{item.icon}</span>
                       {item.label}
                     </div>
-                    <ChevronRight size={16} className={`transition-transform ${openMenus[item.key] ? 'rotate-90' : ''}`} />
+                    <ChevronRight
+                      size={16}
+                      className={`transition-transform ${
+                        openMenus[item.key] ? "rotate-90" : ""
+                      }`}
+                    />
                   </button>
-                  {openMenus[item.key] && (
+                  {openMenus[item.key] ||
+                  location.pathname.startsWith(`/admin/${item.key}`) ? (
                     <ul className="pl-6 mt-1 space-y-1">
-                      {item.subItems.map(subItem => (
+                      {item.subItems.map((subItem) => (
                         <li key={subItem.path}>
                           <NavLink to={subItem.path}>{subItem.label}</NavLink>
                         </li>
                       ))}
                     </ul>
-                  )}
+                  ) : null}
                 </>
               ) : (
                 <NavLink to={item.path}>
@@ -123,8 +137,20 @@ const Sidebar = () => {
           ))}
         </ul>
       </nav>
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <p className="text-xs text-gray-500 dark:text-gray-400">Orchid CMS v1.0.0</p>
+
+      {/* Footer */}
+      <div
+        className={`p-4 border-t ${
+          theme === "light" ? "border-gray-200" : "border-gray-700"
+        }`}
+      >
+        <p
+          className={`text-xs ${
+            theme === "light" ? "text-gray-500" : "text-gray-400"
+          }`}
+        >
+          Cotco CMS
+        </p>
       </div>
     </div>
   );

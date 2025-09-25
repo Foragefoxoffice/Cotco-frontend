@@ -5,14 +5,18 @@ import {
   getCategories,
   createCategory,
   deleteCategory,
-  updateCategory } from "../Api/api"
+  updateCategory,
+} from "../Api/api";
 import { CommonToaster } from "../Common/CommonToaster";
+import { useTheme } from "../contexts/ThemeContext"; // ✅ import theme context
 
 const NewsCategoriesScreen = () => {
   const [categories, setCategories] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const { theme } = useTheme(); // ✅ get theme
 
   // ✅ Fetch categories
   const fetchCategories = async () => {
@@ -62,11 +66,9 @@ const NewsCategoriesScreen = () => {
   const handleSave = async (categoryData) => {
     try {
       if (editingCategory) {
-        // ✅ update API
         await updateCategory(editingCategory._id, categoryData);
         CommonToaster("Category updated successfully", "success");
       } else {
-        // ✅ create API
         await createCategory(categoryData);
         CommonToaster("Category created successfully", "success");
       }
@@ -79,19 +81,29 @@ const NewsCategoriesScreen = () => {
   };
 
   return (
-    <div>
+    <div
+      className={`min-h-screen p-6 transition-colors duration-300 
+        ${
+          theme === "light"
+            ? "bg-gray-50 text-gray-900"
+            : "bg-gray-900 text-gray-100"
+        }`}
+    >
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            News Categories
-          </h1>
+          <h1 className="text-2xl font-bold">News Categories</h1>
           <p className="text-gray-600 dark:text-gray-400">
             Manage categories for news articles
           </p>
         </div>
         <button
           onClick={handleCreate}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center"
+          className={`px-4 py-2 rounded-md flex items-center transition
+            ${
+              theme === "light"
+                ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                : "bg-indigo-500 text-gray-900 hover:bg-indigo-400"
+            }`}
         >
           <Plus size={18} className="mr-1" />
           Create Category
@@ -101,22 +113,29 @@ const NewsCategoriesScreen = () => {
       {loading ? (
         <p className="p-4">Loading categories...</p>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div
+          className={`rounded-lg shadow-sm overflow-hidden border transition-colors duration-300 
+            ${
+              theme === "light"
+                ? "bg-white border-gray-200"
+                : "bg-gray-800 border-gray-700"
+            }`}
+        >
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
+            <thead className="bg-gray-800 dark:bg-gray-800">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#000] dark:text-[#fff] uppercase tracking-wider">
                   Category Name (EN)
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#000] dark:text-[#fff] uppercase tracking-wider">
                   Slug
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-[#000] dark:text-[#fff] uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody>
               {categories.length === 0 ? (
                 <tr>
                   <td
@@ -130,25 +149,25 @@ const NewsCategoriesScreen = () => {
                 categories.map((category) => (
                   <tr
                     key={category._id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   >
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <td className="px-6 py-4 text-sm font-medium">
                       {category.name.en}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono">
+                    <td className="px-6 py-4 text-sm font-medium">
                       {category.slug}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-right">
                       <div className="flex justify-end space-x-2">
                         <button
                           onClick={() => handleEdit(category)}
-                          className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 p-1"
+                          className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 p-1 transition"
                         >
                           <Edit size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(category._id)}
-                          className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-1"
+                          className="text-red-600 dark:text-red-400 hover:opacity-80 p-1 transition"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -164,7 +183,10 @@ const NewsCategoriesScreen = () => {
 
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
+          <div
+            className={`rounded-lg shadow-xl w-full max-w-lg transition-colors duration-300
+              ${theme === "light" ? "bg-white" : "bg-gray-800"}`}
+          >
             <NewsCategoryForm
               category={editingCategory}
               onClose={handleCloseForm}

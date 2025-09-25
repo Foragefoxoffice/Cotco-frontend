@@ -3,6 +3,7 @@ import { X, Upload, PlusCircle, Trash2 } from "lucide-react";
 import TranslationTabs from "../TranslationTabs";
 import WysiwygEditor from "../WysiwygEditor";
 import { slugify } from "../../utils/helpers";
+import { getCategories } from "../../Api/api"; // ✅ fetch real categories
 
 const blockTypes = [
   { value: "richtext", label: "Rich Text" },
@@ -12,18 +13,14 @@ const blockTypes = [
   { value: "code", label: "Code Snippet" },
 ];
 
-const mockCategories = [
-  { id: 1, slug: "company-news", name: { en: "Company News", vn: "Tin tức công ty" } },
-  { id: 2, slug: "industry-updates", name: { en: "Industry Updates", vn: "Cập nhật ngành" } },
-  { id: 3, slug: "sustainability", name: { en: "Sustainability", vn: "Bền vững" } },
-];
-
 const NewsArticleForm = ({ article, onClose, onSave }) => {
   const [activeLanguage, setActiveLanguage] = useState("en");
   const fileInputRef = useRef(null);
   const [tagInput, setTagInput] = useState("");
-
   const isCreating = !article;
+
+  // ✅ Categories state
+  const [categories, setCategories] = useState([]);
 
   const [formData, setFormData] = useState({
     title: { en: "", vn: "" },
@@ -33,7 +30,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     blocks: [],
     publishedAt: new Date().toISOString().split("T")[0],
     author: "Admin User",
-    category: mockCategories[0]?.slug || "",
+    category: "", // ✅ dynamically filled
     tags: [],
     status: "draft",
     seo: {
@@ -42,12 +39,31 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     },
   });
 
+  // ✅ Fetch categories from backend
+  useEffect(() => {
+    getCategories()
+      .then((res) => {
+        const cats = res.data.data || res.data;
+        setCategories(cats);
+
+        // prefill category if empty
+        if (!formData.category && cats.length > 0) {
+          setFormData((prev) => ({ ...prev, category: cats[0].slug }));
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch categories:", err);
+      });
+  }, []);
+
+  // ✅ Load article if editing
   useEffect(() => {
     if (article) {
       setFormData(article);
     }
   }, [article]);
 
+  // ✅ Auto-generate slug
   useEffect(() => {
     if (isCreating && formData.title.en) {
       setFormData((prev) => ({ ...prev, slug: slugify(prev.title.en) }));
@@ -56,7 +72,8 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
 
   const inputClasses =
     "mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500";
-  const labelClasses = "block text-sm font-medium text-gray-700 dark:text-gray-300";
+  const labelClasses =
+    "block text-sm font-medium text-gray-700 dark:text-gray-300";
 
   // ✅ General field change
   const handleChange = (field, value, isTranslatable = false) => {
@@ -101,7 +118,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     }
   };
 
-  // ✅ Tag handling
+  // ✅ Tags
   const handleTagKeyDown = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
       e.preventDefault();
@@ -120,14 +137,11 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     }));
   };
 
-  // ✅ Blocks handling
+  // ✅ Blocks
   const addBlock = (type) => {
     const newBlock = {
       type,
-      content:
-        type === "image"
-          ? { url: "" }
-          : { en: "", vn: "" },
+      content: type === "image" ? { url: "" } : { en: "", vn: "" },
       position: formData.blocks.length,
     };
     setFormData((prev) => ({
@@ -140,7 +154,8 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     setFormData((prev) => {
       const blocks = [...prev.blocks];
       blocks[index].content =
-        typeof blocks[index].content === "object" && blocks[index].type !== "image"
+        typeof blocks[index].content === "object" &&
+        blocks[index].type !== "image"
           ? { ...blocks[index].content, [activeLanguage]: value }
           : value;
       return { ...prev, blocks };
@@ -201,7 +216,10 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             className={inputClasses}
             value={formData.slug}
             onChange={(e) =>
-              handleChange("slug", e.target.value.toLowerCase().replace(/\s+/g, "-"))
+              handleChange(
+                "slug",
+                e.target.value.toLowerCase().replace(/\s+/g, "-")
+              )
             }
             required
           />
@@ -351,6 +369,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           </div>
         </div>
 
+        {/* ✅ Category Select */}
         <div>
           <label className={labelClasses}>Category</label>
           <select
@@ -358,9 +377,9 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             value={formData.category}
             onChange={(e) => handleChange("category", e.target.value)}
           >
-            {mockCategories.map((c) => (
-              <option key={c.id} value={c.slug}>
-                {c.name.en}
+            {categories.map((c) => (
+              <option key={c._id} value={c.slug}>
+                {c.name[activeLanguage] || c.name.en}
               </option>
             ))}
           </select>
@@ -381,7 +400,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
         {/* Tags */}
         <div>
           <label className={labelClasses}>Tags</label>
-          <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-white dark:bg-gray-700">
+          <div className="flex mt-1 flex-wrap gap-2 p-2 border rounded-md bg-white dark:bg-gray-700">
             {formData.tags.map((tag) => (
               <span
                 key={tag}
@@ -403,14 +422,16 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={handleTagKeyDown}
               placeholder="Add tag and press Enter"
-              className="flex-grow outline-none bg-transparent"
+              className="flex-grow outline-none bg-transparent text-gray-800 dark:text-gray-100 p-1"
             />
           </div>
         </div>
 
         {/* SEO */}
         <div className="space-y-3 border-t pt-4">
-          <h3 className="font-medium text-gray-800 dark:text-gray-200">SEO Settings</h3>
+          <h3 className="font-medium text-gray-800 dark:text-gray-200">
+            SEO Settings
+          </h3>
           <div>
             <label className={labelClasses}>Meta Title</label>
             <input
@@ -436,13 +457,13 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-white dark:bg-gray-600 border rounded-md"
+            className="px-4 py-2 bg-white dark:bg-gray-600 border rounded-md cursor-pointer hover:bg-red-50 dark:hover:bg-red-500 text-red-600 dark:text-red-300 hover:text-white-800"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 cursor-pointer"
           >
             {article ? "Update Blog" : "Create Blog"}
           </button>

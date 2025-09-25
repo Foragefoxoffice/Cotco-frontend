@@ -1,7 +1,6 @@
-
-import React, { useEffect, useRef } from 'react';
-import Quill from 'quill';
-import { useTheme } from '../contexts/ThemeContext';
+import React, { useEffect, useRef } from "react";
+import Quill from "quill";
+import { useTheme } from "../contexts/ThemeContext";
 
 const WysiwygEditor = ({ value, onChange }) => {
   const editorRef = useRef(null);
@@ -12,29 +11,29 @@ const WysiwygEditor = ({ value, onChange }) => {
     if (editorRef.current) {
       // Prevent multiple initializations
       if (quillRef.current) return;
-      
+
       const toolbarOptions = [
-        ['bold', 'italic', 'underline', 'link'],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        ['clean']
+        ["bold", "italic", "underline", "link"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["clean"],
       ];
-      
+
       quillRef.current = new Quill(editorRef.current, {
-        theme: 'snow',
+        theme: "snow",
         modules: {
           toolbar: toolbarOptions,
         },
       });
 
       const quill = quillRef.current;
-      
-      // Set initial value
-      if (value) {
+
+      // Set initial only if empty
+      if (value && !quill.root.innerHTML) {
         quill.clipboard.dangerouslyPasteHTML(value);
       }
-      
-      quill.on('text-change', (delta, oldDelta, source) => {
-        if (source === 'user') {
+
+      quill.on("text-change", (delta, oldDelta, source) => {
+        if (source === "user") {
           onChange(quill.root.innerHTML);
         }
       });
@@ -42,20 +41,27 @@ const WysiwygEditor = ({ value, onChange }) => {
 
     // Cleanup
     return () => {
-        if (quillRef.current) {
-            quillRef.current = null;
-        }
+      if (quillRef.current) {
+        quillRef.current = null;
+      }
     };
   }, []);
-  
+
   // Update editor content if value prop changes from outside
   useEffect(() => {
     if (quillRef.current && value !== quillRef.current.root.innerHTML) {
       const currentSelection = quillRef.current.getSelection();
       quillRef.current.clipboard.dangerouslyPasteHTML(value);
       if (currentSelection) {
-         // Restore cursor position after update
-         setTimeout(() => quillRef.current.setSelection(currentSelection.index, currentSelection.length), 0);
+        // Restore cursor position after update
+        setTimeout(
+          () =>
+            quillRef.current.setSelection(
+              currentSelection.index,
+              currentSelection.length
+            ),
+          0
+        );
       }
     }
   }, [value]);

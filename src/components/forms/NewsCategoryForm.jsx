@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import TranslationTabs from "../TranslationTabs";
 import { slugify } from "../../utils/helpers";
-import { createCategory } from "../../Api/api"; // ✅ import API
+import { createCategory, updateCategory } from "../../Api/api"; // ✅ import API
 import { CommonToaster } from "../../Common/CommonToaster";
 
 const NewsCategoryForm = ({ category, onClose, onSave }) => {
@@ -38,37 +38,49 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name.en) newErrors["name-en"] = "English name is required";
-    if (!formData.name.vn) newErrors["name-vn"] = "Vietnamese name is required";
+
+    // Only validate the active language input
+    if (!formData.name[activeLanguage]) {
+      newErrors[`name-${activeLanguage}`] = `${
+        activeLanguage === "en" ? "English" : "Vietnamese"
+      } name is required`;
+    }
+
     if (!formData.slug) newErrors.slug = "Slug is required";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isLoading) return; // 🚫 prevent double-submit
+
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
       let savedCategory;
       if (isCreating) {
-        // ✅ Call create API
-        savedCategory = await createCategory(formData);
+        const res = await createCategory(formData);
+        savedCategory = res.data.data || res.data;
         CommonToaster("Category created successfully!", "success");
+        console.log("Submitting category...", formData);
       } else {
-        // You could add update API here
-        savedCategory = formData;
+        const res = await updateCategory(category._id || category.id, formData);
+        savedCategory = res.data.data || res.data;
         CommonToaster("Category updated successfully!", "success");
       }
 
       if (onSave) onSave(savedCategory);
       onClose();
     } catch (error) {
-      console.error("Category save error:", error);
+      console.error("Category save error:", error.response || error);
       setErrors({
         submit:
           error.response?.data?.error ||
+          error.response?.data?.message ||
           "Failed to save category. Try again later.",
       });
     } finally {
@@ -84,7 +96,7 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {category ? "Edit Category" : "Create New Category"}
         </h2>
         <button
@@ -98,7 +110,13 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
         activeLanguage={activeLanguage}
         setActiveLanguage={setActiveLanguage}
       />
-      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+      <form
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.preventDefault(); // 🚫 block accidental Enter submit
+        }}
+        className="mt-6 space-y-6"
+      >
         <div>
           <label htmlFor="name" className={labelClasses}>
             Category Name
@@ -150,7 +168,7 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
             Cancel
           </button>
           <button
-            type="submit"
+            type="submit" // ✅ only submit via form
             disabled={isLoading}
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-70"
           >

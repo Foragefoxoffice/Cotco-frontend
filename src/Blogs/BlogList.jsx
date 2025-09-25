@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPages } from "../Api/api";
+import { getBlogs } from "../Api/api"; // ✅ use new blog API
 import { FaArrowRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -9,26 +9,35 @@ export default function BlogLists() {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch blogs on mount
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const res = await getPages(); // GET /api/v1/pages
-        // Format data for display (use EN version for now)
-        const formatted = res.data.data.map((page) => ({
-          id: page._id,
-          title: page.title.en,
-          desc:
-            page.blocks.find((b) => b.sectionType === "content")?.values.body?.en ||
-            "No description available",
-          img:
-            page.blocks.find((b) => b.sectionType === "hero")?.values.backgroundImage ||
-            "/img/blog/blog-img.png",
-          slug: page.slug,
-        }));
+        const res = await getBlogs();
+        console.log("📌 Raw API response:", res.data);
+
+        const formatted = res.data.data.map((blog) => {
+          const excerptEn =
+            typeof blog.excerpt?.en === "string" ? blog.excerpt.en : "";
+          const excerptVn =
+            typeof blog.excerpt?.vn === "string" ? blog.excerpt.vn : "";
+
+          return {
+            id: blog._id,
+            title: blog.title?.en || blog.title?.vn || "Untitled Blog",
+            desc: excerptEn
+              ? excerptEn.slice(0, 150) + "..."
+              : excerptVn
+              ? excerptVn.slice(0, 150) + "..."
+              : "No description",
+            img: blog.coverImage?.url || "/img/blog/blog-img.png", // ✅ FIXED
+            slug: blog.slug,
+          };
+        });
+
+        console.log("✅ Formatted Blogs:", formatted);
         setBlogs(formatted);
       } catch (err) {
-        console.error("Error fetching blogs:", err);
+        console.error("❌ Error fetching blogs:", err);
       } finally {
         setLoading(false);
       }
@@ -37,19 +46,15 @@ export default function BlogLists() {
     fetchBlogs();
   }, []);
 
-  // Animation variants
   const cardVariants = {
     hidden: { opacity: 0, y: 40 },
     visible: { opacity: 1, y: 0 },
   };
 
-  if (loading) {
-    return <p className="text-center py-10">Loading blogs...</p>;
-  }
+  if (loading) return <p className="text-center py-10">Loading blogs...</p>;
 
   return (
-    <div className="max-w-7xl mx-auto px-1 py-12">
-      {/* LATEST */}
+    <div className="max-w-7xl mx-auto px-1 py-12 pb-40">
       <motion.h2
         className="text-4xl md:text-5xl font-bold text-center mb-10"
         initial={{ opacity: 0, y: -20 }}
@@ -83,9 +88,11 @@ export default function BlogLists() {
               />
               <div className="pt-5 px-1.5">
                 <h3 className="font-medium text-xl mb-2">{blog.title}</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-3">{blog.desc}</p>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  {blog.desc}
+                </p>
                 <motion.a
-                  onClick={() => navigate(`/blogs/${blog.slug}`)} // ✅ navigate to blog detail
+                  onClick={() => navigate(`/blogs/${blog.slug}`)}
                   className="flex items-center gap-2 text-black font-medium cursor-pointer"
                   whileHover={{ x: 4 }}
                 >
