@@ -12,10 +12,10 @@ export default function BlogLists() {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const res = await getBlogs();
-        console.log("📌 Raw API response:", res.data);
+        const blogsArray = await getBlogs(); // ✅ already an array
+        console.log("📌 Raw API response:", blogsArray);
 
-        const formatted = res.data.data.map((blog) => {
+        const formatted = (blogsArray || []).map((blog) => {
           const excerptEn =
             typeof blog.excerpt?.en === "string" ? blog.excerpt.en : "";
           const excerptVn =
@@ -29,7 +29,7 @@ export default function BlogLists() {
               : excerptVn
               ? excerptVn.slice(0, 150) + "..."
               : "No description",
-            img: blog.coverImage?.url || "/img/blog/blog-img.png", // ✅ FIXED
+            img: blog.coverImage?.url || "/img/blog/blog-img.png",
             slug: blog.slug,
           };
         });

@@ -86,21 +86,10 @@ const HomePage = () => {
     whatWeDoImg3File: null,
   });
 
-  // COMPANY LOGOS
+  // COMPANY LOGOS (Partners)
   const [companyLogosForm, setCompanyLogosForm] = useState({
     companyLogosHeading: { en: "", vi: "" },
-    companyLogo1: "", // URL string saved in DB
-    companyLogo1File: null, // File input only
-    companyLogo2: "",
-    companyLogo2File: null,
-    companyLogo3: "",
-    companyLogo3File: null,
-    companyLogo4: "",
-    companyLogo4File: null,
-    companyLogo5: "",
-    companyLogo5File: null,
-    companyLogo6: "",
-    companyLogo6File: null,
+    logos: [], // ✅ instead of companyLogo1..6
   });
 
   // DEFINED US
@@ -167,12 +156,7 @@ const HomePage = () => {
       if (res.data?.companyLogosSection)
         setCompanyLogosForm({
           ...res.data.companyLogosSection,
-          companyLogo1File: null,
-          companyLogo2File: null,
-          companyLogo3File: null,
-          companyLogo4File: null,
-          companyLogo5File: null,
-          companyLogo6File: null,
+          logos: res.data.companyLogosSection.logos || [],
         });
       if (res.data?.definedUsSection)
         setDefinedUsForm({
@@ -193,54 +177,98 @@ const HomePage = () => {
   }, []);
 
   // ---------------------- SAVE HANDLER ---------------------- //
-   // ---------------------- SAVE HANDLER ---------------------- //
+  // ---------------------- SAVE HANDLER ---------------------- //
+  // ---------------------- SAVE HANDLER ---------------------- //
   const handleSave = async (sectionName, formState, files = []) => {
     try {
       const formData = new FormData();
-      formData.append(sectionName, JSON.stringify(formState));
-      files.forEach((fileKey) => {
-        if (formState[fileKey]) formData.append(fileKey, formState[fileKey]);
-      });
+
+      if (sectionName === "companyLogosSection") {
+        // 🔥 Clean logos array (remove .file so JSON is valid)
+        const cleanLogos = formState.logos.map((logo) => ({
+          url: logo.url || "",
+        }));
+
+        formData.append(
+          sectionName,
+          JSON.stringify({
+            ...formState,
+            logos: cleanLogos,
+          })
+        );
+
+        // 🔥 Append files separately (partnerLogo0, partnerLogo1…)
+        formState.logos.forEach((logo, i) => {
+          if (logo.file) {
+            formData.append(`partnerLogo${i}`, logo.file);
+          }
+        });
+      } else {
+        // Normal sections
+        formData.append(sectionName, JSON.stringify(formState));
+        files.forEach((fileKey) => {
+          if (formState[fileKey]) {
+            formData.append(fileKey, formState[fileKey]);
+          }
+        });
+      }
 
       const res = await updateHomepage(formData);
 
       if (res.data?.homepage?.[sectionName]) {
         const updatedSection = res.data.homepage[sectionName];
-        const resetFiles = Object.fromEntries(files.map((f) => [f, null]));
 
         switch (sectionName) {
+          case "companyLogosSection":
+            setCompanyLogosForm({
+              ...updatedSection,
+              logos: updatedSection.logos.map((logo) => ({
+                ...logo,
+                file: null, // reset local file after save
+              })),
+            });
+            break;
           case "heroSection":
-            setHeroForm({ ...updatedSection, ...resetFiles });
+            setHeroForm({ ...updatedSection, bgFile: null });
             break;
           case "whoWeAreSection":
-            setWhoWeAreForm({ ...updatedSection, ...resetFiles });
+            setWhoWeAreForm({ ...updatedSection, whoWeAreFile: null });
             break;
           case "whatWeDoSection":
-            setWhatWeDoForm({ ...updatedSection, ...resetFiles });
-            break;
-          case "companyLogosSection":
-            setCompanyLogosForm({ ...updatedSection, ...resetFiles });
+            setWhatWeDoForm({
+              ...updatedSection,
+              whatWeDoIcon1File: null,
+              whatWeDoIcon2File: null,
+              whatWeDoIcon3File: null,
+              whatWeDoImg1File: null,
+              whatWeDoImg2File: null,
+              whatWeDoImg3File: null,
+            });
             break;
           case "definedUsSection":
-            setDefinedUsForm({ ...updatedSection, ...resetFiles });
+            setDefinedUsForm({
+              ...updatedSection,
+              definedUsLogo1File: null,
+              definedUsLogo2File: null,
+              definedUsLogo3File: null,
+              definedUsLogo4File: null,
+              definedUsLogo5File: null,
+              definedUsLogo6File: null,
+            });
             break;
           case "coreValuesSection":
-            setCoreValuesForm({ ...updatedSection, ...resetFiles });
+            setCoreValuesForm({ ...updatedSection, coreImageFile: null });
             break;
         }
 
-        // ✅ Success toaster
-        CommonToaster( `${sectionName} saved successfully!`, "success");
+        CommonToaster(`${sectionName} saved successfully!`, "success");
       } else {
-        // ❌ If no section was updated
-        CommonToaster( `Failed to save ${sectionName}.`, "error");
+        CommonToaster(`Failed to save ${sectionName}.`, "error");
       }
     } catch (error) {
-      // ❌ Catch error toaster
       CommonToaster("error", error.message || "Something went wrong!");
     }
   };
-
 
   // ---------------------- UI ---------------------- //
   return (
@@ -583,7 +611,6 @@ const HomePage = () => {
         </Panel>
 
         {/* COMPANY LOGOS */}
-        {/* COMPANY LOGOS */}
         <Panel
           header={
             <span className="font-semibold text-lg flex items-center gap-2">
@@ -615,35 +642,63 @@ const HomePage = () => {
             ))}
           </Tabs>
 
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="mb-4">
-              <label className="font-medium">Company Logo {i}</label>
+          <Divider>Partner Logos</Divider>
+
+          {companyLogosForm.logos.map((logo, index) => (
+            <div key={index} className="flex items-center gap-3 mb-3">
+              {logo.url && (
+                <img
+                  src={logo.url}
+                  alt="Partner Logo"
+                  className="w-20 h-20 object-contain"
+                />
+              )}
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) =>
-                  setCompanyLogosForm({
-                    ...companyLogosForm,
-                    [`companyLogo${i}File`]: e.target.files[0], // ✅ keep file separate
-                  })
-                }
+                onChange={(e) => {
+                  const updated = [...companyLogosForm.logos];
+                  updated[index].file = e.target.files[0];
+                  setCompanyLogosForm({ ...companyLogosForm, logos: updated });
+                }}
               />
+              <Button
+                danger
+                onClick={() => {
+                  const updated = companyLogosForm.logos.filter(
+                    (_, i) => i !== index
+                  );
+                  setCompanyLogosForm({ ...companyLogosForm, logos: updated });
+                }}
+              >
+                Remove
+              </Button>
             </div>
           ))}
+
+          <Button
+            type="dashed"
+            className="w-full mt-3"
+            onClick={() =>
+              setCompanyLogosForm({
+                ...companyLogosForm,
+                logos: [...companyLogosForm.logos, { url: "", file: null }],
+              })
+            }
+          >
+            + Add Partner Logo
+          </Button>
 
           <div className="flex justify-end gap-4 mt-6">
             <Button onClick={() => window.location.reload()}>Cancel</Button>
             <Button
               type="primary"
               onClick={() =>
-                handleSave("companyLogosSection", companyLogosForm, [
-                  "companyLogo1File",
-                  "companyLogo2File",
-                  "companyLogo3File",
-                  "companyLogo4File",
-                  "companyLogo5File",
-                  "companyLogo6File",
-                ])
+                handleSave(
+                  "companyLogosSection",
+                  companyLogosForm,
+                  companyLogosForm.logos.map((_, i) => `partnerLogo${i}`)
+                )
               }
             >
               Save Company Logos

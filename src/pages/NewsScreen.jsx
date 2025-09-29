@@ -16,10 +16,11 @@ const NewsScreen = () => {
   const { theme } = useTheme(); // ✅ get theme
 
   // Fetch blogs from API
+  // Fetch blogs from API
   const fetchBlogs = async () => {
     try {
-      const res = await getBlogs();
-      setNewsArticles(res.data.data);
+      const blogs = await getBlogs(); // ✅ blogs array directly
+      setNewsArticles(blogs);
     } catch (err) {
       console.error("Error fetching blogs:", err);
       CommonToaster("Failed to load blogs", "error");
@@ -61,7 +62,7 @@ const NewsScreen = () => {
   };
 
   const handleView = (slug) => {
-    window.open(`/blogs/${slug}`, "_blank");
+    window.open(`/blogs/${slug}`, "_blank"); // ✅ matches your NewsSection
   };
 
   const handleSaveArticle = async (articleData) => {

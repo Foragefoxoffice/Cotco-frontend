@@ -26,7 +26,7 @@ import RichTextEditor from "../components/RichTextEditor";
 const { TextArea } = Input;
 const { Step } = Steps;
 
-/* ---------- Translation Components ---------- */
+/* ---------- Translation Inputs ---------- */
 const TranslationInput = ({
   value = { en: "", vn: "" },
   onChange,
@@ -110,6 +110,7 @@ const SectionToolbar = ({ onAdd }) => (
     <Button onClick={() => onAdd("table")}>+ Table</Button>
     <Button onClick={() => onAdd("imageLeft")}>+ Image Left</Button>
     <Button onClick={() => onAdd("imageRight")}>+ Image Right</Button>
+    <Button onClick={() => onAdd("image")}>+ Image</Button>
   </Space>
 );
 
@@ -126,44 +127,7 @@ const newBlankSection = (type) => ({
   image: "",
 });
 
-/* ---------- Tab Sections Editor ---------- */
-const TabSectionsEditor = ({ basePath, control }) => {
-  const { fields, append, remove } = useFieldArray({
-    name: basePath,
-    control,
-  });
-
-  return (
-    <>
-      <SectionToolbar onAdd={(type) => append(newBlankSection(type))} />
-
-      <Collapse
-        accordion
-        items={fields.map((s, i) => ({
-          key: s.id,
-          label: `Child Section (${s.type})`,
-          extra: (
-            <DeleteOutlined
-              onClick={(e) => {
-                e.stopPropagation();
-                remove(i);
-              }}
-            />
-          ),
-          children: (
-            <SectionEditor
-              basePath={`${basePath}.${i}`}
-              section={s}
-              control={control}
-            />
-          ),
-        }))}
-      />
-    </>
-  );
-};
-
-/* ---------- Section Editor (recursive) ---------- */
+/* ---------- Section Editor ---------- */
 const SectionEditor = ({ basePath, section, control }) => {
   switch (section.type) {
     case "text":
@@ -283,6 +247,46 @@ const SectionEditor = ({ basePath, section, control }) => {
                       field.onChange(blocks);
                     }}
                   />
+                  {/* ✅ Block Image Upload */}
+                  <Upload
+                    beforeUpload={() => false}
+                    listType="picture-card"
+                    fileList={
+                      block.image
+                        ? [
+                            {
+                              uid: `block-${bi}`,
+                              name: block.image.name || "image.png",
+                              status: "done",
+                              url:
+                                typeof block.image === "string"
+                                  ? block.image
+                                  : undefined,
+                              originFileObj:
+                                block.image instanceof File
+                                  ? block.image
+                                  : block.image?.originFileObj,
+                            },
+                          ]
+                        : []
+                    }
+                    onChange={({ fileList }) => {
+                      const file = fileList[0];
+                      const blocks = [...(field.value || [])];
+                      blocks[bi] = {
+                        ...blocks[bi],
+                        image: file?.originFileObj || file?.url || "",
+                      };
+                      field.onChange(blocks);
+                    }}
+                  >
+                    {!block.image && (
+                      <div>
+                        <PlusOutlined />
+                        <div>Upload</div>
+                      </div>
+                    )}
+                  </Upload>
                 </Card>
               ))}
             </>
@@ -290,11 +294,103 @@ const SectionEditor = ({ basePath, section, control }) => {
         />
       );
 
-    /* ✅ FIXED: Table */
+    case "imageLeft":
+    case "imageRight":
+    case "image":
+      return (
+        <Controller
+          name={`${basePath}.image`}
+          control={control}
+          render={({ field }) => (
+            <Upload
+              beforeUpload={() => false}
+              listType="picture-card"
+              fileList={
+                field.value
+                  ? [
+                      {
+                        uid: "-1",
+                        name: field.value.name || "image.png",
+                        status: "done",
+                        url:
+                          typeof field.value === "string"
+                            ? field.value
+                            : undefined,
+                        originFileObj:
+                          field.value instanceof File
+                            ? field.value
+                            : field.value?.originFileObj,
+                      },
+                    ]
+                  : []
+              }
+              onChange={({ fileList }) => {
+                const file = fileList[0];
+                field.onChange(file?.originFileObj || file?.url || "");
+              }}
+            >
+              {!field.value && (
+                <div>
+                  <PlusOutlined />
+                  <div>Upload Image</div>
+                </div>
+              )}
+            </Upload>
+          )}
+        />
+      );
+
+    case "tabs": {
+      const {
+        fields: tabFields,
+        append: appendTab,
+        remove: removeTab,
+      } = useFieldArray({ control, name: `${basePath}.tabs` });
+
+      return (
+        <>
+          <Button
+            type="dashed"
+            onClick={() =>
+              appendTab({ tabTitle: { en: "", vn: "" }, sections: [] })
+            }
+          >
+            + Add Tab
+          </Button>
+          <Tabs
+            className="mt-3"
+            items={tabFields.map((tab, ti) => ({
+              key: tab.id,
+              label: tab.tabTitle?.en || `Tab ${ti + 1}`,
+              children: (
+                <>
+                  <Controller
+                    name={`${basePath}.tabs.${ti}.tabTitle`}
+                    control={control}
+                    render={({ field }) => (
+                      <TranslationInput {...field} placeholder="Tab Title" />
+                    )}
+                  />
+                  <div className="my-3">
+                    <TabSectionsEditor
+                      basePath={`${basePath}.tabs.${ti}.sections`}
+                      control={control}
+                    />
+                  </div>
+                  <Button danger onClick={() => removeTab(ti)}>
+                    Remove Tab
+                  </Button>
+                </>
+              ),
+            }))}
+          />
+        </>
+      );
+    }
+
     case "table":
       return (
         <>
-          {/* Table Title */}
           <Controller
             name={`${basePath}.table.header`}
             control={control}
@@ -305,8 +401,6 @@ const SectionEditor = ({ basePath, section, control }) => {
               />
             )}
           />
-
-          {/* Rows */}
           <Controller
             name={`${basePath}.table.rows`}
             control={control}
@@ -318,7 +412,6 @@ const SectionEditor = ({ basePath, section, control }) => {
                 >
                   + Add Row
                 </Button>
-
                 {(field.value || []).map((row, ri) => (
                   <Card size="small" key={ri} className="mt-2">
                     <div className="flex flex-col gap-2">
@@ -334,7 +427,6 @@ const SectionEditor = ({ basePath, section, control }) => {
                           }}
                         />
                       ))}
-
                       <div className="flex gap-2 mt-2">
                         <Button
                           size="small"
@@ -346,7 +438,6 @@ const SectionEditor = ({ basePath, section, control }) => {
                         >
                           + Add Cell
                         </Button>
-
                         <Button
                           size="small"
                           danger
@@ -368,129 +459,45 @@ const SectionEditor = ({ basePath, section, control }) => {
         </>
       );
 
-    /* ✅ FIXED: Image Left & Right */
-    case "imageLeft":
-    case "imageRight":
-      return (
-        <>
-          <Controller
-            name={`${basePath}.title`}
-            control={control}
-            render={({ field }) => (
-              <TranslationInput {...field} placeholder="Title" />
-            )}
-          />
-          <Controller
-            name={`${basePath}.description`}
-            control={control}
-            render={({ field }) => (
-              <TranslationTextArea {...field} placeholder="Description" />
-            )}
-          />
-          <Controller
-            name={`${basePath}.image`}
-            control={control}
-            render={({ field }) => (
-              <Upload
-                beforeUpload={() => false}
-                listType="picture-card"
-                fileList={
-                  field.value
-                    ? [
-                        {
-                          uid: "-1",
-                          name: "image.png",
-                          status: "done",
-                          url:
-                            typeof field.value === "string"
-                              ? field.value
-                              : undefined,
-                          originFileObj:
-                            field.value instanceof File
-                              ? field.value
-                              : undefined,
-                        },
-                      ]
-                    : []
-                }
-                onChange={({ fileList }) => {
-                  const file = fileList[0];
-                  field.onChange(file?.originFileObj || file?.url || "");
-                }}
-              >
-                {!field.value && (
-                  <div>
-                    <PlusOutlined />
-                    <div>Upload Image</div>
-                  </div>
-                )}
-              </Upload>
-            )}
-          />
-        </>
-      );
-
-    /* ✅ Tabs already fixed in last version */
-    case "tabs": {
-      const {
-        fields: tabFields,
-        append: appendTab,
-        remove: removeTab,
-      } = useFieldArray({
-        control,
-        name: `${basePath}.tabs`,
-      });
-
-      return (
-        <>
-          <Button
-            type="dashed"
-            onClick={() =>
-              appendTab({ tabTitle: { en: "", vn: "" }, sections: [] })
-            }
-          >
-            + Add Tab
-          </Button>
-
-          <Tabs
-            className="mt-3"
-            items={tabFields.map((tab, ti) => ({
-              key: tab.id,
-              label: tab.tabTitle?.en || `Tab ${ti + 1}`,
-              children: (
-                <>
-                  <Controller
-                    name={`${basePath}.tabs.${ti}.tabTitle`}
-                    control={control}
-                    render={({ field }) => (
-                      <TranslationInput {...field} placeholder="Tab Title" />
-                    )}
-                  />
-
-                  <div className="my-3">
-                    <TabSectionsEditor
-                      basePath={`${basePath}.tabs.${ti}.sections`}
-                      control={control}
-                    />
-                  </div>
-
-                  <Button danger onClick={() => removeTab(ti)}>
-                    Remove Tab
-                  </Button>
-                </>
-              ),
-            }))}
-          />
-        </>
-      );
-    }
-
     default:
       return <p>⚠ Unsupported section type: {section.type}</p>;
   }
 };
 
-/* ---------- Main ---------- */
+/* ---------- Tab Sections Editor ---------- */
+const TabSectionsEditor = ({ basePath, control }) => {
+  const { fields, append, remove } = useFieldArray({ name: basePath, control });
+
+  return (
+    <>
+      <SectionToolbar onAdd={(type) => append(newBlankSection(type))} />
+      <Collapse
+        accordion
+        items={fields.map((s, i) => ({
+          key: s.id,
+          label: `Child Section (${s.type})`,
+          extra: (
+            <DeleteOutlined
+              onClick={(e) => {
+                e.stopPropagation();
+                remove(i);
+              }}
+            />
+          ),
+          children: (
+            <SectionEditor
+              basePath={`${basePath}.${i}`}
+              section={s}
+              control={control}
+            />
+          ),
+        }))}
+      />
+    </>
+  );
+};
+
+/* ---------- Main Component ---------- */
 const MachinePageCreate = ({ onSuccess }) => {
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
@@ -509,10 +516,7 @@ const MachinePageCreate = ({ onSuccess }) => {
     fields: sections,
     append,
     remove,
-  } = useFieldArray({
-    control,
-    name: "sections",
-  });
+  } = useFieldArray({ control, name: "sections" });
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -553,17 +557,58 @@ const MachinePageCreate = ({ onSuccess }) => {
         formData.append("banner", bannerFile[0].originFileObj);
       }
 
-      // ✅ Clone sections safely
+      // ✅ Handle sections + block + tab images
       const sections = values.sections.map((s, i) => {
-        if (
-          (s.type === "imageLeft" || s.type === "imageRight") &&
-          s.image instanceof File
-        ) {
-          // give unique key for each image
+        // Section images
+        if (["image", "imageLeft", "imageRight"].includes(s.type) && s.image) {
           const fieldName = `sectionImage_${i}`;
-          formData.append(fieldName, s.image);
-          return { ...s, image: fieldName }; // store placeholder name
+          const file = s.image.originFileObj || s.image;
+          if (file instanceof File) {
+            formData.append(fieldName, file);
+            return { ...s, image: fieldName };
+          }
         }
+
+        // Block images
+        if (s.type === "blocks" && Array.isArray(s.blocks)) {
+          const updatedBlocks = s.blocks.map((block, bi) => {
+            if (block.image) {
+              const blockKey = `section_${i}_block_${bi}`;
+              const file = block.image.originFileObj || block.image;
+              if (file instanceof File) {
+                formData.append(blockKey, file);
+                return { ...block, image: blockKey };
+              }
+            }
+            return block;
+          });
+          return { ...s, blocks: updatedBlocks };
+        }
+
+        // ✅ Tab section images
+        if (s.type === "tabs" && Array.isArray(s.tabs)) {
+          const updatedTabs = s.tabs.map((tab, ti) => {
+            const updatedSections = tab.sections.map((subSection, si) => {
+              if (
+                ["image", "imageLeft", "imageRight"].includes(
+                  subSection.type
+                ) &&
+                subSection.image
+              ) {
+                const tabImgKey = `section_${i}_tab_${ti}_section_${si}`;
+                const file = subSection.image.originFileObj || subSection.image;
+                if (file instanceof File) {
+                  formData.append(tabImgKey, file);
+                  return { ...subSection, image: tabImgKey };
+                }
+              }
+              return subSection;
+            });
+            return { ...tab, sections: updatedSections };
+          });
+          return { ...s, tabs: updatedTabs };
+        }
+
         return s;
       });
 
@@ -599,7 +644,11 @@ const MachinePageCreate = ({ onSuccess }) => {
               control={control}
               rules={{ required: "Category is required" }}
               render={({ field }) => (
-                <Select {...field} placeholder="Select category">
+                <Select
+                  {...field}
+                  placeholder="Select category"
+                  className="w-72"
+                >
                   {categories.map((cat) => (
                     <Select.Option key={cat._id} value={cat._id}>
                       {cat.name?.en}
@@ -608,7 +657,6 @@ const MachinePageCreate = ({ onSuccess }) => {
                 </Select>
               )}
             />
-
             <Controller
               name="title"
               control={control}
@@ -617,7 +665,6 @@ const MachinePageCreate = ({ onSuccess }) => {
                 <TranslationInput {...field} placeholder="Page Title" />
               )}
             />
-
             <Controller
               name="description"
               control={control}
@@ -628,7 +675,6 @@ const MachinePageCreate = ({ onSuccess }) => {
                 />
               )}
             />
-
             <Controller
               name="slug"
               control={control}
@@ -643,7 +689,6 @@ const MachinePageCreate = ({ onSuccess }) => {
             <div className="mb-4">
               <SectionToolbar onAdd={(type) => append(newBlankSection(type))} />
             </div>
-
             <Collapse
               accordion
               items={sections.map((s, i) => ({
@@ -692,7 +737,6 @@ const MachinePageCreate = ({ onSuccess }) => {
                 <Input {...field} placeholder="Keywords (comma separated)" />
               )}
             />
-
             <Upload
               beforeUpload={() => false}
               listType="picture-card"

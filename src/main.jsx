@@ -27,13 +27,13 @@ import NewsScreen from "./pages/NewsScreen";
 import ContactScreen from "./pages/ContactScreen";
 import GlobalSettingsScreen from "./pages/GlobalSettingsScreen";
 import ProductListScreen from "./pages/ProductListScreen";
-import MachinesScreen from "./pages/MachinesMainCategroies"; // ✅ Admin main categories page
 import MachineListScreen from "./pages/MachineListScreen";
 import MachineEditScreen from "./pages/MachineEditScreen";
 import NewsCategoriesScreen from "./pages/NewsCategoriesScreen";
 
 import Login from "./admin/Login/Login";
 import Homepage from "./admin/Dashboard/HomePage";
+import AboutPage from "./admin/Dashboard/AboutPage";
 import AddBlogs from "./admin/Blog/AddBlogs";
 import BlogLists from "./admin/Blog/BlogLists";
 import CategoriesCreate from "./admin/Blog/CategoriesCreate";
@@ -52,6 +52,7 @@ import MachineList from "./pages/MachineList";
 
 // Toast
 import { ToastContainer } from "react-toastify";
+import MachinePage from "./pages/MachinePage";
 
 // 🔒 Protect dashboard-related routes
 const ProtectedRoute = ({ children }) => {
@@ -94,14 +95,11 @@ createRoot(document.getElementById("root")).render(
 
           {/* 🏭 Machines routes */}
           <Route path="/machines" element={<MachinesMain />} />
-          <Route path="/machines/:mainSlug" element={<MachineCategories />} />
+          <Route path="/machines/:categorySlug" element={<MachineList />} />
+
           <Route
-            path="/machines/:mainSlug/:categorySlug"
-            element={<MachineList />}
-          />
-          <Route
-            path="/machines/:mainSlug/:categorySlug/:pageSlug"
-            element={<MachineDetail />}
+            path="/machines/:categorySlug/:pageSlug"
+            element={<MachinePage />}
           />
 
           {/* 🛠 Admin routes */}
@@ -122,12 +120,9 @@ createRoot(document.getElementById("root")).render(
               element={<ProductListScreen />}
             />
             <Route path="/admin/home" element={<Homepage />} />
+            <Route path="/admin/about" element={<AboutPage />} />
 
             {/* ✅ Fixed spelling */}
-            <Route
-              path="machines/maincategories"
-              element={<MachinesScreen />}
-            />
             <Route
               path="machines/categories"
               element={<MachineCategoriesScreen />}

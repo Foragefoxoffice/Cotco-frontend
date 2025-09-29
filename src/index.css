@@ -1,8 +1,5 @@
-
-
-
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
 @import "tailwindcss";
 
@@ -11,28 +8,31 @@
 ---------------------------------- */
 
 :root {
-  --primary: #121E2B; 
-  --secondary: #143A59; 
-  --text-main: #1f2937; 
-  --text-muted: #6b7280; 
-  --bg-light: #fff;   
+  --primary: #121e2b;
+  --secondary: #143a59;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --bg-light: #fff;
 }
 
-
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: "DM Sans", sans-serif;
   overflow-x: hidden;
 }
 
-
-a{
-font-size: 16px;
-font-style: normal;
-font-weight: 600;
+a {
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
 }
 
-h1,h2,h3,h4,h5,h6 {
-  font-family: 'Poppins', sans-serif;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Poppins", sans-serif;
   font-style: normal;
 }
 
@@ -41,7 +41,7 @@ h2 {
 }
 
 p {
-  @apply  leading-relaxed;
+  @apply leading-relaxed;
 }
 
 a {
@@ -50,12 +50,12 @@ a {
 /* styles.css or global.css */
 .outlined-text {
   color: transparent;
-  -webkit-text-stroke: 1px #0A4A78 ;
+  -webkit-text-stroke: 1px #0a4a78;
   transition: all 0.3s ease-in-out;
 }
 
 .group:hover .outlined-text {
-   color: transparent;
+  color: transparent;
   -webkit-text-stroke: 1px #ffffff !important;
   -webkit-text-stroke: 0;
 }
@@ -66,7 +66,7 @@ a {
 
 /* When Vietnamese is active */
 body.vi-mode .hero {
-  margin-top: -50px; 
+  margin-top: -50px;
 }
 
 /* ================================
@@ -74,10 +74,10 @@ body.vi-mode .hero {
    ================================ */
 .page-width {
   width: 100%;
-  max-width: 1440px;        
+  max-width: 1440px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 16px;         
+  padding-left: 16px;
   padding-right: 16px;
 }
 
@@ -88,29 +88,52 @@ body.vi-mode .hero {
   font-weight: 700;
 }
 /* increase side padding at breakpoints */
-@media (min-width: 640px) {   /* sm */
-  .page-width { padding-left: 20px; padding-right: 20px; }
+@media (min-width: 640px) {
+  /* sm */
+  .page-width {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
 }
-@media (min-width: 1024px) {  /* lg */
-  .page-width { padding-left: 32px; padding-right: 32px; }
+@media (min-width: 1024px) {
+  /* lg */
+  .page-width {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
 }
 
 /* optional staged max-widths (like your Tailwind plan) */
-@media (min-width: 768px) {   /* md */
-  .page-width { max-width: 720px; }
+@media (min-width: 768px) {
+  /* md */
+  .page-width {
+    max-width: 720px;
+  }
 }
-@media (min-width: 1024px) {  /* lg */
-  .page-width { max-width: 960px; }
+@media (min-width: 1024px) {
+  /* lg */
+  .page-width {
+    max-width: 960px;
+  }
 }
-@media (min-width: 1200px) {  /* xl */
-  .page-width { max-width: 1200px; }
+@media (min-width: 1200px) {
+  /* xl */
+  .page-width {
+    max-width: 1200px;
+  }
 }
-@media (min-width: 1440px) {  /* 2xl */
-  .page-width { max-width: 1360px; }
+@media (min-width: 1440px) {
+  /* 2xl */
+  .page-width {
+    max-width: 1360px;
+  }
 }
 
-@media (min-width: 1600px) {  /* 3xl */
-  .page-width { max-width: 1600px; }
+@media (min-width: 1600px) {
+  /* 3xl */
+  .page-width {
+    max-width: 1600px;
+  }
 }
 
 /* Custom Tab Styles */
@@ -137,6 +160,13 @@ body.vi-mode .hero {
   display: none !important; /* remove underline */
 }
 
-:where(.css-dev-only-do-not-override-1odpy5d).ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn{
-  color: #fff !important;
+.custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #fff !important; /* active tab text white */
+}
+.custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn:focus {
+  color: #fff !important; /* active tab text white */
+}
+.custom-tabs .ant-tabs-nav-list {
+  justify-content: center;
+  width: 100%;
 }

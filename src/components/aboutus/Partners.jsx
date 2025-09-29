@@ -1,58 +1,93 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import TitleAnimation from "../common/AnimatedTitle";
+import { getHomepage } from "../../Api/api"; // adjust path
 
-const partners = [
-  { name: "Aditya Birla Group", image: "/img/partners/logo1.png" },
-  { name: "Viterra", image: "/img/partners/logo2.png" },
-  { name: "LDC", image: "/img/partners/logo3.png" },
-  { name: "LMW", image: "/img/partners/logo4.png" },
-  { name: "Devcot", image: "/img/partners/logo5.png" },
+export default function PartnerSection() {
+  const [logos, setLogos] = useState([]);
+  const [heading, setHeading] = useState("PROUD PARTNERS OF GLOBAL LEADERS");
 
-];
+  useEffect(() => {
+    getHomepage().then((res) => {
+      if (res.data?.companyLogosSection) {
+        const section = res.data.companyLogosSection;
 
-export default function Partner() {
+        // ✅ Set heading dynamically
+        if (section.companyLogosHeading?.en) {
+          setHeading(section.companyLogosHeading.en);
+        }
+
+        let collected = [];
+
+        // ✅ Prefer new array-based schema
+        if (Array.isArray(section.logos) && section.logos.length > 0) {
+          collected = section.logos
+            .filter((logo) => logo.url)
+            .map((logo, i) => ({
+              name: `Partner ${i + 1}`,
+              image: logo.url,
+            }));
+        } else {
+          // ✅ Fallback for old schema (companyLogo1..6)
+          for (let i = 1; i <= 6; i++) {
+            if (section[`companyLogo${i}`]) {
+              collected.push({
+                name: `Logo ${i}`,
+                image: section[`companyLogo${i}`],
+              });
+            }
+          }
+        }
+
+        setLogos(collected);
+      }
+    });
+  }, []);
+
   const settings = {
     dots: false,
     infinite: true,
     speed: 4000,
     autoplay: true,
-    autoplaySpeed: 0, // key to smooth continuous scroll
-    cssEase: "linear", // smooth motion
+    autoplaySpeed: 0,
+    cssEase: "linear",
     slidesToShow: 5,
     slidesToScroll: 1,
     arrows: false,
     pauseOnHover: false,
     responsive: [
       {
-        breakpoint: 768, // mobile
-        settings: {
-          slidesToShow: 2,
-        },
+        breakpoint: 768,
+        settings: { slidesToShow: 2 },
       },
     ],
   };
 
-  return (
-    <section className="md:py-20 py-6 page-width bg-white rounded-md partner-section">
+  if (!logos.length) return null;
 
-        <TitleAnimation
-          text={"PROUD PARTNERS WITH GLOBAL LEADERS"}
-          className="heading uppercase mb-8"
-          align="center"
-          delay={0.05}
-          stagger={0.05}
-          once={true}
-        />
-    
+  return (
+    <section className="md:pt-20 mb-20 pt-6 page-width bg-white rounded-md partner-section">
+      <TitleAnimation
+        text={heading}
+        className="heading text-center mb-14"
+        align="center"
+        delay={0.05}
+        stagger={0.05}
+        once={true}
+      />
+
       <Slider {...settings}>
-        {partners.map((partner, index) => (
+        {logos.map((partner, index) => (
           <div key={index} className="px-4">
             <div className="flex justify-center items-center">
               <img
-                src={partner.image}
+                src={
+                  partner.image?.startsWith("http")
+                    ? partner.image
+                    : `http://localhost:5000${partner.image}`
+                }
                 alt={partner.name}
                 className="h-16 md:h-20 object-contain"
               />

@@ -18,17 +18,17 @@ export default function BlogOverview() {
     const fetchBlog = async () => {
       try {
         const res = await getBlogBySlug(slug);
-        setBlog(res.data.data);
+        setBlog(res); // ✅ no .data.data
 
         // fetch latest blogs excluding current one
         const recRes = await getBlogs({
-          limit: 4, // fetch extra in case current blog is included
-          sort: "-createdAt", // ✅ latest first (check your API for correct param)
+          limit: 4,
+          sort: "-createdAt",
         });
 
-        const formatted = recRes.data.data
-          .filter((b) => b.slug !== slug) // exclude current blog
-          .slice(0, 3) // take only 3
+        const formatted = recRes
+          .filter((b) => b.slug !== slug)
+          .slice(0, 3)
           .map((blog) => {
             const excerptEn =
               typeof blog.excerpt?.en === "string" ? blog.excerpt.en : "";

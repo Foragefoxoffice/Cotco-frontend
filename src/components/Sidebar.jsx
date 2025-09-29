@@ -44,7 +44,6 @@ const Sidebar = () => {
       icon: <Package size={20} />,
       key: "machines",
       subItems: [
-        { path: "/admin/machines/maincategories", label: "Main Categories" },
         { path: "/admin/machines/categories", label: "Categories" },
         { path: "/admin/machines/list", label: "List" },
       ],

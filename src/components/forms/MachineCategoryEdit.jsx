@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, message, Upload, Select } from "antd";
+import { Form, Input, Button, message, Upload } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { updateMachineCategory, getMainCategories } from "../../Api/api";
+import { updateMachineCategory } from "../../Api/api";
 import TranslationTabs from "../TranslationTabs";
+import { CommonToaster } from "../../Common/CommonToaster";
 
 const MachineCategoryEdit = ({ category, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -10,7 +11,6 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
   const [iconList, setIconList] = useState([]);
-  const [mainCategories, setMainCategories] = useState([]);
 
   useEffect(() => {
     if (category) {
@@ -20,7 +20,6 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
         description_en: category.description?.en || "",
         description_vn: category.description?.vn || "",
         slug: category.slug || "",
-        mainCategoryId: category.mainCategory?._id || "",
       });
 
       if (category.image) {
@@ -35,18 +34,6 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
       }
     }
   }, [category, form]);
-
-  useEffect(() => {
-    const fetchMainCategories = async () => {
-      try {
-        const res = await getMainCategories();
-        setMainCategories(res.data.data || []);
-      } catch (err) {
-        message.error("Failed to load main categories ❌");
-      }
-    };
-    fetchMainCategories();
-  }, []);
 
   const onFinish = async (values) => {
     try {
@@ -65,7 +52,6 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
         })
       );
       formData.append("slug", values.slug);
-      formData.append("mainCategoryId", values.mainCategoryId);
 
       if (fileList.length > 0 && fileList[0].originFileObj) {
         formData.append("image", fileList[0].originFileObj);
@@ -75,11 +61,11 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
       }
 
       await updateMachineCategory(category._id, formData);
-      message.success("Machine Category updated successfully ✅");
+      CommonToaster("Machine Category updated successfully ✅", "success");
 
       if (onSuccess) onSuccess();
     } catch (error) {
-      message.error(error.response?.data?.error || "Update failed ❌");
+      CommonToaster(error.response?.data?.error || "Update failed ❌", "error");
     } finally {
       setLoading(false);
     }
@@ -135,20 +121,6 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
           rules={[{ required: true, message: "Please enter slug" }]}
         >
           <Input placeholder="Unique slug (e.g. weaving)" />
-        </Form.Item>
-
-        <Form.Item
-          name="mainCategoryId"
-          label="Main Category"
-          rules={[{ required: true, message: "Please select main category" }]}
-        >
-          <Select placeholder="Select Main Category">
-            {mainCategories.map((mc) => (
-              <Select.Option key={mc._id} value={mc._id}>
-                {mc.name?.en || mc.slug}
-              </Select.Option>
-            ))}
-          </Select>
         </Form.Item>
 
         {/* Uploads */}

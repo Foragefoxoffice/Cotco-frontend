@@ -1,38 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { useScroll, useTransform, motion, AnimatePresence } from "framer-motion";
-
-const expertiseData = [
-  {
-    year: "2016",
-    description:
-      "COTCO launched as a cotton trading agent for reputable international suppliers such as Viterra B.V. and Devcot S.A., establishing our initial sourcing network.",
-    image: "/img/timeline/2016.png",
-  },
-  {
-    year: "2019",
-    description:
-      "Became agency of Louis Dreyfus Company (LDC) for premium cotton supply; joined and maintained membership in the International Cotton Association (ICA), affirming global credibility.",
-    image: "/img/timeline/2019.png",
-  },
-  {
-    year: "2021",
-    description:
-      "Expanded business into yarn supply solutions for Vietnamese spinning mills.",
-    image: "/img/timeline/2021.png",
-  },
-  {
-    year: "2022",
-    description:
-      "Officially appointed as Lakshmi Machine Works (LMW) distributor in Vietnam, adding advanced spinning machinery to our offerings.",
-    image: "/img/timeline/2022.png",
-  },
-  {
-    year: "2023",
-    description:
-      "Further extended supply network through collaborations with Ecom Agroindustrial Corp and Reinhart & Co., reinforcing our role as a trusted textile partner in Vietnam.",
-    image: "/img/timeline/2023.png",
-  },
-];
+import {
+  useScroll,
+  useTransform,
+  motion,
+  AnimatePresence,
+} from "framer-motion";
+import { getAboutPage } from "../../Api/api";
 
 export default function PinnedExpertiseTimeline() {
   const sectionRef = useRef(null);
@@ -41,8 +14,53 @@ export default function PinnedExpertiseTimeline() {
     offset: ["start start", "end end"],
   });
 
+  useEffect(() => {
+    getAboutPage()
+      .then((res) => {
+        if (res.data?.aboutHistory?.length) {
+          setHistoryData(res.data.aboutHistory);
+          console.log("Fetched history data:", res.data.aboutHistory); // ✅ debug
+        }
+      })
+      .catch((err) => console.error("Failed to load history:", err));
+  }, []);
+
+  const expertiseData = [
+    {
+      year: "2016",
+      description:
+        "COTCO launched as a cotton trading agent for reputable international suppliers such as Viterra B.V. and Devcot S.A., establishing our initial sourcing network.",
+      image: "/img/timeline/2016.png",
+    },
+    {
+      year: "2019",
+      description:
+        "Became agency of Louis Dreyfus Company (LDC) for premium cotton supply; joined and maintained membership in the International Cotton Association (ICA), affirming global credibility.",
+      image: "/img/timeline/2019.png",
+    },
+    {
+      year: "2021",
+      description:
+        "Expanded business into yarn supply solutions for Vietnamese spinning mills.",
+      image: "/img/timeline/2021.png",
+    },
+    {
+      year: "2022",
+      description:
+        "Officially appointed as Lakshmi Machine Works (LMW) distributor in Vietnam, adding advanced spinning machinery to our offerings.",
+      image: "/img/timeline/2022.png",
+    },
+    {
+      year: "2023",
+      description:
+        "Further extended supply network through collaborations with Ecom Agroindustrial Corp and Reinhart & Co., reinforcing our role as a trusted textile partner in Vietnam.",
+      image: "/img/timeline/2023.png",
+    },
+  ];
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState(0);
+  const [historyData, setHistoryData] = useState([]);
   const stepCount = expertiseData.length;
 
   const scrollSteps = useTransform(scrollYProgress, (progress) => {
@@ -52,21 +70,22 @@ export default function PinnedExpertiseTimeline() {
   useEffect(() => {
     return scrollSteps.on("change", (latest) => {
       if (latest !== currentIndex) {
-        setPrevIndex(currentIndex);    // keep old image for base
-        setCurrentIndex(latest);       // sync year + description
+        setPrevIndex(currentIndex); // keep old image for base
+        setCurrentIndex(latest); // sync year + description
       }
     });
   }, [scrollSteps, currentIndex]);
 
   return (
     <section ref={sectionRef} className="relative h-[500vh] bg-[#E7EDF5]">
-     
       {/* Desktop Layout */}
       <div className="hidden md:grid sticky top-0 h-screen grid-cols-1 md:grid-cols-2 gap-20 justify-center w-full px-6 md:pr-0 md:px-20">
         {/* Left: Years + Description */}
         <div className="flex flex-col justify-center space-y-4 h-full py-20">
           <div className="space-y-4">
-             <h3 className="absolute left-[-100px] top-3/6 text-[#19191940] z-2 rotate-[270deg] text-6xl font-bold  text-center">OUR HISTORY</h3>
+            <h3 className="absolute left-[-100px] top-3/6 text-[#19191940] z-2 rotate-[270deg] text-6xl font-bold  text-center">
+              OUR HISTORY
+            </h3>
             {expertiseData.slice(0, currentIndex + 1).map((item, i) => (
               <motion.div
                 key={i}
@@ -155,7 +174,9 @@ export default function PinnedExpertiseTimeline() {
           transition={{ delay: 0.3, duration: 0.5 }}
           className="absolute top-24 md:top-10 left-10 md:right-6 z-30"
         >
-          <p className="text-white font-semibold text-3xl uppercase mb-2">Our History</p>
+          <p className="text-white font-semibold text-3xl uppercase mb-2">
+            Our History
+          </p>
         </motion.div>
 
         {/* Top Text Right */}
@@ -165,7 +186,9 @@ export default function PinnedExpertiseTimeline() {
           transition={{ delay: 0.35, duration: 0.5 }}
           className="absolute top-24 md:top-10 right-6 z-30"
         >
-          <p className="text-white font-bold text-2xl">{expertiseData[currentIndex].year}</p>
+          <p className="text-white font-bold text-2xl">
+            {expertiseData[currentIndex].year}
+          </p>
         </motion.div>
 
         {/* Description */}
@@ -179,7 +202,6 @@ export default function PinnedExpertiseTimeline() {
             {expertiseData[currentIndex].description}
           </p>
         </motion.div>
-        
       </div>
     </section>
   );

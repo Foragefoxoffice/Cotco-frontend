@@ -2,21 +2,23 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Spin } from "antd";
 import { Link } from "react-router-dom";
-import { getMainCategories } from "../Api/api";
+import { getMachineCategories } from "../Api/api"; // ✅ use machine categories
 import MachineBenifie from "../components/machines/MachinesBenifite";
 import Machines from "../components/machines/Machines";
-import Partner from "../components/home/PartnerSection";
 import Navbar from "../components/layout/Navbar";
+import PartnerSection from "../components/coctoproducts/PartnerSection";
+import Footer from "../components/layout/Footer";
+import OurTeam from "../components/coctoproducts/OurTeam";
 
 const MachinesMain = () => {
   const [loading, setLoading] = useState(true);
-  const [mainCats, setMainCats] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await getMainCategories();
-        setMainCats(res.data.data || []);
+        const res = await getMachineCategories();
+        setCategories(res.data.data || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -29,20 +31,20 @@ const MachinesMain = () => {
 
   return (
     <main>
-      <Navbar/>
+      <Navbar />
       <Machines />
       <MachineBenifie />
       <div className="page-width py-3">
         <Row gutter={[16, 16]}>
-          {mainCats.map((mc) => (
-            <Col xs={24} md={12} lg={12} key={mc._id}>
-              <Link to={`/machines/${mc.slug}`}>
+          {categories.map((cat) => (
+            <Col xs={24} md={12} lg={12} key={cat._id}>
+              <Link to={`/machines/${cat.slug}`}>
                 <div className="relative group rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
                   {/* Background image */}
                   <img
-                    src={`http://localhost:5000${mc.image}`}
-                    alt={mc.name.en}
-                    className="w-full h-[500px] object-cover transform group-hover:scale-105 transition-transform duration-500"
+                    src={`http://localhost:5000${cat.image}`}
+                    alt={cat.name.en}
+                    className="w-full h-[400px] object-cover transform group-hover:scale-105 transition-transform duration-500"
                   />
 
                   {/* Dark overlay */}
@@ -68,11 +70,11 @@ const MachinesMain = () => {
 
                   {/* Bottom text */}
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="text-white text-lg font-semibold">
-                      {mc.name.en}
+                    <h3 className="text-white text-3xl font-semibold">
+                      {cat.name.en}
                     </h3>
-                    <p className="text-white/80 text-sm font-light">
-                      {mc.description.en}
+                    <p className="text-white/80 text-md font-light">
+                      {cat.description.en}
                     </p>
                   </div>
                 </div>
@@ -81,7 +83,9 @@ const MachinesMain = () => {
           ))}
         </Row>
       </div>
-      <Partner />
+      <PartnerSection />
+      <OurTeam />
+      <Footer />
     </main>
   );
 };

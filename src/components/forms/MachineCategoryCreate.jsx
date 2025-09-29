@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Form, Input, Button, message, Upload, Select } from "antd";
+import React, { useState } from "react";
+import { Form, Input, Button, Upload } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { createMachineCategory, getMainCategories } from "../../Api/api";
+import { createMachineCategory } from "../../Api/api";
 import TranslationTabs from "../TranslationTabs";
+import { CommonToaster } from "../../Common/CommonToaster";
 
 const MachineCategoryCreate = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -10,20 +11,6 @@ const MachineCategoryCreate = ({ onSuccess }) => {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
   const [iconList, setIconList] = useState([]);
-  const [mainCategories, setMainCategories] = useState([]);
-
-  // ✅ Fetch main categories for dropdown
-  useEffect(() => {
-    const fetchMainCategories = async () => {
-      try {
-        const res = await getMainCategories();
-        setMainCategories(res.data.data || []);
-      } catch (err) {
-        message.error("Failed to load main categories ❌");
-      }
-    };
-    fetchMainCategories();
-  }, []);
 
   const onFinish = async (values) => {
     try {
@@ -42,7 +29,6 @@ const MachineCategoryCreate = ({ onSuccess }) => {
         })
       );
       formData.append("slug", values.slug);
-      formData.append("mainCategoryId", values.mainCategoryId);
 
       if (fileList.length > 0) {
         formData.append("image", fileList[0].originFileObj);
@@ -52,14 +38,17 @@ const MachineCategoryCreate = ({ onSuccess }) => {
       }
 
       await createMachineCategory(formData);
-      message.success("Machine Category created successfully ✅");
+      CommonToaster("Machine Category created successfully ✅", "success");
 
       if (onSuccess) onSuccess();
       form.resetFields();
       setFileList([]);
       setIconList([]);
     } catch (error) {
-      message.error(error.response?.data?.error || "Something went wrong ❌");
+      CommonToaster(
+        error.response?.data?.error || "Something went wrong ❌",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -115,20 +104,6 @@ const MachineCategoryCreate = ({ onSuccess }) => {
           rules={[{ required: true, message: "Please enter slug" }]}
         >
           <Input placeholder="Unique slug (e.g. weaving)" />
-        </Form.Item>
-
-        <Form.Item
-          name="mainCategoryId"
-          label="Main Category"
-          rules={[{ required: true, message: "Please select main category" }]}
-        >
-          <Select placeholder="Select Main Category">
-            {mainCategories.map((mc) => (
-              <Select.Option key={mc._id} value={mc._id}>
-                {mc.name?.en || mc.slug}
-              </Select.Option>
-            ))}
-          </Select>
         </Form.Item>
 
         {/* Uploads */}

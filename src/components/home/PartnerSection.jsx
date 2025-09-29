@@ -19,16 +19,28 @@ export default function PartnerSection() {
           setHeading(section.companyLogosHeading.en);
         }
 
-        // ✅ Collect non-empty logos
-        const collected = [];
-        for (let i = 1; i <= 6; i++) {
-          if (section[`companyLogo${i}`]) {
-            collected.push({
-              name: `Logo ${i}`,
-              image: section[`companyLogo${i}`],
-            });
+        let collected = [];
+
+        // ✅ Prefer new array-based schema
+        if (Array.isArray(section.logos) && section.logos.length > 0) {
+          collected = section.logos
+            .filter((logo) => logo.url)
+            .map((logo, i) => ({
+              name: `Partner ${i + 1}`,
+              image: logo.url,
+            }));
+        } else {
+          // ✅ Fallback for old schema (companyLogo1..6)
+          for (let i = 1; i <= 6; i++) {
+            if (section[`companyLogo${i}`]) {
+              collected.push({
+                name: `Logo ${i}`,
+                image: section[`companyLogo${i}`],
+              });
+            }
           }
         }
+
         setLogos(collected);
       }
     });
@@ -72,7 +84,7 @@ export default function PartnerSection() {
             <div className="flex justify-center items-center">
               <img
                 src={
-                  partner.image.startsWith("http")
+                  partner.image?.startsWith("http")
                     ? partner.image
                     : `http://localhost:5000${partner.image}`
                 }

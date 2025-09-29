@@ -40,20 +40,6 @@ export const updateUser = (id, data) => API.put(`/users/${id}`, data);
 export const deleteUser = (id) => API.delete(`/users/${id}`);
 
 /* =========================================================
-   MAIN CATEGORIES
-   (Backend route: /maincategories)
-========================================================= */
-export const createMainCategory = (data) =>
-  API.post("/machines/maincategories", data);
-export const getMainCategories = () => API.get("/machines/maincategories");
-export const getMainCategory = (id) =>
-  API.get(`/machines/maincategories/${id}`);
-export const updateMainCategory = (id, data) =>
-  API.put(`/machines/maincategories/${id}`, data);
-export const deleteMainCategory = (id) =>
-  API.delete(`/machines/maincategories/${id}`);
-
-/* =========================================================
    MACHINE CATEGORIES
    (Backend route: /machines/categories)
 ========================================================= */
@@ -91,11 +77,23 @@ export const updateMachinePage = (id, data) =>
   API.put(`/machines/pages/${id}`, data);
 export const deleteMachinePage = (id) => API.delete(`/machines/pages/${id}`);
 
+// 🔹 Get all pages by category slug
+export const getMachinePagesByCategorySlug = (categorySlug) =>
+  API.get(`/machines/pages/category/${categorySlug}`);
+
 /* =========================================================
    BLOGS
 ========================================================= */
-export const getBlogs = (params = {}) => API.get("/blogs", { params });
-export const getBlogBySlug = (slug) => API.get(`/blogs/${slug}`);
+export const getBlogs = async (params = {}) => {
+  const { data } = await API.get("/blogs", { params });
+  return data.data; // ✅ return only the array
+};
+
+export const getBlogBySlug = async (slug) => {
+  const { data } = await API.get(`/blogs/${slug}`);
+  return data.data; // ✅ return only the object
+};
+
 export const createBlog = (data) => API.post("/blogs", data);
 export const updateBlog = (id, data) => API.put(`/blogs/${id}`, data);
 export const deleteBlog = (id) => API.delete(`/blogs/${id}`);
@@ -120,16 +118,6 @@ export const getPages = () => API.get("/pages");
 export const getPageBySlug = (slug) => API.get(`/pages/${slug}`);
 export const updatePage = (id, data) => API.put(`/pages/${id}`, data);
 export const deletePage = (id) => API.delete(`/pages/${id}`);
-// 🔹 Get all pages by category slug
-export const getMachinePagesByCategorySlug = (categorySlug) =>
-  API.get(`/machines/pages/category/${categorySlug}`);
-
-// 🔹 Get all pages by main category slug
-export const getMachinePagesByMainCategorySlug = (mainCategorySlug) =>
-  API.get(`/machines/pages/main-category/${mainCategorySlug}`);
-// 🔹 Get categories by main category slug
-export const getMachineCategoriesByMainCategorySlug = (mainCategorySlug) =>
-  API.get(`/machines/categories/main-category/${mainCategorySlug}`);
 
 /* =========================================================
    HOMEPAGE
@@ -141,5 +129,19 @@ export const getHomepage = () => API.get("/homepage");
 // Update homepage with file upload
 export const updateHomepage = (formData) =>
   API.post("/homepage", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+/* =========================================================
+   ABOUT PAGE
+   (Backend route: /aboutpage)
+========================================================= */
+
+// ✅ Get About Page content
+export const getAboutPage = () => API.get("/aboutpage");
+
+// ✅ Update About Page (supports file upload)
+export const updateAboutPage = (formData) =>
+  API.post("/aboutpage", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });

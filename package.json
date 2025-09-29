@@ -19,6 +19,7 @@
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.3",
     "keen-slider": "^6.8.6",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.544.0",
     "quill": "^2.0.3",
     "react": "^19.1.0",
