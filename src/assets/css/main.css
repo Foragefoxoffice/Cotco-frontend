@@ -257,3 +257,6 @@ label{
   color: white;
   border-radius: 4px;
 }
+:where(.css-dev-only-do-not-override-1odpy5d).ant-divider-horizontal.ant-divider-with-text {
+    color: #fff;
+}

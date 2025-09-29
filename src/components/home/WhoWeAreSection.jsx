@@ -5,6 +5,7 @@ import { getHomepage } from "../../Api/api"; // adjust path
 
 const WhoWeAreSection = () => {
   const [data, setData] = useState(null);
+  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     getHomepage().then((res) => {
@@ -22,7 +23,11 @@ const WhoWeAreSection = () => {
         {/* Left Side - Illustration */}
         <div className="w-full md:w-1/2 flex justify-center">
           <img
-            src={data.whoWeArebannerImage || "/img/home/who.png"}
+            src={
+              data.whoWeArebannerImage
+                ? `${BASE_URL}${data.whoWeArebannerImage}`
+                : "/img/home/who.png"
+            }
             alt="Who We Are"
             className="max-w-full h-auto object-contain"
           />
@@ -31,7 +36,7 @@ const WhoWeAreSection = () => {
         {/* Right Side - Text */}
         <div className="w-full md:w-1/2 md:text-left">
           <TitleAnimation
-            text={data.whoWeAreHeading?.en || "WHO WE ARE?"}
+            text={data.whoWeAreheading?.en || "WHO WE ARE?"}
             className="heading"
             align="left"
             delay={0.05}

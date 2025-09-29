@@ -7,12 +7,19 @@ import { getHomepage } from "../../Api/api"; // adjust path
 
 export default function PartnerSection() {
   const [logos, setLogos] = useState([]);
+  const [heading, setHeading] = useState("PROUD PARTNERS OF GLOBAL LEADERS");
 
   useEffect(() => {
     getHomepage().then((res) => {
       if (res.data?.companyLogosSection) {
         const section = res.data.companyLogosSection;
-        // Collect non-empty logos
+
+        // ✅ Set heading dynamically
+        if (section.companyLogosHeading?.en) {
+          setHeading(section.companyLogosHeading.en);
+        }
+
+        // ✅ Collect non-empty logos
         const collected = [];
         for (let i = 1; i <= 6; i++) {
           if (section[`companyLogo${i}`]) {
@@ -51,13 +58,14 @@ export default function PartnerSection() {
   return (
     <section className="md:pt-20 pt-6 page-width bg-white rounded-md partner-section">
       <TitleAnimation
-        text={"PROUD PARTNERS OF GLOBAL LEADERS"}
+        text={heading}
         className="heading text-center mb-14"
         align="center"
         delay={0.05}
         stagger={0.05}
         once={true}
       />
+
       <Slider {...settings}>
         {logos.map((partner, index) => (
           <div key={index} className="px-4">

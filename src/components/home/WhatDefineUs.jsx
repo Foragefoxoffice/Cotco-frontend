@@ -5,11 +5,19 @@ import { getHomepage } from "../../Api/api"; // adjust path
 
 const WhatDefineUs = () => {
   const [items, setItems] = useState([]);
+  const [heading, setHeading] = useState("WHAT DEFINES US");
 
   useEffect(() => {
     getHomepage().then((res) => {
       if (res.data?.definedUsSection) {
         const section = res.data.definedUsSection;
+
+        // ✅ Set heading
+        if (section.definedUsHeading?.en) {
+          setHeading(section.definedUsHeading.en);
+        }
+
+        // ✅ Collect items (ignore logos now)
         const collected = [];
         for (let i = 1; i <= 6; i++) {
           if (
@@ -19,7 +27,6 @@ const WhatDefineUs = () => {
             collected.push({
               title: section[`definedUsTitle${i}`]?.en || `Title ${i}`,
               desc: section[`definedUsDes${i}`]?.en || "",
-              logo: section[`definedUsLogo${i}`] || null,
             });
           }
         }
@@ -35,7 +42,7 @@ const WhatDefineUs = () => {
       <div className="bg-[var(--secondary)] rounded-2xl md:py-16 p-6 md:px-22">
         <h2 className="text-center heading mb-8" style={{ color: "white" }}>
           <TitleAnimation
-            text={"WHAT DEFINES US"}
+            text={heading}
             className="text-white md:text-4xl text-3xl font-bold mb-8"
             align="center"
             delay={0.05}
@@ -50,19 +57,9 @@ const WhatDefineUs = () => {
               className="rounded-xl bg-white text-slate-900 shadow-[0_6px_24px_rgba(0,0,0,0.10)] ring-1 ring-black/5 px-5 py-6"
             >
               <div className="flex items-center gap-3">
-                {item.logo ? (
-                  <img
-                    src={
-                      item.logo.startsWith("http")
-                        ? item.logo
-                        : `http://localhost:5000${item.logo}`
-                    }
-                    alt={item.title}
-                    className="h-12 w-12 object-contain"
-                  />
-                ) : (
-                  <TbCheckbox className="h-12 w-12" />
-                )}
+                {/* ✅ Always show hardcoded icon */}
+                <TbCheckbox className="h-8 w-8 text-[var(--secondary)]" />
+
                 <div>
                   <h3 className="text-sm sm:text-xl font-semibold mb-1">
                     {item.title}

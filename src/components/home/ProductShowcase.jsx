@@ -4,6 +4,7 @@ import TitleAnimation from "../common/AnimatedTitle";
 
 export default function ProductShowcase() {
   const [data, setData] = useState(null);
+  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     getHomepage().then((res) => {
@@ -22,24 +23,36 @@ export default function ProductShowcase() {
       description:
         data.whatWeDoDes1?.en ||
         "Global cotton sourcing to power your production",
-      image: data.whatWeDoImg1 || "/img/home/cotton.png",
-      icon: data.whatWeDoIcon1 || "/img/home/icon1.png",
+      image: data.whatWeDoImg1
+        ? `${BASE_URL}${data.whatWeDoImg1}`
+        : "/img/home/cotton.png",
+      icon: data.whatWeDoIcon1
+        ? `${BASE_URL}${data.whatWeDoIcon1}`
+        : "/img/home/icon1.png",
     },
     {
       title: data.whatWeDoTitle2?.en || "FIBER",
       description:
         data.whatWeDoDes2?.en ||
         "Eco-friendly fibers for fashion and nonwoven innovation",
-      image: data.whatWeDoImg2 || "/img/home/cotton1.png",
-      icon: data.whatWeDoIcon2 || "/img/home/icon2.png",
+      image: data.whatWeDoImg2
+        ? `${BASE_URL}${data.whatWeDoImg2}`
+        : "/img/home/cotton1.png",
+      icon: data.whatWeDoIcon2
+        ? `${BASE_URL}${data.whatWeDoIcon2}`
+        : "/img/home/icon2.png",
     },
     {
       title: data.whatWeDoTitle3?.en || "MACHINES",
       description:
         data.whatWeDoDes3?.en ||
         "Advanced machinery to elevate your textile operations",
-      image: data.whatWeDoImg3 || "/img/home/cottonmac.png",
-      icon: data.whatWeDoIcon3 || "/img/home/icon3.png",
+      image: data.whatWeDoImg3
+        ? `${BASE_URL}${data.whatWeDoImg3}`
+        : "/img/home/cottonmac.png",
+      icon: data.whatWeDoIcon3
+        ? `${BASE_URL}${data.whatWeDoIcon3}`
+        : "/img/home/icon3.png",
     },
   ];
 

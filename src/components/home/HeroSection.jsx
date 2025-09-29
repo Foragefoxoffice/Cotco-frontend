@@ -1,21 +1,21 @@
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { FiArrowDownRight } from "react-icons/fi";
-import { getHomepage } from "../../Api/api"; // adjust path if needed
+import { getHomepage } from "../../Api/api";
 
 export default function HeroSection() {
   const [scrolled, setScrolled] = useState(false);
   const [heroData, setHeroData] = useState(null);
   const videoRef = useRef(null);
 
-  // Scroll shrink effect
+  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Fetch Hero data
   useEffect(() => {
     getHomepage().then((res) => {
       if (res.data?.heroSection) {
@@ -25,6 +25,10 @@ export default function HeroSection() {
   }, []);
 
   if (!heroData) return null;
+
+  const isVideo =
+    heroData.bgType === "video" ||
+    /\.(mp4|webm|mov)$/i.test(heroData.bgUrl || "");
 
   return (
     <motion.div
@@ -38,7 +42,7 @@ export default function HeroSection() {
       }`}
     >
       {/* Background */}
-      {heroData.bgType === "video" ? (
+      {isVideo ? (
         <video
           ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover"
@@ -46,13 +50,18 @@ export default function HeroSection() {
           loop
           muted
           playsInline
-          preload="none"
+          preload="auto"
           poster="/img/fallback/home.jpg"
-          src={heroData.bgUrl || "/video/hero.webm"}
-        />
+        >
+          <source
+            src={`${BASE_URL}${heroData.bgUrl}`}
+            type={`video/${(heroData.bgUrl.split(".").pop() || "mp4").split("?")[0]}`}
+          />
+          Your browser does not support the video tag.
+        </video>
       ) : (
         <img
-          src={heroData.bgUrl || "/img/fallback/home.jpg"}
+          src={`${BASE_URL}${heroData.bgUrl}`}
           alt="Hero background"
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -75,7 +84,6 @@ export default function HeroSection() {
           <a
             href={heroData.heroButtonLink.en}
             className="w-60 mt-6 px-5 py-2 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-xl font-semibold"
-            style={{ fontSize: "20px" }}
           >
             {heroData.heroButtonText?.en || "Explore Products"}{" "}
             <FiArrowDownRight />
