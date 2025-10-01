@@ -34,6 +34,7 @@ import NewsCategoriesScreen from "./pages/NewsCategoriesScreen";
 import Login from "./admin/Login/Login";
 import Homepage from "./admin/Dashboard/HomePage";
 import AboutPage from "./admin/Dashboard/AboutPage";
+import CottonPage from "./admin/Dashboard/CottonPage";
 import AddBlogs from "./admin/Blog/AddBlogs";
 import BlogLists from "./admin/Blog/BlogLists";
 import CategoriesCreate from "./admin/Blog/CategoriesCreate";
@@ -121,6 +122,7 @@ createRoot(document.getElementById("root")).render(
             />
             <Route path="/admin/home" element={<Homepage />} />
             <Route path="/admin/about" element={<AboutPage />} />
+            <Route path="/admin/cotton" element={<CottonPage />} />
 
             {/* ✅ Fixed spelling */}
             <Route

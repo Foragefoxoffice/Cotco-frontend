@@ -145,3 +145,14 @@ export const updateAboutPage = (formData) =>
   API.post("/aboutpage", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+
+
+/* =========================================================
+ COTTON PAGE
+========================================================= */
+export const getCottonPage = () => API.get("/cottonpage");
+
+export const updateCottonPage = (formData) =>
+  API.post("/cottonpage", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
