@@ -41,6 +41,15 @@ const HomePage = () => {
   const { useToken } = antdTheme;
   const { token } = useToken();
 
+  const API_BASE = import.meta.env.VITE_API_URL; // e.g. http://localhost:5000
+
+  const getFullUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path; // already full URL
+    return `${API_BASE}${path}`;
+  };
+
+
   // ---------------------- STATES ---------------------- //
   const [heroForm, setHeroForm] = useState({
     bgType: "image",
@@ -177,8 +186,6 @@ const HomePage = () => {
   }, []);
 
   // ---------------------- SAVE HANDLER ---------------------- //
-  // ---------------------- SAVE HANDLER ---------------------- //
-  // ---------------------- SAVE HANDLER ---------------------- //
   const handleSave = async (sectionName, formState, files = []) => {
     try {
       const formData = new FormData();
@@ -273,11 +280,10 @@ const HomePage = () => {
   // ---------------------- UI ---------------------- //
   return (
     <div
-      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl transition-all duration-300 dypages ${
-        theme === "light"
-          ? "bg-white text-white"
-          : " dark:bg-gray-800 text-gray-100"
-      }`}
+      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl transition-all duration-300 dypages ${theme === "light"
+        ? "bg-white text-white"
+        : " dark:bg-gray-800 text-gray-100"
+        }`}
     >
       <h2 className="text-4xl font-extrabold mb-10 text-center tracking-wide">
         Homepage Management
@@ -286,9 +292,8 @@ const HomePage = () => {
       <Collapse
         accordion
         bordered={false}
-        className={`rounded-xl overflow-hidden  ${
-          theme === "light" ? "bg-white" : "dark:bg-gray-800"
-        }`}
+        className={`rounded-xl overflow-hidden  ${theme === "light" ? "bg-white" : "dark:bg-gray-800"
+          }`}
       >
         {/* HERO */}
         <Panel
@@ -365,16 +370,38 @@ const HomePage = () => {
 
           <Divider orientation="left">Background</Divider>
 
-          {heroForm.bgUrl &&
-            (heroForm.bgType === "image" ? (
+          {/* ✅ Preview uploaded file first */}
+          {heroForm.bgFile ? (
+            heroForm.bgFile.type.startsWith("image/") ? (
               <img
-                src={heroForm.bgUrl}
-                alt="Background"
-                className="w-48 mb-4"
+                src={URL.createObjectURL(heroForm.bgFile)}
+                alt="Hero Preview"
+                className="w-48 mb-4 rounded-lg border"
               />
             ) : (
-              <video src={heroForm.bgUrl} controls className="w-48 mb-4" />
-            ))}
+              <video
+                src={URL.createObjectURL(heroForm.bgFile)}
+                controls
+                className="w-48 mb-4 rounded-lg border"
+              />
+            )
+          ) : (
+            // ✅ Fallback to saved DB value
+            heroForm.bgUrl &&
+            (heroForm.bgType === "image" ? (
+              <img
+                src={getFullUrl(heroForm.bgUrl)}
+                alt="Background"
+                className="w-48 mb-4 rounded-lg"
+              />
+            ) : (
+              <video
+                src={getFullUrl(heroForm.bgUrl)}
+                controls
+                className="w-48 mb-4 rounded-lg"
+              />
+            ))
+          )}
 
           <input
             type="file"
@@ -467,6 +494,24 @@ const HomePage = () => {
             ))}
           </Tabs>
           <Divider orientation="left">Banner Image</Divider>
+
+          {whoWeAreForm.whoWeArebannerImage && !whoWeAreForm.whoWeAreFile && (
+            <img
+              src={getFullUrl(whoWeAreForm.whoWeArebannerImage)}
+              alt="Who We Are Banner"
+              className="w-48 mb-4 rounded-lg"
+            />
+          )}
+
+          {/* New preview from uploaded file */}
+          {whoWeAreForm.whoWeAreFile && (
+            <img
+              src={URL.createObjectURL(whoWeAreForm.whoWeAreFile)}
+              alt="Preview"
+              className="w-48 mb-4 rounded-lg"
+            />
+          )}
+
           <input
             type="file"
             accept="image/*"
@@ -474,10 +519,10 @@ const HomePage = () => {
               setWhoWeAreForm({
                 ...whoWeAreForm,
                 whoWeAreFile: e.target.files[0],
-                whoWeArebannerImage: "",
               })
             }
           />
+
           <div className="flex justify-end gap-4 mt-6">
             <Button onClick={() => window.location.reload()}>Cancel</Button>
             <Button
@@ -564,27 +609,67 @@ const HomePage = () => {
                       }
                     />
                     <label className="font-medium mt-3">Icon {i}</label>
+
+
+                    {whatWeDoForm[`whatWeDoIcon${i}`] && !whatWeDoForm[`whatWeDoIcon${i}File`] && (
+                      <img
+                        src={getFullUrl(whatWeDoForm[`whatWeDoIcon${i}`])}
+                        alt={`Icon ${i}`}
+                        className="w-16 h-16 object-contain mb-2 rounded"
+                      />
+                    )}
+
+                    {/* New file preview */}
+                    {whatWeDoForm[`whatWeDoIcon${i}File`] && (
+                      <img
+                        src={URL.createObjectURL(whatWeDoForm[`whatWeDoIcon${i}File`])}
+                        alt={`Icon ${i} Preview`}
+                        className="w-16 h-16 object-contain mb-2 rounded"
+                      />
+                    )}
+
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) =>
                         setWhatWeDoForm({
                           ...whatWeDoForm,
-                          [`whatWeDoIcon${i}File`]: e.target.files[0], // ✅ not overwriting URL
+                          [`whatWeDoIcon${i}File`]: e.target.files[0],
                         })
                       }
                     />
+
                     <label className="font-medium mt-3">Image {i}</label>
+
+                    {/* Saved DB preview */}
+                    {whatWeDoForm[`whatWeDoImg${i}`] && !whatWeDoForm[`whatWeDoImg${i}File`] && (
+                      <img
+                        src={getFullUrl(whatWeDoForm[`whatWeDoImg${i}`])}
+                        alt={`Image ${i}`}
+                        className="w-32 mb-2 rounded"
+                      />
+                    )}
+
+                    {/* New file preview */}
+                    {whatWeDoForm[`whatWeDoImg${i}File`] && (
+                      <img
+                        src={URL.createObjectURL(whatWeDoForm[`whatWeDoImg${i}File`])}
+                        alt={`Image ${i} Preview`}
+                        className="w-32 mb-2 rounded border"
+                      />
+                    )}
+
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) =>
                         setWhatWeDoForm({
                           ...whatWeDoForm,
-                          [`whatWeDoImg${i}File`]: e.target.files[0], // ✅ keep file separate
+                          [`whatWeDoImg${i}File`]: e.target.files[0],
                         })
                       }
                     />
+
                   </div>
                 ))}
               </TabPane>
@@ -648,7 +733,7 @@ const HomePage = () => {
             <div key={index} className="flex items-center gap-3 mb-3">
               {logo.url && (
                 <img
-                  src={logo.url}
+                  src={getFullUrl(logo.url)}
                   alt="Partner Logo"
                   className="w-20 h-20 object-contain"
                 />

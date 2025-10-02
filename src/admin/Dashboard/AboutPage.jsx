@@ -30,20 +30,25 @@ const validateVietnamese = (formState) => {
   return checkObject(formState);
 };
 
-// ✅ Helper for file + preview storage
+// ✅ Pure file-based handler
 const handleImageChange = (e, setter, key) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    setter((prev) => ({
-      ...prev,
-      [key + "File"]: file, // file for upload
-      [key]: reader.result, // base64 for preview + persistence
-    }));
-  };
-  reader.readAsDataURL(file);
+  setter((prev) => ({
+    ...prev,
+    [key + "File"]: file,
+    [key]: URL.createObjectURL(file),
+  }));
+};
+
+
+const API_BASE = import.meta.env.VITE_API_URL;
+
+const getFullUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE}${path}`;
 };
 
 const AboutPage = () => {
@@ -209,9 +214,8 @@ const AboutPage = () => {
   // ---------------------- UI ---------------------- //
   return (
     <div
-      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${
-        theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
-      }`}
+      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
+        }`}
     >
       <h2 className="text-4xl font-extrabold mb-10 text-center">
         About Page Management
@@ -248,17 +252,32 @@ const AboutPage = () => {
           </Tabs>
 
           <Divider>Banner</Divider>
-          {aboutHero.aboutBanner && (
+
+          {aboutHero.aboutBannerFile instanceof File ? (
             <img
-              src={aboutHero.aboutBanner}
-              alt="Hero Banner"
-              className="w-48 mb-4"
+              src={URL.createObjectURL(aboutHero.aboutBannerFile)}
+              alt="Hero Banner Preview"
+              className="w-48 mb-4 rounded"
             />
+          ) : (
+            aboutHero.aboutBanner && (
+              <img
+                src={getFullUrl(aboutHero.aboutBanner)}
+                alt="Hero Banner"
+                className="w-48 mb-4 rounded"
+              />
+            )
           )}
+
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => handleImageChange(e, setAboutHero, "aboutBanner")}
+            onChange={(e) =>
+              setAboutHero({
+                ...aboutHero,
+                aboutBannerFile: e.target.files[0],
+              })
+            }
           />
 
           <div className="flex justify-end gap-4 mt-6">
@@ -318,18 +337,31 @@ const AboutPage = () => {
           </Tabs>
 
           <Divider>Overview Image</Divider>
-          {aboutOverview.aboutOverviewImg && (
+
+          {aboutOverview.aboutOverviewFile instanceof File ? (
             <img
-              src={aboutOverview.aboutOverviewImg}
-              alt="Overview"
-              className="w-48 mb-4"
+              src={URL.createObjectURL(aboutOverview.aboutOverviewFile)}
+              alt="Overview Preview"
+              className="w-48 mb-4 rounded"
             />
+          ) : (
+            aboutOverview.aboutOverviewImg && (
+              <img
+                src={getFullUrl(aboutOverview.aboutOverviewImg)}
+                alt="Overview"
+                className="w-48 mb-4 rounded"
+              />
+            )
           )}
+
           <input
             type="file"
             accept="image/*"
             onChange={(e) =>
-              handleImageChange(e, setAboutOverview, "aboutOverviewImg")
+              setAboutOverview({
+                ...aboutOverview,
+                aboutOverviewFile: e.target.files[0], // ✅ only file, no base64
+              })
             }
           />
 
@@ -338,9 +370,7 @@ const AboutPage = () => {
             <Button
               type="primary"
               onClick={() =>
-                handleSave("aboutOverview", aboutOverview, [
-                  "aboutOverviewFile",
-                ])
+                handleSave("aboutOverview", aboutOverview, ["aboutOverviewFile"])
               }
             >
               Save Overview
@@ -410,12 +440,20 @@ const AboutPage = () => {
           <Divider>Founder Images</Divider>
           {[1, 2, 3].map((i) => (
             <div key={i} className="mb-4">
-              {aboutFounder[`founderImg${i}`] && (
+              {aboutFounder[`founderImg${i}File`] instanceof File ? (
                 <img
-                  src={aboutFounder[`founderImg${i}`]}
-                  alt={`Founder ${i}`}
-                  className="w-32 mb-2"
+                  src={URL.createObjectURL(aboutFounder[`founderImg${i}File`])}
+                  alt={`Founder ${i} Preview`}
+                  className="w-32 mb-2 rounded"
                 />
+              ) : (
+                aboutFounder[`founderImg${i}`] && (
+                  <img
+                    src={getFullUrl(aboutFounder[`founderImg${i}`])}
+                    alt={`Founder ${i}`}
+                    className="w-32 mb-2 rounded"
+                  />
+                )
               )}
               <input
                 type="file"
@@ -482,7 +520,7 @@ const AboutPage = () => {
                     <Input
                       value={
                         aboutMissionVission[`aboutMissionVissionSubhead${i}`][
-                          lang
+                        lang
                         ]
                       }
                       onChange={(e) =>
@@ -490,7 +528,7 @@ const AboutPage = () => {
                           ...aboutMissionVission,
                           [`aboutMissionVissionSubhead${i}`]: {
                             ...aboutMissionVission[
-                              `aboutMissionVissionSubhead${i}`
+                            `aboutMissionVissionSubhead${i}`
                             ],
                             [lang]: e.target.value,
                           },
@@ -510,7 +548,7 @@ const AboutPage = () => {
                           ...aboutMissionVission,
                           [`aboutMissionVissionDes${i}`]: {
                             ...aboutMissionVission[
-                              `aboutMissionVissionDes${i}`
+                            `aboutMissionVissionDes${i}`
                             ],
                             [lang]: e.target.value,
                           },
@@ -626,7 +664,7 @@ const AboutPage = () => {
             <div key={i} className="mb-6">
               {aboutCore[`aboutCoreBg${i}`] && (
                 <img
-                  src={aboutCore[`aboutCoreBg${i}`]}
+                  src={getFullUrl(aboutCore[`aboutCoreBg${i}`])}
                   alt={`Core ${i}`}
                   className="w-32 mb-2"
                 />
@@ -705,23 +743,34 @@ const AboutPage = () => {
               </Tabs>
 
               <Divider>History Image</Divider>
-              {item.image && (
-                <img src={item.image} alt="History" className="w-32 mb-2" />
+
+              {item.imageFile instanceof File ? (
+                <img
+                  src={URL.createObjectURL(item.imageFile)}
+                  alt="History Preview"
+                  className="w-32 mb-2 rounded"
+                />
+              ) : (
+                item.image && (
+                  <img
+                    src={getFullUrl(item.image)}
+                    alt="History"
+                    className="w-32 mb-2 rounded"
+                  />
+                )
               )}
+
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (!file) return;
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    const newHistory = [...aboutHistory];
-                    newHistory[index].imageFile = file;
-                    newHistory[index].image = reader.result;
-                    setAboutHistory(newHistory);
-                  };
-                  reader.readAsDataURL(file);
+
+                  const newHistory = [...aboutHistory];
+                  newHistory[index].imageFile = file;
+                  newHistory[index].image = "";
+                  setAboutHistory(newHistory);
                 }}
               />
 
@@ -729,39 +778,41 @@ const AboutPage = () => {
                 <Button
                   danger
                   onClick={async () => {
-                    const newHistory = [...aboutHistory];
-                    newHistory.splice(index, 1); // remove from state
-                    setAboutHistory(newHistory);
+                    try {
+                      // 1️⃣ Remove from local state
+                      const newHistory = aboutHistory.filter((_, i) => i !== index);
+                      setAboutHistory(newHistory);
 
-                    const formData = new FormData();
-                    formData.append(
-                      "aboutHistory",
-                      JSON.stringify(aboutHistory)
-                    );
+                      // 2️⃣ Prepare FormData with updated history
+                      const formData = new FormData();
+                      formData.append("aboutHistory", JSON.stringify(newHistory));
 
-                    aboutHistory.forEach((item) => {
-                      if (item.imageFile) {
-                        formData.append("historyImages", item.imageFile); // ✅ all go under same key
+                      // ✅ Send files if any remain
+                      newHistory.forEach((item, i) => {
+                        if (item.imageFile instanceof File) {
+                          formData.append(`historyImage${i}`, item.imageFile);
+                        }
+                      });
+
+                      // 3️⃣ Update backend immediately
+                      const res = await updateAboutPage(formData);
+
+                      // 4️⃣ Sync state with DB response
+                      if (res.data?.about?.aboutHistory) {
+                        setAboutHistory(res.data.about.aboutHistory);
+                        localStorage.removeItem("aboutHistory");
+                        CommonToaster("History item removed successfully!", "success");
                       } else {
-                        formData.append("historyImages", ""); // placeholder so indexes stay aligned
+                        CommonToaster("Failed to remove history item", "error");
                       }
-                    });
-
-                    const res = await updateAboutPage(formData);
-                    if (res.data?.about?.aboutHistory) {
-                      setAboutHistory(res.data.about.aboutHistory); // sync with DB
-                      localStorage.removeItem("aboutHistory");
-                      CommonToaster(
-                        "History item removed successfully!",
-                        "success"
-                      );
-                    } else {
-                      CommonToaster("Failed to remove history item", "error");
+                    } catch (err) {
+                      CommonToaster("Error", err.message || "Something went wrong!");
                     }
                   }}
                 >
                   Remove
                 </Button>
+
               </div>
             </div>
           ))}
@@ -980,15 +1031,12 @@ const AboutPage = () => {
         >
           <Divider>Alliance Logos</Divider>
 
-          {/* Existing saved logos from DB */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {/* Saved from DB */}
             {(aboutAlliances.aboutAlliancesImg || []).map((url, idx) => (
-              <div
-                key={`saved-${idx}`}
-                className="relative border rounded-lg p-2 bg-gray-50 dark:bg-gray-700"
-              >
+              <div key={`saved-${idx}`} className="relative rounded-lg p-2">
                 <img
-                  src={url}
+                  src={getFullUrl(url)}
                   alt={`Alliance ${idx + 1}`}
                   className="w-full h-24 object-contain"
                 />
@@ -997,42 +1045,22 @@ const AboutPage = () => {
                   size="small"
                   className="absolute top-1 right-1"
                   onClick={async () => {
-                    try {
-                      // Remove from state
-                      const updated = aboutAlliances.aboutAlliancesImg.filter(
-                        (_, i) => i !== idx
-                      );
-
-                      // Build FormData for update
-                      const formData = new FormData();
-                      formData.append(
-                        "aboutAlliances",
-                        JSON.stringify({
-                          aboutAlliancesImg: updated, // send updated list
-                        })
-                      );
-
-                      const res = await updateAboutPage(formData);
-
-                      if (res.data?.about?.aboutAlliances) {
-                        setAboutAlliances({
-                          ...res.data.about.aboutAlliances,
-                          aboutAlliancesFiles:
-                            aboutAlliances.aboutAlliancesFiles,
-                        });
-                        localStorage.removeItem("aboutAlliances");
-                        CommonToaster(
-                          "Alliance removed successfully!",
-                          "success"
-                        );
-                      } else {
-                        CommonToaster("Failed to remove alliance", "error");
-                      }
-                    } catch (err) {
-                      CommonToaster(
-                        "Error",
-                        err.message || "Something went wrong!"
-                      );
+                    const updated = aboutAlliances.aboutAlliancesImg.filter(
+                      (_, i) => i !== idx
+                    );
+                    const formData = new FormData();
+                    formData.append(
+                      "aboutAlliances",
+                      JSON.stringify({ aboutAlliancesImg: updated })
+                    );
+                    const res = await updateAboutPage(formData);
+                    if (res.data?.about?.aboutAlliances) {
+                      setAboutAlliances({
+                        ...res.data.about.aboutAlliances,
+                        aboutAlliancesFiles: aboutAlliances.aboutAlliancesFiles,
+                      });
+                      localStorage.removeItem("aboutAlliances");
+                      CommonToaster("Alliance removed successfully!", "success");
                     }
                   }}
                 >
@@ -1041,12 +1069,9 @@ const AboutPage = () => {
               </div>
             ))}
 
-            {/* Newly added but unsaved files */}
+            {/* Unsaved local files */}
             {(aboutAlliances.aboutAlliancesFiles || []).map((file, idx) => (
-              <div
-                key={`new-${idx}`}
-                className="relative border rounded-lg p-2 bg-gray-50 dark:bg-gray-700"
-              >
+              <div key={`new-${idx}`} className="relative rounded-lg p-2">
                 <img
                   src={URL.createObjectURL(file)}
                   alt={`Alliance new ${idx + 1}`}
@@ -1056,45 +1081,14 @@ const AboutPage = () => {
                   danger
                   size="small"
                   className="absolute top-1 right-1"
-                  onClick={async () => {
-                    try {
-                      // Remove from state
-                      const updated = aboutAlliances.aboutAlliancesImg.filter(
+                  onClick={() =>
+                    setAboutAlliances({
+                      ...aboutAlliances,
+                      aboutAlliancesFiles: aboutAlliances.aboutAlliancesFiles.filter(
                         (_, i) => i !== idx
-                      );
-
-                      // Build FormData for update
-                      const formData = new FormData();
-                      formData.append(
-                        "aboutAlliances",
-                        JSON.stringify({
-                          aboutAlliancesImg: updated, // send updated list
-                        })
-                      );
-
-                      const res = await updateAboutPage(formData);
-
-                      if (res.data?.about?.aboutAlliances) {
-                        setAboutAlliances({
-                          ...res.data.about.aboutAlliances,
-                          aboutAlliancesFiles:
-                            aboutAlliances.aboutAlliancesFiles,
-                        });
-                        localStorage.removeItem("aboutAlliances");
-                        CommonToaster(
-                          "Alliance removed successfully!",
-                          "success"
-                        );
-                      } else {
-                        CommonToaster("Failed to remove alliance", "error");
-                      }
-                    } catch (err) {
-                      CommonToaster(
-                        "Error",
-                        err.message || "Something went wrong!"
-                      );
-                    }
-                  }}
+                      ),
+                    })
+                  }
                 >
                   X
                 </Button>
@@ -1126,16 +1120,12 @@ const AboutPage = () => {
                 formData.append(
                   "aboutAlliances",
                   JSON.stringify({
-                    aboutAlliancesImg: aboutAlliances.aboutAlliancesImg, // ✅ already updated list
+                    aboutAlliancesImg: aboutAlliances.aboutAlliancesImg,
                   })
                 );
-
-                if (aboutAlliances.aboutAlliancesFiles) {
-                  aboutAlliances.aboutAlliancesFiles.forEach((file) =>
-                    formData.append("aboutAlliancesFiles", file)
-                  );
-                }
-
+                (aboutAlliances.aboutAlliancesFiles || []).forEach((file) =>
+                  formData.append("aboutAlliancesFiles", file)
+                );
                 const res = await updateAboutPage(formData);
                 if (res.data?.about?.aboutAlliances) {
                   setAboutAlliances({
@@ -1144,14 +1134,13 @@ const AboutPage = () => {
                   });
                   localStorage.removeItem("aboutAlliances");
                   CommonToaster("Alliances saved successfully!", "success");
-                } else {
-                  CommonToaster("Failed to save alliances", "error");
                 }
               }}
             >
               Save Alliances
             </Button>
           </div>
+
         </Panel>
 
         {/* 🔥 Repeat same pattern for Overview, Founder, Mission, Core, History, Team, Alliances */}

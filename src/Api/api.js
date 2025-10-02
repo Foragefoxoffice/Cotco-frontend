@@ -165,3 +165,13 @@ export const updateFiberPage = (formData) =>
   API.post("/fiberpage", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+
+/* =========================================================
+   CONTACT PAGE
+========================================================= */
+export const getContactPage = () => API.get("/contactpage");
+
+export const updateContactPage = (formData) =>
+  API.post("/contactpage", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });

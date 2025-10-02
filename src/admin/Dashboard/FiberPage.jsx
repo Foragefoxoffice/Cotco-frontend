@@ -12,6 +12,8 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { CommonToaster } from "../../Common/CommonToaster";
 import usePersistedState from "../../hooks/usePersistedState";
 import { getFiberPage, updateFiberPage } from "../../Api/api";
+import * as FiIcons from "react-icons/fi";
+
 
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
@@ -28,6 +30,14 @@ const validateVietnamese = (formState) => {
     return true;
   };
   return checkObject(formState);
+};
+
+// ✅ API base
+const API_BASE = import.meta.env.VITE_API_URL;
+const getFullUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE}${path}`;
 };
 
 export default function FiberPage() {
@@ -102,18 +112,75 @@ export default function FiberPage() {
     });
   }, []);
 
-  // ---------------- SAVE ---------------- //
+
   const handleSave = async (sectionName, formState) => {
     try {
       if (!validateVietnamese(formState)) {
-        CommonToaster(
-          "Please fill both English and Vietnamese fields.",
-          "error"
-        );
+        CommonToaster("Please fill both English and Vietnamese fields.", "error");
         return;
       }
+
       const formData = new FormData();
+
+      // Always send the full section JSON for safeParse on backend
       formData.append(sectionName, JSON.stringify(formState));
+
+      for (const key in formState) {
+        const value = formState[key];
+
+        // Handle arrays
+        if (Array.isArray(value)) {
+          value.forEach((item, idx) => {
+            // Supplier Images
+            if (key === "fiberSupplierImg" && item?.file instanceof File) {
+              formData.append(`fiberSupplierImgFile${idx}`, item.file);
+            }
+            // Choose Us Box Backgrounds
+            if (key === "fiberChooseUsBox" && item?.fiberChooseUsBoxBg?.file instanceof File) {
+              formData.append(`fiberChooseUsBoxBgFile${idx}`, item.fiberChooseUsBoxBg.file);
+            }
+            // Products Images
+            if (key === "fiberProduct" && item?.fiberProductImg?.file instanceof File) {
+              formData.append(`fiberProductImgFile${idx}`, item.fiberProductImg.file);
+            }
+            // Certification Images
+            if (key === "fiberCertificationImg" && item?.file instanceof File) {
+              formData.append(`fiberCertificationImgFile${idx}`, item.file);
+            }
+          });
+
+          // Send cleaned JSON array (no preview blobs)
+          formData.append(
+            key,
+            JSON.stringify(
+              value
+                .filter((item) => item && item !== "" && item !== null)
+                .map((item) => {
+                  if (item?.file) return ""; // placeholder for new file
+                  if (item?.preview) return ""; // preview only, ignore
+                  if (item?.fiberChooseUsBoxBg?.file) return { ...item, fiberChooseUsBoxBg: "" };
+                  if (item?.fiberProductImg?.file) return { ...item, fiberProductImg: "" };
+                  return item; // already saved string path
+                })
+            )
+          );
+        }
+
+        // Handle direct File (banner, sustainability, etc.)
+        else if (value instanceof File) {
+          formData.append(`${key}File`, value);
+        }
+
+        // Handle object { file, preview }
+        else if (value?.file instanceof File) {
+          formData.append(`${key}File`, value.file);
+        }
+
+        // Fallback for plain objects / strings
+        else {
+          formData.append(key, typeof value === "object" ? JSON.stringify(value) : value);
+        }
+      }
 
       const res = await updateFiberPage(formData);
 
@@ -131,9 +198,8 @@ export default function FiberPage() {
   // ---------------- UI ---------------- //
   return (
     <div
-      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${
-        theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
-      }`}
+      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
+        }`}
     >
       <h2 className="text-4xl font-extrabold mb-10 text-center">
         Fiber Page Management
@@ -208,23 +274,118 @@ export default function FiberPage() {
             ))}
           </Tabs>
           <Divider />
-          <Input
-            placeholder="Banner Media (image/video URL)"
-            value={fiberBanner.fiberBannerMedia}
-            onChange={(e) =>
-              setFiberBanner({
-                ...fiberBanner,
-                fiberBannerMedia: e.target.value,
-              })
-            }
-          />
-          <Input
-            placeholder="Banner Image URL"
-            value={fiberBanner.fiberBannerImg}
-            onChange={(e) =>
-              setFiberBanner({ ...fiberBanner, fiberBannerImg: e.target.value })
-            }
-          />
+
+          {/* Banner Media (image/video) */}
+          <div style={{ marginBottom: "15px" }}>
+            <label>Banner Media</label>
+            <input
+              type="file"
+              accept="image/*,.mp4,.webm,.ogg,.mov,.avi,.mkv"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setFiberBanner({
+                    ...fiberBanner,
+                    fiberBannerMedia: file,
+                    fiberBannerMediaPreview: URL.createObjectURL(file),
+                  });
+                }
+              }}
+            />
+
+            {/* ✅ Show Preview (newly uploaded) */}
+            {fiberBanner.fiberBannerMediaPreview ? (
+              fiberBanner.fiberBannerMedia?.type?.startsWith("video") ? (
+                <video
+                  src={fiberBanner.fiberBannerMediaPreview}
+                  controls
+                  style={{
+                    width: "250px",
+                    marginTop: "10px",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                  }}
+                />
+              ) : (
+                <img
+                  src={fiberBanner.fiberBannerMediaPreview}
+                  alt="Media Preview"
+                  style={{
+                    width: "250px",
+                    marginTop: "10px",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                  }}
+                />
+              )
+            ) : fiberBanner.fiberBannerMedia ? (
+              /* ✅ Show Saved File (from DB) */
+              fiberBanner.fiberBannerMedia.endsWith(".mp4") ||
+                fiberBanner.fiberBannerMedia.endsWith(".webm") ||
+                fiberBanner.fiberBannerMedia.endsWith(".ogg") ? (
+                <video
+                  src={getFullUrl(fiberBanner.fiberBannerMedia)}
+                  controls
+                  style={{
+                    width: "250px",
+                    marginTop: "10px",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                  }}
+                />
+              ) : (
+                <img
+                  src={fiberBanner.fiberBannerMedia}
+                  alt="Saved Media"
+                  style={{
+                    width: "250px",
+                    marginTop: "10px",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                  }}
+                />
+              )
+            ) : null}
+          </div>
+
+          {/* Banner Image */}
+          <div style={{ marginBottom: "15px" }}>
+            <label>Banner Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setFiberBanner({
+                    ...fiberBanner,
+                    fiberBannerImg: file,
+                    fiberBannerImgPreview: URL.createObjectURL(file),
+                  });
+                }
+              }}
+            />
+
+            {fiberBanner.fiberBannerImgPreview ? (
+              <img src={fiberBanner.fiberBannerImgPreview} alt="Banner Preview"
+                style={{
+                  width: "200px",
+                  marginTop: "10px",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                }} />
+            ) : fiberBanner.fiberBannerImg ? (
+              <img src={getFullUrl(fiberBanner.fiberBannerImg)} alt="Banner Preview"
+                style={{
+                  width: "200px",
+                  marginTop: "10px",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                }} />   // show existing saved img
+            ) : null}
+
+          </div>
+
           <Button
             type="primary"
             onClick={() => handleSave("fiberBanner", fiberBanner)}
@@ -287,16 +448,49 @@ export default function FiberPage() {
               </TabPane>
             ))}
           </Tabs>
-          <Input
-            placeholder="Image URL"
-            value={fiberSustainability.fiberSustainabilityImg}
-            onChange={(e) =>
-              setFiberSustainability({
-                ...fiberSustainability,
-                fiberSustainabilityImg: e.target.value,
-              })
-            }
-          />
+          <div style={{ marginBottom: "15px" }}>
+            <label>Sustainability Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setFiberSustainability({
+                    ...fiberSustainability,
+                    fiberSustainabilityImg: file, // ✅ store File
+                    fiberSustainabilityImgPreview: URL.createObjectURL(file),
+                  });
+                }
+              }}
+            />
+
+            {/* Show preview (new or saved) */}
+            {fiberSustainability.fiberSustainabilityImgPreview ? (
+              <img
+                src={fiberSustainability.fiberSustainabilityImgPreview}
+                alt="Sustainability Preview"
+                style={{
+                  width: "200px",
+                  marginTop: "10px",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                }}
+              />
+            ) : fiberSustainability.fiberSustainabilityImg ? (
+              <img
+                src={getFullUrl(fiberSustainability.fiberSustainabilityImg)} // saved path from backend
+                alt="Sustainability"
+                style={{
+                  width: "200px",
+                  marginTop: "10px",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                }}
+              />
+            ) : null}
+          </div>
+
           {[1, 2, 3].map((i) => (
             <div key={i}>
               <Tabs defaultActiveKey="en">
@@ -306,7 +500,7 @@ export default function FiberPage() {
                       placeholder={`Subtitle ${i}`}
                       value={
                         fiberSustainability[`fiberSustainabilitySubTitle${i}`][
-                          lang
+                        lang
                         ]
                       }
                       onChange={(e) =>
@@ -314,7 +508,7 @@ export default function FiberPage() {
                           ...fiberSustainability,
                           [`fiberSustainabilitySubTitle${i}`]: {
                             ...fiberSustainability[
-                              `fiberSustainabilitySubTitle${i}`
+                            `fiberSustainabilitySubTitle${i}`
                             ],
                             [lang]: e.target.value,
                           },
@@ -325,7 +519,7 @@ export default function FiberPage() {
                       placeholder={`SubDesc ${i}`}
                       value={
                         fiberSustainability[`fiberSustainabilitySubDes${i}`][
-                          lang
+                        lang
                         ]
                       }
                       onChange={(e) =>
@@ -333,7 +527,7 @@ export default function FiberPage() {
                           ...fiberSustainability,
                           [`fiberSustainabilitySubDes${i}`]: {
                             ...fiberSustainability[
-                              `fiberSustainabilitySubDes${i}`
+                            `fiberSustainabilitySubDes${i}`
                             ],
                             [lang]: e.target.value,
                           },
@@ -398,24 +592,60 @@ export default function FiberPage() {
           </Tabs>
           {fiberChooseUs.fiberChooseUsBox.map((box, idx) => (
             <div key={idx} className="border p-2 mb-2">
-              <Input
-                placeholder="Box Background URL"
-                value={box.fiberChooseUsBoxBg}
-                onChange={(e) => {
-                  const arr = [...fiberChooseUs.fiberChooseUsBox];
-                  arr[idx].fiberChooseUsBoxBg = e.target.value;
-                  setFiberChooseUs({ ...fiberChooseUs, fiberChooseUsBox: arr });
-                }}
-              />
-              <Input
-                placeholder="Icon (class or key)"
-                value={box.fiberChooseUsIcon}
-                onChange={(e) => {
-                  const arr = [...fiberChooseUs.fiberChooseUsBox];
-                  arr[idx].fiberChooseUsIcon = e.target.value;
-                  setFiberChooseUs({ ...fiberChooseUs, fiberChooseUsBox: arr });
-                }}
-              />
+
+              {/* Local Image Upload */}
+              <div style={{ marginBottom: "10px" }}>
+                <label>Box Background Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const arr = [...fiberChooseUs.fiberChooseUsBox];
+                      arr[idx].fiberChooseUsBoxBg = { file, preview: URL.createObjectURL(file) };
+                      setFiberChooseUs({ ...fiberChooseUs, fiberChooseUsBox: arr });
+                    }
+                  }}
+                />
+
+                {box.fiberChooseUsBoxBg?.preview ? (
+                  <img src={box.fiberChooseUsBoxBg.preview} alt="Preview" width="120" />
+                ) : box.fiberChooseUsBoxBg ? (
+                  <img src={getFullUrl(box.fiberChooseUsBoxBg)} alt="Saved" width="120" />
+                ) : null}
+
+              </div>
+
+              {/* Icon Selector */}
+              <div style={{ marginBottom: "10px" }}>
+                <label>Choose Icon</label>
+                <select
+                  value={box.fiberChooseUsIcon}
+                  onChange={(e) => {
+                    const arr = [...fiberChooseUs.fiberChooseUsBox];
+                    arr[idx].fiberChooseUsIcon = e.target.value;
+                    setFiberChooseUs({ ...fiberChooseUs, fiberChooseUsBox: arr });
+                  }}
+                >
+                  <option value="">-- Select Icon --</option>
+                  {Object.keys(FiIcons).map((iconName) => (
+                    <option key={iconName} value={iconName}>
+                      {iconName}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Show the actual icon */}
+                {box.fiberChooseUsIcon && (
+                  <span style={{ marginLeft: "10px", fontSize: "20px" }}>
+                    {React.createElement(FiIcons[box.fiberChooseUsIcon])}
+                  </span>
+                )}
+
+              </div>
+
+              {/* Multilingual Title & Description */}
               <Tabs defaultActiveKey="en">
                 {["en", "vi"].map((lang) => (
                   <TabPane tab={lang.toUpperCase()} key={lang}>
@@ -428,10 +658,7 @@ export default function FiberPage() {
                           ...arr[idx].fiberChooseUsBoxTitle,
                           [lang]: e.target.value,
                         };
-                        setFiberChooseUs({
-                          ...fiberChooseUs,
-                          fiberChooseUsBox: arr,
-                        });
+                        setFiberChooseUs({ ...fiberChooseUs, fiberChooseUsBox: arr });
                       }}
                     />
                     <Input
@@ -443,15 +670,27 @@ export default function FiberPage() {
                           ...arr[idx].fiberChooseUsDes,
                           [lang]: e.target.value,
                         };
-                        setFiberChooseUs({
-                          ...fiberChooseUs,
-                          fiberChooseUsBox: arr,
-                        });
+                        setFiberChooseUs({ ...fiberChooseUs, fiberChooseUsBox: arr });
                       }}
                     />
                   </TabPane>
                 ))}
               </Tabs>
+              <Button
+                danger
+                size="small"
+                onClick={async () => {
+                  const arr = [...fiberChooseUs.fiberChooseUsBox];
+                  arr.splice(idx, 1);
+                  setFiberChooseUs({ ...fiberChooseUs, fiberChooseUsBox: arr });
+
+                  // Immediate backend update
+                  await handleSave("fiberChooseUs", { ...fiberChooseUs, fiberChooseUsBox: arr });
+                }}
+              >
+                Remove Box
+              </Button>
+
             </div>
           ))}
           <Button
@@ -509,6 +748,7 @@ export default function FiberPage() {
               </TabPane>
             ))}
           </Tabs>
+
           <Divider>Descriptions (list)</Divider>
           {fiberSupplier.fiberSupplierDes.map((d, idx) => (
             <Tabs defaultActiveKey="en" key={idx}>
@@ -543,36 +783,68 @@ export default function FiberPage() {
           >
             + Add Description
           </Button>
+
           <Divider>Images</Divider>
           {fiberSupplier.fiberSupplierImg.map((img, idx) => (
-            <Input
-              key={idx}
-              value={img}
-              onChange={(e) => {
-                const arr = [...fiberSupplier.fiberSupplierImg];
-                arr[idx] = e.target.value;
-                setFiberSupplier({ ...fiberSupplier, fiberSupplierImg: arr });
-              }}
-            />
+            <div key={idx} style={{ marginBottom: "10px" }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const arr = [...fiberSupplier.fiberSupplierImg];
+                    arr[idx] = { file, preview: URL.createObjectURL(file) };
+                    setFiberSupplier({ ...fiberSupplier, fiberSupplierImg: arr });
+                  }
+                }}
+              />
+              {img?.preview ? (
+                <img src={img.preview} alt={`supplier-${idx}`} width="120" />
+              ) : typeof img === "string" && img !== "" ? (
+                <img src={getFullUrl(img)} alt={`supplier-${idx}`} width="120" />
+              ) : null}
+              <Button
+                danger
+                size="small"
+                onClick={async () => {
+                  const arr = [...fiberSupplier.fiberSupplierImg];
+                  arr.splice(idx, 1);
+                  setFiberSupplier({ ...fiberSupplier, fiberSupplierImg: arr });
+
+                  // Immediate backend update
+                  await handleSave("fiberSupplier", { ...fiberSupplier, fiberSupplierImg: arr });
+                }}
+              >
+                Remove Image
+              </Button>
+            </div>
           ))}
           <Button
             type="dashed"
             onClick={() =>
               setFiberSupplier({
                 ...fiberSupplier,
-                fiberSupplierImg: [...fiberSupplier.fiberSupplierImg, ""],
+                fiberSupplierImg: [
+                  ...fiberSupplier.fiberSupplierImg,
+                  { file: null, preview: null },
+                ],
               })
             }
           >
             + Add Image
           </Button>
+
+          {/* ✅ Save Supplier */}
           <Button
             type="primary"
+            style={{ marginTop: "15px" }}
             onClick={() => handleSave("fiberSupplier", fiberSupplier)}
           >
             Save Supplier
           </Button>
         </Panel>
+
 
         {/* 5. Products */}
         <Panel
@@ -584,7 +856,24 @@ export default function FiberPage() {
           key="5"
         >
           {fiberProducts.fiberProduct.map((p, idx) => (
-            <div key={idx} className="border p-2 mb-2">
+            <div key={idx} className="border p-2 mb-2 relative rounded-md">
+              {/* ❌ Delete whole product */}
+              <Button
+                danger
+                size="small"
+                onClick={async () => {
+                  const arr = [...fiberProducts.fiberProduct];
+                  arr.splice(idx, 1);
+                  setFiberProducts({ ...fiberProducts, fiberProduct: arr });
+
+                  // Immediate backend update
+                  await handleSave("fiberProducts", { ...fiberProducts, fiberProduct: arr });
+                }}
+              >
+                Delete Product
+              </Button>
+
+
               <Tabs defaultActiveKey="en">
                 {["en", "vi"].map((lang) => (
                   <TabPane tab={lang.toUpperCase()} key={lang}>
@@ -597,15 +886,13 @@ export default function FiberPage() {
                           ...arr[idx].fiberProductTitle,
                           [lang]: e.target.value,
                         };
-                        setFiberProducts({
-                          ...fiberProducts,
-                          fiberProduct: arr,
-                        });
+                        setFiberProducts({ ...fiberProducts, fiberProduct: arr });
                       }}
                     />
                   </TabPane>
                 ))}
               </Tabs>
+
               <Divider>Descriptions (list)</Divider>
               {p.fiberProductDes.map((d, dIdx) => (
                 <Tabs defaultActiveKey="en" key={dIdx}>
@@ -619,10 +906,7 @@ export default function FiberPage() {
                             ...arr[idx].fiberProductDes[dIdx],
                             [lang]: e.target.value,
                           };
-                          setFiberProducts({
-                            ...fiberProducts,
-                            fiberProduct: arr,
-                          });
+                          setFiberProducts({ ...fiberProducts, fiberProduct: arr });
                         }}
                       />
                     </TabPane>
@@ -639,17 +923,32 @@ export default function FiberPage() {
               >
                 + Add Description
               </Button>
-              <Input
-                placeholder="Product Image URL"
-                value={p.fiberProductImg}
-                onChange={(e) => {
-                  const arr = [...fiberProducts.fiberProduct];
-                  arr[idx].fiberProductImg = e.target.value;
-                  setFiberProducts({ ...fiberProducts, fiberProduct: arr });
-                }}
-              />
+
+              {/* Product Image Upload */}
+              <div style={{ marginTop: "10px" }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const arr = [...fiberProducts.fiberProduct];
+                      arr[idx].fiberProductImg = { file, preview: URL.createObjectURL(file) };
+                      setFiberProducts({ ...fiberProducts, fiberProduct: arr });
+                    }
+                  }}
+                />
+                {p.fiberProductImg && (
+                  <img
+                    src={p.fiberProductImg.preview || getFullUrl(p.fiberProductImg)}
+                    alt={`product-${idx}`}
+                    style={{ width: "120px", marginTop: "8px", borderRadius: "6px" }}
+                  />
+                )}
+              </div>
             </div>
           ))}
+
           <Button
             type="dashed"
             onClick={() =>
@@ -776,19 +1075,45 @@ export default function FiberPage() {
           />
           <Divider>Images</Divider>
           {fiberCertification.fiberCertificationImg.map((img, idx) => (
-            <Input
-              key={idx}
-              value={img}
-              onChange={(e) => {
-                const arr = [...fiberCertification.fiberCertificationImg];
-                arr[idx] = e.target.value;
-                setFiberCertification({
-                  ...fiberCertification,
-                  fiberCertificationImg: arr,
-                });
-              }}
-            />
+            <div key={idx} style={{ marginBottom: "10px" }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const arr = [...fiberCertification.fiberCertificationImg];
+                    arr[idx] = { file, preview: URL.createObjectURL(file) };
+                    setFiberCertification({ ...fiberCertification, fiberCertificationImg: arr });
+                  }
+                }}
+              />
+
+              {/* Preview */}
+              {img?.preview ? (
+                <img src={img.preview} alt={`cert-${idx}`} width="120" />
+              ) : typeof img === "string" && img !== "" ? (
+                <img src={getFullUrl(img)} alt={`cert-${idx}`} width="120" />
+              ) : null}
+
+              {/* ✅ Remove button */}
+              <Button
+                danger
+                size="small"
+                onClick={async () => {
+                  const arr = [...fiberCertification.fiberCertificationImg];
+                  arr.splice(idx, 1);
+                  setFiberCertification({ ...fiberCertification, fiberCertificationImg: arr });
+
+                  await handleSave("fiberCertification", { ...fiberCertification, fiberCertificationImg: arr });
+                }}
+              >
+                Remove
+              </Button>
+
+            </div>
           ))}
+
           <Button
             type="dashed"
             onClick={() =>
@@ -796,13 +1121,14 @@ export default function FiberPage() {
                 ...fiberCertification,
                 fiberCertificationImg: [
                   ...fiberCertification.fiberCertificationImg,
-                  "",
+                  { file: null, preview: null },  // ✅ better placeholder
                 ],
               })
             }
           >
             + Add Image
           </Button>
+
           <Button
             type="primary"
             onClick={() => handleSave("fiberCertification", fiberCertification)}

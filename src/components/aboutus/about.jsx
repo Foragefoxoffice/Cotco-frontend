@@ -15,6 +15,14 @@ export default function AboutUsSection() {
       .catch((err) => console.error("Failed to load about overview:", err));
   }, []);
 
+  // ✅ API base
+  const API_BASE = import.meta.env.VITE_API_URL;
+  const getFullUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${API_BASE}${path}`;
+  };
+
   if (!overview) return null; // Wait until API loads
 
   return (
@@ -25,7 +33,7 @@ export default function AboutUsSection() {
           <div className="aspect-square w-full max-w-[420px] md:max-w-full rounded-[24px] overflow-hidden ring-1 ring-black/5 shadow-sm">
             {overview.aboutOverviewImg ? (
               <img
-                src={overview.aboutOverviewImg}
+                src={getFullUrl(overview.aboutOverviewImg)}
                 alt={overview.aboutOverviewTitle?.en || "About Overview"}
                 className="h-full w-full object-cover"
               />

@@ -4,13 +4,10 @@ import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import TitleAnimation from "../common/AnimatedTitle";
 import { FiArrowDownRight } from "react-icons/fi";
-const certificateImages = [
-  "/img/fiber/certifications/cer1.jpg",
-   "/img/fiber/certifications/cer1.jpg",
-
-];
+import { getFiberPage } from "../../Api/api";
 
 export default function CertificationSliderSection() {
+  const [certification, setCertification] = useState(null);
   const [current, setCurrent] = useState(0);
   const sectionRef = useRef(null);
   const intervalRef = useRef(null);
@@ -18,12 +15,33 @@ export default function CertificationSliderSection() {
   const controls = useAnimation();
   const { ref: inViewRef, inView } = useInView({ threshold: 0.3 });
 
+  const API_BASE = import.meta.env.VITE_API_URL;
+  const getFullUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${API_BASE}${path}`;
+  };
+
+  useEffect(() => {
+    getFiberPage().then((res) => {
+      if (res.data?.fiberCertification) {
+        setCertification(res.data.fiberCertification);
+      }
+    });
+  }, []);
+
   const prevSlide = () => {
-    setCurrent((prev) => (prev === 0 ? certificateImages.length - 1 : prev - 1));
+    if (!certification?.fiberCertificationImg?.length) return;
+    setCurrent((prev) =>
+      prev === 0 ? certification.fiberCertificationImg.length - 1 : prev - 1
+    );
   };
 
   const nextSlide = () => {
-    setCurrent((prev) => (prev === certificateImages.length - 1 ? 0 : prev + 1));
+    if (!certification?.fiberCertificationImg?.length) return;
+    setCurrent((prev) =>
+      prev === certification.fiberCertificationImg.length - 1 ? 0 : prev + 1
+    );
   };
 
   const startAutoSlide = () => {
@@ -49,24 +67,35 @@ export default function CertificationSliderSection() {
     return stopAutoSlide;
   }, [inView]);
 
+  if (!certification) return null;
+
   return (
-    <section ref={sectionRef} className="py-6 md:py-20 page-width bg-white overflow-x-hidden">
+    <section
+      ref={sectionRef}
+      className="py-6 md:py-20 page-width bg-white overflow-x-hidden"
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-10">
         {/* Left Side */}
         <div className="text-center md:text-left">
-         
           <TitleAnimation
-            text={"GROW IN TRUST AND QUALITY "}
+            text={certification.fiberCertificationTitle?.en || "GROW IN TRUST AND QUALITY"}
             className="heading mb-6 leading-snug text-black"
-             align="center" mdAlign="left" lgAlign="right"
+            align="center"
+            mdAlign="left"
+            lgAlign="right"
             delay={0.05}
             stagger={0.05}
             once={true}
           />
-          
-            <a href="/products" className="w-72 mt-6 px-5 py-2 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-xl font-semibold" style={{fontSize: '20px'}}>
-                            Explore Certifications <FiArrowDownRight />
-                          </a>
+
+          <a
+            href={certification.fiberCertificationButtonLink || "/products"}
+            className="w-72 mt-6 px-5 py-2 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-xl font-semibold"
+            style={{ fontSize: "20px" }}
+          >
+            {certification.fiberCertificationButtonText?.en || "Explore Certifications"}
+            <FiArrowDownRight />
+          </a>
         </div>
 
         {/* Right Side - Slider */}
@@ -79,13 +108,12 @@ export default function CertificationSliderSection() {
         >
           {/* Certificate Stack */}
           <div className="relative w-full h-full md:h-100">
-            {certificateImages.map((src, i) => {
+            {certification.fiberCertificationImg?.map((src, i) => {
               const isActive = i === current;
-
               return (
                 <img
                   key={i}
-                  src={src}
+                  src={getFullUrl(src)}
                   alt={`Certificate ${i + 1}`}
                   className={`absolute certificate-slider-img top-0 left-0 w-[600px] h-[450px] rounded-2xl transition-all duration-700 ease-in-out
                     ${isActive ? "z-30 scale-100 rotate-0 opacity-100" : "z-10 opacity-40 scale-[0.95]"}

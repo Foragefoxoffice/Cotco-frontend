@@ -57,6 +57,7 @@ const Sidebar = () => {
         { path: "/admin/about", label: "About" },
         { path: "/admin/cotton", label: "Cotton" },
         { path: "/admin/fiber", label: "Fiber" },
+        { path: "/admin/contact", label: "Contact" },
       ],
     },
   ];
@@ -67,15 +68,14 @@ const Sidebar = () => {
     return (
       <Link
         to={to}
-        className={`flex items-center px-4 py-2 mb-2 mt-2 text-sm rounded-md transition-colors duration-200 ${
-          isActive
-            ? theme === "light"
-              ? "bg-indigo-50 text-[#101828] font-medium"
-              : "bg-gray-700 text-white font-medium"
-            : theme === "light"
+        className={`flex items-center px-4 py-2 mb-2 mt-2 text-sm rounded-md transition-colors duration-200 ${isActive
+          ? theme === "light"
+            ? "bg-indigo-50 text-[#101828] font-medium"
+            : "bg-gray-700 text-white font-medium"
+          : theme === "light"
             ? "text-gray-700 hover:bg-gray-100"
             : "text-gray-300 hover:bg-gray-700"
-        } ${className}`}
+          } ${className}`}
       >
         {children}
       </Link>
@@ -84,17 +84,15 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`w-64 border-r h-full flex flex-col transition-colors duration-300 ${
-        theme === "light"
-          ? "bg-white border-gray-200"
-          : "bg-gray-800 border-gray-700"
-      }`}
+      className={`w-64 border-r h-full flex flex-col transition-colors duration-300 ${theme === "light"
+        ? "bg-white border-gray-200"
+        : "bg-gray-800 border-gray-700"
+        }`}
     >
       {/* Logo */}
       <div
-        className={`p-4 border-b ${
-          theme === "light" ? "border-gray-200" : "border-gray-700"
-        }`}
+        className={`p-4 border-b ${theme === "light" ? "border-gray-200" : "border-gray-700"
+          }`}
       >
         <img
           alt="Cotco Logo"
@@ -104,9 +102,8 @@ const Sidebar = () => {
         />
 
         <p
-          className={`text-sm text-center ${
-            theme === "light" ? "text-gray-500" : "text-gray-400"
-          }`}
+          className={`text-sm text-center ${theme === "light" ? "text-gray-500" : "text-gray-400"
+            }`}
         >
           COTCO Admin
         </p>
@@ -121,14 +118,12 @@ const Sidebar = () => {
                 <>
                   <button
                     onClick={() => toggleMenu(item.key)}
-                    className={`flex items-center justify-between w-full px-4 py-2 text-sm rounded-md text-left transition-colors ${
-                      theme === "light"
-                        ? "text-gray-700 hover:bg-gray-100"
-                        : "text-gray-300 hover:bg-gray-700"
-                    } ${
-                      location.pathname.startsWith(`/admin/${item.key}`) &&
+                    className={`flex items-center justify-between w-full px-4 py-2 text-sm rounded-md text-left transition-colors ${theme === "light"
+                      ? "text-gray-700 hover:bg-gray-100"
+                      : "text-gray-300 hover:bg-gray-700"
+                      } ${location.pathname.startsWith(`/admin/${item.key}`) &&
                       "font-medium"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center">
                       <span className="mr-3">{item.icon}</span>
@@ -136,13 +131,12 @@ const Sidebar = () => {
                     </div>
                     <ChevronRight
                       size={16}
-                      className={`transition-transform ${
-                        openMenus[item.key] ? "rotate-90" : ""
-                      }`}
+                      className={`transition-transform ${openMenus[item.key] ? "rotate-90" : ""
+                        }`}
                     />
                   </button>
                   {openMenus[item.key] ||
-                  location.pathname.startsWith(`/admin/${item.key}`) ? (
+                    location.pathname.startsWith(`/admin/${item.key}`) ? (
                     <ul className="pl-6 mt-1 space-y-1">
                       {item.subItems.map((subItem) => (
                         <li key={subItem.path}>
@@ -165,14 +159,12 @@ const Sidebar = () => {
 
       {/* Footer */}
       <div
-        className={`p-4 border-t ${
-          theme === "light" ? "border-gray-200" : "border-gray-700"
-        }`}
+        className={`p-4 border-t ${theme === "light" ? "border-gray-200" : "border-gray-700"
+          }`}
       >
         <p
-          className={`text-xs ${
-            theme === "light" ? "text-gray-500" : "text-gray-400"
-          }`}
+          className={`text-xs ${theme === "light" ? "text-gray-500" : "text-gray-400"
+            }`}
         >
           Cotco CMS
         </p>

@@ -55,6 +55,7 @@ import MachineList from "./pages/MachineList";
 // Toast
 import { ToastContainer } from "react-toastify";
 import MachinePage from "./pages/MachinePage";
+import ContactPage from "./admin/Dashboard/ContactPage";
 
 // 🔒 Protect dashboard-related routes
 const ProtectedRoute = ({ children }) => {
@@ -125,6 +126,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="/admin/about" element={<AboutPage />} />
             <Route path="/admin/cotton" element={<CottonPage />} />
             <Route path="/admin/fiber" element={<FiberPage />} />
+            <Route path="/admin/contact" element={<ContactPage />} />
 
             {/* ✅ Fixed spelling */}
             <Route

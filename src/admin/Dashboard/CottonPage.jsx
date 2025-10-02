@@ -36,6 +36,14 @@ const handleImageChange = (e, setter, key) => {
   }));
 };
 
+// ✅ API base
+const API_BASE = import.meta.env.VITE_API_URL;
+const getFullUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE}${path}`;
+};
+
 const CottonPage = () => {
   const { theme } = useTheme();
 
@@ -194,9 +202,8 @@ const CottonPage = () => {
   // ---------------------- UI ---------------------- //
   return (
     <div
-      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${
-        theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
-      }`}
+      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
+        }`}
     >
       <h2 className="text-4xl font-extrabold mb-10 text-center">
         Cotton Page Management
@@ -248,7 +255,7 @@ const CottonPage = () => {
           <Divider>Banner Image</Divider>
           {cottonBanner.cottonBannerImg && (
             <img
-              src={cottonBanner.cottonBannerImg}
+              src={getFullUrl(cottonBanner.cottonBannerImg)}
               alt="Banner"
               className="w-48 mb-3"
             />
@@ -266,9 +273,9 @@ const CottonPage = () => {
             {(cottonBanner.cottonBannerSlideImg || []).map((img, idx) => (
               <div key={`slide-${idx}`} className="relative">
                 <img
-                  src={img}
+                  src={getFullUrl(img)}
                   alt="slide"
-                  className="w-full h-24 object-cover"
+                  className="w-full h-24 object-contain"
                 />
                 <Button
                   danger
@@ -300,7 +307,7 @@ const CottonPage = () => {
                   <img
                     src={URL.createObjectURL(file)}
                     alt="new-slide"
-                    className="w-full h-24 object-cover"
+                    className="w-full h-24 object-contain"
                   />
                   <Button
                     danger
@@ -413,7 +420,7 @@ const CottonPage = () => {
               <Divider>Background</Divider>
               {/* Show saved background from DB */}
               {s.cottonSupplierBg && !s.previewBg && (
-                <img src={s.cottonSupplierBg} alt="bg" className="w-48 mb-2" />
+                <img src={getFullUrl(s.cottonSupplierBg)} alt="bg" className="w-48 mb-2" />
               )}
 
               {/* Show preview if uploading new */}
@@ -442,7 +449,7 @@ const CottonPage = () => {
               {/* Show saved logo from DB */}
               {s.cottonSupplierLogo && !s.previewLogo && (
                 <img
-                  src={s.cottonSupplierLogo}
+                  src={getFullUrl(s.cottonSupplierLogo)}
                   alt="logo"
                   className="w-32 mb-2"
                 />
@@ -561,7 +568,7 @@ const CottonPage = () => {
             {cottonTrust.cottonTrustLogo.map((logo, idx) => (
               <div key={`saved-${idx}`} className="relative">
                 <img
-                  src={logo}
+                  src={getFullUrl(logo)}
                   alt="trust"
                   className="w-full h-24 object-contain"
                 />
@@ -642,7 +649,7 @@ const CottonPage = () => {
             />
           ) : cottonTrust.cottonTrustImg ? (
             <img
-              src={cottonTrust.cottonTrustImg}
+              src={getFullUrl(cottonTrust.cottonTrustImg)}
               alt="trust"
               className="w-48 mb-2"
             />
@@ -730,7 +737,7 @@ const CottonPage = () => {
             {cottonMember.cottonMemberImg.map((img, idx) => (
               <div key={`saved-${idx}`} className="relative">
                 <img
-                  src={img}
+                  src={getFullUrl(img)}
                   alt="member"
                   className="w-full h-24 object-contain"
                 />

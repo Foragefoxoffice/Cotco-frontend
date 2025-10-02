@@ -19,6 +19,14 @@ const HeroSection = () => {
       });
   }, []);
 
+  const API_BASE = import.meta.env.VITE_API_URL;
+  const getFullUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${API_BASE}${path}`;
+  };
+
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -39,9 +47,8 @@ const HeroSection = () => {
         scrolled ? { scale: 0.93, opacity: 0.95 } : { scale: 1, opacity: 1 }
       }
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`relative overflow-hidden hero transition-all duration-500 ease-out ${
-        scrolled ? "rounded-2xl" : ""
-      }`}
+      className={`relative overflow-hidden hero transition-all duration-500 ease-out ${scrolled ? "rounded-2xl" : ""
+        }`}
     >
       {/* Title */}
       <motion.div
@@ -69,7 +76,7 @@ const HeroSection = () => {
         {heroData.aboutBanner && (
           <motion.img
             style={{ y: yImage }}
-            src={heroData.aboutBanner}
+            src={getFullUrl(heroData.aboutBanner)}
             alt="Hero Banner"
             className="w-full h-full object-cover"
           />

@@ -11,9 +11,8 @@ function PlusIcon({ open }) {
       aria-hidden="true"
     >
       <FiPlus
-        className={`transition-transform duration-300 ${
-          open ? "rotate-45" : ""
-        }`}
+        className={`transition-transform duration-300 ${open ? "rotate-45" : ""
+          }`}
       />
     </span>
   );
@@ -75,7 +74,7 @@ export default function MeetOurTeam() {
       <div className="mx-auto max-w-5xl px-4">
         {/* Header */}
         <div className="text-center">
-          <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-600">
+          <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[13px] font-medium text-slate-600">
             Our people
           </span>
 
@@ -113,9 +112,8 @@ export default function MeetOurTeam() {
                 </button>
 
                 <div
-                  className={`overflow-hidden transition-all duration-300 ${
-                    isOpen ? "max-h-[1000px] py-3" : "max-h-0"
-                  }`}
+                  className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-[1000px] py-3" : "max-h-0"
+                    }`}
                 >
                   {section.members.length > 0 && (
                     <ul className="space-y-3 rounded-xl bg-slate-50/50 p-1">

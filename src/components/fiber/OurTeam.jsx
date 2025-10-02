@@ -1,29 +1,8 @@
 // src/components/MeetOurTeam.jsx
-import { useState } from "react";
-import { FiPlus} from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiPlus } from "react-icons/fi";
 import TitleAnimation from "../common/AnimatedTitle";
-
-const TEAM_SECTIONS = [
-
-  {
-    title: "Fiber",
-    members: [
-      {
-        name: "Sohpie",
-        role: "Sales Manager",
-        phone: "+84 96 900 3600",
-        email: "sophie@cotco-vn.com",
-      },
-      {
-        name: "Max",
-        role: "Logistics Executive",
-        phone: "+84 96 564 7670",
-        email: "anpham@cotco-vn.com",
-      },
-    ],
-  },
-
-];
+import { getAboutPage } from "../../Api/api";
 
 function PlusIcon({ open }) {
   return (
@@ -31,9 +10,10 @@ function PlusIcon({ open }) {
       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600"
       aria-hidden="true"
     >
-     <FiPlus className={`transition-transform duration-300 ${
-          open ? "rotate-45" : ""
-        }`} />
+      <FiPlus
+        className={`transition-transform duration-300 ${open ? "rotate-45" : ""
+          }`}
+      />
     </span>
   );
 }
@@ -41,7 +21,6 @@ function PlusIcon({ open }) {
 function MemberCard({ name, role, phone, email }) {
   return (
     <li className="relative rounded-xl border border-slate-200 bg-white p-4 pl-6 shadow-sm">
-      {/* vertical accent */}
       <span className="pointer-events-none absolute left-2 top-3 bottom-3 w-1 rounded-full bg-gradient-to-b from-indigo-400 to-sky-400" />
       <div className="text-[16px] font-black uppercase tracking-wide text-slate-800">
         {name}
@@ -50,29 +29,57 @@ function MemberCard({ name, role, phone, email }) {
         {role}
       </div>
       <div className="mt-2 space-y-0.5 text-[16px] leading-relaxed text-slate-600">
-        <div>{phone}</div>
-        <a href={`mailto:${email}`} className="text-sky-600 hover:underline">
-          {email}
-        </a>
+        {phone && <div>{phone}</div>}
+        {email && (
+          <a href={`mailto:${email}`} className="text-sky-600 hover:underline">
+            {email}
+          </a>
+        )}
       </div>
     </li>
   );
 }
 
 export default function MeetOurTeam() {
-  // Open "Machine" by default to match the screenshot
-  const [openIndex, setOpenIndex] = useState();
+  const [openIndex, setOpenIndex] = useState(null);
+  const [teamData, setTeamData] = useState(null);
+
+  useEffect(() => {
+    getAboutPage()
+      .then((res) => {
+        if (res.data?.aboutTeam) {
+          setTeamData(res.data.aboutTeam);
+        }
+      })
+      .catch((err) => console.error("Failed to load team:", err));
+  }, []);
+
+  if (!teamData) return null;
+
+  // Convert API data to sections
+  const TEAM_SECTIONS = [
+    { key: "fiberTeam", title: "Fiber" },
+  ].map((section) => ({
+    title: section.title,
+    members: (teamData[section.key] || []).map((m) => ({
+      name: m.teamName?.en || "",
+      role: m.teamDesgn?.en || "",
+      phone: m.teamPhone || "",
+      email: m.teamEmail || "",
+    })),
+  }));
 
   return (
-    <section className="pb-10 md:pb-32">
+    <section className="pt-6 md:pt-10 mb-15">
       <div className="mx-auto max-w-5xl px-4">
         {/* Header */}
         <div className="text-center">
-          <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-600">
-            Contact
+          <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[13px] font-medium text-slate-600">
+            Our people
           </span>
+
           <TitleAnimation
-            text={"OUR TEAM"}
+            text={"Meet our team"}
             className="heading uppercase"
             align="center"
             delay={0.05}
@@ -94,7 +101,7 @@ export default function MeetOurTeam() {
               <div key={section.title} className="rounded-2xl">
                 <button
                   type="button"
-                  onClick={() => setOpenIndex(isOpen ? -1 : idx)}
+                  onClick={() => setOpenIndex(isOpen ? null : idx)}
                   className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100"
                   aria-expanded={isOpen}
                 >
@@ -106,9 +113,8 @@ export default function MeetOurTeam() {
 
                 {/* Collapsible content */}
                 <div
-                  className={`overflow-hidden transition-all duration-300 ${
-                    isOpen ? "max-h-[1000px] py-3" : "max-h-0"
-                  }`}
+                  className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-[1000px] py-3" : "max-h-0"
+                    }`}
                 >
                   {section.members.length > 0 && (
                     <ul className="space-y-3 rounded-xl bg-slate-50/50 p-1">
