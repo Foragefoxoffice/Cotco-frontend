@@ -1,13 +1,7 @@
 // frontend/pages/CottonPage.jsx
 import React, { useEffect } from "react";
 import { Collapse, Input, Button, Tabs, Divider } from "antd";
-import {
-  FiImage,
-  FiUsers,
-  FiLayers,
-  FiShield,
-  FiStar,
-} from "react-icons/fi";
+import { FiImage, FiUsers, FiLayers, FiShield, FiStar } from "react-icons/fi";
 import { useTheme } from "../../contexts/ThemeContext";
 import { CommonToaster } from "../../Common/CommonToaster";
 import usePersistedState from "../../hooks/usePersistedState";
@@ -35,15 +29,11 @@ const handleImageChange = (e, setter, key) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    setter((prev) => ({
-      ...prev,
-      [key + "File"]: file,
-      [key]: reader.result,
-    }));
-  };
-  reader.readAsDataURL(file);
+  setter((prev) => ({
+    ...prev,
+    [key + "File"]: file,
+    preview: URL.createObjectURL(file),
+  }));
 };
 
 const CottonPage = () => {
@@ -60,8 +50,10 @@ const CottonPage = () => {
     cottonBannerSlideImgFiles: [],
   });
 
-
-  const [cottonSupplier, setCottonSupplier] = usePersistedState("cottonSupplier", []);
+  const [cottonSupplier, setCottonSupplier] = usePersistedState(
+    "cottonSupplier",
+    []
+  );
 
   const [cottonTrust, setCottonTrust] = usePersistedState("cottonTrust", {
     cottonTrustTitle: { en: "", vi: "" },
@@ -80,8 +72,6 @@ const CottonPage = () => {
     cottonMemberImgFiles: [],
   });
 
-
-
   // ---------------------- FETCH ---------------------- //
   useEffect(() => {
     getCottonPage().then((res) => {
@@ -90,13 +80,17 @@ const CottonPage = () => {
           ...prev,
           ...res.data.cottonBanner,
           cottonBannerImgFile: prev.cottonBannerImgFile,
-          cottonBannerSlideImg: res.data.cottonBanner.cottonBannerSlideImg || [],
+          cottonBannerSlideImg:
+            res.data.cottonBanner.cottonBannerSlideImg || [],
           cottonBannerSlideImgFiles: prev.cottonBannerSlideImgFiles || [],
-          cottonBannerOverview: res.data.cottonBanner.cottonBannerOverview || { en: "", vi: "" },
+          cottonBannerOverview: res.data.cottonBanner.cottonBannerOverview || {
+            en: "",
+            vi: "",
+          },
         }));
 
       if (res.data?.cottonSupplier)
-        setCottonSupplier(res.data.cottonSupplier || []);   // ✅ fallback
+        setCottonSupplier(res.data.cottonSupplier || []); // ✅ fallback
 
       if (res.data?.cottonTrust)
         setCottonTrust((prev) => ({
@@ -117,12 +111,14 @@ const CottonPage = () => {
     });
   }, []);
 
-
   // ---------------------- SAVE HANDLER ---------------------- //
   const handleSave = async (sectionName, formState, files = []) => {
     try {
       if (!validateVietnamese(formState)) {
-        CommonToaster("Please fill both English and Vietnamese fields.", "error");
+        CommonToaster(
+          "Please fill both English and Vietnamese fields.",
+          "error"
+        );
         return;
       }
 
@@ -133,7 +129,13 @@ const CottonPage = () => {
       if (sectionName === "cottonSupplier") {
         formState.forEach((s, i) => {
           if (s.cottonSupplierLogoFile instanceof File) {
-            formData.append(`cottonSupplierLogoFile${i}`, s.cottonSupplierLogoFile);
+            formData.append(
+              `cottonSupplierLogoFile${i}`,
+              s.cottonSupplierLogoFile
+            );
+          }
+          if (s.cottonSupplierBgFile instanceof File) {
+            formData.append(`cottonSupplierBgFile${i}`, s.cottonSupplierBgFile); // ✅ NEW
           }
         });
       } else {
@@ -162,7 +164,6 @@ const CottonPage = () => {
     }
   };
 
-
   const instantSave = async (sectionName, formState, files = []) => {
     try {
       const formData = new FormData();
@@ -190,20 +191,27 @@ const CottonPage = () => {
     }
   };
 
-
-
-
   // ---------------------- UI ---------------------- //
   return (
     <div
-      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
-        }`}
+      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${
+        theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
+      }`}
     >
-      <h2 className="text-4xl font-extrabold mb-10 text-center">Cotton Page Management</h2>
+      <h2 className="text-4xl font-extrabold mb-10 text-center">
+        Cotton Page Management
+      </h2>
 
       <Collapse accordion bordered={false}>
         {/* 1. Banner */}
-        <Panel header={<span className="flex items-center gap-2 font-semibold"><FiImage /> Banner</span>} key="1">
+        <Panel
+          header={
+            <span className="flex items-center gap-2 font-semibold">
+              <FiImage /> Banner
+            </span>
+          }
+          key="1"
+        >
           <Tabs defaultActiveKey="en">
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
@@ -213,7 +221,10 @@ const CottonPage = () => {
                   onChange={(e) =>
                     setCottonBanner({
                       ...cottonBanner,
-                      cottonBannerTitle: { ...cottonBanner.cottonBannerTitle, [lang]: e.target.value },
+                      cottonBannerTitle: {
+                        ...cottonBanner.cottonBannerTitle,
+                        [lang]: e.target.value,
+                      },
                     })
                   }
                 />
@@ -223,7 +234,10 @@ const CottonPage = () => {
                   onChange={(e) =>
                     setCottonBanner({
                       ...cottonBanner,
-                      cottonBannerDes: { ...cottonBanner.cottonBannerDes, [lang]: e.target.value },
+                      cottonBannerDes: {
+                        ...cottonBanner.cottonBannerDes,
+                        [lang]: e.target.value,
+                      },
                     })
                   }
                 />
@@ -233,28 +247,45 @@ const CottonPage = () => {
 
           <Divider>Banner Image</Divider>
           {cottonBanner.cottonBannerImg && (
-            <img src={cottonBanner.cottonBannerImg} alt="Banner" className="w-48 mb-3" />
+            <img
+              src={cottonBanner.cottonBannerImg}
+              alt="Banner"
+              className="w-48 mb-3"
+            />
           )}
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => handleImageChange(e, setCottonBanner, "cottonBannerImg")}
+            onChange={(e) =>
+              handleImageChange(e, setCottonBanner, "cottonBannerImg")
+            }
           />
 
           <Divider>Banner Slide Images</Divider>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {(cottonBanner.cottonBannerSlideImg || []).map((img, idx) => (
               <div key={`slide-${idx}`} className="relative">
-                <img src={img} alt="slide" className="w-full h-24 object-cover" />
+                <img
+                  src={img}
+                  alt="slide"
+                  className="w-full h-24 object-cover"
+                />
                 <Button
                   danger
                   size="small"
                   className="absolute top-1 right-1"
                   onClick={async () => {
-                    const newSlides = (cottonBanner.cottonBannerSlideImg || []).filter((_, i) => i !== idx);
-                    const updated = { ...cottonBanner, cottonBannerSlideImg: newSlides };
+                    const newSlides = (
+                      cottonBanner.cottonBannerSlideImg || []
+                    ).filter((_, i) => i !== idx);
+                    const updated = {
+                      ...cottonBanner,
+                      cottonBannerSlideImg: newSlides,
+                    };
                     setCottonBanner(updated);
-                    await instantSave("cottonBanner", updated, ["cottonBannerSlideImgFiles"]);
+                    await instantSave("cottonBanner", updated, [
+                      "cottonBannerSlideImgFiles",
+                    ]);
                   }}
                 >
                   X
@@ -266,7 +297,11 @@ const CottonPage = () => {
               if (!(file instanceof File)) return null;
               return (
                 <div key={`new-slide-${idx}`} className="relative">
-                  <img src={URL.createObjectURL(file)} alt="new-slide" className="w-full h-24 object-cover" />
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt="new-slide"
+                    className="w-full h-24 object-cover"
+                  />
                   <Button
                     danger
                     size="small"
@@ -274,7 +309,9 @@ const CottonPage = () => {
                     onClick={() =>
                       setCottonBanner({
                         ...cottonBanner,
-                        cottonBannerSlideImgFiles: (cottonBanner.cottonBannerSlideImgFiles || []).filter((_, i) => i !== idx),
+                        cottonBannerSlideImgFiles: (
+                          cottonBanner.cottonBannerSlideImgFiles || []
+                        ).filter((_, i) => i !== idx),
                       })
                     }
                   >
@@ -284,7 +321,6 @@ const CottonPage = () => {
               );
             })}
           </div>
-
 
           <input
             type="file"
@@ -314,15 +350,23 @@ const CottonPage = () => {
             >
               Save Banner
             </Button>
-
           </div>
         </Panel>
 
-
         {/* 3. Supplier */}
-        <Panel header={<span className="flex items-center gap-2 font-semibold"><FiUsers /> Suppliers</span>} key="3">
+        <Panel
+          header={
+            <span className="flex items-center gap-2 font-semibold">
+              <FiUsers /> Suppliers
+            </span>
+          }
+          key="3"
+        >
           {cottonSupplier.map((s, idx) => (
-            <div key={idx} className="border rounded p-4 mb-4 bg-gray-50 dark:bg-gray-700">
+            <div
+              key={idx}
+              className="border rounded p-4 mb-4 bg-gray-50 dark:bg-gray-700"
+            >
               <Tabs defaultActiveKey="en">
                 {["en", "vi"].map((lang) => (
                   <TabPane tab={lang.toUpperCase()} key={lang}>
@@ -331,7 +375,10 @@ const CottonPage = () => {
                       value={s.cottonSupplierTitle?.[lang]}
                       onChange={(e) => {
                         const newArr = [...cottonSupplier];
-                        newArr[idx].cottonSupplierTitle = { ...s.cottonSupplierTitle, [lang]: e.target.value };
+                        newArr[idx].cottonSupplierTitle = {
+                          ...s.cottonSupplierTitle,
+                          [lang]: e.target.value,
+                        };
                         setCottonSupplier(newArr);
                       }}
                     />
@@ -340,7 +387,10 @@ const CottonPage = () => {
                       value={s.cottonSupplierLogoName?.[lang]}
                       onChange={(e) => {
                         const newArr = [...cottonSupplier];
-                        newArr[idx].cottonSupplierLogoName = { ...s.cottonSupplierLogoName, [lang]: e.target.value };
+                        newArr[idx].cottonSupplierLogoName = {
+                          ...s.cottonSupplierLogoName,
+                          [lang]: e.target.value,
+                        };
                         setCottonSupplier(newArr);
                       }}
                     />
@@ -349,7 +399,10 @@ const CottonPage = () => {
                       value={s.cottonSupplierDes?.[lang]}
                       onChange={(e) => {
                         const newArr = [...cottonSupplier];
-                        newArr[idx].cottonSupplierDes = { ...s.cottonSupplierDes, [lang]: e.target.value };
+                        newArr[idx].cottonSupplierDes = {
+                          ...s.cottonSupplierDes,
+                          [lang]: e.target.value,
+                        };
                         setCottonSupplier(newArr);
                       }}
                     />
@@ -357,10 +410,42 @@ const CottonPage = () => {
                 ))}
               </Tabs>
 
+              <Divider>Background</Divider>
+              {/* Show saved background from DB */}
+              {s.cottonSupplierBg && !s.previewBg && (
+                <img src={s.cottonSupplierBg} alt="bg" className="w-48 mb-2" />
+              )}
+
+              {/* Show preview if uploading new */}
+              {s.previewBg && (
+                <img src={s.previewBg} alt="preview-bg" className="w-48 mb-2" />
+              )}
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+
+                  const newArr = [...cottonSupplier];
+                  newArr[idx].cottonSupplierBgFile = file;
+
+                  // Blob preview
+                  newArr[idx].previewBg = URL.createObjectURL(file);
+
+                  setCottonSupplier(newArr);
+                }}
+              />
+
               <Divider>Logo</Divider>
               {/* Show saved logo from DB */}
               {s.cottonSupplierLogo && !s.previewLogo && (
-                <img src={s.cottonSupplierLogo} alt="logo" className="w-32 mb-2" />
+                <img
+                  src={s.cottonSupplierLogo}
+                  alt="logo"
+                  className="w-32 mb-2"
+                />
               )}
 
               {/* Show preview if uploading new */}
@@ -395,31 +480,48 @@ const CottonPage = () => {
               >
                 Remove Supplier
               </Button>
-
-
             </div>
           ))}
 
-          <Button type="dashed" className="w-full" onClick={() =>
-            setCottonSupplier([...cottonSupplier, {
-              cottonSupplierTitle: { en: "", vi: "" },
-              cottonSupplierLogoName: { en: "", vi: "" },
-              cottonSupplierDes: { en: "", vi: "" },
-              cottonSupplierLogo: "",
-              cottonSupplierLogoFile: null,
-            }])
-          }>+ Add Supplier</Button>
+          <Button
+            type="dashed"
+            className="w-full"
+            onClick={() =>
+              setCottonSupplier([
+                ...cottonSupplier,
+                {
+                  cottonSupplierTitle: { en: "", vi: "" },
+                  cottonSupplierLogoName: { en: "", vi: "" },
+                  cottonSupplierDes: { en: "", vi: "" },
+                  cottonSupplierLogo: "",
+                  cottonSupplierLogoFile: null,
+                },
+              ])
+            }
+          >
+            + Add Supplier
+          </Button>
 
           <div className="flex justify-end mt-6 gap-4">
             <Button onClick={() => window.location.reload()}>Cancel</Button>
-            <Button type="primary" onClick={() => handleSave("cottonSupplier", cottonSupplier)}>
+            <Button
+              type="primary"
+              onClick={() => handleSave("cottonSupplier", cottonSupplier)}
+            >
               Save Suppliers
             </Button>
           </div>
         </Panel>
 
         {/* 4. Trust */}
-        <Panel header={<span className="flex items-center gap-2 font-semibold"><FiShield /> Trust</span>} key="4">
+        <Panel
+          header={
+            <span className="flex items-center gap-2 font-semibold">
+              <FiShield /> Trust
+            </span>
+          }
+          key="4"
+        >
           <Tabs defaultActiveKey="en">
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
@@ -429,7 +531,10 @@ const CottonPage = () => {
                   onChange={(e) =>
                     setCottonTrust({
                       ...cottonTrust,
-                      cottonTrustTitle: { ...cottonTrust.cottonTrustTitle, [lang]: e.target.value },
+                      cottonTrustTitle: {
+                        ...cottonTrust.cottonTrustTitle,
+                        [lang]: e.target.value,
+                      },
                     })
                   }
                 />
@@ -439,7 +544,10 @@ const CottonPage = () => {
                   onChange={(e) =>
                     setCottonTrust({
                       ...cottonTrust,
-                      cottonTrustDes: { ...cottonTrust.cottonTrustDes, [lang]: e.target.value },
+                      cottonTrustDes: {
+                        ...cottonTrust.cottonTrustDes,
+                        [lang]: e.target.value,
+                      },
                     })
                   }
                 />
@@ -452,21 +560,29 @@ const CottonPage = () => {
             {/* Already saved images */}
             {cottonTrust.cottonTrustLogo.map((logo, idx) => (
               <div key={`saved-${idx}`} className="relative">
-                <img src={logo} alt="trust" className="w-full h-24 object-contain" />
+                <img
+                  src={logo}
+                  alt="trust"
+                  className="w-full h-24 object-contain"
+                />
                 <Button
                   danger
                   size="small"
                   className="absolute top-1 right-1"
                   onClick={async () => {
-                    const newLogos = cottonTrust.cottonTrustLogo.filter((_, i) => i !== idx);
-                    const updated = { ...cottonTrust, cottonTrustLogo: newLogos };
+                    const newLogos = cottonTrust.cottonTrustLogo.filter(
+                      (_, i) => i !== idx
+                    );
+                    const updated = {
+                      ...cottonTrust,
+                      cottonTrustLogo: newLogos,
+                    };
                     setCottonTrust(updated);
                     await instantSave("cottonTrust", updated); // instantly update DB
                   }}
                 >
                   X
                 </Button>
-
               </div>
             ))}
 
@@ -488,7 +604,10 @@ const CottonPage = () => {
                     onClick={() =>
                       setCottonTrust({
                         ...cottonTrust,
-                        cottonTrustLogoFiles: cottonTrust.cottonTrustLogoFiles.filter((_, i) => i !== idx),
+                        cottonTrustLogoFiles:
+                          cottonTrust.cottonTrustLogoFiles.filter(
+                            (_, i) => i !== idx
+                          ),
                       })
                     }
                   >
@@ -514,25 +633,53 @@ const CottonPage = () => {
             }
           />
 
-
           <Divider>Trust Image</Divider>
-          {cottonTrust.cottonTrustImg && <img src={cottonTrust.cottonTrustImg} alt="trust" className="w-48 mb-2" />}
-          <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, setCottonTrust, "cottonTrustImg")} />
+          {cottonTrust.preview ? (
+            <img
+              src={cottonTrust.preview}
+              alt="trust-preview"
+              className="w-48 mb-2"
+            />
+          ) : cottonTrust.cottonTrustImg ? (
+            <img
+              src={cottonTrust.cottonTrustImg}
+              alt="trust"
+              className="w-48 mb-2"
+            />
+          ) : null}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) =>
+              handleImageChange(e, setCottonTrust, "cottonTrustImg")
+            }
+          />
 
           <div className="flex justify-end mt-6 gap-4">
             <Button onClick={() => window.location.reload()}>Cancel</Button>
             <Button
               type="primary"
-              onClick={() => handleSave("cottonTrust", cottonTrust, ["cottonTrustImgFile", "cottonTrustLogoFiles"])}
+              onClick={() =>
+                handleSave("cottonTrust", cottonTrust, [
+                  "cottonTrustImgFile",
+                  "cottonTrustLogoFiles",
+                ])
+              }
             >
               Save Trust
             </Button>
-
           </div>
         </Panel>
 
         {/* 5. Member */}
-        <Panel header={<span className="flex items-center gap-2 font-semibold"><FiStar /> Member</span>} key="5">
+        <Panel
+          header={
+            <span className="flex items-center gap-2 font-semibold">
+              <FiStar /> Member
+            </span>
+          }
+          key="5"
+        >
           <Tabs defaultActiveKey="en">
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
@@ -542,7 +689,10 @@ const CottonPage = () => {
                   onChange={(e) =>
                     setCottonMember({
                       ...cottonMember,
-                      cottonMemberTitle: { ...cottonMember.cottonMemberTitle, [lang]: e.target.value },
+                      cottonMemberTitle: {
+                        ...cottonMember.cottonMemberTitle,
+                        [lang]: e.target.value,
+                      },
                     })
                   }
                 />
@@ -552,7 +702,10 @@ const CottonPage = () => {
                   onChange={(e) =>
                     setCottonMember({
                       ...cottonMember,
-                      cottonMemberButtonText: { ...cottonMember.cottonMemberButtonText, [lang]: e.target.value },
+                      cottonMemberButtonText: {
+                        ...cottonMember.cottonMemberButtonText,
+                        [lang]: e.target.value,
+                      },
                     })
                   }
                 />
@@ -564,7 +717,10 @@ const CottonPage = () => {
           <Input
             value={cottonMember.cottonMemberButtonLink}
             onChange={(e) =>
-              setCottonMember({ ...cottonMember, cottonMemberButtonLink: e.target.value })
+              setCottonMember({
+                ...cottonMember,
+                cottonMemberButtonLink: e.target.value,
+              })
             }
           />
 
@@ -573,14 +729,23 @@ const CottonPage = () => {
             {/* Already saved images */}
             {cottonMember.cottonMemberImg.map((img, idx) => (
               <div key={`saved-${idx}`} className="relative">
-                <img src={img} alt="member" className="w-full h-24 object-contain" />
+                <img
+                  src={img}
+                  alt="member"
+                  className="w-full h-24 object-contain"
+                />
                 <Button
                   danger
                   size="small"
                   className="absolute top-1 right-1"
                   onClick={async () => {
-                    const newImgs = cottonMember.cottonMemberImg.filter((_, i) => i !== idx);
-                    const updated = { ...cottonMember, cottonMemberImg: newImgs };
+                    const newImgs = cottonMember.cottonMemberImg.filter(
+                      (_, i) => i !== idx
+                    );
+                    const updated = {
+                      ...cottonMember,
+                      cottonMemberImg: newImgs,
+                    };
                     setCottonMember(updated);
                     await instantSave("cottonMember", updated); // instantly update DB
                   }}
@@ -608,7 +773,10 @@ const CottonPage = () => {
                     onClick={() =>
                       setCottonMember({
                         ...cottonMember,
-                        cottonMemberImgFiles: cottonMember.cottonMemberImgFiles.filter((_, i) => i !== idx),
+                        cottonMemberImgFiles:
+                          cottonMember.cottonMemberImgFiles.filter(
+                            (_, i) => i !== idx
+                          ),
                       })
                     }
                   >
@@ -617,7 +785,6 @@ const CottonPage = () => {
                 </div>
               );
             })}
-
           </div>
 
           <input
@@ -635,16 +802,18 @@ const CottonPage = () => {
             }
           />
 
-
           <div className="flex justify-end mt-6 gap-4">
             <Button onClick={() => window.location.reload()}>Cancel</Button>
             <Button
               type="primary"
-              onClick={() => handleSave("cottonMember", cottonMember, ["cottonMemberImgFiles"])}
+              onClick={() =>
+                handleSave("cottonMember", cottonMember, [
+                  "cottonMemberImgFiles",
+                ])
+              }
             >
               Save Member
             </Button>
-
           </div>
         </Panel>
       </Collapse>

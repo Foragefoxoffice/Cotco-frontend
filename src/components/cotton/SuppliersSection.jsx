@@ -10,6 +10,14 @@ export default function SuppliersSection() {
 
   const sectionRef = useRef(null);
 
+  const API_BASE = import.meta.env.VITE_API_URL;
+
+  const getFullUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path; // already full URL
+    return `${API_BASE}${path}`;
+  };
+
   /* ---------- Fetch from backend ---------- */
   useEffect(() => {
     getCottonPage().then((res) => {
@@ -30,15 +38,6 @@ export default function SuppliersSection() {
       const sectionTop = rect.top + window.scrollY;
       const scrollY = window.scrollY - sectionTop;
       const vh = window.innerHeight;
-
-      const API_BASE = import.meta.env.VITE_API_URL;
-
-      const getFullUrl = (path) => {
-        if (!path) return "";
-        if (path.startsWith("http")) return path; // already full URL
-        return `${API_BASE}${path}`;
-      };
-
 
       // which slide index we are closest to
       const idx = Math.round(scrollY / vh);
@@ -62,8 +61,9 @@ export default function SuppliersSection() {
         <div className="absolute inset-0">
           {suppliers.map((s, i) => {
             const bg = s.cottonSupplierBg?.trim()
-              ? s.cottonSupplierBg
+              ? getFullUrl(s.cottonSupplierBg) // ✅ use new field
               : "/img/cotton/placeholder.jpg";
+
             return (
               <motion.img
                 key={s._id || i}
@@ -107,7 +107,7 @@ export default function SuppliersSection() {
 
             {suppliers[index].cottonSupplierLogo?.trim() ? (
               <img
-                src={suppliers[index].cottonSupplierLogo}
+                src={getFullUrl(suppliers[index].cottonSupplierLogo)}
                 alt="Logo"
                 className="mb-6 bg-white p-4 rounded-md h-auto w-40 md:hidden"
               />
@@ -128,7 +128,8 @@ export default function SuppliersSection() {
                 onClick={() => {
                   setIndex(i);
                   const sectionTop =
-                    sectionRef.current.getBoundingClientRect().top + window.scrollY;
+                    sectionRef.current.getBoundingClientRect().top +
+                    window.scrollY;
                   const target = sectionTop + i * window.innerHeight;
                   window.scrollTo({ top: target, behavior: "smooth" });
                 }}
@@ -141,7 +142,7 @@ export default function SuppliersSection() {
               >
                 {s.cottonSupplierLogo?.trim() ? (
                   <img
-                    src={s.cottonSupplierLogo}
+                    src={getFullUrl(s.cottonSupplierLogo)}
                     alt={s.cottonSupplierTitle?.en || "Supplier"}
                     className="h-16 w-full object-contain"
                   />
@@ -162,7 +163,8 @@ export default function SuppliersSection() {
                 onClick={() => {
                   setIndex(i);
                   const sectionTop =
-                    sectionRef.current.getBoundingClientRect().top + window.scrollY;
+                    sectionRef.current.getBoundingClientRect().top +
+                    window.scrollY;
                   const target = sectionTop + i * window.innerHeight;
                   window.scrollTo({ top: target, behavior: "smooth" });
                 }}
