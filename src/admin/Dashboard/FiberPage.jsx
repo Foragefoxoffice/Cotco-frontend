@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Collapse, Input, Button, Tabs, Divider } from "antd";
 import {
   FiImage,
@@ -42,6 +42,164 @@ const getFullUrl = (path) => {
 
 export default function FiberPage() {
   const { theme } = useTheme();
+  const [currentLang, setCurrentLang] = useState("en");
+
+  // ✅ Validate file size (Image ≤ 2MB, Video ≤ 10MB)
+  const validateFileSize = (file) => {
+    if (!file) return true;
+
+    if (file.type.startsWith("image/") && file.size > 2 * 1024 * 1024) {
+      CommonToaster("Image size must be below 2MB!", "error");
+      return false;
+    }
+
+    if (file.type.startsWith("video/") && file.size > 10 * 1024 * 1024) {
+      CommonToaster("Video size must be below 10MB!", "error");
+      return false;
+    }
+
+    return true;
+  };
+
+
+  const translations = {
+    en: {
+      pageTitle: "Fiber Page Management",
+
+      // Common
+      cancel: "Cancel",
+      save: "Save",
+      remove: "Remove",
+      add: "+ Add",
+      title: "Title",
+      description: "Description",
+      content: "Content",
+      subTitle: "Sub Title",
+      subText: "Sub Text",
+      image: "Image",
+      buttonText: "Button Text",
+      buttonLink: "Button Link",
+      recommendedSize: "Recommended Size: ",
+      recommendedHero: "Recommended: 1260×660px (Image) | Max Video Size: 10MB",
+
+      // Banner
+      banner: "Banner",
+      bannerMedia: "Banner Media",
+      bannerImage: "Banner Image",
+      saveBanner: "Save Banner",
+
+      // Sustainability
+      sustainability: "Sustainability",
+      sustainabilityImage: "Sustainability Image",
+      subTitleLabel: "Subtitle",
+      subDescriptionLabel: "Sub Description",
+      saveSustainability: "Save Sustainability",
+
+      // Choose Us
+      chooseUs: "Choose Us",
+      boxBackgroundImage: "Box Background Image",
+      chooseIcon: "Choose Icon",
+      boxTitle: "Box Title",
+      boxDescription: "Box Description",
+      addBox: "+ Add Box",
+      removeBox: "Remove Box",
+      saveChooseUs: "Save Choose Us",
+
+      // Supplier
+      supplier: "Supplier",
+      descriptions: "Descriptions (list)",
+      addDescription: "+ Add Description",
+      supplierImages: "Images",
+      addImage: "+ Add Image",
+      removeImage: "Remove Image",
+      saveSupplier: "Save Supplier",
+
+      // Products
+      products: "Products",
+      productTitle: "Product Title",
+      productDescription: "Product Description",
+      addProduct: "+ Add Product",
+      addProductDescription: "+ Add Description",
+      deleteProduct: "Delete Product",
+      productBottomCon: "Bottom Content",
+      saveProducts: "Save Products",
+
+      // Certification
+      certification: "Certification",
+      certificationImages: "Images",
+      addCertificationImage: "+ Add Image",
+      saveCertification: "Save Certification",
+    },
+
+    vi: {
+      pageTitle: "Quản lý Trang Sợi",
+
+      // Common
+      cancel: "Hủy",
+      save: "Lưu",
+      remove: "Xóa",
+      add: "+ Thêm",
+      title: "Tiêu đề",
+      description: "Mô tả",
+      content: "Nội dung",
+      subTitle: "Tiêu đề phụ",
+      subText: "Văn bản phụ",
+      image: "Hình ảnh",
+      buttonText: "Nút",
+      buttonLink: "Liên kết nút",
+      recommendedSize: "Kích thước đề xuất: ",
+      recommendedHero: "Khuyến nghị: 1260×660px (Hình ảnh) | Kích thước video tối đa: 10MB",
+
+
+      // Banner
+      banner: "Banner",
+      bannerMedia: "Phương tiện Banner",
+      bannerImage: "Hình ảnh Banner",
+      saveBanner: "Lưu Banner",
+
+      // Sustainability
+      sustainability: "Bền vững",
+      sustainabilityImage: "Hình ảnh Bền vững",
+      subTitleLabel: "Tiêu đề phụ",
+      subDescriptionLabel: "Mô tả phụ",
+      saveSustainability: "Lưu Bền vững",
+
+      // Choose Us
+      chooseUs: "Vì sao chọn chúng tôi",
+      boxBackgroundImage: "Hình nền hộp",
+      chooseIcon: "Chọn biểu tượng",
+      boxTitle: "Tiêu đề hộp",
+      boxDescription: "Mô tả hộp",
+      addBox: "+ Thêm Hộp",
+      removeBox: "Xóa Hộp",
+      saveChooseUs: "Lưu Vì sao chọn chúng tôi",
+
+      // Supplier
+      supplier: "Nhà cung cấp",
+      descriptions: "Danh sách mô tả",
+      addDescription: "+ Thêm Mô tả",
+      supplierImages: "Hình ảnh",
+      addImage: "+ Thêm Hình ảnh",
+      removeImage: "Xóa Hình ảnh",
+      saveSupplier: "Lưu Nhà cung cấp",
+
+      // Products
+      products: "Sản phẩm",
+      productTitle: "Tiêu đề sản phẩm",
+      productDescription: "Mô tả sản phẩm",
+      addProduct: "+ Thêm Sản phẩm",
+      addProductDescription: "+ Thêm Mô tả",
+      deleteProduct: "Xóa Sản phẩm",
+      productBottomCon: "Nội dung cuối",
+      saveProducts: "Lưu Sản phẩm",
+
+      // Certification
+      certification: "Chứng nhận",
+      certificationImages: "Hình ảnh",
+      addCertificationImage: "+ Thêm Hình ảnh",
+      saveCertification: "Lưu Chứng nhận",
+    },
+  };
 
   // ---------------- STATE ---------------- //
   const [fiberBanner, setFiberBanner] = usePersistedState("fiberBanner", {
@@ -201,6 +359,14 @@ export default function FiberPage() {
       className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
         }`}
     >
+      <style>{`
+        label {
+          color: #314158 !important;
+        }
+        .ant-divider-inner-text {
+          color: #314158 !important;
+        }
+      `}</style>
       <h2 className="text-4xl font-extrabold mb-10 text-center">
         Fiber Page Management
       </h2>
@@ -215,10 +381,10 @@ export default function FiberPage() {
           }
           key="1"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label>Title</label>
+                <label>{translations[currentLang].title}</label>
                 <Input
                   value={fiberBanner.fiberBannerTitle[lang]}
                   onChange={(e) =>
@@ -231,7 +397,7 @@ export default function FiberPage() {
                     })
                   }
                 />
-                <label>Description</label>
+                <label>{translations[currentLang].description}</label>
                 <Input
                   value={fiberBanner.fiberBannerDes[lang]}
                   onChange={(e) =>
@@ -244,7 +410,7 @@ export default function FiberPage() {
                     })
                   }
                 />
-                <label>Content</label>
+                <label>{translations[currentLang].content}</label>
                 <Input
                   value={fiberBanner.fiberBannerContent[lang]}
                   onChange={(e) =>
@@ -257,7 +423,7 @@ export default function FiberPage() {
                     })
                   }
                 />
-                <label>Sub Title</label>
+                <label>{translations[currentLang].subTitle}</label>
                 <Input
                   value={fiberBanner.fiberBannerSubTitle[lang]}
                   onChange={(e) =>
@@ -277,19 +443,23 @@ export default function FiberPage() {
 
           {/* Banner Media (image/video) */}
           <div style={{ marginBottom: "15px" }}>
-            <label>Banner Media</label>
+            <label>{translations[currentLang].bannerMedia}</label>
+            <p className="text-sm text-slate-500 mb-2">
+              {translations[currentLang].recommendedHero}
+            </p>
             <input
               type="file"
               accept="image/*,.mp4,.webm,.ogg,.mov,.avi,.mkv"
               onChange={(e) => {
                 const file = e.target.files[0];
-                if (file) {
-                  setFiberBanner({
-                    ...fiberBanner,
-                    fiberBannerMedia: file,
-                    fiberBannerMediaPreview: URL.createObjectURL(file),
-                  });
-                }
+                if (!file) return;
+                if (!validateFileSize(file)) return; // ✅ validation added
+
+                setFiberBanner({
+                  ...fiberBanner,
+                  fiberBannerMedia: file,
+                  fiberBannerMediaPreview: URL.createObjectURL(file),
+                });
               }}
             />
 
@@ -350,19 +520,23 @@ export default function FiberPage() {
 
           {/* Banner Image */}
           <div style={{ marginBottom: "15px" }}>
-            <label>Banner Image</label>
+            <label>{translations[currentLang].bannerImage}</label>
+            <p className="text-sm text-slate-500 mb-2">
+              {translations[currentLang].recommendedSize} 560×670px
+            </p>
             <input
               type="file"
               accept="image/*"
               onChange={(e) => {
                 const file = e.target.files[0];
-                if (file) {
-                  setFiberBanner({
-                    ...fiberBanner,
-                    fiberBannerImg: file,
-                    fiberBannerImgPreview: URL.createObjectURL(file),
-                  });
-                }
+                if (!file) return;
+                if (!validateFileSize(file)) return; // ✅ validation added
+
+                setFiberBanner({
+                  ...fiberBanner,
+                  fiberBannerImg: file,
+                  fiberBannerImgPreview: URL.createObjectURL(file),
+                });
               }}
             />
 
@@ -390,7 +564,7 @@ export default function FiberPage() {
             type="primary"
             onClick={() => handleSave("fiberBanner", fiberBanner)}
           >
-            Save Banner
+            {translations[currentLang].saveBanner}
           </Button>
         </Panel>
 
@@ -403,10 +577,10 @@ export default function FiberPage() {
           }
           key="2"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label>Title</label>
+                <label> {translations[currentLang].title}</label>
                 <Input
                   value={fiberSustainability.fiberSustainabilityTitle[lang]}
                   onChange={(e) =>
@@ -419,7 +593,7 @@ export default function FiberPage() {
                     })
                   }
                 />
-                <label>Sub Text</label>
+                <label> {translations[currentLang].subText}</label>
                 <Input
                   value={fiberSustainability.fiberSustainabilitySubText[lang]}
                   onChange={(e) =>
@@ -432,7 +606,7 @@ export default function FiberPage() {
                     })
                   }
                 />
-                <label>Description</label>
+                <label> {translations[currentLang].description}</label>
                 <Input
                   value={fiberSustainability.fiberSustainabilityDes[lang]}
                   onChange={(e) =>
@@ -449,19 +623,23 @@ export default function FiberPage() {
             ))}
           </Tabs>
           <div style={{ marginBottom: "15px" }}>
-            <label>Sustainability Image</label>
+            <label> {translations[currentLang].sustainabilityImage}</label>
+            <p className="text-sm text-slate-500 mb-2">
+              {translations[currentLang].recommendedSize} 900×500px
+            </p>
             <input
               type="file"
               accept="image/*"
               onChange={(e) => {
                 const file = e.target.files[0];
-                if (file) {
-                  setFiberSustainability({
-                    ...fiberSustainability,
-                    fiberSustainabilityImg: file, // ✅ store File
-                    fiberSustainabilityImgPreview: URL.createObjectURL(file),
-                  });
-                }
+                if (!file) return;
+                if (!validateFileSize(file)) return; // ✅ validation added
+
+                setFiberSustainability({
+                  ...fiberSustainability,
+                  fiberSustainabilityImg: file,
+                  fiberSustainabilityImgPreview: URL.createObjectURL(file),
+                });
               }}
             />
 
@@ -493,7 +671,7 @@ export default function FiberPage() {
 
           {[1, 2, 3].map((i) => (
             <div key={i}>
-              <Tabs defaultActiveKey="en">
+              <Tabs activeKey={currentLang} onChange={setCurrentLang}>
                 {["en", "vi"].map((lang) => (
                   <TabPane tab={`SubTitle${i} ${lang}`} key={lang}>
                     <Input
@@ -545,7 +723,7 @@ export default function FiberPage() {
               handleSave("fiberSustainability", fiberSustainability)
             }
           >
-            Save Sustainability
+            {translations[currentLang].saveSustainability}
           </Button>
         </Panel>
 
@@ -558,10 +736,10 @@ export default function FiberPage() {
           }
           key="3"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label>Title</label>
+                <label> {translations[currentLang].title}</label>
                 <Input
                   value={fiberChooseUs.fiberChooseUsTitle[lang]}
                   onChange={(e) =>
@@ -574,7 +752,7 @@ export default function FiberPage() {
                     })
                   }
                 />
-                <label>Description</label>
+                <label> {translations[currentLang].description}</label>
                 <Input
                   value={fiberChooseUs.fiberChooseUsDes[lang]}
                   onChange={(e) =>
@@ -595,7 +773,10 @@ export default function FiberPage() {
 
               {/* Local Image Upload */}
               <div style={{ marginBottom: "10px" }}>
-                <label>Box Background Image</label>
+                <label> {translations[currentLang].boxBackgroundImage}</label>
+                <p className="text-sm text-slate-500 mb-2">
+                  {translations[currentLang].recommendedSize} 900×500px
+                </p>
                 <input
                   type="file"
                   accept="image/*"
@@ -619,7 +800,7 @@ export default function FiberPage() {
 
               {/* Icon Selector */}
               <div style={{ marginBottom: "10px" }}>
-                <label>Choose Icon</label>
+                <label> {translations[currentLang].chooseIcon}</label>
                 <select
                   value={box.fiberChooseUsIcon}
                   onChange={(e) => {
@@ -646,9 +827,10 @@ export default function FiberPage() {
               </div>
 
               {/* Multilingual Title & Description */}
-              <Tabs defaultActiveKey="en">
+              <Tabs activeKey={currentLang} onChange={setCurrentLang}>
                 {["en", "vi"].map((lang) => (
                   <TabPane tab={lang.toUpperCase()} key={lang}>
+                    <label> {translations[currentLang].boxTitle}</label>
                     <Input
                       placeholder="Box Title"
                       value={box.fiberChooseUsBoxTitle[lang]}
@@ -661,6 +843,7 @@ export default function FiberPage() {
                         setFiberChooseUs({ ...fiberChooseUs, fiberChooseUsBox: arr });
                       }}
                     />
+                    <label> {translations[currentLang].boxDescription}</label>
                     <Input
                       placeholder="Box Description"
                       value={box.fiberChooseUsDes[lang]}
@@ -688,7 +871,7 @@ export default function FiberPage() {
                   await handleSave("fiberChooseUs", { ...fiberChooseUs, fiberChooseUsBox: arr });
                 }}
               >
-                Remove Box
+                {translations[currentLang].removeBox}
               </Button>
 
             </div>
@@ -710,13 +893,13 @@ export default function FiberPage() {
               })
             }
           >
-            + Add Box
+            {translations[currentLang].addBox}
           </Button>
           <Button
             type="primary"
             onClick={() => handleSave("fiberChooseUs", fiberChooseUs)}
           >
-            Save Choose Us
+            {translations[currentLang].saveChooseUs}
           </Button>
         </Panel>
 
@@ -729,10 +912,10 @@ export default function FiberPage() {
           }
           key="4"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label>Title</label>
+                <label>  {translations[currentLang].title}</label>
                 <Input
                   value={fiberSupplier.fiberSupplierTitle[lang]}
                   onChange={(e) =>
@@ -749,9 +932,9 @@ export default function FiberPage() {
             ))}
           </Tabs>
 
-          <Divider>Descriptions (list)</Divider>
+          <Divider>  {translations[currentLang].description} (list)</Divider>
           {fiberSupplier.fiberSupplierDes.map((d, idx) => (
-            <Tabs defaultActiveKey="en" key={idx}>
+            <Tabs activeKey={currentLang} onChange={setCurrentLang} key={idx}>
               {["en", "vi"].map((lang) => (
                 <TabPane tab={lang.toUpperCase()} key={lang}>
                   <Input
@@ -781,10 +964,13 @@ export default function FiberPage() {
               })
             }
           >
-            + Add Description
+            {translations[currentLang].addDescription}
           </Button>
 
-          <Divider>Images</Divider>
+          <Divider>  {translations[currentLang].image}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedSize} 200×200px
+          </p>
           {fiberSupplier.fiberSupplierImg.map((img, idx) => (
             <div key={idx} style={{ marginBottom: "10px" }}>
               <input
@@ -794,6 +980,7 @@ export default function FiberPage() {
                   const file = e.target.files[0];
                   if (file) {
                     const arr = [...fiberSupplier.fiberSupplierImg];
+                    if (!validateFileSize(file)) return;
                     arr[idx] = { file, preview: URL.createObjectURL(file) };
                     setFiberSupplier({ ...fiberSupplier, fiberSupplierImg: arr });
                   }
@@ -816,7 +1003,7 @@ export default function FiberPage() {
                   await handleSave("fiberSupplier", { ...fiberSupplier, fiberSupplierImg: arr });
                 }}
               >
-                Remove Image
+                {translations[currentLang].removeImage}
               </Button>
             </div>
           ))}
@@ -832,7 +1019,7 @@ export default function FiberPage() {
               })
             }
           >
-            + Add Image
+            {translations[currentLang].addImage}
           </Button>
 
           {/* ✅ Save Supplier */}
@@ -841,7 +1028,7 @@ export default function FiberPage() {
             style={{ marginTop: "15px" }}
             onClick={() => handleSave("fiberSupplier", fiberSupplier)}
           >
-            Save Supplier
+            {translations[currentLang].saveSupplier}
           </Button>
         </Panel>
 
@@ -870,11 +1057,11 @@ export default function FiberPage() {
                   await handleSave("fiberProducts", { ...fiberProducts, fiberProduct: arr });
                 }}
               >
-                Delete Product
+                {translations[currentLang].deleteProduct}
               </Button>
 
 
-              <Tabs defaultActiveKey="en">
+              <Tabs activeKey={currentLang} onChange={setCurrentLang}>
                 {["en", "vi"].map((lang) => (
                   <TabPane tab={lang.toUpperCase()} key={lang}>
                     <Input
@@ -893,9 +1080,9 @@ export default function FiberPage() {
                 ))}
               </Tabs>
 
-              <Divider>Descriptions (list)</Divider>
+              <Divider>  {translations[currentLang].description} (list)</Divider>
               {p.fiberProductDes.map((d, dIdx) => (
-                <Tabs defaultActiveKey="en" key={dIdx}>
+                <Tabs activeKey={currentLang} onChange={setCurrentLang} key={dIdx}>
                   {["en", "vi"].map((lang) => (
                     <TabPane tab={lang.toUpperCase()} key={lang}>
                       <Input
@@ -921,23 +1108,28 @@ export default function FiberPage() {
                   setFiberProducts({ ...fiberProducts, fiberProduct: arr });
                 }}
               >
-                + Add Description
+                {translations[currentLang].addDescription}
               </Button>
 
               {/* Product Image Upload */}
               <div style={{ marginTop: "10px" }}>
+                <p className="text-sm text-slate-500 mb-2">
+                  {translations[currentLang].recommendedSize} 200×200px
+                </p>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => {
                     const file = e.target.files[0];
-                    if (file) {
-                      const arr = [...fiberProducts.fiberProduct];
-                      arr[idx].fiberProductImg = { file, preview: URL.createObjectURL(file) };
-                      setFiberProducts({ ...fiberProducts, fiberProduct: arr });
-                    }
+                    if (!file) return;
+                    if (!validateFileSize(file)) return; // ✅ Validation added
+
+                    const arr = [...fiberProducts.fiberProduct];
+                    arr[idx].fiberProductImg = { file, preview: URL.createObjectURL(file) };
+                    setFiberProducts({ ...fiberProducts, fiberProduct: arr });
                   }}
                 />
+
                 {p.fiberProductImg && (
                   <img
                     src={p.fiberProductImg.preview || getFullUrl(p.fiberProductImg)}
@@ -965,10 +1157,10 @@ export default function FiberPage() {
               })
             }
           >
-            + Add Product
+            {translations[currentLang].addProduct}
           </Button>
           <Divider />
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={`BottomCon ${lang}`} key={lang}>
                 <Input
@@ -986,7 +1178,7 @@ export default function FiberPage() {
               </TabPane>
             ))}
           </Tabs>
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={`ButtonText ${lang}`} key={lang}>
                 <Input
@@ -1018,7 +1210,7 @@ export default function FiberPage() {
             type="primary"
             onClick={() => handleSave("fiberProducts", fiberProducts)}
           >
-            Save Products
+            {translations[currentLang].saveProducts}
           </Button>
         </Panel>
 
@@ -1031,10 +1223,10 @@ export default function FiberPage() {
           }
           key="6"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label>Title</label>
+                <label>  {translations[currentLang].title}</label>
                 <Input
                   value={fiberCertification.fiberCertificationTitle[lang]}
                   onChange={(e) =>
@@ -1047,7 +1239,7 @@ export default function FiberPage() {
                     })
                   }
                 />
-                <label>Button Text</label>
+                <label>  {translations[currentLang].buttonText}</label>
                 <Input
                   value={fiberCertification.fiberCertificationButtonText[lang]}
                   onChange={(e) =>
@@ -1063,6 +1255,7 @@ export default function FiberPage() {
               </TabPane>
             ))}
           </Tabs>
+          <label> {translations[currentLang].buttonLink}</label>
           <Input
             placeholder="Button Link"
             value={fiberCertification.fiberCertificationButtonLink}
@@ -1073,7 +1266,10 @@ export default function FiberPage() {
               })
             }
           />
-          <Divider>Images</Divider>
+          <Divider>{translations[currentLang].image}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedSize} 560×400px
+          </p>
           {fiberCertification.fiberCertificationImg.map((img, idx) => (
             <div key={idx} style={{ marginBottom: "10px" }}>
               <input
@@ -1083,6 +1279,7 @@ export default function FiberPage() {
                   const file = e.target.files[0];
                   if (file) {
                     const arr = [...fiberCertification.fiberCertificationImg];
+                    if (!validateFileSize(file)) return;
                     arr[idx] = { file, preview: URL.createObjectURL(file) };
                     setFiberCertification({ ...fiberCertification, fiberCertificationImg: arr });
                   }
@@ -1108,7 +1305,7 @@ export default function FiberPage() {
                   await handleSave("fiberCertification", { ...fiberCertification, fiberCertificationImg: arr });
                 }}
               >
-                Remove
+                {translations[currentLang].remove}
               </Button>
 
             </div>
@@ -1126,14 +1323,14 @@ export default function FiberPage() {
               })
             }
           >
-            + Add Image
+            {translations[currentLang].addImage}
           </Button>
 
           <Button
             type="primary"
             onClick={() => handleSave("fiberCertification", fiberCertification)}
           >
-            Save Certification
+            {translations[currentLang].saveCertification}
           </Button>
         </Panel>
       </Collapse>

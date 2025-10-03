@@ -1,5 +1,5 @@
 // frontend/pages/CottonPage.jsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Collapse, Input, Button, Tabs, Divider } from "antd";
 import { FiImage, FiUsers, FiLayers, FiShield, FiStar } from "react-icons/fi";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -24,17 +24,38 @@ const validateVietnamese = (formState) => {
   return checkObject(formState);
 };
 
-// ✅ File preview helper
+// ✅ Validate file size (Image ≤ 2MB, Video ≤ 10MB)
+const validateFileSize = (file) => {
+  if (!file) return true;
+
+  if (file.type.startsWith("image/") && file.size > 2 * 1024 * 1024) {
+    CommonToaster("Image size must be below 2MB!", "error");
+    return false;
+  }
+
+  if (file.type.startsWith("video/") && file.size > 10 * 1024 * 1024) {
+    CommonToaster("Video size must be below 10MB!", "error");
+    return false;
+  }
+
+  return true;
+};
+
+
+// ✅ File preview helper with validation
 const handleImageChange = (e, setter, key) => {
   const file = e.target.files[0];
   if (!file) return;
 
+  if (!validateFileSize(file)) return; // ✅ run validation
+
   setter((prev) => ({
     ...prev,
     [key + "File"]: file,
-    preview: URL.createObjectURL(file),
+    preview: URL.createObjectURL(file), // works for both img & video
   }));
 };
+
 
 // ✅ API base
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -46,6 +67,94 @@ const getFullUrl = (path) => {
 
 const CottonPage = () => {
   const { theme } = useTheme();
+
+  const [currentLang, setCurrentLang] = useState("en");
+
+  const translations = {
+    en: {
+      pageTitle: "Cotton Page Management",
+
+      // Common
+      cancel: "Cancel",
+      save: "Save",
+      remove: "Remove",
+      add: "+ Add",
+      title: "Title",
+      description: "Description",
+      buttonText: "Button Text",
+      buttonLink: "Button Link",
+      recommendedHero: "Recommended: 1260×660px (Image) | Max Video Size: 10MB",
+      recommended: "Recommended Size: ",
+
+      // Banner
+      banner: "Banner",
+      bannerMedia: "Banner Media (Image or Video)",
+      bannerSlides: "Banner Slide Images",
+      saveBanner: "Save Banner",
+
+      // Suppliers
+      suppliers: "Suppliers",
+      logoName: "Logo Name",
+      background: "Background",
+      logo: "Logo",
+      removeSupplier: "Remove Supplier",
+      addSupplier: "+ Add Supplier",
+      saveSuppliers: "Save Suppliers",
+
+      // Trust
+      trust: "Trust",
+      logos: "Logos",
+      trustImage: "Trust Image",
+      saveTrust: "Save Trust",
+
+      // Member
+      member: "Member",
+      memberImages: "Member Images",
+      saveMember: "Save Member",
+    },
+
+    vi: {
+      pageTitle: "Quản lý Trang Bông",
+
+      // Common
+      cancel: "Hủy",
+      save: "Lưu",
+      remove: "Xóa",
+      add: "+ Thêm",
+      title: "Tiêu đề",
+      description: "Mô tả",
+      buttonText: "Nút",
+      buttonLink: "Liên kết nút",
+      recommendedHero: "Khuyến nghị: 1260×660px (Hình ảnh) | Kích thước video tối đa: 10MB",
+      recommended: "Kích thước đề xuất: ",
+      // Banner
+      banner: "Banner",
+      bannerMedia: "Banner (Hình ảnh hoặc Video)",
+      bannerSlides: "Hình ảnh Slide Banner",
+      saveBanner: "Lưu Banner",
+
+      // Suppliers
+      suppliers: "Nhà cung cấp",
+      logoName: "Tên Logo",
+      background: "Nền",
+      logo: "Logo",
+      removeSupplier: "Xóa Nhà cung cấp",
+      addSupplier: "+ Thêm Nhà cung cấp",
+      saveSuppliers: "Lưu Nhà cung cấp",
+
+      // Trust
+      trust: "Tin cậy",
+      logos: "Logo",
+      trustImage: "Hình ảnh Tin cậy",
+      saveTrust: "Lưu Tin cậy",
+
+      // Member
+      member: "Thành viên",
+      memberImages: "Hình ảnh Thành viên",
+      saveMember: "Lưu Thành viên",
+    },
+  };
+
 
   // ---------------------- STATES ---------------------- //
   const [cottonBanner, setCottonBanner] = usePersistedState("cottonBanner", {
@@ -118,6 +227,7 @@ const CottonPage = () => {
         }));
     });
   }, []);
+
 
   // ---------------------- SAVE HANDLER ---------------------- //
   const handleSave = async (sectionName, formState, files = []) => {
@@ -205,6 +315,11 @@ const CottonPage = () => {
       className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
         }`}
     >
+      <style>{`
+        label {
+          color: #314158 !important;
+        }
+      `}</style>
       <h2 className="text-4xl font-extrabold mb-10 text-center">
         Cotton Page Management
       </h2>
@@ -219,10 +334,10 @@ const CottonPage = () => {
           }
           key="1"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block">Title</label>
+                <label className="block">{translations[currentLang].title}</label>
                 <Input
                   value={cottonBanner.cottonBannerTitle[lang]}
                   onChange={(e) =>
@@ -235,7 +350,7 @@ const CottonPage = () => {
                     })
                   }
                 />
-                <label className="block mt-3">Description</label>
+                <label className="block mt-3">{translations[currentLang].description}</label>
                 <Input
                   value={cottonBanner.cottonBannerDes[lang]}
                   onChange={(e) =>
@@ -252,23 +367,55 @@ const CottonPage = () => {
             ))}
           </Tabs>
 
-          <Divider>Banner Image</Divider>
+          <Divider>{translations[currentLang].bannerMedia}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedHero}
+          </p>
+          {/* Show existing media */}
           {cottonBanner.cottonBannerImg && (
-            <img
-              src={getFullUrl(cottonBanner.cottonBannerImg)}
-              alt="Banner"
-              className="w-48 mb-3"
-            />
+            cottonBanner.cottonBannerImg.match(/\.(mp4|webm|ogg)$/i) ? (
+              <video
+                src={getFullUrl(cottonBanner.cottonBannerImg)}
+                controls
+                className="w-64 mb-3 rounded"
+              />
+            ) : (
+              <img
+                src={getFullUrl(cottonBanner.cottonBannerImg)}
+                alt="Banner"
+                className="w-64 mb-3 rounded"
+              />
+            )
           )}
+
+          {/* Show preview if uploading new */}
+          {cottonBanner.preview && (
+            cottonBanner.cottonBannerImgFile?.type?.startsWith("video/") ? (
+              <video
+                src={cottonBanner.preview}
+                controls
+                className="w-64 mb-3 rounded"
+              />
+            ) : (
+              <img
+                src={cottonBanner.preview}
+                alt="Preview"
+                className="w-64 mb-3 rounded"
+              />
+            )
+          )}
+
+          {/* File uploader (accepts both image and video) */}
           <input
             type="file"
-            accept="image/*"
-            onChange={(e) =>
-              handleImageChange(e, setCottonBanner, "cottonBannerImg")
-            }
+            accept="image/*,video/*"
+            onChange={(e) => handleImageChange(e, setCottonBanner, "cottonBannerImg")}
           />
 
-          <Divider>Banner Slide Images</Divider>
+          <Divider>{translations[currentLang].bannerSlides}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommended} 750×750px
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {(cottonBanner.cottonBannerSlideImg || []).map((img, idx) => (
               <div key={`slide-${idx}`} className="relative">
@@ -333,19 +480,23 @@ const CottonPage = () => {
             type="file"
             multiple
             accept="image/*"
-            onChange={(e) =>
+            onChange={(e) => {
+              const validFiles = Array.from(e.target.files).filter(validateFileSize);
+              if (validFiles.length !== e.target.files.length) {
+                CommonToaster("Some images were too large (max 2MB) and skipped.", "error");
+              }
               setCottonBanner({
                 ...cottonBanner,
                 cottonBannerSlideImgFiles: [
                   ...cottonBanner.cottonBannerSlideImgFiles,
-                  ...Array.from(e.target.files),
+                  ...validFiles,
                 ],
-              })
-            }
+              });
+            }}
           />
 
           <div className="flex justify-end mt-6 gap-4">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() =>
@@ -355,7 +506,7 @@ const CottonPage = () => {
                 ])
               }
             >
-              Save Banner
+              {translations[currentLang].saveBanner}
             </Button>
           </div>
         </Panel>
@@ -374,10 +525,10 @@ const CottonPage = () => {
               key={idx}
               className="border rounded p-4 mb-4 bg-gray-50 dark:bg-gray-700"
             >
-              <Tabs defaultActiveKey="en">
+              <Tabs activeKey={currentLang} onChange={setCurrentLang}>
                 {["en", "vi"].map((lang) => (
                   <TabPane tab={lang.toUpperCase()} key={lang}>
-                    <label className="block">Title</label>
+                    <label className="block">{translations[currentLang].title}</label>
                     <Input
                       value={s.cottonSupplierTitle?.[lang]}
                       onChange={(e) => {
@@ -389,7 +540,7 @@ const CottonPage = () => {
                         setCottonSupplier(newArr);
                       }}
                     />
-                    <label className="block mt-3">Logo Name</label>
+                    <label className="block mt-3">{translations[currentLang].logoName}</label>
                     <Input
                       value={s.cottonSupplierLogoName?.[lang]}
                       onChange={(e) => {
@@ -401,23 +552,56 @@ const CottonPage = () => {
                         setCottonSupplier(newArr);
                       }}
                     />
-                    <label className="block mt-3">Description</label>
-                    <Input
-                      value={s.cottonSupplierDes?.[lang]}
-                      onChange={(e) => {
+                    <label className="block mt-3">{translations[currentLang].description}</label>
+                    {(s.cottonSupplierDes || []).map((desc, dIdx) => (
+                      <div key={dIdx} className="flex items-center gap-2 mb-2">
+                        <Input
+                          value={desc[lang]}
+                          onChange={(e) => {
+                            const newArr = [...cottonSupplier];
+                            const descArr = [...(s.cottonSupplierDes || [])];
+                            descArr[dIdx] = { ...descArr[dIdx], [lang]: e.target.value };
+                            newArr[idx].cottonSupplierDes = descArr;
+                            setCottonSupplier(newArr);
+                          }}
+                        />
+                        <Button
+                          danger
+                          onClick={async () => {
+                            const newArr = [...cottonSupplier];
+                            const descArr = newArr[idx].cottonSupplierDes.filter((_, i) => i !== dIdx);
+                            newArr[idx].cottonSupplierDes = descArr;
+                            setCottonSupplier(newArr);
+
+                            await instantSave("cottonSupplier", newArr);
+                          }}
+                        >
+                          X
+                        </Button>
+                      </div>
+                    ))}
+
+                    <Button
+                      type="dashed"
+                      onClick={() => {
                         const newArr = [...cottonSupplier];
-                        newArr[idx].cottonSupplierDes = {
-                          ...s.cottonSupplierDes,
-                          [lang]: e.target.value,
-                        };
+                        newArr[idx].cottonSupplierDes = [
+                          ...(newArr[idx].cottonSupplierDes || []),
+                          { en: "", vi: "" },
+                        ];
                         setCottonSupplier(newArr);
                       }}
-                    />
+                    >
+                      {translations[currentLang].add}
+                    </Button>
                   </TabPane>
                 ))}
               </Tabs>
 
-              <Divider>Background</Divider>
+              <Divider>{translations[currentLang].background}</Divider>
+              <p className="text-sm text-slate-500 mb-2">
+                {translations[currentLang].recommended} 2000×1150px
+              </p>
               {/* Show saved background from DB */}
               {s.cottonSupplierBg && !s.previewBg && (
                 <img src={getFullUrl(s.cottonSupplierBg)} alt="bg" className="w-48 mb-2" />
@@ -434,18 +618,18 @@ const CottonPage = () => {
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (!file) return;
+                  if (!validateFileSize(file)) return;
 
                   const newArr = [...cottonSupplier];
                   newArr[idx].cottonSupplierBgFile = file;
-
-                  // Blob preview
                   newArr[idx].previewBg = URL.createObjectURL(file);
-
                   setCottonSupplier(newArr);
                 }}
               />
-
-              <Divider>Logo</Divider>
+              <Divider>{translations[currentLang].logo}</Divider>
+              <p className="text-sm text-slate-500 mb-2">
+                {translations[currentLang].recommended} 200×200px
+              </p>
               {/* Show saved logo from DB */}
               {s.cottonSupplierLogo && !s.previewLogo && (
                 <img
@@ -466,13 +650,11 @@ const CottonPage = () => {
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (!file) return;
+                  if (!validateFileSize(file)) return;
 
                   const newArr = [...cottonSupplier];
                   newArr[idx].cottonSupplierLogoFile = file;
-
-                  // Preview using blob, not base64
                   newArr[idx].previewLogo = URL.createObjectURL(file);
-
                   setCottonSupplier(newArr);
                 }}
               />
@@ -485,7 +667,7 @@ const CottonPage = () => {
                   await instantSave("cottonSupplier", newArr); // instantly update DB
                 }}
               >
-                Remove Supplier
+                {translations[currentLang].removeSupplier}
               </Button>
             </div>
           ))}
@@ -499,23 +681,23 @@ const CottonPage = () => {
                 {
                   cottonSupplierTitle: { en: "", vi: "" },
                   cottonSupplierLogoName: { en: "", vi: "" },
-                  cottonSupplierDes: { en: "", vi: "" },
+                  cottonSupplierDes: [{ en: "", vi: "" }],
                   cottonSupplierLogo: "",
                   cottonSupplierLogoFile: null,
                 },
               ])
             }
           >
-            + Add Supplier
+            {translations[currentLang].addSupplier}
           </Button>
 
           <div className="flex justify-end mt-6 gap-4">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() => handleSave("cottonSupplier", cottonSupplier)}
             >
-              Save Suppliers
+              {translations[currentLang].saveSuppliers}
             </Button>
           </div>
         </Panel>
@@ -529,10 +711,10 @@ const CottonPage = () => {
           }
           key="4"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block">Title</label>
+                <label className="block">{translations[currentLang].title}</label>
                 <Input
                   value={cottonTrust.cottonTrustTitle[lang]}
                   onChange={(e) =>
@@ -545,7 +727,7 @@ const CottonPage = () => {
                     })
                   }
                 />
-                <label className="block mt-3">Description</label>
+                <label className="block mt-3">{translations[currentLang].description}</label>
                 <Input
                   value={cottonTrust.cottonTrustDes[lang]}
                   onChange={(e) =>
@@ -562,8 +744,11 @@ const CottonPage = () => {
             ))}
           </Tabs>
 
-          <Divider>Logos</Divider>
+          <Divider>{translations[currentLang].logo}</Divider>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <p className="text-sm text-slate-500 mb-2">
+              {translations[currentLang].recommended} 180×180px
+            </p>
             {/* Already saved images */}
             {cottonTrust.cottonTrustLogo.map((logo, idx) => (
               <div key={`saved-${idx}`} className="relative">
@@ -629,18 +814,22 @@ const CottonPage = () => {
             type="file"
             multiple
             accept="image/*"
-            onChange={(e) =>
+            onChange={(e) => {
+              const validFiles = Array.from(e.target.files).filter(validateFileSize);
+              if (validFiles.length !== e.target.files.length) {
+                CommonToaster("Some logos were too large (max 2MB) and skipped.", "error");
+              }
               setCottonTrust({
                 ...cottonTrust,
-                cottonTrustLogoFiles: [
-                  ...cottonTrust.cottonTrustLogoFiles,
-                  ...Array.from(e.target.files),
-                ],
-              })
-            }
+                cottonTrustLogoFiles: [...cottonTrust.cottonTrustLogoFiles, ...validFiles],
+              });
+            }}
           />
 
-          <Divider>Trust Image</Divider>
+          <Divider>{translations[currentLang].trustImage}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommended} 430×430px
+          </p>
           {cottonTrust.preview ? (
             <img
               src={cottonTrust.preview}
@@ -663,7 +852,7 @@ const CottonPage = () => {
           />
 
           <div className="flex justify-end mt-6 gap-4">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() =>
@@ -673,24 +862,24 @@ const CottonPage = () => {
                 ])
               }
             >
-              Save Trust
+              {translations[currentLang].saveTrust}
             </Button>
           </div>
         </Panel>
 
-        {/* 5. Member */}
+        {/* 5. Certification */}
         <Panel
           header={
             <span className="flex items-center gap-2 font-semibold">
-              <FiStar /> Member
+              <FiStar /> Certification
             </span>
           }
           key="5"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block">Title</label>
+                <label className="block">{translations[currentLang].title}</label>
                 <Input
                   value={cottonMember.cottonMemberTitle[lang]}
                   onChange={(e) =>
@@ -703,7 +892,7 @@ const CottonPage = () => {
                     })
                   }
                 />
-                <label className="block mt-3">Button Text</label>
+                <label className="block mt-3">{translations[currentLang].buttonText}</label>
                 <Input
                   value={cottonMember.cottonMemberButtonText[lang]}
                   onChange={(e) =>
@@ -720,7 +909,7 @@ const CottonPage = () => {
             ))}
           </Tabs>
 
-          <label className="block mt-3">Button Link</label>
+          <label className="block mt-3">{translations[currentLang].buttonLink}</label>
           <Input
             value={cottonMember.cottonMemberButtonLink}
             onChange={(e) =>
@@ -731,7 +920,10 @@ const CottonPage = () => {
             }
           />
 
-          <Divider>Member Images</Divider>
+          <Divider>{translations[currentLang].memberImages}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommended} 560×400px
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {/* Already saved images */}
             {cottonMember.cottonMemberImg.map((img, idx) => (
@@ -754,7 +946,7 @@ const CottonPage = () => {
                       cottonMemberImg: newImgs,
                     };
                     setCottonMember(updated);
-                    await instantSave("cottonMember", updated); // instantly update DB
+                    await instantSave("cottonMember", updated);
                   }}
                 >
                   X
@@ -764,7 +956,7 @@ const CottonPage = () => {
 
             {/* New uploads */}
             {cottonMember.cottonMemberImgFiles.map((file, idx) => {
-              if (!(file instanceof File)) return null; // ✅ skip non-file
+              if (!(file instanceof File)) return null;
 
               return (
                 <div key={`new-${idx}`} className="relative">
@@ -798,19 +990,21 @@ const CottonPage = () => {
             type="file"
             multiple
             accept="image/*"
-            onChange={(e) =>
+            onChange={(e) => {
+              const validFiles = Array.from(e.target.files).filter(validateFileSize);
+              if (validFiles.length !== e.target.files.length) {
+                CommonToaster("Some member images were too large (max 2MB) and skipped.", "error");
+              }
               setCottonMember({
                 ...cottonMember,
-                cottonMemberImgFiles: [
-                  ...cottonMember.cottonMemberImgFiles,
-                  ...Array.from(e.target.files),
-                ],
-              })
-            }
+                cottonMemberImgFiles: [...cottonMember.cottonMemberImgFiles, ...validFiles],
+              });
+            }}
           />
 
+
           <div className="flex justify-end mt-6 gap-4">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel} </Button>
             <Button
               type="primary"
               onClick={() =>
@@ -819,7 +1013,7 @@ const CottonPage = () => {
                 ])
               }
             >
-              Save Member
+              {translations[currentLang].saveMember}
             </Button>
           </div>
         </Panel>

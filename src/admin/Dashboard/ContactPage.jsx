@@ -11,6 +11,122 @@ const { TabPane } = Tabs;
 const ContactPage = () => {
   const { theme } = useTheme();
 
+  // ✅ Validate file size (Image ≤ 2MB, Video ≤ 10MB)
+  const validateFileSize = (file) => {
+    if (!file) return true;
+
+    if (file.type.startsWith("image/") && file.size > 2 * 1024 * 1024) {
+      CommonToaster("Image size must be below 2MB!", "error");
+      return false;
+    }
+
+    if (file.type.startsWith("video/") && file.size > 10 * 1024 * 1024) {
+      CommonToaster("Video size must be below 10MB!", "error");
+      return false;
+    }
+
+    return true;
+  };
+
+
+  const [currentLang, setCurrentLang] = useState("en");
+
+  const translations = {
+    en: {
+      pageTitle: "Contact Page Management",
+
+      // Common
+      cancel: "Cancel",
+      save: "Save",
+      remove: "Remove",
+      add: "+ Add",
+      recommendedHero: "Recommended: 1260×660px (Image) | Max Video Size: 10MB",
+      recommended: "Recommended Size: ",
+
+
+      // Banner
+      banner: "Contact Banner",
+      bannerTitle: "Title",
+      bannerMedia: "Background (Image / Video)",
+      saveBanner: "Save Banner",
+
+      // Contact Form
+      form: "Contact Form",
+      formText: "Form Text",
+      formImage: "Form Image",
+      saveForm: "Save Form",
+
+      // Location
+      location: "Location",
+      locationTitle: "Title",
+      locationDescription: "Description",
+      locationButtonText: "Button Text",
+      locationButtonLink: "Button Link",
+      saveLocation: "Save Location",
+
+      // Hours
+      hours: "Contact Hours",
+      sectionTitle: "Section Title",
+      hoursList: "Hours List",
+      addHours: "+ Add Hours",
+      removeHours: "Remove",
+      saveHours: "Save Hours",
+
+      // Map
+      map: "Contact Map",
+      mapTitle: "Map Title",
+      mapIframe: "Map Iframe Link",
+      saveMap: "Save Map",
+    },
+
+    vi: {
+      pageTitle: "Quản lý Trang Liên hệ",
+
+      // Common
+      cancel: "Hủy",
+      save: "Lưu",
+      remove: "Xóa",
+      add: "+ Thêm",
+      recommendedHero: "Khuyến nghị: 1260×660px (Hình ảnh) | Kích thước video tối đa: 10MB",
+      recommended: "Kích thước đề xuất: ",
+
+      // Banner
+      banner: "Banner Liên hệ",
+      bannerTitle: "Tiêu đề",
+      bannerMedia: "Nền (Hình ảnh / Video)",
+      saveBanner: "Lưu Banner",
+
+      // Contact Form
+      form: "Biểu mẫu Liên hệ",
+      formText: "Nội dung biểu mẫu",
+      formImage: "Hình ảnh biểu mẫu",
+      saveForm: "Lưu Biểu mẫu",
+
+      // Location
+      location: "Địa điểm",
+      locationTitle: "Tiêu đề",
+      locationDescription: "Mô tả",
+      locationButtonText: "Nút",
+      locationButtonLink: "Liên kết nút",
+      saveLocation: "Lưu Địa điểm",
+
+      // Hours
+      hours: "Giờ làm việc",
+      sectionTitle: "Tiêu đề phần",
+      hoursList: "Danh sách giờ",
+      addHours: "+ Thêm giờ",
+      removeHours: "Xóa",
+      saveHours: "Lưu Giờ làm việc",
+
+      // Map
+      map: "Bản đồ Liên hệ",
+      mapTitle: "Tiêu đề bản đồ",
+      mapIframe: "Liên kết Iframe bản đồ",
+      saveMap: "Lưu Bản đồ",
+    },
+  };
+
+
   const API_BASE = import.meta.env.VITE_API_URL;
 
   const getFullUrl = (path) => {
@@ -148,15 +264,20 @@ const ContactPage = () => {
   // ---------------------- UI ---------------------- //
   return (
     <div className="max-w-6xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-white dark:bg-gray-800">
+      <style>{`
+        label {
+          color: #314158 !important;
+        }
+      `}</style>
       <h2 className="text-3xl font-bold mb-8 text-center">Contact Page Management</h2>
 
       <Collapse accordion bordered={false} defaultActiveKey="1">
         {/* Banner */}
         <Panel header={<span className="flex items-center gap-2"><FiEdit /> Contact Banner</span>} key="1">
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">Title</label>
+                <label className="block font-medium">{translations[currentLang].bannerTitle}</label>
                 <Input
                   value={contactBanner.contactBannerTitle[lang]}
                   onChange={(e) =>
@@ -173,42 +294,67 @@ const ContactPage = () => {
             ))}
           </Tabs>
 
-          <Divider>Background</Divider>
+          <Divider>{translations[currentLang].bannerMedia}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedHero}
+          </p>
           {contactBanner.contactBannerBgFile ? (
-            <img
-              src={URL.createObjectURL(contactBanner.contactBannerBgFile)}
-              alt="Banner"
-              className="w-48 mb-4 rounded-lg"
-            />
-          ) : (
-            contactBanner.contactBannerBg && (
+            contactBanner.contactBannerBgFile.type.startsWith("video/") ? (
+              <video
+                src={URL.createObjectURL(contactBanner.contactBannerBgFile)}
+                controls
+                className="w-64 mb-4 rounded-lg"
+              />
+            ) : (
+              <img
+                src={URL.createObjectURL(contactBanner.contactBannerBgFile)}
+                alt="Banner"
+                className="w-64 mb-4 rounded-lg"
+              />
+            )
+          ) : contactBanner.contactBannerBg ? (
+            /\.(mp4|webm|ogg)$/i.test(contactBanner.contactBannerBg) ? (
+              <video
+                src={getFullUrl(contactBanner.contactBannerBg)}
+                controls
+                className="w-64 mb-4 rounded-lg"
+              />
+            ) : (
               <img
                 src={getFullUrl(contactBanner.contactBannerBg)}
                 alt="Banner"
-                className="w-48 mb-4 rounded-lg"
+                className="w-64 mb-4 rounded-lg"
               />
             )
-          )}
+          ) : null}
+
           <input
             type="file"
-            accept="image/*"
-            onChange={(e) =>
-              setContactBanner({ ...contactBanner, contactBannerBgFile: e.target.files[0] })
-            }
+            accept="image/*,video/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              if (!validateFileSize(file)) return; // ✅ size check
+
+              setContactBanner({
+                ...contactBanner,
+                contactBannerBgFile: file,
+              });
+            }}
           />
 
           <div className="flex justify-end gap-4 mt-4">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
-            <Button type="primary" onClick={() => handleSave("contactBanner", contactBanner, ["contactBannerBgFile"])}>Save</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
+            <Button type="primary" onClick={() => handleSave("contactBanner", contactBanner, ["contactBannerBgFile"])}>{translations[currentLang].save}</Button>
           </div>
         </Panel>
 
         {/* Contact Form */}
         <Panel header={<span className="flex items-center gap-2"><FiEdit /> Contact Form</span>} key="2">
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">Form Text</label>
+                <label className="block font-medium">{translations[currentLang].formText}</label>
                 <Input
                   value={contactForm.contactForm[lang]}
                   onChange={(e) =>
@@ -225,7 +371,10 @@ const ContactPage = () => {
             ))}
           </Tabs>
 
-          <Divider>Form Image</Divider>
+          <Divider>{translations[currentLang].formImage}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommended} 630×760px
+          </p>
           {contactForm.contactFormImgFile ? (
             <img
               src={URL.createObjectURL(contactForm.contactFormImgFile)}
@@ -244,23 +393,27 @@ const ContactPage = () => {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) =>
-              setContactForm({ ...contactForm, contactFormImgFile: e.target.files[0] })
-            }
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              if (!validateFileSize(file)) return; // ✅ size check
+
+              setContactForm({ ...contactForm, contactFormImgFile: file });
+            }}
           />
 
           <div className="flex justify-end gap-4 mt-4">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
-            <Button type="primary" onClick={() => handleSave("contactForm", contactForm, ["contactFormImgFile"])}>Save</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
+            <Button type="primary" onClick={() => handleSave("contactForm", contactForm, ["contactFormImgFile"])}>{translations[currentLang].saveForm}</Button>
           </div>
         </Panel>
 
         {/* Location */}
         <Panel header={<span className="flex items-center gap-2"><FiMapPin /> Location</span>} key="3">
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">Title</label>
+                <label className="block font-medium">{translations[currentLang].locationTitle}</label>
                 <Input
                   value={contactLocation.contactLocationTitle[lang]}
                   onChange={(e) =>
@@ -273,7 +426,7 @@ const ContactPage = () => {
                     })
                   }
                 />
-                <label className="block font-medium mt-3">Description</label>
+                <label className="block font-medium mt-3">{translations[currentLang].locationDescription}</label>
                 <Input
                   value={contactLocation.contactLocationDes[lang]}
                   onChange={(e) =>
@@ -286,7 +439,7 @@ const ContactPage = () => {
                     })
                   }
                 />
-                <label className="block font-medium mt-3">Button Text</label>
+                <label className="block font-medium mt-3">{translations[currentLang].locationButtonText}</label>
                 <Input
                   value={contactLocation.contactLocationButtonText[lang]}
                   onChange={(e) =>
@@ -303,7 +456,7 @@ const ContactPage = () => {
             ))}
           </Tabs>
 
-          <label className="block font-medium mt-3">Button Link</label>
+          <label className="block font-medium mt-3">{translations[currentLang].locationButtonLink}</label>
           <Input
             value={contactLocation.contactLocationButtonLink}
             onChange={(e) =>
@@ -312,17 +465,17 @@ const ContactPage = () => {
           />
 
           <div className="flex justify-end gap-4 mt-4">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
-            <Button type="primary" onClick={() => handleSave("contactLocation", contactLocation)}>Save</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
+            <Button type="primary" onClick={() => handleSave("contactLocation", contactLocation)}>{translations[currentLang].saveLocation}</Button>
           </div>
         </Panel>
 
         {/* Hours */}
         <Panel header={<span className="flex items-center gap-2"><FiClock /> Contact Hours</span>} key="4">
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">Section Title</label>
+                <label className="block font-medium">{translations[currentLang].sectionTitle}</label>
                 <Input
                   value={contactHours.contactHoursTitle[lang]}
                   onChange={(e) =>
@@ -335,8 +488,7 @@ const ContactPage = () => {
                     })
                   }
                 />
-
-                <Divider>Hours List</Divider>
+                <Divider>{translations[currentLang].hoursList}</Divider>
                 {contactHours.contactHoursList.map((item, i) => (
                   <div key={i} className="flex items-center gap-2 mb-2">
                     <Input
@@ -367,7 +519,7 @@ const ContactPage = () => {
                       })
                     }
                   >
-                    + Add Hours
+                    {translations[currentLang].addHours}
                   </Button>
                 )}
               </TabPane>
@@ -375,17 +527,17 @@ const ContactPage = () => {
           </Tabs>
 
           <div className="flex justify-end gap-4 mt-4">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
-            <Button type="primary" onClick={() => handleSave("contactHours", contactHours)}>Save</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
+            <Button type="primary" onClick={() => handleSave("contactHours", contactHours)}>{translations[currentLang].saveHours}</Button>
           </div>
         </Panel>
 
         {/* Map */}
         <Panel header={<span className="flex items-center gap-2"><FiMapPin /> Contact Map</span>} key="5">
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">Map Title</label>
+                <label className="block font-medium">{translations[currentLang].mapTitle}</label>
                 <Input
                   value={contactMap.contactMapTitle[lang]}
                   onChange={(e) =>
@@ -403,7 +555,7 @@ const ContactPage = () => {
           </Tabs>
 
           {/* ✅ Single Iframe Field */}
-          <label className="block font-medium mt-3">Map Iframe Link</label>
+          <label className="block font-medium mt-3">{translations[currentLang].mapIframe}</label>
           <Input
             value={contactMap.contactMapMap}
             onChange={(e) =>
@@ -426,8 +578,8 @@ const ContactPage = () => {
           )}
 
           <div className="flex justify-end gap-4 mt-4">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
-            <Button type="primary" onClick={() => handleSave("contactMap", contactMap)}>Save</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
+            <Button type="primary" onClick={() => handleSave("contactMap", contactMap)}>{translations[currentLang].saveMap}</Button>
           </div>
         </Panel>
 

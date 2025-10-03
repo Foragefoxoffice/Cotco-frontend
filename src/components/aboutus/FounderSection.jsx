@@ -84,14 +84,14 @@ export default function FounderSection() {
                 animate={
                   inView
                     ? {
-                        opacity: 1,
-                        y: 0,
-                        transition: {
-                          delay: 0.2,
-                          duration: 0.6,
-                          ease: [0.22, 1, 0.36, 1],
-                        },
-                      }
+                      opacity: 1,
+                      y: 0,
+                      transition: {
+                        delay: 0.2,
+                        duration: 0.6,
+                        ease: [0.22, 1, 0.36, 1],
+                      },
+                    }
                     : {}
                 }
                 whileHover={{ y: -4 }}
@@ -99,9 +99,17 @@ export default function FounderSection() {
             )}
           </div>
 
-          <p className="mt-5 text-slate-700 leading-relaxed">
-            {founder.aboutFounderDes?.en || ""}
-          </p>
+          {/* Founder descriptions (multiple with bullets) */}
+          {Array.isArray(founder.aboutFounderDes) && founder.aboutFounderDes.length > 0 && (
+            <ul className="mt-5 space-y-2 text-slate-700 leading-relaxed list-disc pl-5 ">
+              {founder.aboutFounderDes.map((desc, idx) => (
+                <li style={{ fontSize: 18 }} key={idx}>
+                  {desc.en || ""}
+                </li>
+              ))}
+            </ul>
+          )}
+
         </motion.div>
 
         {/* RIGHT: Collage (main + 2 images) */}
@@ -122,10 +130,10 @@ export default function FounderSection() {
                 animate={
                   inView
                     ? {
-                        opacity: 1,
-                        y: 0,
-                        transition: { delay: 0.2, duration: 0.6 },
-                      }
+                      opacity: 1,
+                      y: 0,
+                      transition: { delay: 0.2, duration: 0.6 },
+                    }
                     : {}
                 }
                 whileHover={{ y: -4 }}
@@ -144,11 +152,11 @@ export default function FounderSection() {
                 animate={
                   inView
                     ? {
-                        opacity: 1,
-                        x: 0,
-                        y: 0,
-                        transition: { delay: 0.35, duration: 0.55 },
-                      }
+                      opacity: 1,
+                      x: 0,
+                      y: 0,
+                      transition: { delay: 0.35, duration: 0.55 },
+                    }
                     : {}
                 }
                 whileHover={{ scale: 1.02 }}
@@ -164,11 +172,11 @@ export default function FounderSection() {
                 animate={
                   inView
                     ? {
-                        opacity: 1,
-                        x: 0,
-                        y: 0,
-                        transition: { delay: 0.45, duration: 0.55 },
-                      }
+                      opacity: 1,
+                      x: 0,
+                      y: 0,
+                      transition: { delay: 0.45, duration: 0.55 },
+                    }
                     : {}
                 }
                 whileHover={{ scale: 1.02 }}

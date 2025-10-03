@@ -115,9 +115,14 @@ export default function SuppliersSection() {
 
             <hr className="my-4 w-4/6 border-white/90" />
 
-            <p className="pt-4 text-base leading-relaxed text-white/90 md:text-lg">
-              {suppliers[index].cottonSupplierDes?.en}
-            </p>
+            {Array.isArray(suppliers[index].cottonSupplierDes) &&
+              suppliers[index].cottonSupplierDes.length > 0 && (
+                <ul className="pt-4 list-disc text-base leading-relaxed text-white/90 md:text-lg">
+                  {suppliers[index].cottonSupplierDes.map((desc, dIdx) => (
+                    <li className="text-[18px] mb-3" key={dIdx}>{desc.en}</li>
+                  ))}
+                </ul>
+              )}
           </motion.div>
 
           {/* Right logos (desktop) */}

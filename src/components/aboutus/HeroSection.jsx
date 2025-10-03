@@ -72,7 +72,7 @@ const HeroSection = () => {
       </motion.div>
 
       {/* Background Image */}
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden md:pt-72">
         {heroData.aboutBanner && (
           <motion.img
             style={{ y: yImage }}

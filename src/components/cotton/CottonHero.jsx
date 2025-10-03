@@ -83,14 +83,14 @@ export default function CottonHero() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
 
-  if (!bannerData) return null; // Wait for CMS
+  if (!bannerData) return null
 
   const API_BASE = import.meta.env.VITE_API_URL;
 
 
   const getFullUrl = (path) => {
     if (!path) return "";
-    if (path.startsWith("http")) return path; // already full URL
+    if (path.startsWith("http")) return path;
     return `${API_BASE}${path}`;
   };
 

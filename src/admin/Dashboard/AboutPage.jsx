@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Collapse, Input, Button, Tabs, Divider } from "antd";
 import {
   FiTarget,
@@ -30,10 +30,24 @@ const validateVietnamese = (formState) => {
   return checkObject(formState);
 };
 
+// ✅ Validate file size
+const validateFileSize = (file) => {
+  if (!file) return true;
+
+  // ✅ Image max 2MB
+  if (file.type.startsWith("image/") && file.size > 2 * 1024 * 1024) {
+    CommonToaster("Image size must be below 2MB!", "error");
+    return false;
+  }
+
+  return true;
+};
+
 // ✅ Pure file-based handler
 const handleImageChange = (e, setter, key) => {
   const file = e.target.files[0];
   if (!file) return;
+  if (!validateFileSize(file)) return;
 
   setter((prev) => ({
     ...prev,
@@ -41,7 +55,6 @@ const handleImageChange = (e, setter, key) => {
     [key]: URL.createObjectURL(file),
   }));
 };
-
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -53,6 +66,146 @@ const getFullUrl = (path) => {
 
 const AboutPage = () => {
   const { theme } = useTheme();
+
+  const [currentLang, setCurrentLang] = useState("en");
+
+  const translations = {
+    en: {
+      pageTitle: "About Page Management",
+
+      // Sections
+      hero: "About Hero",
+      overview: "About Overview",
+      founder: "Founder",
+      missionVision: "Mission & Vision",
+      coreValues: "Core Values",
+      history: "Company History",
+      team: "About Team",
+      alliances: "Alliances",
+
+      // Common
+      cancel: "Cancel",
+      save: "Save",
+      add: "+ Add",
+      remove: "Remove",
+      banner: "Banner",
+      image: "Image",
+      title: "Title",
+      description: "Description",
+      name: "Name",
+      designation: "Designation",
+      email: "Email",
+      year: "Year",
+      content: "Content",
+      recommendedSize: "Recommended Size: ",
+
+      // Hero
+      saveHero: "Save Hero",
+
+      // Overview
+      overviewImage: "Overview Image",
+      saveOverview: "Save Overview",
+
+      // Founder
+      founderTitle: "Founder Title",
+      founderName: "Founder Name",
+      founderDescription: "Founder Description",
+      founderImages: "Founder Images",
+      saveFounder: "Save Founder",
+
+      // Mission & Vision
+      mainTitle: "Main Title",
+      subhead: "Subhead",
+      block: "Block",
+      boxCount: "Box Count",
+      boxDescription: "Box Description",
+      saveMissionVision: "Save Mission & Vision",
+
+      // Core Values
+      coreImages: "Core Images",
+      saveCore: "Save Core Values",
+
+      // History
+      addHistory: "+ Add History Item",
+      saveHistory: "Save History",
+      historyImage: "History Image",
+      removeHistory: "Remove",
+
+      // Team
+      addMember: "+ Add Member",
+      removeMember: "Remove Member",
+      saveTeam: "Save Team",
+
+    },
+
+    vi: {
+      pageTitle: "Quản lý Trang Giới thiệu",
+
+      // Sections
+      hero: "Banner Giới thiệu",
+      overview: "Tổng quan",
+      founder: "Người sáng lập",
+      missionVision: "Sứ mệnh & Tầm nhìn",
+      coreValues: "Giá trị cốt lõi",
+      history: "Lịch sử Công ty",
+      team: "Đội ngũ",
+      alliances: "Liên minh",
+
+      // Common
+      cancel: "Hủy",
+      save: "Lưu",
+      add: "+ Thêm",
+      remove: "Xóa",
+      banner: "Banner",
+      image: "Hình ảnh",
+      title: "Tiêu đề",
+      description: "Mô tả",
+      name: "Tên",
+      designation: "Chức danh",
+      email: "Email",
+      year: "Năm",
+      content: "Nội dung",
+      recommendedSize: "Kích thước đề xuất: ",
+
+      // Hero
+      saveHero: "Lưu Banner",
+
+      // Overview
+      overviewImage: "Hình ảnh Tổng quan",
+      saveOverview: "Lưu Tổng quan",
+
+      // Founder
+      founderTitle: "Tiêu đề Người sáng lập",
+      founderName: "Tên Người sáng lập",
+      founderDescription: "Mô tả Người sáng lập",
+      founderImages: "Hình ảnh Người sáng lập",
+      saveFounder: "Lưu Người sáng lập",
+
+      // Mission & Vision
+      mainTitle: "Tiêu đề chính",
+      subhead: "Tiêu đề phụ",
+      block: "Khối",
+      boxCount: "Số lượng",
+      boxDescription: "Mô tả ô",
+      saveMissionVision: "Lưu Sứ mệnh & Tầm nhìn",
+
+      // Core Values
+      coreImages: "Hình ảnh Giá trị cốt lõi",
+      saveCore: "Lưu Giá trị cốt lõi",
+
+      // History
+      addHistory: "+ Thêm Mốc Lịch sử",
+      saveHistory: "Lưu Lịch sử",
+      historyImage: "Hình ảnh Lịch sử",
+      removeHistory: "Xóa",
+
+      // Team
+      addMember: "+ Thêm Thành viên",
+      removeMember: "Xóa Thành viên",
+      saveTeam: "Lưu Đội ngũ",
+    },
+  };
+
 
   // ---------------------- STATES (persistent) ---------------------- //
   const [aboutHero, setAboutHero] = usePersistedState("aboutHero", {
@@ -71,14 +224,15 @@ const AboutPage = () => {
   const [aboutFounder, setAboutFounder] = usePersistedState("aboutFounder", {
     aboutFounderTitle: { en: "", vi: "" },
     aboutFounderName: { en: "", vi: "" },
-    aboutFounderDes: { en: "", vi: "" },
-    founderImg1: "", // ✅ base64 preview
-    founderImg1File: null, // ✅ file for upload
+    aboutFounderDes: [{ en: "", vi: "" }],
+    founderImg1: "",
+    founderImg1File: null,
     founderImg2: "",
     founderImg2File: null,
     founderImg3: "",
     founderImg3File: null,
   });
+
 
   const [aboutMissionVission, setAboutMissionVission] = usePersistedState(
     "aboutMissionVission",
@@ -177,6 +331,7 @@ const AboutPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+
   // ---------------------- SAVE HANDLER ---------------------- //
   const handleSave = async (sectionName, formState, files = []) => {
     try {
@@ -217,6 +372,14 @@ const AboutPage = () => {
       className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
         }`}
     >
+      <style>{`
+        label {
+          color: #314158 !important;
+        }
+        .ant-divider-inner-text {
+          color: #314158 !important;
+        }
+      `}</style>
       <h2 className="text-4xl font-extrabold mb-10 text-center">
         About Page Management
       </h2>
@@ -231,10 +394,10 @@ const AboutPage = () => {
           }
           key="1"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">Title</label>
+                <label className="block font-medium">{translations[currentLang].title}</label>
                 <Input
                   value={aboutHero.aboutTitle[lang]}
                   onChange={(e) =>
@@ -251,7 +414,10 @@ const AboutPage = () => {
             ))}
           </Tabs>
 
-          <Divider>Banner</Divider>
+          <Divider>{translations[currentLang].banner}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedSize} 1260×420px
+          </p>
 
           {aboutHero.aboutBannerFile instanceof File ? (
             <img
@@ -272,23 +438,24 @@ const AboutPage = () => {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) =>
-              setAboutHero({
-                ...aboutHero,
-                aboutBannerFile: e.target.files[0],
-              })
-            }
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              if (!validateFileSize(file)) return;
+              setAboutHero({ ...aboutHero, aboutBannerFile: file });
+            }}
           />
 
+
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() =>
                 handleSave("aboutHero", aboutHero, ["aboutBannerFile"])
               }
             >
-              Save Hero
+              {translations[currentLang].saveHero}
             </Button>
           </div>
         </Panel>
@@ -302,10 +469,10 @@ const AboutPage = () => {
           }
           key="2"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">Title</label>
+                <label className="block font-medium">{translations[currentLang].title}</label>
                 <Input
                   value={aboutOverview.aboutOverviewTitle[lang]}
                   onChange={(e) =>
@@ -319,7 +486,7 @@ const AboutPage = () => {
                   }
                 />
 
-                <label className="block font-medium mt-3">Description</label>
+                <label className="block font-medium mt-3">{translations[currentLang].description}</label>
                 <Input
                   value={aboutOverview.aboutOverviewDes[lang]}
                   onChange={(e) =>
@@ -336,7 +503,10 @@ const AboutPage = () => {
             ))}
           </Tabs>
 
-          <Divider>Overview Image</Divider>
+          <Divider>{translations[currentLang].overviewImage}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedSize} 530×310px
+          </p>
 
           {aboutOverview.aboutOverviewFile instanceof File ? (
             <img
@@ -357,23 +527,24 @@ const AboutPage = () => {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) =>
-              setAboutOverview({
-                ...aboutOverview,
-                aboutOverviewFile: e.target.files[0], // ✅ only file, no base64
-              })
-            }
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              if (!validateFileSize(file)) return;
+              setAboutOverview({ ...aboutOverview, aboutOverviewFile: file });
+            }}
           />
 
+
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() =>
                 handleSave("aboutOverview", aboutOverview, ["aboutOverviewFile"])
               }
             >
-              Save Overview
+              {translations[currentLang].saveOverview}
             </Button>
           </div>
         </Panel>
@@ -382,15 +553,15 @@ const AboutPage = () => {
         <Panel
           header={
             <span className="font-semibold text-lg flex items-center gap-2">
-              <FiStar /> Founder
+              <FiStar /> {translations[currentLang].founder}
             </span>
           }
           key="3"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">Founder Title</label>
+                <label className="block font-medium">{translations[currentLang].founderTitle}</label>
                 <Input
                   value={aboutFounder.aboutFounderTitle[lang]}
                   onChange={(e) =>
@@ -404,7 +575,7 @@ const AboutPage = () => {
                   }
                 />
 
-                <label className="block font-medium mt-3">Founder Name</label>
+                <label className="block font-medium mt-3">{translations[currentLang].founderName}</label>
                 <Input
                   value={aboutFounder.aboutFounderName[lang]}
                   onChange={(e) =>
@@ -418,26 +589,69 @@ const AboutPage = () => {
                   }
                 />
 
-                <label className="block font-medium mt-3">
-                  Founder Description
-                </label>
-                <Input
-                  value={aboutFounder.aboutFounderDes[lang]}
-                  onChange={(e) =>
+                <Divider>{translations[currentLang].founderDescription}</Divider>
+
+                {aboutFounder.aboutFounderDes?.map((desc, idx) => (
+                  <div key={idx} className="flex items-center gap-2 mb-2">
+                    <Input
+                      value={desc[lang]}
+                      onChange={(e) => {
+                        const updated = [...aboutFounder.aboutFounderDes];
+                        updated[idx] = { ...updated[idx], [lang]: e.target.value };
+                        setAboutFounder({ ...aboutFounder, aboutFounderDes: updated });
+                      }}
+                    />
+                    <Button
+                      danger
+                      onClick={async () => {
+                        try {
+                          // 1️⃣ Remove locally
+                          const updated = aboutFounder.aboutFounderDes.filter((_, i) => i !== idx);
+                          const newFounder = { ...aboutFounder, aboutFounderDes: updated };
+                          setAboutFounder(newFounder);
+
+                          // 2️⃣ Send update immediately
+                          const formData = new FormData();
+                          formData.append("aboutFounder", JSON.stringify(newFounder));
+
+                          const res = await updateAboutPage(formData);
+
+                          if (res.data?.about?.aboutFounder) {
+                            setAboutFounder(res.data.about.aboutFounder);
+                            localStorage.removeItem("aboutFounder");
+                            CommonToaster("Description removed successfully!", "success");
+                          } else {
+                            CommonToaster("Failed to remove description", "error");
+                          }
+                        } catch (err) {
+                          CommonToaster("Error", err.message || "Something went wrong!");
+                        }
+                      }}
+                    >
+                      X
+                    </Button>
+                  </div>
+                ))}
+
+                <Button
+                  type="dashed"
+                  onClick={() =>
                     setAboutFounder({
                       ...aboutFounder,
-                      aboutFounderDes: {
-                        ...aboutFounder.aboutFounderDes,
-                        [lang]: e.target.value,
-                      },
+                      aboutFounderDes: [...aboutFounder.aboutFounderDes, { en: "", vi: "" }],
                     })
                   }
-                />
+                >
+                  {translations[currentLang].add}
+                </Button>
               </TabPane>
             ))}
           </Tabs>
 
-          <Divider>Founder Images</Divider>
+          <Divider>{translations[currentLang].founderImages}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedSize} 350×550px
+          </p>
           {[1, 2, 3].map((i) => (
             <div key={i} className="mb-4">
               {aboutFounder[`founderImg${i}File`] instanceof File ? (
@@ -458,15 +672,15 @@ const AboutPage = () => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) =>
-                  handleImageChange(e, setAboutFounder, `founderImg${i}`)
-                }
+                onChange={(e) => handleImageChange(e, setAboutFounder, `founderImg${i}`)}
               />
             </div>
           ))}
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>
+              {translations[currentLang].cancel}
+            </Button>
             <Button
               type="primary"
               onClick={() =>
@@ -477,10 +691,11 @@ const AboutPage = () => {
                 ])
               }
             >
-              Save Founder
+              {translations[currentLang].saveFounder}
             </Button>
           </div>
         </Panel>
+
 
         {/* MISSION & VISION */}
         <Panel
@@ -491,10 +706,10 @@ const AboutPage = () => {
           }
           key="4"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">Main Title</label>
+                <label className="block font-medium">{translations[currentLang].mainTitle}</label>
                 <Input
                   value={aboutMissionVission.aboutMissionVissionTitle[lang]}
                   onChange={(e) =>
@@ -514,9 +729,9 @@ const AboutPage = () => {
                     key={i}
                     className="mt-6 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700"
                   >
-                    <h4 className="font-semibold mb-2">Block {i}</h4>
+                    <h4 className="font-semibold mb-2">{translations[currentLang].block} {i}</h4>
 
-                    <label className="block font-medium">Subhead {i}</label>
+                    <label className="block font-medium">{translations[currentLang].subhead} {i}</label>
                     <Input
                       value={
                         aboutMissionVission[`aboutMissionVissionSubhead${i}`][
@@ -537,7 +752,7 @@ const AboutPage = () => {
                     />
 
                     <label className="block font-medium mt-2">
-                      Description {i}
+                      {translations[currentLang].description} {i}
                     </label>
                     <Input
                       value={
@@ -557,7 +772,7 @@ const AboutPage = () => {
                     />
 
                     <label className="block font-medium mt-2">
-                      Box Count {i}
+                      {translations[currentLang].boxCount} {i}
                     </label>
                     <Input
                       type="number"
@@ -575,7 +790,7 @@ const AboutPage = () => {
                     />
 
                     <label className="block font-medium mt-2">
-                      Box Description {i}
+                      {translations[currentLang].boxDescription} {i}
                     </label>
                     <Input
                       value={
@@ -598,14 +813,14 @@ const AboutPage = () => {
           </Tabs>
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() =>
                 handleSave("aboutMissionVission", aboutMissionVission)
               }
             >
-              Save Mission & Vision
+              {translations[currentLang].saveMissionVision}
             </Button>
           </div>
         </Panel>
@@ -619,12 +834,12 @@ const AboutPage = () => {
           }
           key="5"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="mb-6">
-                    <label className="block font-medium">Title {i}</label>
+                    <label className="block font-medium">{translations[currentLang].title} {i}</label>
                     <Input
                       value={aboutCore[`aboutCoreTitle${i}`][lang]}
                       onChange={(e) =>
@@ -639,7 +854,7 @@ const AboutPage = () => {
                     />
 
                     <label className="block font-medium mt-2">
-                      Description {i}
+                      {translations[currentLang].description} {i}
                     </label>
                     <Input
                       value={aboutCore[`aboutCoreDes${i}`][lang]}
@@ -658,29 +873,39 @@ const AboutPage = () => {
               </TabPane>
             ))}
           </Tabs>
-
-          <Divider>Core Images</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedSize} 620×510px
+          </p>
+          <Divider>{translations[currentLang].coreImages}</Divider>
           {[1, 2, 3].map((i) => (
             <div key={i} className="mb-6">
-              {aboutCore[`aboutCoreBg${i}`] && (
+              {aboutCore[`aboutCoreBg${i}File`] instanceof File ? (
                 <img
-                  src={getFullUrl(aboutCore[`aboutCoreBg${i}`])}
-                  alt={`Core ${i}`}
-                  className="w-32 mb-2"
+                  src={URL.createObjectURL(aboutCore[`aboutCoreBg${i}File`])}
+                  alt={`Core ${i} Preview`}
+                  className="w-32 mb-2 rounded"
                 />
+              ) : (
+                aboutCore[`aboutCoreBg${i}`] && (
+                  <img
+                    src={getFullUrl(aboutCore[`aboutCoreBg${i}`])}
+                    alt={`Core ${i}`}
+                    className="w-32 mb-2 rounded"
+                  />
+                )
               )}
+
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) =>
-                  handleImageChange(e, setAboutCore, `aboutCoreBg${i}`)
-                }
+                onChange={(e) => handleImageChange(e, setAboutCore, `aboutCoreBg${i}`)}
               />
             </div>
           ))}
 
+
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() =>
@@ -691,7 +916,7 @@ const AboutPage = () => {
                 ])
               }
             >
-              Save Core Values
+              {translations[currentLang].saveCore}
             </Button>
           </div>
         </Panel>
@@ -710,7 +935,7 @@ const AboutPage = () => {
               key={index}
               className="border rounded-lg p-4 mb-6 shadow-sm bg-gray-50 dark:bg-gray-700"
             >
-              <label className="block font-medium">Year</label>
+              <label className="block font-medium">{translations[currentLang].year}</label>
               <Input
                 value={item.year}
                 onChange={(e) => {
@@ -720,11 +945,11 @@ const AboutPage = () => {
                 }}
               />
 
-              <Tabs defaultActiveKey="en" className="mt-3">
+              <Tabs activeKey={currentLang} onChange={setCurrentLang} className="mt-3">
                 {["en", "vi"].map((lang) => (
                   <TabPane tab={lang.toUpperCase()} key={lang}>
                     <label className="block font-medium">
-                      Content ({lang})
+                      {translations[currentLang].content} ({lang})
                     </label>
                     <Input.TextArea
                       rows={3}
@@ -742,8 +967,10 @@ const AboutPage = () => {
                 ))}
               </Tabs>
 
-              <Divider>History Image</Divider>
-
+              <Divider>{translations[currentLang].historyImage}</Divider>
+              <p className="text-sm text-slate-500 mb-2">
+                {translations[currentLang].recommendedSize} 720×920px
+              </p>
               {item.imageFile instanceof File ? (
                 <img
                   src={URL.createObjectURL(item.imageFile)}
@@ -766,6 +993,7 @@ const AboutPage = () => {
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (!file) return;
+                  if (!validateFileSize(file)) return; // ✅ enforce max 2MB
 
                   const newHistory = [...aboutHistory];
                   newHistory[index].imageFile = file;
@@ -773,6 +1001,7 @@ const AboutPage = () => {
                   setAboutHistory(newHistory);
                 }}
               />
+
 
               <div className="flex justify-end mt-3">
                 <Button
@@ -810,7 +1039,7 @@ const AboutPage = () => {
                     }
                   }}
                 >
-                  Remove
+                  {translations[currentLang].removeHistory}
                 </Button>
 
               </div>
@@ -831,7 +1060,7 @@ const AboutPage = () => {
                 ])
               }
             >
-              + Add History Item
+              {translations[currentLang].addHistory}
             </Button>
 
             <Button
@@ -840,10 +1069,9 @@ const AboutPage = () => {
                 const formData = new FormData();
                 formData.append("aboutHistory", JSON.stringify(aboutHistory));
 
-                // ✅ loop through all items, not limited to 3
                 aboutHistory.forEach((item, i) => {
                   if (item.imageFile) {
-                    formData.append(`historyImage${i}`, item.imageFile); // ✅ works for unlimited items
+                    formData.append(`historyImage${i}`, item.imageFile);
                   }
                 });
 
@@ -857,7 +1085,7 @@ const AboutPage = () => {
                 }
               }}
             >
-              Save History
+              {translations[currentLang].saveHistory}
             </Button>
           </div>
         </Panel>
@@ -879,10 +1107,10 @@ const AboutPage = () => {
                     key={idx}
                     className="mb-6 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700"
                   >
-                    <Tabs defaultActiveKey="en">
+                    <Tabs activeKey={currentLang} onChange={setCurrentLang}>
                       {["en", "vi"].map((lang) => (
                         <TabPane tab={lang.toUpperCase()} key={lang}>
-                          <label className="block font-medium">Name</label>
+                          <label className="block font-medium">{translations[currentLang].name}</label>
                           <Input
                             value={member.teamName?.[lang] || ""}
                             onChange={(e) => {
@@ -902,7 +1130,7 @@ const AboutPage = () => {
                           />
 
                           <label className="block font-medium mt-2">
-                            Designation
+                            {translations[currentLang].designation}
                           </label>
                           <Input
                             value={member.teamDesgn?.[lang] || ""}
@@ -925,7 +1153,7 @@ const AboutPage = () => {
                       ))}
                     </Tabs>
 
-                    <label className="block font-medium mt-2">Email</label>
+                    <label className="block font-medium mt-2">{translations[currentLang].email}</label>
                     <Input
                       value={member.teamEmail || ""}
                       onChange={(e) => {
@@ -981,7 +1209,7 @@ const AboutPage = () => {
                         }
                       }}
                     >
-                      Remove Member
+                      {translations[currentLang].removeMember}
                     </Button>
                   </div>
                 ))}
@@ -1003,19 +1231,19 @@ const AboutPage = () => {
                     });
                   }}
                 >
-                  + Add Member
+                  {translations[currentLang].addMember}
                 </Button>
               </TabPane>
             ))}
           </Tabs>
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() => handleSave("aboutTeam", aboutTeam)}
             >
-              Save Team
+              {translations[currentLang].saveTeam}
             </Button>
           </div>
         </Panel>
@@ -1030,7 +1258,9 @@ const AboutPage = () => {
           key="8"
         >
           <Divider>Alliance Logos</Divider>
-
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedSize} 180×180px
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {/* Saved from DB */}
             {(aboutAlliances.aboutAlliancesImg || []).map((url, idx) => (
@@ -1072,11 +1302,15 @@ const AboutPage = () => {
             {/* Unsaved local files */}
             {(aboutAlliances.aboutAlliancesFiles || []).map((file, idx) => (
               <div key={`new-${idx}`} className="relative rounded-lg p-2">
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt={`Alliance new ${idx + 1}`}
-                  className="w-full h-24 object-contain"
-                />
+                {file instanceof File ? (
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={`Alliance new ${idx + 1}`}
+                    className="w-full h-24 object-contain"
+                  />
+                ) : (
+                  <p className="text-xs text-red-500">Invalid file</p>
+                )}
                 <Button
                   danger
                   size="small"
@@ -1094,22 +1328,28 @@ const AboutPage = () => {
                 </Button>
               </div>
             ))}
+
           </div>
 
           <input
             type="file"
             accept="image/*"
             multiple
-            onChange={(e) =>
+            onChange={(e) => {
+              const validFiles = Array.from(e.target.files).filter(validateFileSize);
+              if (validFiles.length !== e.target.files.length) {
+                CommonToaster("Some files were too large (max 2MB) and skipped.", "error");
+              }
               setAboutAlliances({
                 ...aboutAlliances,
                 aboutAlliancesFiles: [
                   ...(aboutAlliances.aboutAlliancesFiles || []),
-                  ...Array.from(e.target.files),
+                  ...validFiles,
                 ],
-              })
-            }
+              });
+            }}
           />
+
 
           <div className="flex justify-end gap-4 mt-6">
             <Button onClick={() => window.location.reload()}>Cancel</Button>

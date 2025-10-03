@@ -41,12 +41,104 @@ const HomePage = () => {
   const { useToken } = antdTheme;
   const { token } = useToken();
 
-  const API_BASE = import.meta.env.VITE_API_URL; // e.g. http://localhost:5000
+  const API_BASE = import.meta.env.VITE_API_URL;
 
   const getFullUrl = (path) => {
     if (!path) return "";
-    if (path.startsWith("http")) return path; // already full URL
+    if (path.startsWith("http")) return path;
     return `${API_BASE}${path}`;
+  };
+  const [currentLang, setCurrentLang] = useState("en");
+
+
+  // ---------------------- LANGUAGES ---------------------- //
+  const translations = {
+    en: {
+      heroTitle: "Hero Title",
+      heroDescription: "Hero Description",
+      buttonText: "Button Text",
+      buttonLink: "Button Link",
+      background: "Background",
+      recommendedHero: "Recommended: 1260×660px (Image) | Max Video Size: 10MB",
+      cancel: "Cancel",
+      saveHero: "Save Hero",
+
+      whoHeading: "Heading",
+      whoDescription: "Description",
+      whoButtonText: "Button Text",
+      whoButtonLink: "Button Link",
+      bannerImage: "Banner Image",
+      recommendedWho: "Recommended: 630×360px",
+      saveWho: "Save Who We Are",
+
+      whatTitle: "Section Title",
+      whatDesc: "Section Description",
+      title: "Title",
+      desc: "Description",
+      icon: "Icon",
+      recommendedIcon: "Recommended: 64×64px (rounded)",
+      image: "Image",
+      recommendedImage: "Recommended: 350×325px",
+      saveWhat: "Save What We Do",
+
+      logosHeading: "Section Heading",
+      partnerLogos: "Partner Logos",
+      recommendedLogos: "Recommended: 250×250px",
+      addLogo: "+ Add Partner Logo",
+      saveLogos: "Save Company Logos",
+      removeLogo: "Remove Logo",
+
+      definesHeading: "Section Heading",
+      saveDefines: "Save Defined Us",
+
+      coreTitle: "Section Title",
+      coreTitleN: "Core Title",
+      coreDescN: "Core Description",
+      saveCore: "Save Core Values",
+    },
+    vi: {
+      heroTitle: "Tiêu đề chính",
+      heroDescription: "Mô tả",
+      buttonText: "Nút văn bản",
+      buttonLink: "Liên kết nút",
+      background: "Nền",
+      recommendedHero: "Khuyến nghị: 1260×660px (Hình ảnh) | Kích thước video tối đa: 10MB",
+      cancel: "Hủy",
+      saveHero: "Lưu Banner",
+
+      whoHeading: "Tiêu đề",
+      whoDescription: "Mô tả",
+      whoButtonText: "Nút văn bản",
+      whoButtonLink: "Liên kết nút",
+      bannerImage: "Ảnh banner",
+      recommendedWho: "Khuyến nghị: 630×360px",
+      saveWho: "Lưu Giới thiệu",
+
+      whatTitle: "Tiêu đề mục",
+      whatDesc: "Mô tả mục",
+      title: "Tiêu đề",
+      desc: "Mô tả",
+      icon: "Biểu tượng",
+      recommendedIcon: "Khuyến nghị: 64×64px (bo tròn)",
+      image: "Hình ảnh",
+      recommendedImage: "Khuyến nghị: 350×325px",
+      saveWhat: "Lưu Chúng tôi làm gì",
+
+      logosHeading: "Tiêu đề mục",
+      partnerLogos: "Logo đối tác",
+      recommendedLogos: "Khuyến nghị: 250×250px",
+      addLogo: "+ Thêm Logo đối tác",
+      saveLogos: "Lưu Logo đối tác",
+      removeLogo: "Xóa biểu tượng",
+
+      definesHeading: "Tiêu đề mục",
+      saveDefines: "Lưu Giá trị định nghĩa",
+
+      coreTitle: "Tiêu đề mục",
+      coreTitleN: "Tiêu đề giá trị",
+      coreDescN: "Mô tả giá trị",
+      saveCore: "Lưu Giá trị cốt lõi",
+    },
   };
 
 
@@ -185,6 +277,26 @@ const HomePage = () => {
     });
   }, []);
 
+  // Size validate ////
+
+  const validateFileSize = (file) => {
+    if (!file) return true;
+
+    // ✅ Video max 10MB
+    if (file.type.startsWith("video/") && file.size > 10 * 1024 * 1024) {
+      CommonToaster("Video size must be below 10MB!", "error");
+      return false;
+    }
+
+    // ✅ Image max 2MB
+    if (file.type.startsWith("image/") && file.size > 2 * 1024 * 1024) {
+      CommonToaster("Image size must be below 2MB!", "error");
+      return false;
+    }
+
+    return true;
+  };
+
   // ---------------------- SAVE HANDLER ---------------------- //
   const handleSave = async (sectionName, formState, files = []) => {
     try {
@@ -285,6 +397,11 @@ const HomePage = () => {
         : " dark:bg-gray-800 text-gray-100"
         }`}
     >
+      <style>{`
+        label {
+          color: #314158 !important;
+        }
+      `}</style>
       <h2 className="text-4xl font-extrabold mb-10 text-center tracking-wide">
         Homepage Management
       </h2>
@@ -304,13 +421,13 @@ const HomePage = () => {
           }
           key="1"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane
                 tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
                 key={lang}
               >
-                <label className="block font-medium">Hero Title</label>
+                <label className="block font-medium"> {translations[currentLang].heroTitle}</label>
                 <Input
                   value={heroForm.heroTitle[lang]}
                   onChange={(e) =>
@@ -324,7 +441,7 @@ const HomePage = () => {
                   }
                 />
                 <label className="block font-medium mt-3">
-                  Hero Description
+                  {translations[currentLang].heroDescription}
                 </label>
                 <Input
                   value={heroForm.heroDescription[lang]}
@@ -338,7 +455,7 @@ const HomePage = () => {
                     })
                   }
                 />
-                <label className="block font-medium mt-3">Button Text</label>
+                <label className="block font-medium mt-3">{translations[currentLang].buttonText}</label>
                 <Input
                   value={heroForm.heroButtonText[lang]}
                   onChange={(e) =>
@@ -351,7 +468,7 @@ const HomePage = () => {
                     })
                   }
                 />
-                <label className="block font-medium mt-3">Button Link</label>
+                <label className="block font-medium mt-3">{translations[currentLang].buttonLink}</label>
                 <Input
                   value={heroForm.heroButtonLink[lang]}
                   onChange={(e) =>
@@ -368,9 +485,11 @@ const HomePage = () => {
             ))}
           </Tabs>
 
-          <Divider orientation="left">Background</Divider>
+          <Divider orientation="left">{translations[currentLang].background}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedHero}
+          </p>
 
-          {/* ✅ Preview uploaded file first */}
           {heroForm.bgFile ? (
             heroForm.bgFile.type.startsWith("image/") ? (
               <img
@@ -386,7 +505,6 @@ const HomePage = () => {
               />
             )
           ) : (
-            // ✅ Fallback to saved DB value
             heroForm.bgUrl &&
             (heroForm.bgType === "image" ? (
               <img
@@ -407,18 +525,21 @@ const HomePage = () => {
             type="file"
             accept="image/*,video/*"
             className="block mb-6"
-            onChange={(e) =>
-              setHeroForm({ ...heroForm, bgFile: e.target.files[0], bgUrl: "" })
-            }
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              if (!validateFileSize(file)) return;
+              setHeroForm({ ...heroForm, bgFile: file, bgUrl: "" });
+            }}
           />
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() => handleSave("heroSection", heroForm, ["bgFile"])}
             >
-              Save Hero
+              {translations[currentLang].saveHero}
             </Button>
           </div>
         </Panel>
@@ -432,13 +553,13 @@ const HomePage = () => {
           }
           key="2"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane
                 tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
                 key={lang}
               >
-                <label className="block font-medium">Heading</label>
+                <label className="block font-medium">{translations[currentLang].whoHeading}</label>
                 <Input
                   value={whoWeAreForm.whoWeAreheading[lang]}
                   onChange={(e) =>
@@ -451,7 +572,7 @@ const HomePage = () => {
                     })
                   }
                 />
-                <label className="block font-medium mt-3">Description</label>
+                <label className="block font-medium mt-3">{translations[currentLang].whoDescription}</label>
                 <Input
                   value={whoWeAreForm.whoWeAredescription[lang]}
                   onChange={(e) =>
@@ -464,7 +585,7 @@ const HomePage = () => {
                     })
                   }
                 />
-                <label className="block font-medium mt-3">Button Text</label>
+                <label className="block font-medium mt-3">{translations[currentLang].whoButtonText}</label>
                 <Input
                   value={whoWeAreForm.whoWeArebuttonText[lang]}
                   onChange={(e) =>
@@ -477,7 +598,7 @@ const HomePage = () => {
                     })
                   }
                 />
-                <label className="block font-medium mt-3">Button Link</label>
+                <label className="block font-medium mt-3">{translations[currentLang].whoButtonLink}</label>
                 <Input
                   value={whoWeAreForm.whoWeArebuttonLink[lang]}
                   onChange={(e) =>
@@ -493,7 +614,11 @@ const HomePage = () => {
               </TabPane>
             ))}
           </Tabs>
-          <Divider orientation="left">Banner Image</Divider>
+
+          <Divider orientation="left">{translations[currentLang].bannerImage}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedWho}
+          </p>
 
           {whoWeAreForm.whoWeArebannerImage && !whoWeAreForm.whoWeAreFile && (
             <img
@@ -503,7 +628,6 @@ const HomePage = () => {
             />
           )}
 
-          {/* New preview from uploaded file */}
           {whoWeAreForm.whoWeAreFile && (
             <img
               src={URL.createObjectURL(whoWeAreForm.whoWeAreFile)}
@@ -515,23 +639,23 @@ const HomePage = () => {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) =>
-              setWhoWeAreForm({
-                ...whoWeAreForm,
-                whoWeAreFile: e.target.files[0],
-              })
-            }
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              if (!validateFileSize(file)) return;
+              setWhoWeAreForm({ ...whoWeAreForm, whoWeAreFile: file });
+            }}
           />
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() =>
                 handleSave("whoWeAreSection", whoWeAreForm, ["whoWeAreFile"])
               }
             >
-              Save Who We Are
+              {translations[currentLang].saveWho}
             </Button>
           </div>
         </Panel>
@@ -545,13 +669,13 @@ const HomePage = () => {
           }
           key="3"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane
                 tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
                 key={lang}
               >
-                <label className="block font-medium">Section Title</label>
+                <label className="block font-medium">{translations[currentLang].whatTitle}</label>
                 <Input
                   value={whatWeDoForm.whatWeDoTitle[lang]}
                   onChange={(e) =>
@@ -565,7 +689,7 @@ const HomePage = () => {
                   }
                 />
                 <label className="block font-medium mt-3">
-                  Section Description
+                  {translations[currentLang].whatDesc}
                 </label>
                 <Input
                   value={whatWeDoForm.whatWeDoDec[lang]}
@@ -582,7 +706,7 @@ const HomePage = () => {
 
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="border rounded p-3 mt-4">
-                    <label className="font-medium">Title {i}</label>
+                    <label className="font-medium">{translations[currentLang].title} {i}</label>
                     <Input
                       value={whatWeDoForm[`whatWeDoTitle${i}`][lang]}
                       onChange={(e) =>
@@ -595,7 +719,7 @@ const HomePage = () => {
                         })
                       }
                     />
-                    <label className="font-medium mt-3">Description {i}</label>
+                    <label className="font-medium mt-3">{translations[currentLang].desc} {i}</label>
                     <Input
                       value={whatWeDoForm[`whatWeDoDes${i}`][lang]}
                       onChange={(e) =>
@@ -608,8 +732,8 @@ const HomePage = () => {
                         })
                       }
                     />
-                    <label className="font-medium mt-3">Icon {i}</label>
-
+                    <label className="font-medium mt-3">{translations[currentLang].icon} {i}</label>
+                    <p className="text-xs text-slate-500 mb-1">{translations[currentLang].recommendedIcon}</p>
 
                     {whatWeDoForm[`whatWeDoIcon${i}`] && !whatWeDoForm[`whatWeDoIcon${i}File`] && (
                       <img
@@ -631,16 +755,20 @@ const HomePage = () => {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        if (!validateFileSize(file)) return;
                         setWhatWeDoForm({
                           ...whatWeDoForm,
-                          [`whatWeDoIcon${i}File`]: e.target.files[0],
-                        })
-                      }
+                          [`whatWeDoIcon${i}File`]: file,
+                        });
+                      }}
                     />
 
-                    <label className="font-medium mt-3">Image {i}</label>
 
+                    <label className="font-medium mt-3">{translations[currentLang].image} image{i}</label>
+                    <p className="text-xs text-slate-500 mb-1">{translations[currentLang].recommendedImage}</p>
                     {/* Saved DB preview */}
                     {whatWeDoForm[`whatWeDoImg${i}`] && !whatWeDoForm[`whatWeDoImg${i}File`] && (
                       <img
@@ -662,13 +790,17 @@ const HomePage = () => {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        if (!validateFileSize(file)) return;
                         setWhatWeDoForm({
                           ...whatWeDoForm,
-                          [`whatWeDoImg${i}File`]: e.target.files[0],
-                        })
-                      }
+                          [`whatWeDoImg${i}File`]: file,
+                        });
+                      }}
                     />
+
 
                   </div>
                 ))}
@@ -676,7 +808,7 @@ const HomePage = () => {
             ))}
           </Tabs>
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() =>
@@ -690,7 +822,7 @@ const HomePage = () => {
                 ])
               }
             >
-              Save What We Do
+              {translations[currentLang].saveWhat}
             </Button>
           </div>
         </Panel>
@@ -704,13 +836,13 @@ const HomePage = () => {
           }
           key="4"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane
                 tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
                 key={lang}
               >
-                <label className="block font-medium">Section Heading</label>
+                <label className="block font-medium">{translations[currentLang].logosHeading}</label>
                 <Input
                   value={companyLogosForm.companyLogosHeading[lang]}
                   onChange={(e) =>
@@ -727,8 +859,10 @@ const HomePage = () => {
             ))}
           </Tabs>
 
-          <Divider>Partner Logos</Divider>
-
+          <Divider>{translations[currentLang].partnerLogos}</Divider>
+          <p className="text-sm text-slate-500 mb-2">
+            {translations[currentLang].recommendedLogos}
+          </p>
           {companyLogosForm.logos.map((logo, index) => (
             <div key={index} className="flex items-center gap-3 mb-3">
               {logo.url && (
@@ -742,11 +876,15 @@ const HomePage = () => {
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  if (!validateFileSize(file)) return;
                   const updated = [...companyLogosForm.logos];
-                  updated[index].file = e.target.files[0];
+                  updated[index].file = file;
                   setCompanyLogosForm({ ...companyLogosForm, logos: updated });
                 }}
               />
+
               <Button
                 danger
                 onClick={() => {
@@ -756,7 +894,7 @@ const HomePage = () => {
                   setCompanyLogosForm({ ...companyLogosForm, logos: updated });
                 }}
               >
-                Remove
+                {translations[currentLang].removeLogo}
               </Button>
             </div>
           ))}
@@ -771,11 +909,11 @@ const HomePage = () => {
               })
             }
           >
-            + Add Partner Logo
+            {translations[currentLang].addLogo}
           </Button>
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() =>
@@ -786,12 +924,11 @@ const HomePage = () => {
                 )
               }
             >
-              Save Company Logos
+              {translations[currentLang].saveLogos}
             </Button>
           </div>
         </Panel>
 
-        {/* DEFINED US */}
         {/* DEFINED US */}
         <Panel
           header={
@@ -801,13 +938,13 @@ const HomePage = () => {
           }
           key="5"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane
                 tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
                 key={lang}
               >
-                <label className="block font-medium">Section Heading</label>
+                <label className="block font-medium">{translations[currentLang].definesHeading}</label>
                 <Input
                   value={definedUsForm.definedUsHeading[lang]}
                   onChange={(e) =>
@@ -823,7 +960,7 @@ const HomePage = () => {
 
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div key={i} className="border rounded p-3 mb-4">
-                    <label className="font-medium">Title {i}</label>
+                    <label className="font-medium">{translations[currentLang].title} {i}</label>
                     <Input
                       value={definedUsForm[`definedUsTitle${i}`][lang]}
                       onChange={(e) =>
@@ -837,7 +974,7 @@ const HomePage = () => {
                       }
                     />
 
-                    <label className="font-medium mt-3">Description {i}</label>
+                    <label className="font-medium mt-3">{translations[currentLang].desc} {i}</label>
                     <Input
                       value={definedUsForm[`definedUsDes${i}`][lang]}
                       onChange={(e) =>
@@ -857,12 +994,12 @@ const HomePage = () => {
           </Tabs>
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() => handleSave("definedUsSection", definedUsForm)}
             >
-              Save Defined Us
+              {translations[currentLang].saveDefines}
             </Button>
           </div>
         </Panel>
@@ -876,13 +1013,13 @@ const HomePage = () => {
           }
           key="6"
         >
-          <Tabs defaultActiveKey="en">
+          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
             {["en", "vi"].map((lang) => (
               <TabPane
                 tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
                 key={lang}
               >
-                <label className="block font-medium">Section Title</label>
+                <label className="block font-medium">{translations[currentLang].coreTitle}</label>
                 <Input
                   value={coreValuesForm.coreTitle[lang]}
                   onChange={(e) =>
@@ -897,7 +1034,7 @@ const HomePage = () => {
                 />
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="border rounded p-3 mt-4">
-                    <label className="font-medium">Core Title {i}</label>
+                    <label className="font-medium">{translations[currentLang].coreTitleN} {i}</label>
                     <Input
                       value={coreValuesForm[`coreTitle${i}`][lang]}
                       onChange={(e) =>
@@ -911,7 +1048,7 @@ const HomePage = () => {
                       }
                     />
                     <label className="font-medium mt-3">
-                      Core Description {i}
+                      {translations[currentLang].coreDescN} {i}
                     </label>
                     <Input
                       value={coreValuesForm[`coreDes${i}`][lang]}
@@ -931,14 +1068,14 @@ const HomePage = () => {
             ))}
           </Tabs>
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
             <Button
               type="primary"
               onClick={() =>
                 handleSave("coreValuesSection", coreValuesForm, ["coreImage"])
               }
             >
-              Save Core Values
+              {translations[currentLang].saveCore}
             </Button>
           </div>
         </Panel>

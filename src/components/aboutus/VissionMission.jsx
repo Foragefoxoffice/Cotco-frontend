@@ -98,11 +98,11 @@ export default function VissionMission() {
                 <div className="mt-6 space-y-6">
                   {blocks.map((i) => (
                     <div key={i}>
-                      <h3 className="uppercase text-sm font-bold tracking-wider">
+                      <h3 className="uppercase text-md font-bold tracking-wider">
                         {data[`aboutMissionVissionSubhead${i}`]?.en ||
                           `Subhead ${i}`}
                       </h3>
-                      <p className="mt-2 text-[15px] text-white/90 leading-relaxed">
+                      <p className="mt-2 text-[16px] text-white/90 leading-relaxed">
                         {data[`aboutMissionVissionDes${i}`]?.en || ""}
                       </p>
                     </div>

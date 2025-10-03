@@ -1,25 +1,67 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { getContactPage } from "../../Api/api"; // ✅ API
 
-/** ---------- Left + Right Layout ---------- */
 export default function ContactSection() {
+  const [contactFormData, setContactFormData] = useState(null);
+  const API_BASE = import.meta.env.VITE_API_URL;
+
+  const getFullUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${API_BASE}${path}`;
+  };
+
+  // ✅ Fetch contact form data
+  useEffect(() => {
+    getContactPage().then((res) => {
+      if (res.data?.contactForm) {
+        setContactFormData(res.data.contactForm);
+      }
+    });
+  }, []);
+
+  // ✅ Detect if uploaded media is video
+  const isVideo = contactFormData?.contactFormImg
+    ? /\.(mp4|webm|ogg)$/i.test(contactFormData.contactFormImg)
+    : false;
+
   return (
     <section className="bg-white">
       <div className="mx-auto page-width pt-10 md:pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10 items-stretch">
-          {/* LEFT: Image Card */}
+          {/* LEFT: Image/Video */}
           <div className="relative rounded-2xl overflow-hidden ring-1 ring-black/5 shadow-sm min-h-[520px] sm:aspect-[4/5] lg:aspect-auto">
-            {/* If using Next.js Image, replace <img> with <Image fill /> */}
-            <img
-              src="/img/about/contact.png"
-              alt="Cotton picking"
-              className="absolute inset-0 h-full w-full object-cover"
-              loading="lazy"
-            />
+            {contactFormData?.contactFormImg ? (
+              isVideo ? (
+                <video
+                  src={getFullUrl(contactFormData.contactFormImg)}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <img
+                  src={getFullUrl(contactFormData.contactFormImg)}
+                  alt="Contact"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
+                />
+              )
+            ) : (
+              <img
+                src="/img/about/contact.png"
+                alt="Contact"
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+              />
+            )}
           </div>
 
-          {/* RIGHT: Form Card */}
+          {/* RIGHT: Form */}
           <div className="rounded-2xl ring-1 ring-slate-200 bg-white p-6 md:p-8 shadow-sm">
-            <ContactForm />
+            <ContactForm heading={contactFormData?.contactForm?.en || "Send Us a Message"} />
           </div>
         </div>
       </div>
@@ -27,8 +69,8 @@ export default function ContactSection() {
   );
 }
 
-/** ---------- Your Form (unchanged logic, styled for the card) ---------- */
-function ContactForm() {
+/** ---------- Contact Form Component ---------- */
+function ContactForm({ heading }) {
   const [values, setValues] = useState({
     name: "",
     company: "",
@@ -49,10 +91,9 @@ function ContactForm() {
     "mt-2 w-full h-13 rounded-lg bg-slate-50 border border-transparent px-4 text-[15px] text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-slate-300 focus:ring-2 focus:ring-slate-200 [box-shadow:rgba(0,0,0,0.1)_0px_1px_3px_0px,rgba(0,0,0,0.06)_0px_2px_2px_0px]";
 
   const getFieldClass = (name) =>
-    `${baseFieldClass} ${
-      errors[name] && touched[name]
-        ? "border-red-400 focus:border-red-400 ring-2 ring-red-200"
-        : ""
+    `${baseFieldClass} ${errors[name] && touched[name]
+      ? "border-red-400 focus:border-red-400 ring-2 ring-red-200"
+      : ""
     }`;
 
   // ------- validators -------
@@ -197,7 +238,8 @@ function ContactForm() {
     setSubmitting(true);
     setSuccess("");
     try {
-      await new Promise((r) => setTimeout(r, 800)); // simulate
+      // simulate submit (replace with real API later)
+      await new Promise((r) => setTimeout(r, 800));
       setSuccess("✅ Your message has been sent successfully.");
       setValues({
         name: "",
@@ -219,15 +261,19 @@ function ContactForm() {
 
   return (
     <div ref={firstErrorRef}>
-      <h3 className="text-xl font-semibold text-slate-900">Send Us a Message</h3>
+      <style>{`
+        label {
+          color: #314158 !important;
+        }
+      `}</style>
+      <h3 className="text-xl font-semibold text-slate-900">{heading}</h3>
 
       {success && (
         <div
-          className={`mt-4 rounded-lg border px-4 py-3 text-sm ${
-            success.startsWith("✅")
-              ? "border-green-200 bg-green-50 text-green-700"
-              : "border-red-200 bg-red-50 text-red-700"
-          }`}
+          className={`mt-4 rounded-lg border px-4 py-3 text-sm ${success.startsWith("✅")
+            ? "border-green-200 bg-green-50 text-green-700"
+            : "border-red-200 bg-red-50 text-red-700"
+            }`}
           role="status"
           aria-live="polite"
         >
@@ -249,16 +295,10 @@ function ContactForm() {
               onChange={handleChange}
               onBlur={handleBlur}
               className={getFieldClass("name")}
-              aria-invalid={!!(errors.name && touched.name)}
-              aria-describedby={
-                errors.name && touched.name ? "name-error" : undefined
-              }
               required
             />
             {errors.name && touched.name && (
-              <p id="name-error" className="mt-2 text-xs text-red-600">
-                {errors.name}
-              </p>
+              <p className="mt-2 text-xs text-red-600">{errors.name}</p>
             )}
           </div>
           <div>
@@ -268,7 +308,6 @@ function ContactForm() {
               name="company"
               value={values.company}
               onChange={handleChange}
-              onBlur={handleBlur}
               className={baseFieldClass}
             />
           </div>
@@ -287,16 +326,10 @@ function ContactForm() {
               onChange={handleChange}
               onBlur={handleBlur}
               className={getFieldClass("email")}
-              aria-invalid={!!(errors.email && touched.email)}
-              aria-describedby={
-                errors.email && touched.email ? "email-error" : undefined
-              }
               required
             />
             {errors.email && touched.email && (
-              <p id="email-error" className="mt-2 text-xs text-red-600">
-                {errors.email}
-              </p>
+              <p className="mt-2 text-xs text-red-600">{errors.email}</p>
             )}
           </div>
           <div>
@@ -310,21 +343,15 @@ function ContactForm() {
               onChange={handleChange}
               onBlur={handleBlur}
               className={getFieldClass("phone")}
-              aria-invalid={!!(errors.phone && touched.phone)}
-              aria-describedby={
-                errors.phone && touched.phone ? "phone-error" : undefined
-              }
               required
             />
             {errors.phone && touched.phone && (
-              <p id="phone-error" className="mt-2 text-xs text-red-600">
-                {errors.phone}
-              </p>
+              <p className="mt-2 text-xs text-red-600">{errors.phone}</p>
             )}
           </div>
         </div>
 
-        {/* Product Interest */}
+        {/* Product */}
         <div>
           <label className="block text-sm text-slate-700">
             Product Interest <span className="text-red-500">*</span>
@@ -335,10 +362,6 @@ function ContactForm() {
             onChange={handleChange}
             onBlur={handleBlur}
             className={`${getFieldClass("product")} h-12`}
-            aria-invalid={!!(errors.product && touched.product)}
-            aria-describedby={
-              errors.product && touched.product ? "product-error" : undefined
-            }
             required
           >
             <option value="">Select an option</option>
@@ -347,9 +370,7 @@ function ContactForm() {
             <option value="machinery">Machinery</option>
           </select>
           {errors.product && touched.product && (
-            <p id="product-error" className="mt-2 text-xs text-red-600">
-              {errors.product}
-            </p>
+            <p className="mt-2 text-xs text-red-600">{errors.product}</p>
           )}
         </div>
 
@@ -363,21 +384,15 @@ function ContactForm() {
             value={values.message}
             onChange={handleChange}
             onBlur={handleBlur}
-            className={`${getFieldClass("message")} h-36 resize-none leading-6`}
-            aria-invalid={!!(errors.message && touched.message)}
-            aria-describedby={
-              errors.message && touched.message ? "message-error" : undefined
-            }
+            className={`${getFieldClass("message")} h-36 resize-none`}
             required
           />
           {errors.message && touched.message && (
-            <p id="message-error" className="mt-2 text-xs text-red-600">
-              {errors.message}
-            </p>
+            <p className="mt-2 text-xs text-red-600">{errors.message}</p>
           )}
         </div>
 
-        {/* File upload */}
+        {/* File */}
         <div>
           <label className="block text-sm text-slate-700">
             Upload Specifications (Optional)
@@ -387,20 +402,16 @@ function ContactForm() {
             type="file"
             onChange={handleChange}
             onBlur={handleBlur}
+            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
             className="mt-3 block w-full text-sm text-slate-600
                        file:mr-4 file:py-2.5 file:px-4
                        file:rounded-md file:border-0
                        file:text-sm file:font-medium
                        file:bg-slate-100 file:text-slate-700
                        hover:file:bg-slate-200"
-            aria-invalid={!!(errors.file && touched.file)}
-            aria-describedby={errors.file && touched.file ? "file-error" : undefined}
-            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
           />
           {errors.file && touched.file && (
-            <p id="file-error" className="mt-2 text-xs text-red-600">
-              {errors.file}
-            </p>
+            <p className="mt-2 text-xs text-red-600">{errors.file}</p>
           )}
           {values.file && !errors.file && (
             <p className="mt-2 text-xs text-slate-500">
