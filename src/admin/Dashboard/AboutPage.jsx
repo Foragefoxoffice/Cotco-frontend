@@ -1743,6 +1743,7 @@ const AboutPage = () => {
 
               <div className="flex justify-end mt-3">
                 <Button
+                  danger
                   onClick={async () => {
                     try {
                       // 1️⃣ Remove from local state
@@ -1775,36 +1776,7 @@ const AboutPage = () => {
                       CommonToaster("Error", err.message || "Something went wrong!");
                     }
                   }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    backgroundColor: "#000", // black pill button
-                    border: "1px solid #333",
-                    color: "#fff",
-                    padding: "12px 20px",
-                    borderRadius: "9999px", // pill shape
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                  }}
                 >
-                  {/* Trash Icon */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    style={{ width: "18px", height: "18px" }}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
-                    />
-                  </svg>
-
                   {translations[currentLang].removeHistory}
                 </Button>
 

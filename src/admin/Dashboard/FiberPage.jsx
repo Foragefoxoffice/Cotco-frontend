@@ -596,8 +596,8 @@ export default function FiberPage() {
             ) : fiberBanner.fiberBannerMedia ? (
               /* ✅ Show Saved File (from DB) */
               fiberBanner.fiberBannerMedia.endsWith(".mp4") ||
-                fiberBanner.fiberBannerMedia.endsWith(".webm") ||
-                fiberBanner.fiberBannerMedia.endsWith(".ogg") ? (
+              fiberBanner.fiberBannerMedia.endsWith(".webm") ||
+              fiberBanner.fiberBannerMedia.endsWith(".ogg") ? (
                 <video
                   src={getFullUrl(fiberBanner.fiberBannerMedia)}
                   controls
@@ -961,7 +961,7 @@ export default function FiberPage() {
                       placeholder={`Subtitle ${i}`}
                       value={
                         fiberSustainability[`fiberSustainabilitySubTitle${i}`][
-                        lang
+                          lang
                         ]
                       }
                       onChange={(e) =>
@@ -969,7 +969,7 @@ export default function FiberPage() {
                           ...fiberSustainability,
                           [`fiberSustainabilitySubTitle${i}`]: {
                             ...fiberSustainability[
-                            `fiberSustainabilitySubTitle${i}`
+                              `fiberSustainabilitySubTitle${i}`
                             ],
                             [lang]: e.target.value,
                           },
@@ -989,7 +989,7 @@ export default function FiberPage() {
                       placeholder={`SubDesc ${i}`}
                       value={
                         fiberSustainability[`fiberSustainabilitySubDes${i}`][
-                        lang
+                          lang
                         ]
                       }
                       onChange={(e) =>
@@ -997,7 +997,7 @@ export default function FiberPage() {
                           ...fiberSustainability,
                           [`fiberSustainabilitySubDes${i}`]: {
                             ...fiberSustainability[
-                            `fiberSustainabilitySubDes${i}`
+                              `fiberSustainabilitySubDes${i}`
                             ],
                             [lang]: e.target.value,
                           },

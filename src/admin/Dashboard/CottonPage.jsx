@@ -6,7 +6,11 @@ import { FiImage, FiUsers, FiLayers, FiShield, FiStar } from "react-icons/fi";
 import { CommonToaster } from "../../Common/CommonToaster";
 import usePersistedState from "../../hooks/usePersistedState";
 import { getCottonPage, updateCottonPage } from "../../Api/api";
+<<<<<<< HEAD
 import "../../assets/css/LanguageTabs.css";
+=======
+import "../../assets/css/LanguageTabs.css"; 
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
 
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
@@ -339,15 +343,23 @@ const CottonPage = () => {
               <TabPane tab={lang.toUpperCase()} key={lang} >
                 <label className="block font-medium mt-5 mb-1">{translations[currentLang].title}</label>
                 <Input
+<<<<<<< HEAD
                   style={{
+=======
+                style={{
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                     backgroundColor: "#171717",
                     border: "1px solid #2d2d2d",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
                     fontSize: "14px",
+<<<<<<< HEAD
                     transition: "all 0.3s ease",
                   }}
+=======
+                    transition: "all 0.3s ease",}}
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                   value={cottonBanner.cottonBannerTitle[lang]}
                   onChange={(e) =>
                     setCottonBanner({
@@ -361,15 +373,23 @@ const CottonPage = () => {
                 />
                 <label className="block font-medium mt-5 mb-1">{translations[currentLang].description}</label>
                 <Input
+<<<<<<< HEAD
                   style={{
+=======
+                style={{
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                     backgroundColor: "#171717",
                     border: "1px solid #2d2d2d",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
                     fontSize: "14px",
+<<<<<<< HEAD
                     transition: "all 0.3s ease",
                   }}
+=======
+                    transition: "all 0.3s ease",}}
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                   value={cottonBanner.cottonBannerDes[lang]}
                   onChange={(e) =>
                     setCottonBanner({
@@ -425,6 +445,7 @@ const CottonPage = () => {
 
           {/* File uploader (accepts both image and video) */}
           <div className="mb-4">
+<<<<<<< HEAD
             {/* Hidden Input */}
             <input
               id="cottonBannerUpload"
@@ -469,6 +490,52 @@ const CottonPage = () => {
               Upload Cotton Banner
             </label>
           </div>
+=======
+  {/* Hidden Input */}
+  <input
+    id="cottonBannerUpload"
+    type="file"
+    accept="image/*,video/*"
+    style={{ display: "none" }}
+    onChange={(e) => handleImageChange(e, setCottonBanner, "cottonBannerImg")}
+  />
+
+  {/* Styled Label as Button */}
+  <label
+    htmlFor="cottonBannerUpload"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue button
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Upload Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+      />
+    </svg>
+    Upload Cotton Banner
+  </label>
+</div>
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
 
 
           <label className="block font-medium mt-5 mb-1">{translations[currentLang].bannerSlides}</label>
@@ -536,6 +603,7 @@ const CottonPage = () => {
           </div>
 
           <div className="mb-4">
+<<<<<<< HEAD
             {/* Hidden Input */}
             <input
               id="cottonBannerSlidesUpload"
@@ -668,6 +736,140 @@ const CottonPage = () => {
               {translations[currentLang].saveBanner}
             </Button>
           </div>
+=======
+  {/* Hidden Input */}
+  <input
+    id="cottonBannerSlidesUpload"
+    type="file"
+    multiple
+    accept="image/*"
+    style={{ display: "none" }}
+    onChange={(e) => {
+      const validFiles = Array.from(e.target.files).filter(validateFileSize);
+      if (validFiles.length !== e.target.files.length) {
+        CommonToaster("Some images were too large (max 2MB) and skipped.", "error");
+      }
+      setCottonBanner({
+        ...cottonBanner,
+        cottonBannerSlideImgFiles: [
+          ...cottonBanner.cottonBannerSlideImgFiles,
+          ...validFiles,
+        ],
+      });
+    }}
+  />
+
+  {/* Styled Label as Button */}
+  <label
+    htmlFor="cottonBannerSlidesUpload"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue button
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+      marginTop: "10px",
+    }}
+  >
+    {/* Upload Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+      />
+    </svg>
+    Upload Slide Images
+  </label>
+</div>
+
+
+          <div className="flex justify-end mt-6 gap-4">
+  {/* Cancel Button (Gray / Outline) */}
+  <Button
+    onClick={() => window.location.reload()}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "transparent",
+      color: "#fff",
+      border: "1px solid #333",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Cancel Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    {translations[currentLang].cancel}
+  </Button>
+
+  {/* Save Button (Blue) */}
+  <Button
+    onClick={() =>
+      handleSave("cottonBanner", cottonBanner, [
+        "cottonBannerImgFile",
+        "cottonBannerSlideImgFiles",
+      ])
+    }
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue
+      color: "#fff",
+      border: "none",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Save Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+      />
+    </svg>
+    {translations[currentLang].saveBanner}
+  </Button>
+</div>
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
 
         </Panel>
 
@@ -690,6 +892,7 @@ const CottonPage = () => {
                   <TabPane tab={lang.toUpperCase()} key={lang}>
                     <label className="block font-medium mt-5 mb-1">{translations[currentLang].title}</label>
                     <Input
+<<<<<<< HEAD
                       style={{
                         backgroundColor: "#171717",
                         border: "1px solid #2d2d2d",
@@ -699,6 +902,16 @@ const CottonPage = () => {
                         fontSize: "14px",
                         transition: "all 0.3s ease",
                       }}
+=======
+                    style={{
+                    backgroundColor: "#171717",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",}}
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                       value={s.cottonSupplierTitle?.[lang]}
                       onChange={(e) => {
                         const newArr = [...cottonSupplier];
@@ -711,6 +924,7 @@ const CottonPage = () => {
                     />
                     <label className="block font-medium mt-5 mb-3">{translations[currentLang].logoName}</label>
                     <Input
+<<<<<<< HEAD
                       style={{
                         backgroundColor: "#171717",
                         border: "1px solid #2d2d2d",
@@ -720,6 +934,16 @@ const CottonPage = () => {
                         fontSize: "14px",
                         transition: "all 0.3s ease",
                       }}
+=======
+                    style={{
+                    backgroundColor: "#171717",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",}}
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                       value={s.cottonSupplierLogoName?.[lang]}
                       onChange={(e) => {
                         const newArr = [...cottonSupplier];
@@ -734,6 +958,7 @@ const CottonPage = () => {
                     {(s.cottonSupplierDes || []).map((desc, dIdx) => (
                       <div key={dIdx} className="flex items-center gap-2 mb-2">
                         <Input
+<<<<<<< HEAD
                           style={{
                             backgroundColor: "#171717",
                             border: "1px solid #2d2d2d",
@@ -743,6 +968,16 @@ const CottonPage = () => {
                             fontSize: "14px",
                             transition: "all 0.3s ease",
                           }}
+=======
+                        style={{
+                    backgroundColor: "#171717",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",}}
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                           value={desc[lang]}
                           onChange={(e) => {
                             const newArr = [...cottonSupplier];
@@ -753,6 +988,7 @@ const CottonPage = () => {
                           }}
                         />
                         <Button
+<<<<<<< HEAD
                           onClick={async () => {
                             const newArr = [...cottonSupplier];
                             const descArr = newArr[idx].cottonSupplierDes.filter((_, i) => i !== dIdx);
@@ -789,6 +1025,44 @@ const CottonPage = () => {
                           </svg>
                         </Button>
 
+=======
+  onClick={async () => {
+    const newArr = [...cottonSupplier];
+    const descArr = newArr[idx].cottonSupplierDes.filter((_, i) => i !== dIdx);
+    newArr[idx].cottonSupplierDes = descArr;
+    setCottonSupplier(newArr);
+
+    await instantSave("cottonSupplier", newArr);
+  }}
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#000", // black background
+    border: "1px solid #333",
+    color: "#fff",
+    borderRadius: "9999px", // circular
+    width: "28px",
+    height: "28px",
+    padding: "0",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+  }}
+>
+  {/* X (close icon) */}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+    style={{ width: "14px", height: "14px" }}
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+</Button>
+
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                       </div>
                     ))}
 
@@ -824,6 +1098,7 @@ const CottonPage = () => {
               )}
 
               <div className="mb-4">
+<<<<<<< HEAD
                 {/* Hidden Input */}
                 <input
                   id={`cottonSupplierBgUpload-${idx}`}
@@ -877,6 +1152,61 @@ const CottonPage = () => {
                   Upload Supplier Background
                 </label>
               </div>
+=======
+  {/* Hidden Input */}
+  <input
+    id={`cottonSupplierBgUpload-${idx}`}
+    type="file"
+    accept="image/*"
+    style={{ display: "none" }}
+    onChange={(e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!validateFileSize(file)) return;
+
+      const newArr = [...cottonSupplier];
+      newArr[idx].cottonSupplierBgFile = file;
+      newArr[idx].previewBg = URL.createObjectURL(file);
+      setCottonSupplier(newArr);
+    }}
+  />
+
+  {/* Styled Label as Button */}
+  <label
+    htmlFor={`cottonSupplierBgUpload-${idx}`}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Upload Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+      />
+    </svg>
+    Upload Supplier Background
+  </label>
+</div>
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
 
               <label className="block font-bold mt-5 mb-1">{translations[currentLang].logo}</label>
               <p className="text-sm text-slate-500 mb-2">
@@ -897,6 +1227,7 @@ const CottonPage = () => {
               )}
 
               <div className="mb-4">
+<<<<<<< HEAD
                 {/* Hidden Input */}
                 <input
                   id={`cottonSupplierLogoUpload-${idx}`}
@@ -989,6 +1320,100 @@ const CottonPage = () => {
 
                 {translations[currentLang].removeSupplier}
               </Button>
+=======
+  {/* Hidden Input */}
+  <input
+    id={`cottonSupplierLogoUpload-${idx}`}
+    type="file"
+    accept="image/*"
+    style={{ display: "none" }}
+    onChange={(e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!validateFileSize(file)) return;
+
+      const newArr = [...cottonSupplier];
+      newArr[idx].cottonSupplierLogoFile = file;
+      newArr[idx].previewLogo = URL.createObjectURL(file);
+      setCottonSupplier(newArr);
+    }}
+  />
+
+  {/* Styled Label as Button */}
+  <label
+    htmlFor={`cottonSupplierLogoUpload-${idx}`}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Upload Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+      />
+    </svg>
+    Upload Supplier Logo
+  </label>
+</div>
+
+              <Button
+  onClick={async () => {
+    const newArr = cottonSupplier.filter((_, i) => i !== idx);
+    setCottonSupplier(newArr);
+    await instantSave("cottonSupplier", newArr); // instantly update DB
+  }}
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    backgroundColor: "#000", // black
+    border: "1px solid #333",
+    color: "#fff",
+    padding: "12px 20px",
+    borderRadius: "9999px", // pill shape
+    fontWeight: "500",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+  }}
+>
+  {/* Trash Icon */}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+    style={{ width: "18px", height: "18px" }}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
+    />
+  </svg>
+
+  {translations[currentLang].removeSupplier}
+</Button>
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
 
             </div>
           ))}
@@ -1013,6 +1438,7 @@ const CottonPage = () => {
           </Button>
 
           <div className="flex justify-end mt-6 gap-4">
+<<<<<<< HEAD
             {/* Cancel Button (Gray / Outline) */}
             <Button
               onClick={() => window.location.reload()}
@@ -1079,6 +1505,74 @@ const CottonPage = () => {
               {translations[currentLang].saveSuppliers}
             </Button>
           </div>
+=======
+  {/* Cancel Button (Gray / Outline) */}
+  <Button
+    onClick={() => window.location.reload()}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "transparent",
+      color: "#fff",
+      border: "1px solid #333",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Cancel Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    {translations[currentLang].cancel}
+  </Button>
+
+  {/* Save Button (Blue) */}
+  <Button
+    onClick={() => handleSave("cottonSupplier", cottonSupplier)}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue
+      color: "#fff",
+      border: "none",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Save Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+      />
+    </svg>
+    {translations[currentLang].saveSuppliers}
+  </Button>
+</div>
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
 
         </Panel>
 
@@ -1096,15 +1590,23 @@ const CottonPage = () => {
               <TabPane tab={lang.toUpperCase()} key={lang}>
                 <label className="block font-medium mt-5 mb-1">{translations[currentLang].title}</label>
                 <Input
+<<<<<<< HEAD
                   style={{
+=======
+                style={{
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                     backgroundColor: "#171717",
                     border: "1px solid #2d2d2d",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
                     fontSize: "14px",
+<<<<<<< HEAD
                     transition: "all 0.3s ease",
                   }}
+=======
+                    transition: "all 0.3s ease",}}
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                   value={cottonTrust.cottonTrustTitle[lang]}
                   onChange={(e) =>
                     setCottonTrust({
@@ -1118,15 +1620,23 @@ const CottonPage = () => {
                 />
                 <label className="block font-medium mt-5 mb-1">{translations[currentLang].description}</label>
                 <Input
+<<<<<<< HEAD
                   style={{
+=======
+                style={{
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                     backgroundColor: "#171717",
                     border: "1px solid #2d2d2d",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
                     fontSize: "14px",
+<<<<<<< HEAD
                     transition: "all 0.3s ease",
                   }}
+=======
+                    transition: "all 0.3s ease",}}
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                   value={cottonTrust.cottonTrustDes[lang]}
                   onChange={(e) =>
                     setCottonTrust({
@@ -1209,6 +1719,7 @@ const CottonPage = () => {
           </div>
 
           <div className="mb-4">
+<<<<<<< HEAD
             {/* Hidden Input */}
             <input
               id="cottonTrustLogosUpload"
@@ -1264,6 +1775,63 @@ const CottonPage = () => {
               Upload Trust Logos
             </label>
           </div>
+=======
+  {/* Hidden Input */}
+  <input
+    id="cottonTrustLogosUpload"
+    type="file"
+    multiple
+    accept="image/*"
+    style={{ display: "none" }}
+    onChange={(e) => {
+      const validFiles = Array.from(e.target.files).filter(validateFileSize);
+      if (validFiles.length !== e.target.files.length) {
+        CommonToaster("Some logos were too large (max 2MB) and skipped.", "error");
+      }
+      setCottonTrust({
+        ...cottonTrust,
+        cottonTrustLogoFiles: [...cottonTrust.cottonTrustLogoFiles, ...validFiles],
+      });
+    }}
+  />
+
+  {/* Styled Label as Button */}
+  <label
+    htmlFor="cottonTrustLogosUpload"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+      marginTop: "10px",
+    }}
+  >
+    {/* Upload Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+      />
+    </svg>
+    Upload Trust Logos
+  </label>
+</div>
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
 
 
           <label className="font-bold block mt-5 mb-1">{translations[currentLang].trustImage}</label>
@@ -1284,6 +1852,7 @@ const CottonPage = () => {
             />
           ) : null}
           <div className="mb-4">
+<<<<<<< HEAD
             {/* Hidden Input */}
             <input
               id="cottonTrustImgUpload"
@@ -1402,6 +1971,126 @@ const CottonPage = () => {
               {translations[currentLang].saveTrust}
             </Button>
           </div>
+=======
+  {/* Hidden Input */}
+  <input
+    id="cottonTrustImgUpload"
+    type="file"
+    accept="image/*"
+    style={{ display: "none" }}
+    onChange={(e) => handleImageChange(e, setCottonTrust, "cottonTrustImg")}
+  />
+
+  {/* Styled Label as Button */}
+  <label
+    htmlFor="cottonTrustImgUpload"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Upload Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+      />
+    </svg>
+    Upload Trust Image
+  </label>
+</div>
+
+
+          <div className="flex justify-end mt-6 gap-4">
+  {/* Cancel Button (Gray / Outline) */}
+  <Button
+    onClick={() => window.location.reload()}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "transparent",
+      color: "#fff",
+      border: "1px solid #333",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Cancel Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    {translations[currentLang].cancel}
+  </Button>
+
+  {/* Save Button (Blue) */}
+  <Button
+    onClick={() =>
+      handleSave("cottonTrust", cottonTrust, [
+        "cottonTrustImgFile",
+        "cottonTrustLogoFiles",
+      ])
+    }
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue
+      color: "#fff",
+      border: "none",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Save Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+      />
+    </svg>
+    {translations[currentLang].saveTrust}
+  </Button>
+</div>
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
 
         </Panel>
 
@@ -1419,15 +2108,23 @@ const CottonPage = () => {
               <TabPane tab={lang.toUpperCase()} key={lang}>
                 <label className="block font-medium mt-5 mb-1">{translations[currentLang].title}</label>
                 <Input
+<<<<<<< HEAD
                   style={{
+=======
+                style={{
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                     backgroundColor: "#171717",
                     border: "1px solid #2d2d2d",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
                     fontSize: "14px",
+<<<<<<< HEAD
                     transition: "all 0.3s ease",
                   }}
+=======
+                    transition: "all 0.3s ease",}}
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                   value={cottonMember.cottonMemberTitle[lang]}
                   onChange={(e) =>
                     setCottonMember({
@@ -1441,15 +2138,23 @@ const CottonPage = () => {
                 />
                 <label className="block font-medium mt-5 mb-1">{translations[currentLang].buttonText}</label>
                 <Input
+<<<<<<< HEAD
                   style={{
+=======
+                style={{
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                     backgroundColor: "#171717",
                     border: "1px solid #2d2d2d",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
                     fontSize: "14px",
+<<<<<<< HEAD
                     transition: "all 0.3s ease",
                   }}
+=======
+                    transition: "all 0.3s ease",}}
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
                   value={cottonMember.cottonMemberButtonText[lang]}
                   onChange={(e) =>
                     setCottonMember({
@@ -1467,6 +2172,7 @@ const CottonPage = () => {
 
           <label className="block font-medium mt-5 mb-1">{translations[currentLang].buttonLink}</label>
           <Input
+<<<<<<< HEAD
             style={{
               backgroundColor: "#171717",
               border: "1px solid #2d2d2d",
@@ -1476,6 +2182,16 @@ const CottonPage = () => {
               fontSize: "14px",
               transition: "all 0.3s ease",
             }}
+=======
+          style={{
+                    backgroundColor: "#171717",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",}}
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
             value={cottonMember.cottonMemberButtonLink}
             onChange={(e) =>
               setCottonMember({
@@ -1552,6 +2268,7 @@ const CottonPage = () => {
           </div>
 
           <div className="mb-4">
+<<<<<<< HEAD
             {/* Hidden Input */}
             <input
               id="cottonMemberImgUpload"
@@ -1607,10 +2324,68 @@ const CottonPage = () => {
               Upload Member Images
             </label>
           </div>
+=======
+  {/* Hidden Input */}
+  <input
+    id="cottonMemberImgUpload"
+    type="file"
+    multiple
+    accept="image/*"
+    style={{ display: "none" }}
+    onChange={(e) => {
+      const validFiles = Array.from(e.target.files).filter(validateFileSize);
+      if (validFiles.length !== e.target.files.length) {
+        CommonToaster("Some member images were too large (max 2MB) and skipped.", "error");
+      }
+      setCottonMember({
+        ...cottonMember,
+        cottonMemberImgFiles: [...cottonMember.cottonMemberImgFiles, ...validFiles],
+      });
+    }}
+  />
+
+  {/* Styled Label as Button */}
+  <label
+    htmlFor="cottonMemberImgUpload"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue button
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+      marginTop: "10px",
+    }}
+  >
+    {/* Upload Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+      />
+    </svg>
+    Upload Member Images
+  </label>
+</div>
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
 
 
 
           <div className="flex justify-end mt-6 gap-4">
+<<<<<<< HEAD
             {/* Cancel Button (Gray / Outline) */}
             <Button
               onClick={() => window.location.reload()}
@@ -1679,6 +2454,76 @@ const CottonPage = () => {
               {translations[currentLang].saveMember}
             </Button>
           </div>
+=======
+  {/* Cancel Button (Gray / Outline) */}
+  <Button
+    onClick={() => window.location.reload()}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "transparent",
+      color: "#fff",
+      border: "1px solid #333",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Cancel Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    {translations[currentLang].cancel}
+  </Button>
+
+  {/* Save Button (Blue) */}
+  <Button
+    onClick={() =>
+      handleSave("cottonMember", cottonMember, ["cottonMemberImgFiles"])
+    }
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue
+      color: "#fff",
+      border: "none",
+      padding: "10px 20px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Save Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+      />
+    </svg>
+    {translations[currentLang].saveMember}
+  </Button>
+</div>
+>>>>>>> a7d958b22c8721f4efd331cea56ae41b4e05d490
 
         </Panel>
       </Collapse>
