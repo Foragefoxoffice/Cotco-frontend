@@ -99,6 +99,7 @@ export default function CottonHero() {
   const bannerSlides = (bannerData.cottonBannerSlideImg || []).map(getFullUrl);
 
   const description = bannerData.cottonBannerDes?.en || "";
+  const title = bannerData.cottonBannerTitle?.en || "";
   const overview = bannerData.cottonBannerOverview?.en || "";
 
   const isVideo =
@@ -121,7 +122,7 @@ export default function CottonHero() {
       >
         <motion.div className="w-full flex justify-center">
           <div className="absolute z-10 bottom-[190px] left-6 md:left-15">
-            <h1 className="text-9xl text-white font-bold cotton-section-heading">COTTON</h1>
+            <h1 className="text-9xl text-white font-bold cotton-section-heading">{title}</h1>
             <p className="text-white text-xl pl-6.5 pt-3 cotton-section-subheading">{description}</p>
           </div>
 

@@ -16,6 +16,8 @@ import ScrollToTop from "./ScrollToTop";
 import BlogList from "./pages/BlogList";
 import Blogs from "./pages/Blogs";
 import BlogOverview from "./Blogs/BlogOverview";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 // Admin pages
@@ -36,6 +38,8 @@ import Homepage from "./admin/Dashboard/HomePage";
 import AboutPage from "./admin/Dashboard/AboutPage";
 import CottonPage from "./admin/Dashboard/CottonPage";
 import FiberPage from "./admin/Dashboard/FiberPage";
+import HeaderPage from "./admin/Dashboard/HeaderPage";
+
 import AddBlogs from "./admin/Blog/AddBlogs";
 import BlogLists from "./admin/Blog/BlogLists";
 import CategoriesCreate from "./admin/Blog/CategoriesCreate";
@@ -56,6 +60,9 @@ import MachineList from "./pages/MachineList";
 import { ToastContainer } from "react-toastify";
 import MachinePage from "./pages/MachinePage";
 import ContactPage from "./admin/Dashboard/ContactPage";
+import PrivacyPage from "./admin/Dashboard/PrivacyPage";
+import TermsConditionsPage from "./admin/Dashboard/termsConditionsPage";
+import FooterPage from "./admin/Dashboard/FooterPage";
 
 // 🔒 Protect dashboard-related routes
 const ProtectedRoute = ({ children }) => {
@@ -94,6 +101,8 @@ createRoot(document.getElementById("root")).render(
           <Route path="/blog" element={<BlogList />} />
           <Route path="/blogs" element={<Blogs />} />
           <Route path="/blogs/:slug" element={<BlogOverview />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-conditions" element={<TermsConditions />} />
           <Route path="/login" element={<Login />} />
 
           {/* 🏭 Machines routes */}
@@ -122,11 +131,15 @@ createRoot(document.getElementById("root")).render(
               path="products/:categorySlug"
               element={<ProductListScreen />}
             />
+            <Route path="/admin/header" element={<HeaderPage />} />
             <Route path="/admin/home" element={<Homepage />} />
             <Route path="/admin/about" element={<AboutPage />} />
             <Route path="/admin/cotton" element={<CottonPage />} />
             <Route path="/admin/fiber" element={<FiberPage />} />
             <Route path="/admin/contact" element={<ContactPage />} />
+            <Route path="/admin/privacy-policy" element={<PrivacyPage />} />
+            <Route path="/admin/terms-conditions" element={<TermsConditionsPage />} />
+            <Route path="/admin/footer" element={<FooterPage />} />
 
             {/* ✅ Fixed spelling */}
             <Route

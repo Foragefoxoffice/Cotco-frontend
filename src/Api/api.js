@@ -175,3 +175,44 @@ export const updateContactPage = (formData) =>
   API.post("/contactpage", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+
+/* =========================================================
+ PRIVACY PAGE
+========================================================= */
+export const getPrivacyPage = () => API.get("/privacypage");
+
+export const updatePrivacyPage = (formData) =>
+  API.post("/privacypage", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+/* =========================================================
+ TERMS & CONDITIONS PAGE
+========================================================= */
+export const getTermsPage = () => API.get("/termspage");
+
+export const updateTermsPage = (formData) =>
+  API.post("/termspage", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+/* =========================================================
+HEADER
+========================================================= */
+export const getHeaderPage = () => API.get("/headerpage");
+
+export const updateHeaderPage = (formData) =>
+  API.post("/headerpage", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+
+/* =========================================================
+ FOOTER PAGE
+========================================================= */
+export const getFooterPage = () => API.get("/footerpage");
+
+export const updateFooterPage = (formData) =>
+  API.post("/footerpage", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });

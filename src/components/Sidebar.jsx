@@ -53,11 +53,15 @@ const Sidebar = () => {
       icon: <Newspaper size={20} />,
       key: "pages",
       subItems: [
+        { path: "/admin/header", label: "Header" },
+        { path: "/admin/footer", label: "Footer" },
         { path: "/admin/home", label: "Home" },
         { path: "/admin/about", label: "About" },
         { path: "/admin/cotton", label: "Cotton" },
         { path: "/admin/fiber", label: "Fiber" },
         { path: "/admin/contact", label: "Contact" },
+        { path: "/admin/privacy-policy", label: "Privacy Policy" },
+        { path: "/admin/terms-conditions", label: "Terms and Conditions" },
       ],
     },
   ];

@@ -8,10 +8,11 @@ import {
   FiZap,
   FiStar,
 } from "react-icons/fi";
-import { useTheme } from "../../contexts/ThemeContext";
+// import { useTheme } from "../../contexts/ThemeContext";
 import { CommonToaster } from "../../Common/CommonToaster";
 import usePersistedState from "../../hooks/usePersistedState";
 import { getAboutPage, updateAboutPage } from "../../Api/api";
+import "../../assets/css/LanguageTabs.css";
 
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
@@ -65,7 +66,7 @@ const getFullUrl = (path) => {
 };
 
 const AboutPage = () => {
-  const { theme } = useTheme();
+  // const { theme } = useTheme();
 
   const [currentLang, setCurrentLang] = useState("en");
 
@@ -86,7 +87,7 @@ const AboutPage = () => {
       // Common
       cancel: "Cancel",
       save: "Save",
-      add: "+ Add",
+      add: "Add",
       remove: "Remove",
       banner: "Banner",
       image: "Image",
@@ -126,16 +127,15 @@ const AboutPage = () => {
       saveCore: "Save Core Values",
 
       // History
-      addHistory: "+ Add History Item",
+      addHistory: "Add History Item",
       saveHistory: "Save History",
       historyImage: "History Image",
       removeHistory: "Remove",
 
       // Team
-      addMember: "+ Add Member",
+      addMember: "Add Member",
       removeMember: "Remove Member",
       saveTeam: "Save Team",
-
     },
 
     vi: {
@@ -206,7 +206,6 @@ const AboutPage = () => {
     },
   };
 
-
   // ---------------------- STATES (persistent) ---------------------- //
   const [aboutHero, setAboutHero] = usePersistedState("aboutHero", {
     aboutTitle: { en: "", vi: "" },
@@ -232,7 +231,6 @@ const AboutPage = () => {
     founderImg3: "",
     founderImg3File: null,
   });
-
 
   const [aboutMissionVission, setAboutMissionVission] = usePersistedState(
     "aboutMissionVission",
@@ -331,7 +329,6 @@ const AboutPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   // ---------------------- SAVE HANDLER ---------------------- //
   const handleSave = async (sectionName, formState, files = []) => {
     try {
@@ -368,13 +365,13 @@ const AboutPage = () => {
 
   // ---------------------- UI ---------------------- //
   return (
-    <div
-      className={`max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl ${theme === "light" ? "bg-white" : "dark:bg-gray-800 text-gray-100"
-        }`}
-    >
+    <div className="max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-[#0A0A0A]">
       <style>{`
         label {
-          color: #314158 !important;
+          color: #fff !important;
+          font-weight: 600;
+          font-size: 16px;
+          margin: 18px 0 8px 0;
         }
         .ant-divider-inner-text {
           color: #314158 !important;
@@ -384,21 +381,36 @@ const AboutPage = () => {
         About Page Management
       </h2>
 
-      <Collapse accordion bordered={false}>
+      <Collapse accordion bordered={false} className="text-white">
         {/* HERO EXAMPLE (others follow same pattern) */}
         <Panel
           header={
-            <span className="font-semibold text-lg flex items-center gap-2">
+            <span className="font-semibold text-lg text-white flex items-center gap-2">
               <FiTarget /> About Hero
             </span>
           }
           key="1"
         >
-          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
+          <Tabs
+            activeKey={currentLang}
+            onChange={setCurrentLang}
+            className="pill-tabs"
+          >
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">{translations[currentLang].title}</label>
+                <label className="block font-medium mt-5 mb-3">
+                  {translations[currentLang].title}
+                </label>
                 <Input
+                  style={{
+                    backgroundColor: "#171717",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
                   value={aboutHero.aboutTitle[lang]}
                   onChange={(e) =>
                     setAboutHero({
@@ -414,7 +426,9 @@ const AboutPage = () => {
             ))}
           </Tabs>
 
-          <Divider>{translations[currentLang].banner}</Divider>
+          <label className="block font-bold mt-5 mb-3">
+            {translations[currentLang].banner}
+          </label>
           <p className="text-sm text-slate-500 mb-2">
             {translations[currentLang].recommendedSize} 1260×420px
           </p>
@@ -435,26 +449,125 @@ const AboutPage = () => {
             )
           )}
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (!file) return;
-              if (!validateFileSize(file)) return;
-              setAboutHero({ ...aboutHero, aboutBannerFile: file });
-            }}
-          />
+          <div className="mb-4">
+            {/* Hidden Input */}
+            <input
+              id="aboutHeroUpload"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!validateFileSize(file)) return;
+                setAboutHero({ ...aboutHero, aboutBannerFile: file });
+              }}
+            />
 
+            {/* Styled Label as Button */}
+            <label
+              htmlFor="aboutHeroUpload"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Upload Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                />
+              </svg>
+              Upload Banner
+            </label>
+          </div>
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
+            {/* Cancel Button (Gray / Outline) */}
             <Button
-              type="primary"
+              onClick={() => window.location.reload()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
+            >
+              {/* Cancel Icon (X) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+
+              {translations[currentLang].cancel}
+            </Button>
+
+            {/* Save Button (Blue) */}
+            <Button
               onClick={() =>
                 handleSave("aboutHero", aboutHero, ["aboutBannerFile"])
               }
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                border: "none",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
             >
+              {/* Save Icon (Floppy Disk) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+                />
+              </svg>
+
               {translations[currentLang].saveHero}
             </Button>
           </div>
@@ -463,17 +576,32 @@ const AboutPage = () => {
         {/* OVERVIEW */}
         <Panel
           header={
-            <span className="font-semibold text-lg flex items-center gap-2">
+            <span className="font-semibold text-lg flex items-center text-white gap-2">
               <FiUsers /> About Overview
             </span>
           }
           key="2"
         >
-          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
+          <Tabs
+            activeKey={currentLang}
+            onChange={setCurrentLang}
+            className="pill-tabs"
+          >
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">{translations[currentLang].title}</label>
+                <label className="block font-medium mt-5 mb-3">
+                  {translations[currentLang].title}
+                </label>
                 <Input
+                  style={{
+                    backgroundColor: "#171717",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
                   value={aboutOverview.aboutOverviewTitle[lang]}
                   onChange={(e) =>
                     setAboutOverview({
@@ -486,8 +614,19 @@ const AboutPage = () => {
                   }
                 />
 
-                <label className="block font-medium mt-3">{translations[currentLang].description}</label>
+                <label className="block font-medium mt-3">
+                  {translations[currentLang].description}
+                </label>
                 <Input
+                  style={{
+                    backgroundColor: "#171717",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
                   value={aboutOverview.aboutOverviewDes[lang]}
                   onChange={(e) =>
                     setAboutOverview({
@@ -503,7 +642,9 @@ const AboutPage = () => {
             ))}
           </Tabs>
 
-          <Divider>{translations[currentLang].overviewImage}</Divider>
+          <label className="block font-bold mt-5 mb-3">
+            {translations[currentLang].overviewImage}
+          </label>
           <p className="text-sm text-slate-500 mb-2">
             {translations[currentLang].recommendedSize} 530×310px
           </p>
@@ -524,26 +665,127 @@ const AboutPage = () => {
             )
           )}
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (!file) return;
-              if (!validateFileSize(file)) return;
-              setAboutOverview({ ...aboutOverview, aboutOverviewFile: file });
-            }}
-          />
+          <div className="mb-4">
+            {/* Hidden Input */}
+            <input
+              id="aboutOverviewUpload"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!validateFileSize(file)) return;
+                setAboutOverview({ ...aboutOverview, aboutOverviewFile: file });
+              }}
+            />
 
+            {/* Styled Label as Button */}
+            <label
+              htmlFor="aboutOverviewUpload"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Upload Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                />
+              </svg>
+              Upload Overview Image
+            </label>
+          </div>
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
+            {/* Cancel Button (Gray / Outline) */}
             <Button
-              type="primary"
-              onClick={() =>
-                handleSave("aboutOverview", aboutOverview, ["aboutOverviewFile"])
-              }
+              onClick={() => window.location.reload()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
             >
+              {/* Cancel Icon (X) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+
+              {translations[currentLang].cancel}
+            </Button>
+
+            {/* Save Button (Blue) */}
+            <Button
+              onClick={() =>
+                handleSave("aboutOverview", aboutOverview, [
+                  "aboutOverviewFile",
+                ])
+              }
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                border: "none",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
+            >
+              {/* Save Icon (Floppy Disk) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+                />
+              </svg>
+
               {translations[currentLang].saveOverview}
             </Button>
           </div>
@@ -552,17 +794,32 @@ const AboutPage = () => {
         {/* FOUNDER */}
         <Panel
           header={
-            <span className="font-semibold text-lg flex items-center gap-2">
+            <span className="font-semibold text-lg flex items-center text-white gap-2">
               <FiStar /> {translations[currentLang].founder}
             </span>
           }
           key="3"
         >
-          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
+          <Tabs
+            activeKey={currentLang}
+            onChange={setCurrentLang}
+            className="pill-tabs"
+          >
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">{translations[currentLang].founderTitle}</label>
+                <label className="block font-medium mt-5 mb-3">
+                  {translations[currentLang].founderTitle}
+                </label>
                 <Input
+                  style={{
+                    backgroundColor: "#171717",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
                   value={aboutFounder.aboutFounderTitle[lang]}
                   onChange={(e) =>
                     setAboutFounder({
@@ -575,8 +832,19 @@ const AboutPage = () => {
                   }
                 />
 
-                <label className="block font-medium mt-3">{translations[currentLang].founderName}</label>
+                <label className="block font-medium mt-5 mb-3">
+                  {translations[currentLang].founderName}
+                </label>
                 <Input
+                  style={{
+                    backgroundColor: "#171717",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
                   value={aboutFounder.aboutFounderName[lang]}
                   onChange={(e) =>
                     setAboutFounder({
@@ -589,16 +857,33 @@ const AboutPage = () => {
                   }
                 />
 
-                <Divider>{translations[currentLang].founderDescription}</Divider>
+                <label className="block font-medium mt-5 mb-3">
+                  {translations[currentLang].founderDescription}
+                </label>
 
                 {aboutFounder.aboutFounderDes?.map((desc, idx) => (
                   <div key={idx} className="flex items-center gap-2 mb-2">
                     <Input
+                      style={{
+                        backgroundColor: "#171717",
+                        border: "1px solid #2d2d2d",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
                       value={desc[lang]}
                       onChange={(e) => {
                         const updated = [...aboutFounder.aboutFounderDes];
-                        updated[idx] = { ...updated[idx], [lang]: e.target.value };
-                        setAboutFounder({ ...aboutFounder, aboutFounderDes: updated });
+                        updated[idx] = {
+                          ...updated[idx],
+                          [lang]: e.target.value,
+                        };
+                        setAboutFounder({
+                          ...aboutFounder,
+                          aboutFounderDes: updated,
+                        });
                       }}
                     />
                     <Button
@@ -606,25 +891,42 @@ const AboutPage = () => {
                       onClick={async () => {
                         try {
                           // 1️⃣ Remove locally
-                          const updated = aboutFounder.aboutFounderDes.filter((_, i) => i !== idx);
-                          const newFounder = { ...aboutFounder, aboutFounderDes: updated };
+                          const updated = aboutFounder.aboutFounderDes.filter(
+                            (_, i) => i !== idx
+                          );
+                          const newFounder = {
+                            ...aboutFounder,
+                            aboutFounderDes: updated,
+                          };
                           setAboutFounder(newFounder);
 
                           // 2️⃣ Send update immediately
                           const formData = new FormData();
-                          formData.append("aboutFounder", JSON.stringify(newFounder));
+                          formData.append(
+                            "aboutFounder",
+                            JSON.stringify(newFounder)
+                          );
 
                           const res = await updateAboutPage(formData);
 
                           if (res.data?.about?.aboutFounder) {
                             setAboutFounder(res.data.about.aboutFounder);
                             localStorage.removeItem("aboutFounder");
-                            CommonToaster("Description removed successfully!", "success");
+                            CommonToaster(
+                              "Description removed successfully!",
+                              "success"
+                            );
                           } else {
-                            CommonToaster("Failed to remove description", "error");
+                            CommonToaster(
+                              "Failed to remove description",
+                              "error"
+                            );
                           }
                         } catch (err) {
-                          CommonToaster("Error", err.message || "Something went wrong!");
+                          CommonToaster(
+                            "Error",
+                            err.message || "Something went wrong!"
+                          );
                         }
                       }}
                     >
@@ -634,21 +936,56 @@ const AboutPage = () => {
                 ))}
 
                 <Button
-                  type="dashed"
                   onClick={() =>
                     setAboutFounder({
                       ...aboutFounder,
-                      aboutFounderDes: [...aboutFounder.aboutFounderDes, { en: "", vi: "" }],
+                      aboutFounderDes: [
+                        ...aboutFounder.aboutFounderDes,
+                        { en: "", vi: "" },
+                      ],
                     })
                   }
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    backgroundColor: "#fff", // white button
+                    color: "#111827", // dark text
+                    border: "1px solid #ddd",
+                    padding: "10px 20px",
+                    borderRadius: "9999px", // pill shape
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
                 >
+                  {/* Plus Icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    style={{ width: "18px", height: "18px" }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+
                   {translations[currentLang].add}
                 </Button>
               </TabPane>
             ))}
           </Tabs>
 
-          <Divider>{translations[currentLang].founderImages}</Divider>
+          <label className="block font-bold mt-5 mb-3">
+            {translations[currentLang].founderImages}
+          </label>
           <p className="text-sm text-slate-500 mb-2">
             {translations[currentLang].recommendedSize} 350×550px
           </p>
@@ -669,20 +1006,93 @@ const AboutPage = () => {
                   />
                 )
               )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleImageChange(e, setAboutFounder, `founderImg${i}`)}
-              />
+              <div className="mb-4">
+                {/* Hidden Input */}
+                <input
+                  id={`founderUpload-${i}`}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e) =>
+                    handleImageChange(e, setAboutFounder, `founderImg${i}`)
+                  }
+                />
+
+                {/* Styled Label as Button */}
+                <label
+                  htmlFor={`founderUpload-${i}`}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    backgroundColor: "#0284C7", // blue
+                    color: "#fff",
+                    padding: "10px 20px",
+                    borderRadius: "9999px", // pill shape
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  {/* Upload Icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    style={{ width: "18px", height: "18px" }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                    />
+                  </svg>
+                  Upload Founder Image {i + 1}
+                </label>
+              </div>
             </div>
           ))}
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>
+            {/* Cancel Button (Gray / Outline) */}
+            <Button
+              onClick={() => window.location.reload()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
+            >
+              {/* Cancel Icon (X) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+
               {translations[currentLang].cancel}
             </Button>
+
+            {/* Save Button (Blue) */}
             <Button
-              type="primary"
               onClick={() =>
                 handleSave("aboutFounder", aboutFounder, [
                   "founderImg1File",
@@ -690,27 +1100,68 @@ const AboutPage = () => {
                   "founderImg3File",
                 ])
               }
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                border: "none",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
             >
+              {/* Save Icon (Floppy Disk) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+                />
+              </svg>
+
               {translations[currentLang].saveFounder}
             </Button>
           </div>
         </Panel>
 
-
         {/* MISSION & VISION */}
         <Panel
           header={
-            <span className="font-semibold text-lg flex items-center gap-2">
+            <span className="font-semibold text-lg flex items-center text-white gap-2">
               <FiZap /> Mission & Vision
             </span>
           }
           key="4"
         >
-          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
+          <Tabs
+            activeKey={currentLang}
+            onChange={setCurrentLang}
+            className="pill-tabs"
+          >
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium">{translations[currentLang].mainTitle}</label>
+                <label className="block font-medium mt-5 mb-3">
+                  {translations[currentLang].mainTitle}
+                </label>
                 <Input
+                  style={{
+                    backgroundColor: "#171717",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
                   value={aboutMissionVission.aboutMissionVissionTitle[lang]}
                   onChange={(e) =>
                     setAboutMissionVission({
@@ -725,14 +1176,24 @@ const AboutPage = () => {
 
                 {/* 3 Sub-sections */}
                 {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="mt-6 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700"
-                  >
-                    <h4 className="font-semibold mb-2">{translations[currentLang].block} {i}</h4>
+                  <div key={i} className="mt-6 text-white">
+                    <h4 className="font-semibold mb-2 text-xl mt-12">
+                      {translations[currentLang].block} {i}
+                    </h4>
 
-                    <label className="block font-medium">{translations[currentLang].subhead} {i}</label>
+                    <label className="block font-medium mt-5 mb-3">
+                      {translations[currentLang].subhead} {i}
+                    </label>
                     <Input
+                      style={{
+                        backgroundColor: "#171717",
+                        border: "1px solid #2d2d2d",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
                       value={
                         aboutMissionVission[`aboutMissionVissionSubhead${i}`][
                         lang
@@ -751,10 +1212,19 @@ const AboutPage = () => {
                       }
                     />
 
-                    <label className="block font-medium mt-2">
+                    <label className="block font-medium mt-5 mb-3">
                       {translations[currentLang].description} {i}
                     </label>
                     <Input
+                      style={{
+                        backgroundColor: "#171717",
+                        border: "1px solid #2d2d2d",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
                       value={
                         aboutMissionVission[`aboutMissionVissionDes${i}`][lang]
                       }
@@ -775,6 +1245,15 @@ const AboutPage = () => {
                       {translations[currentLang].boxCount} {i}
                     </label>
                     <Input
+                      style={{
+                        backgroundColor: "#171717",
+                        border: "1px solid #2d2d2d",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
                       type="number"
                       value={
                         aboutMissionVission[`aboutMissionVissionBoxCount${i}`]
@@ -789,10 +1268,19 @@ const AboutPage = () => {
                       }
                     />
 
-                    <label className="block font-medium mt-2">
+                    <label className="block font-medium mt-5 mb-3">
                       {translations[currentLang].boxDescription} {i}
                     </label>
                     <Input
+                      style={{
+                        backgroundColor: "#171717",
+                        border: "1px solid #2d2d2d",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
                       value={
                         aboutMissionVission[`aboutMissionBoxDes${i}`][lang]
                       }
@@ -813,13 +1301,73 @@ const AboutPage = () => {
           </Tabs>
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
+            {/* Cancel Button (Gray / Outline) */}
             <Button
-              type="primary"
+              onClick={() => window.location.reload()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
+            >
+              {/* Cancel Icon (X) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+
+              {translations[currentLang].cancel}
+            </Button>
+
+            {/* Save Button (Blue) */}
+            <Button
               onClick={() =>
                 handleSave("aboutMissionVission", aboutMissionVission)
               }
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                border: "none",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
             >
+              {/* Save Icon (Floppy Disk) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+                />
+              </svg>
+
               {translations[currentLang].saveMissionVision}
             </Button>
           </div>
@@ -828,19 +1376,34 @@ const AboutPage = () => {
         {/* CORE VALUES */}
         <Panel
           header={
-            <span className="font-semibold text-lg flex items-center gap-2">
+            <span className="font-semibold text-lg flex items-center text-white gap-2">
               <FiTool /> Core Values
             </span>
           }
           key="5"
         >
-          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
+          <Tabs
+            activeKey={currentLang}
+            onChange={setCurrentLang}
+            className="pill-tabs"
+          >
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="mb-6">
-                    <label className="block font-medium">{translations[currentLang].title} {i}</label>
+                    <label className="block font-medium mt-5 mb-3">
+                      {translations[currentLang].title} {i}
+                    </label>
                     <Input
+                      style={{
+                        backgroundColor: "#171717",
+                        border: "1px solid #2d2d2d",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
                       value={aboutCore[`aboutCoreTitle${i}`][lang]}
                       onChange={(e) =>
                         setAboutCore((prev) => ({
@@ -853,10 +1416,19 @@ const AboutPage = () => {
                       }
                     />
 
-                    <label className="block font-medium mt-2">
+                    <label className="block font-medium mt-5 mb-3">
                       {translations[currentLang].description} {i}
                     </label>
                     <Input
+                      style={{
+                        backgroundColor: "#171717",
+                        border: "1px solid #2d2d2d",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
                       value={aboutCore[`aboutCoreDes${i}`][lang]}
                       onChange={(e) =>
                         setAboutCore((prev) => ({
@@ -876,7 +1448,9 @@ const AboutPage = () => {
           <p className="text-sm text-slate-500 mb-2">
             {translations[currentLang].recommendedSize} 620×510px
           </p>
-          <Divider>{translations[currentLang].coreImages}</Divider>
+          <label className="block font-bold mt-5 mb-3">
+            {translations[currentLang].coreImages}
+          </label>
           {[1, 2, 3].map((i) => (
             <div key={i} className="mb-6">
               {aboutCore[`aboutCoreBg${i}File`] instanceof File ? (
@@ -895,19 +1469,93 @@ const AboutPage = () => {
                 )
               )}
 
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleImageChange(e, setAboutCore, `aboutCoreBg${i}`)}
-              />
+              <div className="mb-4">
+                {/* Hidden Input */}
+                <input
+                  id={`aboutCoreUpload-${i}`}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e) =>
+                    handleImageChange(e, setAboutCore, `aboutCoreBg${i}`)
+                  }
+                />
+
+                {/* Styled Label as Button */}
+                <label
+                  htmlFor={`aboutCoreUpload-${i}`}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    backgroundColor: "#0284C7", // blue
+                    color: "#fff",
+                    padding: "10px 20px",
+                    borderRadius: "9999px", // pill shape
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  {/* Upload Icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    style={{ width: "18px", height: "18px" }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                    />
+                  </svg>
+                  Upload Core Background {i + 1}
+                </label>
+              </div>
             </div>
           ))}
 
-
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
+            {/* Cancel Button (Gray / Outline) */}
             <Button
-              type="primary"
+              onClick={() => window.location.reload()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
+            >
+              {/* Cancel Icon (X) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+
+              {translations[currentLang].cancel}
+            </Button>
+
+            {/* Save Button (Blue) */}
+            <Button
               onClick={() =>
                 handleSave("aboutCore", aboutCore, [
                   "aboutCoreBg1File",
@@ -915,7 +1563,34 @@ const AboutPage = () => {
                   "aboutCoreBg3File",
                 ])
               }
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                border: "none",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
             >
+              {/* Save Icon (Floppy Disk) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+                />
+              </svg>
+
               {translations[currentLang].saveCore}
             </Button>
           </div>
@@ -924,19 +1599,28 @@ const AboutPage = () => {
         {/* HISTORY */}
         <Panel
           header={
-            <span className="font-semibold text-lg flex items-center gap-2">
+            <span className="font-semibold text-lg flex items-center text-white gap-2">
               <FiBriefcase /> Company History
             </span>
           }
           key="6"
         >
           {aboutHistory.map((item, index) => (
-            <div
-              key={index}
-              className="border rounded-lg p-4 mb-6 shadow-sm bg-gray-50 dark:bg-gray-700"
-            >
-              <label className="block font-medium">{translations[currentLang].year}</label>
+            <div key={index} className=" mb-6 shadow-sm text-white">
+              <label className="block font-medium mt-5 mb-3">
+                {translations[currentLang].year}
+              </label>
               <Input
+                style={{
+                  backgroundColor: "#171717",
+                  border: "1px solid #2d2d2d",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                  transition: "all 0.3s ease",
+                  marginBottom: "12px",
+                }}
                 value={item.year}
                 onChange={(e) => {
                   const newHistory = [...aboutHistory];
@@ -945,13 +1629,26 @@ const AboutPage = () => {
                 }}
               />
 
-              <Tabs activeKey={currentLang} onChange={setCurrentLang} className="mt-3">
+              <Tabs
+                activeKey={currentLang}
+                onChange={setCurrentLang}
+                className="mt-12  pill-tabs"
+              >
                 {["en", "vi"].map((lang) => (
                   <TabPane tab={lang.toUpperCase()} key={lang}>
                     <label className="block font-medium">
                       {translations[currentLang].content} ({lang})
                     </label>
                     <Input.TextArea
+                      style={{
+                        backgroundColor: "#171717",
+                        border: "1px solid #2d2d2d",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
                       rows={3}
                       value={item.content?.[lang]}
                       onChange={(e) => {
@@ -967,7 +1664,9 @@ const AboutPage = () => {
                 ))}
               </Tabs>
 
-              <Divider>{translations[currentLang].historyImage}</Divider>
+              <label className="block font-bold mt-5 mb-3">
+                {translations[currentLang].historyImage}
+              </label>
               <p className="text-sm text-slate-500 mb-2">
                 {translations[currentLang].recommendedSize} 720×920px
               </p>
@@ -987,25 +1686,63 @@ const AboutPage = () => {
                 )
               )}
 
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  if (!validateFileSize(file)) return; // ✅ enforce max 2MB
+              <div className="mb-4">
+                {/* Hidden Input */}
+                <input
+                  id={`aboutHistoryUpload-${index}`}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (!validateFileSize(file)) return; // ✅ enforce max 2MB
 
-                  const newHistory = [...aboutHistory];
-                  newHistory[index].imageFile = file;
-                  newHistory[index].image = "";
-                  setAboutHistory(newHistory);
-                }}
-              />
+                    const newHistory = [...aboutHistory];
+                    newHistory[index].imageFile = file;
+                    newHistory[index].image = "";
+                    setAboutHistory(newHistory);
+                  }}
+                />
 
+                {/* Styled Label as Button */}
+                <label
+                  htmlFor={`aboutHistoryUpload-${index}`}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    backgroundColor: "#0284C7", // blue
+                    color: "#fff",
+                    padding: "10px 20px",
+                    borderRadius: "9999px", // pill shape
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  {/* Upload Icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    style={{ width: "18px", height: "18px" }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                    />
+                  </svg>
+                  Upload History Image {index + 1}
+                </label>
+              </div>
 
               <div className="flex justify-end mt-3">
                 <Button
-                  danger
                   onClick={async () => {
                     try {
                       // 1️⃣ Remove from local state
@@ -1038,7 +1775,36 @@ const AboutPage = () => {
                       CommonToaster("Error", err.message || "Something went wrong!");
                     }
                   }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    backgroundColor: "#000", // black pill button
+                    border: "1px solid #333",
+                    color: "#fff",
+                    padding: "12px 20px",
+                    borderRadius: "9999px", // pill shape
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
                 >
+                  {/* Trash Icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    style={{ width: "18px", height: "18px" }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
+                    />
+                  </svg>
+
                   {translations[currentLang].removeHistory}
                 </Button>
 
@@ -1093,25 +1859,41 @@ const AboutPage = () => {
         {/* TEAM */}
         <Panel
           header={
-            <span className="font-semibold text-lg flex items-center gap-2">
+            <span className="font-semibold text-lg flex items-center text-white gap-2">
               <FiUsers /> About Team
             </span>
           }
           key="7"
         >
-          <Tabs defaultActiveKey="cottonTeam">
+          <Tabs defaultActiveKey="cottonTeam" className="mb-6 pill-tabs">
             {Object.keys(aboutTeam).map((teamKey) => (
-              <TabPane tab={teamKey.replace("Team", " Team")} key={teamKey}>
+              <TabPane
+                tab={teamKey.replace("Team", " Team")}
+                key={teamKey}
+                className="mt-4"
+              >
                 {aboutTeam[teamKey].map((member, idx) => (
-                  <div
-                    key={idx}
-                    className="mb-6 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700"
-                  >
-                    <Tabs activeKey={currentLang} onChange={setCurrentLang}>
+                  <div key={idx} className="mb-6 rounded-lg text-white">
+                    <Tabs
+                      activeKey={currentLang}
+                      onChange={setCurrentLang}
+                      className="pill-tabs"
+                    >
                       {["en", "vi"].map((lang) => (
                         <TabPane tab={lang.toUpperCase()} key={lang}>
-                          <label className="block font-medium">{translations[currentLang].name}</label>
+                          <label className="block font-medium mt-5 mb-3">
+                            {translations[currentLang].name}
+                          </label>
                           <Input
+                            style={{
+                              backgroundColor: "#171717",
+                              border: "1px solid #2d2d2d",
+                              borderRadius: "8px",
+                              color: "#fff",
+                              padding: "10px 14px",
+                              fontSize: "14px",
+                              transition: "all 0.3s ease",
+                            }}
                             value={member.teamName?.[lang] || ""}
                             onChange={(e) => {
                               const updated = [...aboutTeam[teamKey]];
@@ -1129,10 +1911,19 @@ const AboutPage = () => {
                             }}
                           />
 
-                          <label className="block font-medium mt-2">
+                          <label className="block font-medium mt-5 mb-3">
                             {translations[currentLang].designation}
                           </label>
                           <Input
+                            style={{
+                              backgroundColor: "#171717",
+                              border: "1px solid #2d2d2d",
+                              borderRadius: "8px",
+                              color: "#fff",
+                              padding: "10px 14px",
+                              fontSize: "14px",
+                              transition: "all 0.3s ease",
+                            }}
                             value={member.teamDesgn?.[lang] || ""}
                             onChange={(e) => {
                               const updated = [...aboutTeam[teamKey]];
@@ -1153,8 +1944,19 @@ const AboutPage = () => {
                       ))}
                     </Tabs>
 
-                    <label className="block font-medium mt-2">{translations[currentLang].email}</label>
+                    <label className="block font-medium mt-5 mb-3">
+                      {translations[currentLang].email}
+                    </label>
                     <Input
+                      style={{
+                        backgroundColor: "#171717",
+                        border: "1px solid #2d2d2d",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
                       value={member.teamEmail || ""}
                       onChange={(e) => {
                         const updated = [...aboutTeam[teamKey]];
@@ -1164,8 +1966,6 @@ const AboutPage = () => {
                     />
 
                     <Button
-                      danger
-                      className="mt-3"
                       onClick={async () => {
                         try {
                           // 1️⃣ Update local state
@@ -1208,15 +2008,41 @@ const AboutPage = () => {
                           );
                         }
                       }}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        backgroundColor: "#000", // black button
+                        border: "1px solid #333",
+                        color: "#fff",
+                        padding: "12px 20px",
+                        borderRadius: "9999px", // pill shape
+                        fontWeight: "500",
+                        marginTop: "12px",
+                      }}
                     >
+                      {/* Trash Icon */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        style={{ width: "18px", height: "18px" }}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
+                        />
+                      </svg>
+
                       {translations[currentLang].removeMember}
                     </Button>
                   </div>
                 ))}
 
                 <Button
-                  type="dashed"
-                  className="w-full"
                   onClick={() => {
                     setAboutTeam({
                       ...aboutTeam,
@@ -1230,7 +2056,38 @@ const AboutPage = () => {
                       ],
                     });
                   }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    backgroundColor: "#fff", // white button
+                    color: "#111827", // dark text
+                    border: "1px solid #ddd",
+                    padding: "12px 20px",
+                    borderRadius: "9999px", // pill shape
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
                 >
+                  {/* Plus Icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    style={{ width: "18px", height: "18px" }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+
                   {translations[currentLang].addMember}
                 </Button>
               </TabPane>
@@ -1238,11 +2095,71 @@ const AboutPage = () => {
           </Tabs>
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>{translations[currentLang].cancel}</Button>
+            {/* Cancel Button (Gray / Outline) */}
             <Button
-              type="primary"
-              onClick={() => handleSave("aboutTeam", aboutTeam)}
+              onClick={() => window.location.reload()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
             >
+              {/* Cancel Icon (X) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+
+              {translations[currentLang].cancel}
+            </Button>
+
+            {/* Save Button (Blue) */}
+            <Button
+              onClick={() => handleSave("aboutTeam", aboutTeam)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                border: "none",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+              }}
+            >
+              {/* Save Icon (Floppy Disk) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+                />
+              </svg>
+
               {translations[currentLang].saveTeam}
             </Button>
           </div>
@@ -1251,13 +2168,13 @@ const AboutPage = () => {
         {/* ALLIANCES */}
         <Panel
           header={
-            <span className="font-semibold text-lg flex items-center gap-2">
+            <span className="font-semibold text-lg flex items-center text-white gap-2">
               <FiTool /> Alliances
             </span>
           }
           key="8"
         >
-          <Divider>Alliance Logos</Divider>
+          <label className="block font-bold mt-5 mb-3">Alliance Logos</label>
           <p className="text-sm text-slate-500 mb-2">
             {translations[currentLang].recommendedSize} 180×180px
           </p>
@@ -1290,7 +2207,10 @@ const AboutPage = () => {
                         aboutAlliancesFiles: aboutAlliances.aboutAlliancesFiles,
                       });
                       localStorage.removeItem("aboutAlliances");
-                      CommonToaster("Alliance removed successfully!", "success");
+                      CommonToaster(
+                        "Alliance removed successfully!",
+                        "success"
+                      );
                     }
                   }}
                 >
@@ -1312,49 +2232,155 @@ const AboutPage = () => {
                   <p className="text-xs text-red-500">Invalid file</p>
                 )}
                 <Button
-                  danger
-                  size="small"
-                  className="absolute top-1 right-1"
                   onClick={() =>
                     setAboutAlliances({
                       ...aboutAlliances,
-                      aboutAlliancesFiles: aboutAlliances.aboutAlliancesFiles.filter(
-                        (_, i) => i !== idx
-                      ),
+                      aboutAlliancesFiles:
+                        aboutAlliances.aboutAlliancesFiles.filter(
+                          (_, i) => i !== idx
+                        ),
                     })
                   }
+                  style={{
+                    position: "absolute",
+                    top: "6px",
+                    right: "6px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#000",
+                    border: "1px solid #333",
+                    color: "#fff",
+                    borderRadius: "9999px", // full circle
+                    width: "28px",
+                    height: "28px",
+                    padding: "0",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
                 >
-                  X
+                  {/* X (close icon) */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    style={{ width: "14px", height: "14px" }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
                 </Button>
               </div>
             ))}
-
           </div>
 
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              const validFiles = Array.from(e.target.files).filter(validateFileSize);
-              if (validFiles.length !== e.target.files.length) {
-                CommonToaster("Some files were too large (max 2MB) and skipped.", "error");
-              }
-              setAboutAlliances({
-                ...aboutAlliances,
-                aboutAlliancesFiles: [
-                  ...(aboutAlliances.aboutAlliancesFiles || []),
-                  ...validFiles,
-                ],
-              });
-            }}
-          />
+          <div className="mb-4">
+            {/* Hidden Input */}
+            <input
+              id="aboutAlliancesUpload"
+              type="file"
+              accept="image/*"
+              multiple
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const validFiles = Array.from(e.target.files).filter(
+                  validateFileSize
+                );
+                if (validFiles.length !== e.target.files.length) {
+                  CommonToaster(
+                    "Some files were too large (max 2MB) and skipped.",
+                    "error"
+                  );
+                }
+                setAboutAlliances({
+                  ...aboutAlliances,
+                  aboutAlliancesFiles: [
+                    ...(aboutAlliances.aboutAlliancesFiles || []),
+                    ...validFiles,
+                  ],
+                });
+              }}
+            />
 
+            {/* Styled Label as Button */}
+            <label
+              htmlFor="aboutAlliancesUpload"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Upload Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                />
+              </svg>
+              Upload Alliance Images
+            </label>
+          </div>
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>Cancel</Button>
+            {/* Cancel Button (Gray / Outline) */}
             <Button
-              type="primary"
+              onClick={() => window.location.reload()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Cancel Icon (X) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+              Cancel
+            </Button>
+
+            {/* Save Button (Blue) */}
+            <Button
               onClick={async () => {
                 const formData = new FormData();
                 formData.append(
@@ -1376,11 +2402,38 @@ const AboutPage = () => {
                   CommonToaster("Alliances saved successfully!", "success");
                 }
               }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                border: "none",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
             >
+              {/* Save Icon (Floppy Disk) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+                />
+              </svg>
               Save Alliances
             </Button>
           </div>
-
         </Panel>
 
         {/* 🔥 Repeat same pattern for Overview, Founder, Mission, Core, History, Team, Alliances */}

@@ -5,6 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import GoogleTranslate from "../GoogleTranslate";
 import TranslateToggle from "../TranslateToggle";
+import { getHeaderPage } from "../../Api/api"; // ✅ import API
+
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const menuLinks = [
   { label: "Home", href: "/" },
@@ -22,7 +25,17 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrolled, setScrolled] = useState(false);
 
+  const [headerLogo, setHeaderLogo] = useState(""); // ✅ store logo
+
   const toggleMenu = () => setIsOpen((s) => !s);
+
+  // ✅ Fetch logo on mount
+  useEffect(() => {
+    getHeaderPage().then((res) => {
+      const data = res.data?.header || res.data;
+      if (data?.headerLogo) setHeaderLogo(data.headerLogo);
+    });
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,20 +48,16 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  const navClasses = `top-0 left-0 w-full z-50 transition-all duration-300 ${
-    showNavbar ? "translate-y-0" : "-translate-y-full"
-  } ${scrolled ? "bg-[#0A1C2E] shadow-md fixed" : "bg-transparent fixed"}`;
+  const navClasses = `top-0 left-0 w-full z-50 transition-all duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"
+    } ${scrolled ? "bg-[#0A1C2E] shadow-md fixed" : "bg-transparent fixed"}`;
 
   const getLinkClass = (href) =>
-  `relative transition-colors duration-300 font-medium 
-   ${
-     location.pathname === href
-       ? "text-white font-semibold after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[3px] after:w-full after:bg-white after:scale-x-100 after:origin-left after:transition-transform after:duration-300"
-       : "text-[#fff] hover:text-[#fff] after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[3px] after:w-full after:bg-white after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-300"
-   }`;
+    `relative transition-colors duration-300 font-medium 
+   ${location.pathname === href
+      ? "text-white font-semibold after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[3px] after:w-full after:bg-white after:scale-x-100 after:origin-left after:transition-transform after:duration-300"
+      : "text-[#fff] hover:text-[#fff] after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[3px] after:w-full after:bg-white after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-300"
+    }`;
 
-
-  // Contact pill styles (desktop + mobile)
   const contactClasses = (active = false) =>
     [
       "group inline-flex items-center gap-2 rounded-full",
@@ -66,16 +75,23 @@ const Navbar = () => {
     <>
       <nav className={navClasses}>
         <div className="mx-auto px-6 md:px-20 py-4 flex justify-between items-center">
-          {/* Logo */}
           <div className="flex items-center gap-2 font-bold text-xl text-blue-700">
             <Link to="/">
-              <img src="/img/home/footerLogo.png" alt="Logo" className="h-22 w-auto" />
+              {headerLogo ? (
+                <img
+                  src={`${API_BASE}${headerLogo}`}
+                  alt="Logo"
+                  className="md:h-22 h-14 w-auto"
+                />
+              ) : (
+                <span className="text-white">LOGO</span>
+              )}
             </Link>
           </div>
 
           {/* Desktop: links + language toggle */}
           <div className="hidden md:flex items-center gap-8">
-            <div className="flex items-center  gap-6 md:gap-10">
+            <div className="flex items-center gap-6 md:gap-10">
               {menuLinks.map(({ label, href }) => {
                 const isActive = location.pathname === href;
 
@@ -108,9 +124,8 @@ const Navbar = () => {
 
           {/* Mobile Toggle */}
           <button
-            className={`md:hidden text-2xl cursor-pointer z-[60] ${
-              isOpen ? "text-white" : "text-gray-800"
-            }`}
+            className={`md:hidden text-2xl cursor-pointer z-[60] ${isOpen ? "text-white" : "text-gray-800"
+              }`}
             onClick={toggleMenu}
             aria-label="Toggle menu"
           >
@@ -118,13 +133,13 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Mount Google widget ONCE (hidden but rendered) */}
+        {/* Google widget */}
         <GoogleTranslate
           defaultLang={localStorage.getItem("preferred_lang") || "en"}
         />
       </nav>
 
-      {/* Mobile Menu */}
+      {/* ✅ Mobile Menu (unchanged) */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -142,12 +157,10 @@ const Navbar = () => {
               <FaTimes />
             </button>
 
-            {/* Language toggle (mobile) */}
             <div className="mb-10">
               <TranslateToggle />
             </div>
 
-            {/* Links */}
             <div className="space-y-8 grid text-center">
               {menuLinks.map(({ label, href }, index) => {
                 const isActive = location.pathname === href;
@@ -175,9 +188,8 @@ const Navbar = () => {
                       <Link
                         to={href}
                         onClick={toggleMenu}
-                        className={`text-2xl font-semibold ${
-                          isActive ? "text-blue-600" : "hover:text-blue-400"
-                        }`}
+                        className={`text-2xl font-semibold ${isActive ? "text-blue-600" : "hover:text-blue-400"
+                          }`}
                       >
                         {label}
                       </Link>

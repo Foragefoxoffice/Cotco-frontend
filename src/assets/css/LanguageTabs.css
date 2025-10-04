@@ -1,0 +1,45 @@
+/* Scoped pill-style tabs */
+.pill-tabs .ant-tabs-nav {
+  margin: 0 !important;
+  border-radius: 9999px;
+  padding: 4px;
+}
+
+.pill-tabs .ant-tabs-nav-list {
+  display: flex;
+  background: #1f1f1f; /* dark background container */
+  gap: 4px;
+  padding: 5px;
+  border-radius: 2rem;
+  margin-bottom: 10px;
+}
+
+.pill-tabs .ant-tabs-tab {
+  border-radius: 9999px !important;
+  padding: 6px 20px !important;
+  font-weight: 500;
+  color: #e5e7eb !important; /* gray text */
+  transition: all 0.3s ease;
+  margin: 0 !important;
+}
+
+.pill-tabs .ant-tabs-tab-active {
+  background: #f3f4f6; /* light active */
+  color: #111827 !important; /* dark text */
+  font-weight: 600;
+}
+
+.pill-tabs .ant-tabs-ink-bar {
+  display: none !important; /* hide underline */
+}
+
+.pill-tabs .ant-tabs-tab-btn:focus {
+  color: inherit !important;
+}
+.ant-collapse-expand-icon {
+  color: white !important;
+  margin-top: 3px;
+}
+.pill-tabs label {
+  color: white !important;
+}
