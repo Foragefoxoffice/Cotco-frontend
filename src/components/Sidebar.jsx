@@ -1,21 +1,33 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+
 import {
   LayoutDashboard,
   Newspaper,
   ChevronRight,
-  Package,
+  Settings,
+  Cog,
 } from "lucide-react";
-// import { useTheme } from "../contexts/ThemeContext"; // ✅ theme hook
 
 const Sidebar = () => {
   const location = useLocation();
-  // const { theme } = useTheme();
 
+  // ✅ Adjust menu open logic
   const getInitialMenuState = () => ({
-    pages: location.pathname.startsWith("/admin/pages"),
+    pages: [
+      "/admin/header",
+      "/admin/footer",
+      "/admin/home",
+      "/admin/about",
+      "/admin/cotton",
+      "/admin/fiber",
+      "/admin/contact",
+      "/admin/privacy-policy",
+      "/admin/terms-conditions",
+    ].some((path) => location.pathname.startsWith(path)),
     products: location.pathname.startsWith("/admin/products"),
     news: location.pathname.startsWith("/admin/news"),
+    machines: location.pathname.startsWith("/admin/machines"),
   });
 
   const [openMenus, setOpenMenus] = React.useState(getInitialMenuState);
@@ -41,7 +53,7 @@ const Sidebar = () => {
     },
     {
       label: "Machines",
-      icon: <Package size={18} />,
+      icon: <Cog size={20} />,
       key: "machines",
       subItems: [
         { path: "/admin/machines/categories", label: "Categories" },
@@ -49,8 +61,8 @@ const Sidebar = () => {
       ],
     },
     {
-      label: "Pages",
-      icon: <Newspaper size={18} />,
+      label: "CMS Settings",
+      icon: <Settings size={18} />,
       key: "pages",
       subItems: [
         { path: "/admin/header", label: "Header" },
@@ -66,18 +78,16 @@ const Sidebar = () => {
     },
   ];
 
-  // ✅ Custom NavLink with pill active design
   const NavLink = ({ to, children }) => {
     const isActive = location.pathname === to;
     return (
       <Link
         to={to}
-        className={`flex items-center gap-3 px-4 py-2 rounded-full text-sm font-medium transition-colors
-          ${
-            isActive
-              ? "bg-blue-500 text-white"
-              : "text-gray-300 hover:bg-gray-700 hover:text-white"
-          }`}
+        className={`flex items-center gap-3 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+          isActive
+            ? "bg-blue-500 text-white"
+            : "text-gray-300 hover:bg-gray-700 hover:text-white"
+        }`}
       >
         {children}
       </Link>
@@ -85,36 +95,32 @@ const Sidebar = () => {
   };
 
   return (
-    <div
-      className={`w-60 h-full flex flex-col transition-colors duration-300 bg-[#0A0A0A] text-white`}
-    >
+    <div className="w-60 h-full flex flex-col transition-colors duration-300 bg-[#171717] border-r border-[#2E2F2F] text-white">
       {/* Logo */}
       <div className="p-5 flex flex-col items-center border-b border-gray-700">
-        <img
-          alt="Cotco Logo"
-          src="/img/home/footerLogo.png"
-          className="h-20 mb-2"
-        />
+        <img alt="Cotco Logo" src="/img/home/footerLogo.png" className="h-20 mb-2" />
         <p className="text-lg font-bold text-gray-200">COTCO Admin</p>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-6">
+      <nav className="flex-1 overflow-y-auto py-6 scrollbar-hide">
         <ul className="space-y-2">
           {menuItems.map((item) => (
             <li key={item.key || item.path} className="px-3">
               {item.subItems ? (
                 <>
                   <button
+                    style={{
+                      marginTop:"10px",
+                    }}
                     onClick={() => toggleMenu(item.key)}
-                    className={`flex items-center justify-between w-full px-4 py-2 rounded-full text-sm font-medium transition-colors
-                      ${
-                        location.pathname.startsWith(`/admin/${item.key}`)
-                          ? "bg-blue-500 text-white"
-                          : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                      }`}
+                    className={`flex items-center justify-between w-full px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      openMenus[item.key]
+                        ? "bg-blue-500 text-white"
+                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 py-3">
                       {item.icon}
                       {item.label}
                     </div>
@@ -125,9 +131,8 @@ const Sidebar = () => {
                       }`}
                     />
                   </button>
-                  {(openMenus[item.key] ||
-                    location.pathname.startsWith(`/admin/${item.key}`)) && (
-                    <ul className="pl-6 mt-2 space-y-1">
+                  {openMenus[item.key] && (
+                    <ul className="pl-6 pt-3 mt-6 space-y-1">
                       {item.subItems.map((subItem) => (
                         <li key={subItem.path}>
                           <NavLink to={subItem.path}>{subItem.label}</NavLink>
@@ -147,7 +152,6 @@ const Sidebar = () => {
         </ul>
       </nav>
 
-      {/* Footer */}
       <div className="p-4 border-t border-gray-700 text-center">
         <p className="text-xs text-gray-500">Cotco CMS</p>
       </div>

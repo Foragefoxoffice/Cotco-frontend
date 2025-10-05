@@ -43,3 +43,95 @@
 .pill-tabs label {
   color: white !important;
 }
+.edit-form .ant-card-body{
+  border: none !important;
+  outline: none !important;
+  border-radius: 10px !important;
+  margin-top: 20px;
+}
+.edit-form .ant-card-bordered{
+  border: none !important;
+  outline: none !important;
+}
+.edit-form .ant-select-selector{
+  background-color: transparent !important;
+  border: none !important;
+}
+.custom-dark-select{
+  padding: 22px 10px;
+}
+.custom-dark-select .ant-select-selection-placeholder {
+  color: #fff !important;
+  opacity: 0.6; /* optional dimmed look */
+}
+.custom-dark-select .ant-select-arrow{
+  color: #fff !important;
+}
+.custom-dark-input::placeholder {
+  color: #fff !important;
+  opacity: 0.6; /* optional - lighter white look */
+}
+.edit-form .ant-steps-item-title{
+  color: #fff !important;
+}
+.edit-form .ant-steps .ant-steps-item-custom >.ant-steps-item-container>.ant-steps-item-icon >.ant-steps-icon{
+  color: #fff;
+}
+.edit-form .ant-steps .ant-steps-item-process.ant-steps-item-custom .ant-steps-item-icon >.ant-steps-icon{
+  color: #0284C7;
+}
+.edit-form .ant-card{
+  background-color: transparent !important;
+}
+.edit-form .ant-card .ant-card-head{
+  /* background-color: red !important; */
+  border-bottom: 1px solid #2E2F2F;
+}
+.edit-form .ant-card .ant-card-head-title {
+  color: #fff !important;
+}
+.edit-form .ant-select-single.ant-select-show-arrow .ant-select-selection-item{
+  color: #fff;
+}
+.edit-form .ant-collapse{
+  border: none !important;
+}
+.edit-form .ant-collapse .ant-collapse-content{
+  background-color: transparent !important;
+  border: none !important;
+}
+.edit-form .richtext-editor{
+  background-color: transparent !important;
+}
+.edit-form .ProseMirror{
+  padding: 20px;
+  color: #fff !important;
+}
+.edit-form .ant-collapse-header{
+  border-bottom: 1px solid #2E2F2F;
+  border-radius: 0 !important;
+  border-top: 0 !important;
+}
+.edit-form .ant-collapse>.ant-collapse-item >.ant-collapse-header .ant-collapse-header-text{
+  color: #fff !important;
+}
+
+.edit-form .ant-collapse>.ant-collapse-item{
+  border-bottom: none !important;
+}
+.edit-form .ant-card-small >.ant-card-body{
+  padding: 0 !important ;
+}
+.edit-form .close-tab .anticon{
+  color: #000 !important;
+  background-color: #0284C7 !important;
+}
+.edit-form .ant-tabs-top >.ant-tabs-nav::before{
+  border-bottom:none !important;
+}
+.ant-collapse-borderless >.ant-collapse-item{
+  border-bottom: 1px solid #2E2F2F;
+}
+.ant-alert-info{
+  background-color: transparent !important;
+}

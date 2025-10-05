@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./index.css";
 import "./assets/css/main.css";
 import "./assets/css/service.css";
+import "antd/dist/reset.css";
 
 // Public pages
 import Home from "./pages/Home";
@@ -30,7 +31,8 @@ import ContactScreen from "./pages/ContactScreen";
 import GlobalSettingsScreen from "./pages/GlobalSettingsScreen";
 import ProductListScreen from "./pages/ProductListScreen";
 import MachineListScreen from "./pages/MachineListScreen";
-import MachineEditScreen from "./pages/MachineEditScreen";
+import MachineEditScreen from "./pages/MachineEditScreen"; // create new page
+import EditMachinePage from "./pages/EditMachinePage";     // edit existing page
 import NewsCategoriesScreen from "./pages/NewsCategoriesScreen";
 
 import Login from "./admin/Login/Login";
@@ -50,10 +52,10 @@ import SectionCreate from "./admin/SectionCreate";
 import AdminLayout from "./admin/AdminLayout";
 
 // Machines public pages
-import MachineCategoriesScreen from "./pages/MachineCategoriesScreen"; // ✅ Admin machine categories
+import MachineCategoriesScreen from "./pages/MachineCategoriesScreen";
 import MachinesMain from "./pages/MachinesMain";
 import MachineCategories from "./pages/MachineCategories";
-import MachineDetail from "./pages/MachineDetail"; // ✅ Correct detail page
+import MachineDetail from "./pages/MachineDetail";
 import MachineList from "./pages/MachineList";
 
 // Toast
@@ -61,7 +63,7 @@ import { ToastContainer } from "react-toastify";
 import MachinePage from "./pages/MachinePage";
 import ContactPage from "./admin/Dashboard/ContactPage";
 import PrivacyPage from "./admin/Dashboard/PrivacyPage";
-import TermsConditionsPage from "./admin/Dashboard/termsConditionsPage";
+import TermsConditionsPage from "./admin/Dashboard/TermsConditionsPage";
 import FooterPage from "./admin/Dashboard/FooterPage";
 
 // 🔒 Protect dashboard-related routes
@@ -73,7 +75,8 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-createRoot(document.getElementById("root")).render(
+const root = createRoot(document.getElementById("root"));
+root.render(
   <StrictMode>
     <ThemeProvider>
       <BrowserRouter>
@@ -105,10 +108,9 @@ createRoot(document.getElementById("root")).render(
           <Route path="/terms-conditions" element={<TermsConditions />} />
           <Route path="/login" element={<Login />} />
 
-          {/* 🏭 Machines routes */}
+          {/* 🏭 Machines routes (public) */}
           <Route path="/machines" element={<MachinesMain />} />
           <Route path="/machines/:categorySlug" element={<MachineList />} />
-
           <Route
             path="/machines/:categorySlug/:pageSlug"
             element={<MachinePage />}
@@ -127,31 +129,28 @@ createRoot(document.getElementById("root")).render(
             <Route path="pages" element={<PagesScreen />} />
             <Route path="pages/:pageSlug" element={<PageEditScreen />} />
             <Route path="products" element={<ProductsScreen />} />
-            <Route
-              path="products/:categorySlug"
-              element={<ProductListScreen />}
-            />
-            <Route path="/admin/header" element={<HeaderPage />} />
-            <Route path="/admin/home" element={<Homepage />} />
-            <Route path="/admin/about" element={<AboutPage />} />
-            <Route path="/admin/cotton" element={<CottonPage />} />
-            <Route path="/admin/fiber" element={<FiberPage />} />
-            <Route path="/admin/contact" element={<ContactPage />} />
-            <Route path="/admin/privacy-policy" element={<PrivacyPage />} />
-            <Route path="/admin/terms-conditions" element={<TermsConditionsPage />} />
-            <Route path="/admin/footer" element={<FooterPage />} />
+            <Route path="products/:categorySlug" element={<ProductListScreen />} />
 
-            {/* ✅ Fixed spelling */}
-            <Route
-              path="machines/categories"
-              element={<MachineCategoriesScreen />}
-            />
+            {/* ✅ Admin dashboard pages */}
+            <Route path="header" element={<HeaderPage />} />
+            <Route path="home" element={<Homepage />} />
+            <Route path="about" element={<AboutPage />} />
+            <Route path="cotton" element={<CottonPage />} />
+            <Route path="fiber" element={<FiberPage />} />
+            <Route path="contact" element={<ContactPage />} />
+            <Route path="privacy-policy" element={<PrivacyPage />} />
+            <Route path="terms-conditions" element={<TermsConditionsPage />} />
+            <Route path="footer" element={<FooterPage />} />
+
+            {/* ✅ Machines (Admin) */}
+            <Route path="machines/categories" element={<MachineCategoriesScreen />} />
             <Route path="machines/list" element={<MachineListScreen />} />
             <Route path="machines/new" element={<MachineEditScreen />} />
+            <Route path="machines/pages/:id/edit" element={<EditMachinePage />} />
 
+            {/* Other admin */}
             <Route path="news" element={<NewsScreen />} />
             <Route path="news/categories" element={<NewsCategoriesScreen />} />
-            <Route path="contact" element={<ContactScreen />} />
             <Route path="settings" element={<GlobalSettingsScreen />} />
           </Route>
         </Routes>

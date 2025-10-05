@@ -5,6 +5,7 @@ import "react-quill-new/dist/quill.snow.css";
 
 import { getPrivacyPage, updatePrivacyPage } from "../../Api/api";
 import { CommonToaster } from "../../Common/CommonToaster";
+import "../../assets/css/LanguageTabs.css"
 
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
@@ -161,10 +162,11 @@ const PrivacyPage = () => {
 
   // Render a Rich Text Section
   const renderSection = (key, title) => (
-    <Panel header={title} key={key}>
-      <Tabs activeKey={currentLang} onChange={setCurrentLang}>
-        {["en", "vi"].map((lang) => (
-          <TabPane tab={lang.toUpperCase()} key={lang}>
+  <Panel header={title} key={key}>
+    <Tabs activeKey={currentLang} onChange={setCurrentLang} className="pill-tabs">
+      {["en", "vi"].map((lang) => (
+        <TabPane tab={lang.toUpperCase()} key={lang}>
+          <div className="mt-5" >
             <ReactQuill
               value={privacy[key]?.content?.[lang] || ""}
               onChange={(value) =>
@@ -179,25 +181,89 @@ const PrivacyPage = () => {
                   },
                 }))
               }
-              style={{ minHeight: "200px", marginBottom: "20px" }}
+              theme="snow"
             />
-          </TabPane>
-        ))}
-      </Tabs>
+          </div>
+        </TabPane>
+      ))}
+    </Tabs>
 
-      <div className="flex justify-end gap-4 mt-4">
-        <Button onClick={() => window.location.reload()}>
-          {translations[currentLang].cancel}
-        </Button>
-        <Button type="primary" onClick={() => handleSave(key)}>
-          {translations[currentLang].save}
-        </Button>
-      </div>
-    </Panel>
-  );
+    <div className="flex justify-end gap-4 mt-4">
+  {/* Cancel Button (Gray / Outline) */}
+  <Button
+    onClick={() => window.location.reload()}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "transparent",
+      color: "#fff",
+      border: "1px solid #333",
+      padding: "22px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Cancel Icon (X) */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    {translations[currentLang].cancel}
+  </Button>
+
+  {/* Save Button (Blue) */}
+  <Button
+    onClick={() => handleSave(key)}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue
+      color: "#fff",
+      border: "none",
+      padding: "22px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Save Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+      />
+    </svg>
+    {translations[currentLang].save}
+  </Button>
+</div>
+
+  </Panel>
+);
+
 
   return (
-    <div className="max-w-6xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-white dark:bg-gray-800">
+    <div className="max-w-6xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-[#171717]">
       <style>{`
   /* Quill editor wrapper */
   .ql-editor {
@@ -212,12 +278,14 @@ const PrivacyPage = () => {
     background: #fff !important;
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
+    color:#fff !important;
   }
 
   /* Dark mode */
   .dark .ql-toolbar.ql-snow {
-    background: #1f2937 !important; /* gray-800 */
-    color: #fff;
+    background: #fff !important; /* gray-800 */
+    color: #fff !important;
+
   }
 
   /* Content area */
@@ -227,24 +295,38 @@ const PrivacyPage = () => {
   }
 
   .dark .ql-container.ql-snow {
-    background: #111827; /* gray-900 */
+    background: #171717; /* gray-900 */
     color: #fff;
   }
+    .ant-collapse>.ant-collapse-item >.ant-collapse-header .ant-collapse-header-text{
+    color:white;
+    font-weight:600;
+    font-size:16px;
+    }
 `}</style>
-      <h2 className="text-3xl font-bold mb-8 text-center">
+      <h2 className="text-3xl font-bold mb-8 text-center text-white">
         Privacy Page Management
       </h2>
 
       <Collapse accordion bordered={false} defaultActiveKey="banner">
         {/* ================= Banner ================= */}
         <Panel header="Privacy Banner" key="banner">
-          <Tabs activeKey={currentLang} onChange={setCurrentLang}>
+          <Tabs activeKey={currentLang} onChange={setCurrentLang} className="pill-tabs">
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
-                <label className="block font-medium mb-2">
+                <label className="block font-medium mt-5 mb-2">
                   {translations[currentLang].bannerTitle}
                 </label>
                 <input
+                 style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
                   type="text"
                   className="w-full border p-2 rounded"
                   value={privacyBanner.privacyBannerTitle[lang]}
@@ -262,7 +344,7 @@ const PrivacyPage = () => {
             ))}
           </Tabs>
 
-          <Divider>{translations[currentLang].bannerMedia}</Divider>
+          <label className='block mt-5 mb-1 text-white font-semibold'>{translations[currentLang].bannerMedia}</label>
 
           {privacyBanner.privacyBannerMediaFile ? (
             privacyBanner.privacyBannerMediaFile.type.startsWith("video/") ? (
@@ -294,20 +376,121 @@ const PrivacyPage = () => {
             )
           ) : null}
 
-          <input
-            type="file"
-            accept="image/*,video/*"
-            onChange={handleFileChange} // ✅ Now checks file size
-          />
+         <label
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "14px 22px",
+    backgroundColor: "#0284C7", // blue
+    color: "#fff",
+    fontWeight: "600",
+    borderRadius: "9999px", // pill shape
+    cursor: "pointer",
+    transition: "background 0.3s ease",
+    boxShadow: "0 2px 6px rgba(2, 132, 199, 0.4)",
+  }}
+  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0369A1")}
+  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0284C7")}
+>
+  {/* Upload Icon (SVG) */}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth="2"
+    stroke="currentColor"
+    style={{ width: "18px", height: "18px" }}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+    />
+  </svg>
+
+  Upload File
+
+  {/* Hidden File Input */}
+  <input
+    type="file"
+    accept="image/*,video/*"
+    onChange={handleFileChange} // ✅ Keeps your original function
+    style={{ display: "none" }}
+  />
+</label>
+
 
           <div className="flex justify-end gap-4 mt-4">
-            <Button onClick={() => window.location.reload()}>
-              {translations[currentLang].cancel}
-            </Button>
-            <Button type="primary" onClick={handleSaveBanner}>
-              {translations[currentLang].save}
-            </Button>
-          </div>
+  {/* Cancel Button (Gray / Outline) */}
+  <Button
+    onClick={() => window.location.reload()}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "transparent",
+      color: "#fff",
+      border: "1px solid #333",
+      padding: "22px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Cancel Icon (X) */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    {translations[currentLang].cancel}
+  </Button>
+
+  {/* Save Button (Blue) */}
+  <Button
+    onClick={handleSaveBanner}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      backgroundColor: "#0284C7", // blue
+      color: "#fff",
+      border: "none",
+      padding: "22px",
+      borderRadius: "9999px", // pill shape
+      fontWeight: "500",
+      fontSize: "14px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+    }}
+  >
+    {/* Save Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      style={{ width: "18px", height: "18px" }}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+      />
+    </svg>
+    {translations[currentLang].save}
+  </Button>
+</div>
+
         </Panel>
 
         {/* ================= Other Sections ================= */}

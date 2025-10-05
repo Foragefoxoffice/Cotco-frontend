@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Pencil } from "lucide-react";
 import { message } from "antd";
 import { getMachinePages, deleteMachinePage } from "../Api/api";
+import DeleteConfirm from "../components/DeleteConfirm"; // ✅ use your custom popup
 
 const MachinePagesList = () => {
   const [pages, setPages] = useState([]);
@@ -28,7 +29,6 @@ const MachinePagesList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this page?")) return;
     try {
       await deleteMachinePage(id);
       setPages((prev) => prev.filter((p) => p._id !== id));
@@ -41,72 +41,82 @@ const MachinePagesList = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Machine Pages
-        </h1>
+        <h1 className="text-2xl font-bold text-white">Machine Pages</h1>
         <button
-          onClick={handleCreate}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center"
-        >
-          <Plus size={18} className="mr-1" />
-          Create Page
-        </button>
+  onClick={handleCreate}
+  className="flex items-center gap-2 px-6 py-4 rounded-full font-semibold text-white shadow-md transition-all duration-300 cursor-pointer bg-[#0085C8]"
+  style={{
+    color:"#fff",
+  }}
+ 
+>
+  <Plus size={18} className="mr-1" />
+  Create Page
+</button>
+
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+      <div className="bg-[#0A0A0A] rounded-lg shadow-sm border overflow-hidden">
+        <div className="overflow-x-auto rounded-2xl border border-[#2E2F2F]">
+          <table className="min-w-full rounded-4xl ">
+            <thead className="bg-[#171717]">
+              <tr className="border border-b-[#2E2F2F]">
+                <th className="px-6 py-4 text-left text-md font-medium text-white uppercase tracking-wider">
                   Title
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-md font-medium text-white uppercase tracking-wider">
                   Slug
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-md font-medium text-white uppercase tracking-wider">
                   Category
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-md font-medium text-white uppercase tracking-wider">
                   SEO Title
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-md font-medium text-white uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-[#171717]">
               {pages.map((page) => (
                 <tr
                   key={page._id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                  className="hover:bg-[#262626] border border-b-[#2E2F2F]"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {page.title?.en}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500 dark:text-gray-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {page.slug}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {page.category?.name?.en || "-"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {page.seo?.metaTitle || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
-                    <div className="flex justify-end space-x-2">
+                    <div className="flex justify-start space-x-2">
                       <Link
-                        to={`/machines/pages/${page._id}/edit`}
-                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 p-1"
+                        to={`/admin/machines/pages/${page._id}/edit`}
+                        className="text-white p-1"
                       >
-                        <Edit size={18} />
+                        <Pencil
+                          size={18}
+                          style={{
+                            color: "white",
+                          }}
+                        />
                       </Link>
-                      <button
-                        onClick={() => handleDelete(page._id)}
-                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-1"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+
+                      {/* ✅ DeleteConfirm instead of window.confirm */}
+                      <DeleteConfirm onConfirm={() => handleDelete(page._id)}>
+                        <Trash2
+                          size={20}
+                          className="text-red-500 cursor-pointer p-1"
+                        />
+                      </DeleteConfirm>
                     </div>
                   </td>
                 </tr>

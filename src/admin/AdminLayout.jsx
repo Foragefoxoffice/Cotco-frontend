@@ -11,11 +11,9 @@ const AdminLayout = () => {
   const { theme } = useTheme();
 
   return (
-     <div className="flex h-screen font-sans text-gray-900 dark:text-gray-100"
+     <div className="flex h-screen font-sans bg-[#0A0A0A] text-gray-900 dark:text-gray-100"
      
-     style={{
-        background: theme === "dark" ? "#0f1116" : "#f5f7fa",
-      }}
+     
       >
        <div className="flex-1 flex flex-acol overflow-hidden">
       <Sidebar />

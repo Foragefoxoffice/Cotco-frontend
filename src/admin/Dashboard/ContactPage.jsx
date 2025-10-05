@@ -299,7 +299,7 @@ const ContactPage = () => {
 
   // ---------------------- UI ---------------------- //
   return (
-    <div className="max-w-6xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-[#0A0A0A]">
+    <div className="max-w-6xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-[#171717]">
       <style>{`
         label {
           color: #fff !important;
@@ -330,9 +330,9 @@ const ContactPage = () => {
                   {translations[currentLang].bannerTitle}
                 </label>
                 <Input
-                  style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                   style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -454,7 +454,7 @@ const ContactPage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",
@@ -494,7 +494,7 @@ const ContactPage = () => {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",
@@ -542,9 +542,9 @@ const ContactPage = () => {
                   {translations[currentLang].formText}
                 </label>
                 <Input
-                  style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                   style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -648,7 +648,7 @@ const ContactPage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",
@@ -686,7 +686,7 @@ const ContactPage = () => {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",
@@ -734,9 +734,9 @@ const ContactPage = () => {
                   {translations[currentLang].locationTitle}
                 </label>
                 <Input
-                  style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                   style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -758,9 +758,9 @@ const ContactPage = () => {
                   {translations[currentLang].locationDescription}
                 </label>
                 <Input
-                  style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                   style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -782,9 +782,9 @@ const ContactPage = () => {
                   {translations[currentLang].locationButtonText}
                 </label>
                 <Input
-                  style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                   style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -810,15 +810,15 @@ const ContactPage = () => {
             {translations[currentLang].locationButtonLink}
           </label>
           <Input
-            style={{
-              backgroundColor: "#171717",
-              border: "1px solid #2d2d2d",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-              fontSize: "14px",
-              transition: "all 0.3s ease",
-            }}
+             style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
             value={contactLocation.contactLocationButtonLink}
             onChange={(e) =>
               setContactLocation({
@@ -839,7 +839,7 @@ const ContactPage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",
@@ -875,7 +875,7 @@ const ContactPage = () => {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",
@@ -924,8 +924,8 @@ const ContactPage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -947,15 +947,15 @@ const ContactPage = () => {
                 {contactHours.contactHoursList.map((item, i) => (
                   <div key={i} className="flex items-center gap-2 mb-2">
                     <Input
-                      style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                        fontSize: "14px",
-                        transition: "all 0.3s ease",
-                      }}
+                       style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
                       placeholder={lang.toUpperCase()}
                       value={item[lang]}
                       onChange={(e) => {
@@ -980,10 +980,10 @@ const ContactPage = () => {
                           display: "inline-flex",
                           alignItems: "center",
                           gap: "6px",
-                          backgroundColor: "#000", // black
-                          border: "1px solid #333",
+                          backgroundColor: "#E50000", // black
+                          border: "1px solid #E50000",
                           color: "#fff",
-                          padding: "8px 16px",
+                          padding: "22px",
                           borderRadius: "9999px", // pill shape
                           fontWeight: "500",
                           fontSize: "13px",
@@ -1028,10 +1028,10 @@ const ContactPage = () => {
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "6px",
-                      backgroundColor: "#fff",
-                      color: "#000",
-                      border: "1px solid #ddd",
-                      padding: "10px 18px",
+                      backgroundColor: "#262626",
+                      color: "#fff",
+                      border: "1px solid #2E2F2F",
+                      padding: "22px",
                       borderRadius: "9999px", // pill shape
                       fontWeight: "500",
                       fontSize: "14px",
@@ -1069,7 +1069,7 @@ const ContactPage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",
@@ -1105,7 +1105,7 @@ const ContactPage = () => {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",
@@ -1153,9 +1153,9 @@ const ContactPage = () => {
                   {translations[currentLang].mapTitle}
                 </label>
                 <Input
-                  style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                   style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -1182,15 +1182,15 @@ const ContactPage = () => {
             {translations[currentLang].mapIframe}
           </label>
           <Input
-            style={{
-              backgroundColor: "#171717",
-              border: "1px solid #2d2d2d",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-              fontSize: "14px",
-              transition: "all 0.3s ease",
-            }}
+             style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
             value={contactMap.contactMapMap}
             onChange={(e) =>
               setContactMap({ ...contactMap, contactMapMap: e.target.value })
@@ -1222,7 +1222,7 @@ const ContactPage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",
@@ -1258,7 +1258,7 @@ const ContactPage = () => {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",

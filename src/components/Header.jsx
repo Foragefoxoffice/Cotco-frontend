@@ -32,29 +32,28 @@ const Header = () => {
 
   return (
     <header
-      className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 
+      className="bg-[#171717] text-white border border-[#2E2F2F]
                  py-4 px-6 flex items-center justify-between sticky top-0 z-20 transition-colors duration-300 rounded-2xl"
     >
       {/* Left side */}
-      <div className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+      <div className="text-lg font-semibold text-white">
         Admin Dashboard
       </div>
 
       {/* Right side */}
       <div className="flex items-center space-x-4">
-        <ThemeToggle />
+        {/* <ThemeToggle /> */}
         <LanguageSwitcher />
 
         {/* Notifications */}
         <div className="relative">
           <button
-            className="p-2 rounded-full text-gray-600 dark:text-gray-300 
-                       hover:bg-gray-100 dark:hover:bg-gray-700 relative transition-colors duration-200"
+            className="p-2 rounded-full border hover:bg-white hover:text-black cursor-pointer relative transition-colors duration-200"
             onClick={() => setShowNotifications(!showNotifications)}
           >
             <Bell size={20} />
             {unreadCount > 0 && (
-              <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
+              <span className="absolute -top-[3px] -right-[3px] h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
                 {unreadCount}
               </span>
             )}
@@ -99,7 +98,7 @@ const Header = () => {
             <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
               <User size={16} />
             </div>
-            <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">
+            <span className="ml-2 text-sm font-medium text-white hidden sm:block">
               Admin User
             </span>
           </div>

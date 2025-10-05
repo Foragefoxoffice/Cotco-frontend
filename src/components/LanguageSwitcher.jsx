@@ -20,7 +20,7 @@ const LanguageSwitcher = () => {
     <div className="relative">
       <button
         onClick={toggleDropdown}
-        className="flex items-center px-3 py-1 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+        className="flex items-center px-3 text-sm text-white bg-[#0284C7] py-3 rounded-md hover:bg-blue-400 cursor-pointer"
       >
         <Globe size={16} className="mr-2" />
         {languages.find((lang) => lang.code === currentLanguage)?.label}

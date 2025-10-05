@@ -373,7 +373,7 @@ export default function FiberPage() {
 
   // ---------------- UI ---------------- //
   return (
-    <div className="max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-[#0A0A0A] text-white">
+    <div className="max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-[#171717] text-white">
       <style>{`
         label {
           color: #fff !important;
@@ -408,8 +408,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -432,8 +432,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -456,8 +456,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -480,8 +480,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -722,7 +722,7 @@ export default function FiberPage() {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 cursor: "pointer",
@@ -772,8 +772,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -797,8 +797,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -822,8 +822,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -949,8 +949,8 @@ export default function FiberPage() {
                   >
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -978,8 +978,8 @@ export default function FiberPage() {
                     />
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -1021,7 +1021,7 @@ export default function FiberPage() {
                 backgroundColor: "#0284C7", // blue button
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 cursor: "pointer",
@@ -1071,8 +1071,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -1096,8 +1096,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -1119,7 +1119,7 @@ export default function FiberPage() {
             ))}
           </Tabs>
           {fiberChooseUs.fiberChooseUsBox.map((box, idx) => (
-            <div key={idx} className="border p-2 mb-2">
+            <div key={idx} className=" p-2 mb-2">
               {/* Local Image Upload */}
               <div style={{ marginBottom: "10px" }}>
                 <label className="block font-bold mt-5 mb-1">
@@ -1204,7 +1204,7 @@ export default function FiberPage() {
               </div>
 
               {/* Icon Selector */}
-              <div style={{ marginBottom: "10px" }}>
+              <div style={{ marginBottom: "10px", }}>
                 <label className="block font-bold mt-5 mb-1">
                   {" "}
                   {translations[currentLang].chooseIcon}
@@ -1250,9 +1250,9 @@ export default function FiberPage() {
 
                 {/* Show the actual icon */}
                 {box.fiberChooseUsIcon && (
-                  <span style={{ marginLeft: "10px", fontSize: "20px" }}>
+                  <h3 style={{ marginLeft: "50px",marginTop:"20px", fontSize: "40px", color:"#fff" }}>
                     {React.createElement(FiIcons[box.fiberChooseUsIcon])}
-                  </span>
+                  </h3>
                 )}
               </div>
 
@@ -1270,8 +1270,8 @@ export default function FiberPage() {
                     </label>
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -1298,8 +1298,8 @@ export default function FiberPage() {
                     </label>
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -1339,10 +1339,10 @@ export default function FiberPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "8px",
-                  backgroundColor: "#000", // black button
-                  border: "1px solid #333",
+                  backgroundColor: "#E50000", // black button
+                  border: "1px solid #E50000",
                   color: "#fff",
-                  padding: "8px 14px",
+                  padding: "22px",
                   borderRadius: "9999px", // pill shape
                   fontWeight: "500",
                   fontSize: "13px",
@@ -1392,10 +1392,10 @@ export default function FiberPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                backgroundColor: "#fff",
-                color: "#000",
-                border: "1px solid #ddd",
-                padding: "10px 20px",
+                backgroundColor: "#262626",
+                color: "#fff",
+                border: "1px solid #2E2F2F",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 cursor: "pointer",
@@ -1430,7 +1430,7 @@ export default function FiberPage() {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 cursor: "pointer",
@@ -1479,8 +1479,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -1518,8 +1518,8 @@ export default function FiberPage() {
                 <TabPane tab={lang.toUpperCase()} key={lang}>
                   <Input
                     style={{
-                      backgroundColor: "#171717",
-                      border: "1px solid #2d2d2d",
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
                       borderRadius: "8px",
                       color: "#fff",
                       padding: "10px 14px",
@@ -1557,10 +1557,10 @@ export default function FiberPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                backgroundColor: "#fff",
-                color: "#000",
-                border: "1px solid #ddd",
-                padding: "10px 20px",
+                backgroundColor: "#262626",
+                color: "#fff",
+                border: "1px solid #2E2F2F",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 cursor: "pointer",
@@ -1678,10 +1678,10 @@ export default function FiberPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
-                  backgroundColor: "#000", // black
-                  border: "1px solid #333",
+                  backgroundColor: "#E50000", // black
+                  border: "1px solid #E50000",
                   color: "#fff",
-                  padding: "8px 14px",
+                  padding: "22px",
                   borderRadius: "9999px", // pill shape
                   fontWeight: "500",
                   fontSize: "13px",
@@ -1722,17 +1722,16 @@ export default function FiberPage() {
             }
             style={{
               display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              backgroundColor: "#fff",
-              color: "#000",
-              border: "1px solid #ddd",
-              padding: "10px 20px",
-              borderRadius: "9999px", // pill shape
-              fontWeight: "500",
-              cursor: "pointer",
-              transition: "all 0.3s ease",
-              marginTop: "10px",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#262626",
+                color: "#fff",
+                border: "1px solid #2E2F2F",
+                padding: "22px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
             }}
           >
             {/* Plus Icon */}
@@ -1765,7 +1764,7 @@ export default function FiberPage() {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 marginTop: "15px",
@@ -1804,7 +1803,7 @@ export default function FiberPage() {
           key="5"
         >
           {fiberProducts.fiberProduct.map((p, idx) => (
-            <div key={idx} className="border p-2 mb-2 relative rounded-md">
+            <div key={idx} className=" p-2 mb-2 relative rounded-md">
               {/* ❌ Delete whole product */}
               <Button
                 onClick={async () => {
@@ -1861,8 +1860,8 @@ export default function FiberPage() {
                   <TabPane tab={lang.toUpperCase()} key={lang}>
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -1903,8 +1902,8 @@ export default function FiberPage() {
                     <TabPane tab={lang.toUpperCase()} key={lang}>
                       <Input
                         style={{
-                          backgroundColor: "#171717",
-                          border: "1px solid #2d2d2d",
+                          backgroundColor: "#262626",
+                          border: "1px solid #2E2F2F",
                           borderRadius: "8px",
                           color: "#fff",
                           padding: "10px 14px",
@@ -2021,23 +2020,57 @@ export default function FiberPage() {
           ))}
 
           <Button
-            type="dashed"
-            onClick={() =>
-              setFiberProducts({
-                ...fiberProducts,
-                fiberProduct: [
-                  ...fiberProducts.fiberProduct,
-                  {
-                    fiberProductTitle: { en: "", vi: "" },
-                    fiberProductDes: [],
-                    fiberProductImg: "",
-                  },
-                ],
-              })
-            }
-          >
-            {translations[currentLang].addProduct}
-          </Button>
+  type="dashed"
+  onClick={() =>
+    setFiberProducts({
+      ...fiberProducts,
+      fiberProduct: [
+        ...fiberProducts.fiberProduct,
+        {
+          fiberProductTitle: { en: "", vi: "" },
+          fiberProductDes: [],
+          fiberProductImg: "",
+        },
+      ],
+    })
+  }
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    backgroundColor: "#0284C7", // blue
+    border: "none",
+    color: "#fff",
+    padding: "22px",
+    borderRadius: "9999px", // pill shape
+    fontWeight: "600",
+    fontSize: "14px",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    boxShadow: "0 2px 6px rgba(2, 132, 199, 0.4)",
+  }}
+  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0369A1")}
+  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0284C7")}
+>
+  {/* Plus SVG Icon */}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth="2"
+    stroke="currentColor"
+    style={{ width: "18px", height: "18px" }}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 4v16m8-8H4"
+    />
+  </svg>
+
+  {translations[currentLang].addProduct}
+</Button>
+
           <Divider />
           <Tabs
             activeKey={currentLang}
@@ -2048,8 +2081,8 @@ export default function FiberPage() {
               <TabPane tab={`BottomCon ${lang}`} key={lang}>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -2080,8 +2113,8 @@ export default function FiberPage() {
               <TabPane tab={`ButtonText ${lang}`} key={lang}>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -2105,8 +2138,8 @@ export default function FiberPage() {
           </Tabs>
           <Input
             style={{
-              backgroundColor: "#171717",
-              border: "1px solid #2d2d2d",
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
               borderRadius: "8px",
               color: "#fff",
               padding: "10px 14px",
@@ -2133,7 +2166,7 @@ export default function FiberPage() {
               backgroundColor: "#0284C7", // blue
               color: "#fff",
               border: "none",
-              padding: "10px 20px",
+              padding: "22px",
               borderRadius: "9999px", // pill shape
               fontWeight: "500",
               cursor: "pointer",
@@ -2182,8 +2215,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -2207,8 +2240,8 @@ export default function FiberPage() {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -2235,8 +2268,8 @@ export default function FiberPage() {
           </label>
           <Input
             style={{
-              backgroundColor: "#171717",
-              border: "1px solid #2d2d2d",
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
               borderRadius: "8px",
               color: "#fff",
               padding: "10px 14px",
@@ -2343,10 +2376,10 @@ export default function FiberPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
-                  backgroundColor: "#000", // black button
-                  border: "1px solid #333",
+                  backgroundColor: "#E50000", 
+                  border: "1px solid #E50000",
                   color: "#fff",
-                  padding: "8px 14px",
+                  padding: "22px",
                   borderRadius: "9999px", // pill shape
                   fontWeight: "500",
                   fontSize: "13px",
@@ -2392,10 +2425,10 @@ export default function FiberPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                backgroundColor: "#fff",
-                color: "#000",
-                border: "1px solid #ddd",
-                padding: "10px 20px",
+                backgroundColor: "#262626",
+                color: "#fff",
+                border: "1px solid #2E2F2F",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 cursor: "pointer",
@@ -2432,7 +2465,7 @@ export default function FiberPage() {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 cursor: "pointer",

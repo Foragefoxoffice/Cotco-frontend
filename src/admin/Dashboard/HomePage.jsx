@@ -84,7 +84,7 @@ const HomePage = () => {
       logosHeading: "Section Heading",
       partnerLogos: "Partner Logos",
       recommendedLogos: "Recommended: 250×250px",
-      addLogo: "+ Add Partner Logo",
+      addLogo: "Add Partner Logo",
       saveLogos: "Save Company Logos",
       removeLogo: "Remove Logo",
 
@@ -391,7 +391,7 @@ const HomePage = () => {
 
   // ---------------------- UI ---------------------- //
   return (
-    <div className="max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl transition-all duration-300 dypages bg-[#0A0A0A]">
+    <div className="max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl transition-all duration-300 dypages bg-[#171717]">
       <style>{`
         label {
           color: #fff !important;
@@ -426,8 +426,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#262626",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -451,8 +451,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -476,8 +476,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -501,8 +501,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -625,7 +625,7 @@ const HomePage = () => {
                   backgroundColor: "transparent",
                   color: "#fff",
                   border: "1px solid #333",
-                  padding: "10px 20px",
+                  padding: "22px",
                   borderRadius: "9999px", // pill shape
                   fontWeight: "500",
                 }}
@@ -659,7 +659,7 @@ const HomePage = () => {
                   backgroundColor: "#0284C7", // blue
                   color: "#fff",
                   border: "none",
-                  padding: "10px 20px",
+                  padding: "22px",
                   borderRadius: "9999px", // pill shape
                   fontWeight: "500",
                 }}
@@ -710,8 +710,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -734,8 +734,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -758,8 +758,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -782,8 +782,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -852,7 +852,7 @@ const HomePage = () => {
                 gap: "8px",
                 backgroundColor: "#0284C7", // blue
                 color: "white",
-                padding: "10px 20px",
+                padding: "16px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
                 fontSize: "14px",
@@ -890,7 +890,7 @@ const HomePage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}
@@ -926,7 +926,7 @@ const HomePage = () => {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}
@@ -976,8 +976,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -1000,8 +1000,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -1021,14 +1021,14 @@ const HomePage = () => {
                 />
 
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="border rounded mt-4">
+                  <div key={i} className=" rounded mt-4">
                     <label className="font-medium mt-5 mb-3">
                       {translations[currentLang].title} {i}
                     </label>
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#2E2F2F",
+                        border: "1px solid #262626",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -1052,8 +1052,8 @@ const HomePage = () => {
                     </label>
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#2E2F2F",
+                        border: "1px solid #262626",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -1249,7 +1249,7 @@ const HomePage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}
@@ -1292,7 +1292,7 @@ const HomePage = () => {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}
@@ -1342,8 +1342,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -1445,10 +1445,10 @@ const HomePage = () => {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "8px",
-                  backgroundColor: "#000",
+                  backgroundColor: "#2E2F2F",
                   border: "1px solid #333",
                   color: "#fff",
-                  padding: "20px 20px",
+                  padding: "22px",
                   borderRadius: "9999px", // pill shape
                   fontWeight: "500",
                 }}
@@ -1486,10 +1486,10 @@ const HomePage = () => {
               alignItems: "center",
               justifyContent: "center",
               gap: "8px",
-              backgroundColor: "#fff", // white button
-              color: "#111827", // dark text
-              border: "1px solid #ddd",
-              padding: "10px 20px",
+              backgroundColor: "#0085C8", // white button
+              color: "#fff", // dark text
+              border: "1px solid #0085C8",
+              padding: "22px",
               borderRadius: "9999px", // pill shape
               fontWeight: "500",
               marginTop: "12px",
@@ -1526,7 +1526,7 @@ const HomePage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}
@@ -1566,7 +1566,7 @@ const HomePage = () => {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}
@@ -1616,8 +1616,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -1638,14 +1638,14 @@ const HomePage = () => {
                 />
 
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="border rounded mb-4">
+                  <div key={i} className=" rounded mb-4">
                     <label className="font-medium mt-5 mb-3">
                       {translations[currentLang].title} {i}
                     </label>
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#2E2F2F",
+                        border: "1px solid #262626",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -1670,8 +1670,8 @@ const HomePage = () => {
                     </label>
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#2E2F2F",
+                        border: "1px solid #262626",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -1707,7 +1707,7 @@ const HomePage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}
@@ -1741,7 +1741,7 @@ const HomePage = () => {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}
@@ -1791,8 +1791,8 @@ const HomePage = () => {
                 </label>
                 <Input
                   style={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #2d2d2d",
+                    backgroundColor: "#2E2F2F",
+                    border: "1px solid #262626",
                     borderRadius: "8px",
                     color: "#fff",
                     padding: "10px 14px",
@@ -1812,14 +1812,14 @@ const HomePage = () => {
                   }
                 />
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="border rounded mt-4">
+                  <div key={i} className=" rounded mt-4">
                     <label className="font-medium mt-5 mb-3">
                       {translations[currentLang].coreTitleN} {i}
                     </label>
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#2E2F2F",
+                        border: "1px solid #262626",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -1843,8 +1843,8 @@ const HomePage = () => {
                     </label>
                     <Input
                       style={{
-                        backgroundColor: "#171717",
-                        border: "1px solid #2d2d2d",
+                        backgroundColor: "#2E2F2F",
+                        border: "1px solid #262626",
                         borderRadius: "8px",
                         color: "#fff",
                         padding: "10px 14px",
@@ -1879,7 +1879,7 @@ const HomePage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}
@@ -1915,7 +1915,7 @@ const HomePage = () => {
                 backgroundColor: "#0284C7", // blue
                 color: "#fff",
                 border: "none",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}

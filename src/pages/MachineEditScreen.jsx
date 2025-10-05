@@ -10,6 +10,7 @@ import {
   Collapse,
   Space,
   Steps,
+  Modal,
 } from "antd";
 import {
   PlusOutlined,
@@ -18,10 +19,29 @@ import {
   AppstoreOutlined,
   FileAddOutlined,
   SettingOutlined,
+  RightOutlined,
+  LeftOutlined,
+  CheckCircleOutlined,
+  TableOutlined,
+  PictureOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
+
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { getMachineCategories, createMachinePage } from "../Api/api";
 import RichTextEditor from "../components/RichTextEditor";
+import { Row, Col } from "antd";
+import "../assets/css/LanguageTabs.css";
+import DeleteConfirm from "../components/DeleteConfirm";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import CustomStepper from "../components/CustomStepper";
+
+const stepsList = [
+  { title: "Basic Info" },
+  { title: "Sections" },
+  { title: "SEO & Create" },
+];
 
 const { TextArea } = Input;
 const { Step } = Steps;
@@ -32,34 +52,48 @@ const TranslationInput = ({
   onChange,
   placeholder,
 }) => (
-  <Tabs
-    size="small"
-    defaultActiveKey="en"
-    items={[
-      {
-        key: "en",
-        label: "EN",
-        children: (
-          <Input
-            placeholder={placeholder}
-            value={value?.en}
-            onChange={(e) => onChange({ ...value, en: e.target.value })}
-          />
-        ),
-      },
-      {
-        key: "vn",
-        label: "VN",
-        children: (
-          <Input
-            placeholder={placeholder}
-            value={value?.vn}
-            onChange={(e) => onChange({ ...value, vn: e.target.value })}
-          />
-        ),
-      },
-    ]}
-  />
+  <Row gutter={12}>
+    <Col span={12}>
+      <h3 className="text-white mt-5 text-md">
+        EN <span className="text-xs">(English)</span>
+      </h3>
+      <Input
+        className="custom-dark-input"
+        style={{
+          backgroundColor: "#262626",
+          border: "1px solid #2E2F2F",
+          borderRadius: "8px",
+          color: "#fff",
+          padding: "10px 14px",
+          fontSize: "14px",
+          transition: "all 0.3s ease",
+        }}
+        placeholder={placeholder}
+        value={value?.en}
+        onChange={(e) => onChange({ ...value, en: e.target.value })}
+      />
+    </Col>
+    <Col span={12}>
+      <h3 className="text-white mt-5 text-md">
+        VN <span className="text-xs">(vietnamese)</span>
+      </h3>
+      <Input
+        className="custom-dark-input"
+        style={{
+          backgroundColor: "#262626",
+          border: "1px solid #2E2F2F",
+          borderRadius: "8px",
+          color: "#fff",
+          padding: "10px 14px",
+          fontSize: "14px",
+          transition: "all 0.3s ease",
+        }}
+        placeholder={placeholder}
+        value={value?.vn}
+        onChange={(e) => onChange({ ...value, vn: e.target.value })}
+      />
+    </Col>
+  </Row>
 );
 
 const TranslationTextArea = ({
@@ -67,50 +101,213 @@ const TranslationTextArea = ({
   onChange,
   placeholder,
 }) => (
-  <Tabs
-    size="small"
-    defaultActiveKey="en"
-    items={[
-      {
-        key: "en",
-        label: "EN",
-        children: (
-          <TextArea
-            placeholder={placeholder}
-            value={value?.en}
-            rows={3}
-            onChange={(e) => onChange({ ...value, en: e.target.value })}
-          />
-        ),
-      },
-      {
-        key: "vn",
-        label: "VN",
-        children: (
-          <TextArea
-            placeholder={placeholder}
-            value={value?.vn}
-            rows={3}
-            onChange={(e) => onChange({ ...value, vn: e.target.value })}
-          />
-        ),
-      },
-    ]}
-  />
+  <Row gutter={12}>
+    <Col span={12}>
+      <h3 className="text-white mt-5 text-md">
+        EN <span className="text-xs">(English)</span>
+      </h3>
+      <TextArea
+        className="custom-dark-input"
+        style={{
+          backgroundColor: "#262626",
+          border: "1px solid #2E2F2F",
+          borderRadius: "8px",
+          color: "#fff",
+          padding: "10px 14px",
+          fontSize: "14px",
+          transition: "all 0.3s ease",
+        }}
+        placeholder={placeholder}
+        value={value?.en}
+        rows={3}
+        onChange={(e) => onChange({ ...value, en: e.target.value })}
+      />
+    </Col>
+    <Col span={12}>
+      <h3 className="text-white mt-5">
+        VN <span className="text-xs">(vietnamese)</span>
+      </h3>
+      <TextArea
+        className="custom-dark-input"
+        style={{
+          backgroundColor: "#262626",
+          border: "1px solid #2E2F2F",
+          borderRadius: "8px",
+          color: "#fff",
+          padding: "10px 14px",
+          fontSize: "14px",
+          transition: "all 0.3s ease",
+        }}
+        placeholder={placeholder}
+        value={value?.vn}
+        rows={3}
+        onChange={(e) => onChange({ ...value, vn: e.target.value })}
+      />
+    </Col>
+  </Row>
 );
 
 /* ---------- Section Toolbar ---------- */
 const SectionToolbar = ({ onAdd }) => (
   <Space wrap>
-    <Button onClick={() => onAdd("text")}>+ Text</Button>
-    <Button onClick={() => onAdd("richtext")}>+ Rich Text</Button>
-    <Button onClick={() => onAdd("list")}>+ List</Button>
-    <Button onClick={() => onAdd("blocks")}>+ Blocks</Button>
-    <Button onClick={() => onAdd("tabs")}>+ Tabs</Button>
-    <Button onClick={() => onAdd("table")}>+ Table</Button>
-    <Button onClick={() => onAdd("imageLeft")}>+ Image Left</Button>
-    <Button onClick={() => onAdd("imageRight")}>+ Image Right</Button>
-    <Button onClick={() => onAdd("image")}>+ Image</Button>
+    <Button
+      icon={<FileTextOutlined />}
+      style={{
+        backgroundColor: "#262626",
+        borderColor: "#2E2F2F",
+        borderRadius: "2rem",
+        fontWeight: 600,
+        color: "#fff",
+        padding: "22px",
+        transition: "all 0.3s ease",
+      }}
+      onClick={() => onAdd("text")}
+    >
+      Text
+    </Button>
+
+    <Button
+      icon={<FileAddOutlined />}
+      style={{
+        backgroundColor: "#262626",
+        borderColor: "#2E2F2F",
+        borderRadius: "2rem",
+        fontWeight: 600,
+        color: "#fff",
+        padding: "22px",
+        transition: "all 0.3s ease",
+      }}
+      onClick={() => onAdd("richtext")}
+    >
+      Rich Text
+    </Button>
+
+    <Button
+      icon={<AppstoreOutlined />}
+      style={{
+        backgroundColor: "#262626",
+        borderColor: "#2E2F2F",
+        borderRadius: "2rem",
+        fontWeight: 600,
+        color: "#fff",
+        padding: "22px",
+        transition: "all 0.3s ease",
+      }}
+      onClick={() => onAdd("list")}
+    >
+      List
+    </Button>
+
+    <Button
+      icon={<PlusOutlined />}
+      style={{
+        backgroundColor: "#262626",
+        borderColor: "#2E2F2F",
+        borderRadius: "2rem",
+        fontWeight: 600,
+        color: "#fff",
+        padding: "22px",
+        transition: "all 0.3s ease",
+      }}
+      onClick={() => onAdd("blocks")}
+    >
+      Blocks
+    </Button>
+
+    <Button
+      icon={<AppstoreOutlined />}
+      style={{
+        backgroundColor: "#262626",
+        borderColor: "#2E2F2F",
+        borderRadius: "2rem",
+        fontWeight: 600,
+        color: "#fff",
+        padding: "22px",
+        transition: "all 0.3s ease",
+      }}
+      onClick={() => onAdd("tabs")}
+    >
+      Tabs
+    </Button>
+
+    <Button
+      icon={<TableOutlined />}
+      style={{
+        backgroundColor: "#262626",
+        borderColor: "#2E2F2F",
+        borderRadius: "2rem",
+        fontWeight: 600,
+        color: "#fff",
+        padding: "22px",
+        transition: "all 0.3s ease",
+      }}
+      onClick={() => onAdd("table")}
+    >
+      Table
+    </Button>
+
+    <Button
+      icon={<PictureOutlined />}
+      style={{
+        backgroundColor: "#262626",
+        borderColor: "#2E2F2F",
+        borderRadius: "2rem",
+        fontWeight: 600,
+        color: "#fff",
+        padding: "22px",
+        transition: "all 0.3s ease",
+      }}
+      onClick={() => onAdd("imageLeft")}
+    >
+      Image Left
+    </Button>
+
+    <Button
+      icon={<PictureOutlined />}
+      style={{
+        backgroundColor: "#262626",
+        borderColor: "#2E2F2F",
+        borderRadius: "2rem",
+        fontWeight: 600,
+        color: "#fff",
+        padding: "22px",
+        transition: "all 0.3s ease",
+      }}
+      onClick={() => onAdd("imageRight")}
+    >
+      Image Right
+    </Button>
+
+    <Button
+      icon={<PictureOutlined />}
+      style={{
+        backgroundColor: "#262626",
+        borderColor: "#2E2F2F",
+        borderRadius: "2rem",
+        fontWeight: 600,
+        color: "#fff",
+        padding: "22px",
+        transition: "all 0.3s ease",
+      }}
+      onClick={() => onAdd("image")}
+    >
+      Image
+    </Button>
+    <Button
+      icon={<PlusOutlined />}
+      style={{
+        backgroundColor: "#262626",
+        borderColor: "#2E2F2F",
+        borderRadius: "2rem",
+        fontWeight: 600,
+        color: "#fff",
+        padding: "22px",
+        transition: "all 0.3s ease",
+      }}
+      onClick={() => onAdd("button")}
+    >
+      Button
+    </Button>
   </Space>
 );
 
@@ -125,6 +322,7 @@ const newBlankSection = (type) => ({
   tabs: [],
   table: { header: "", rows: [] },
   image: "",
+  button: { name: { en: "", vn: "" }, link: "" },
 });
 
 /* ---------- Section Editor ---------- */
@@ -153,7 +351,7 @@ const SectionEditor = ({ basePath, section, control }) => {
     case "richtext":
       return (
         <>
-          <p className="font-medium mb-1">Rich Text EN</p>
+          <p className="font-medium mb-1 text-white">Rich Text EN</p>
           <Controller
             name={`${basePath}.richtext.en`}
             control={control}
@@ -161,7 +359,7 @@ const SectionEditor = ({ basePath, section, control }) => {
               <RichTextEditor value={field.value} onChange={field.onChange} />
             )}
           />
-          <p className="font-medium mt-3 mb-1">Rich Text VN</p>
+          <p className="font-medium mt-3 mb-1 text-white">Rich Text VN</p>
           <Controller
             name={`${basePath}.richtext.vn`}
             control={control}
@@ -174,35 +372,68 @@ const SectionEditor = ({ basePath, section, control }) => {
 
     case "list":
       return (
-        <Controller
-          name={`${basePath}.listItems`}
-          control={control}
-          render={({ field }) => (
-            <>
-              <Button
-                type="dashed"
-                onClick={() =>
-                  field.onChange([...(field.value || []), { en: "", vn: "" }])
-                }
-              >
-                + Add List Item
-              </Button>
-              {(field.value || []).map((item, i) => (
-                <Card size="small" key={i} className="mt-2">
-                  <TranslationInput
-                    value={item}
-                    placeholder={`List Item ${i + 1}`}
-                    onChange={(val) => {
-                      const list = [...(field.value || [])];
-                      list[i] = val;
-                      field.onChange(list);
-                    }}
-                  />
-                </Card>
-              ))}
-            </>
-          )}
-        />
+        <>
+          {/* List Title (EN + VN) */}
+          <Controller
+            name={`${basePath}.listTitle`}
+            control={control}
+            render={({ field }) => (
+              <Card size="small" className=" text-white">
+                <TranslationInput
+                  value={field.value || { en: "", vn: "" }}
+                  placeholder="List Title"
+                  onChange={field.onChange}
+                />
+              </Card>
+            )}
+          />
+
+          {/* List Items */}
+          <Controller
+            name={`${basePath}.listItems`}
+            control={control}
+            render={({ field }) => (
+              <>
+                <Button
+                  onClick={() =>
+                    field.onChange([...(field.value || []), { en: "", vn: "" }])
+                  }
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    backgroundColor: "#0284C7", // blue background
+                    color: "#fff",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: "9999px", // pill shape
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    marginTop: "20px",
+                  }}
+                >
+                  <PlusOutlined /> Add List Item
+                </Button>
+
+                {(field.value || []).map((item, i) => (
+                  <Card size="small" key={i} className="mt-2">
+                    <TranslationInput
+                      value={item}
+                      placeholder={`List Item ${i + 1}`}
+                      onChange={(val) => {
+                        const list = [...(field.value || [])];
+                        list[i] = val;
+                        field.onChange(list);
+                      }}
+                    />
+                  </Card>
+                ))}
+              </>
+            )}
+          />
+        </>
       );
 
     case "blocks":
@@ -213,7 +444,6 @@ const SectionEditor = ({ basePath, section, control }) => {
           render={({ field }) => (
             <>
               <Button
-                type="dashed"
                 onClick={() =>
                   field.onChange([
                     ...(field.value || []),
@@ -224,9 +454,24 @@ const SectionEditor = ({ basePath, section, control }) => {
                     },
                   ])
                 }
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  backgroundColor: "#0284C7", // blue
+                  color: "#fff",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: "9999px", // pill shape
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                }}
               >
-                + Add Block
+                <PlusOutlined /> Add Block
               </Button>
+
               {(field.value || []).map((block, bi) => (
                 <Card size="small" key={bi} className="mt-2">
                   <TranslationInput
@@ -248,6 +493,7 @@ const SectionEditor = ({ basePath, section, control }) => {
                     }}
                   />
                   {/* ✅ Block Image Upload */}
+                  <h3 className="mt-5 text-white mb-2">Upload Image</h3>
                   <Upload
                     beforeUpload={() => false}
                     listType="picture-card"
@@ -282,8 +528,8 @@ const SectionEditor = ({ basePath, section, control }) => {
                   >
                     {!block.image && (
                       <div>
-                        <PlusOutlined />
-                        <div>Upload</div>
+                        <PlusOutlined className="text-white" />
+                        <div className="text-white">Upload</div>
                       </div>
                     )}
                   </Upload>
@@ -298,46 +544,88 @@ const SectionEditor = ({ basePath, section, control }) => {
     case "imageRight":
     case "image":
       return (
-        <Controller
-          name={`${basePath}.image`}
-          control={control}
-          render={({ field }) => (
-            <Upload
-              beforeUpload={() => false}
-              listType="picture-card"
-              fileList={
-                field.value
-                  ? [
-                      {
-                        uid: "-1",
-                        name: field.value.name || "image.png",
-                        status: "done",
-                        url:
-                          typeof field.value === "string"
-                            ? field.value
-                            : undefined,
-                        originFileObj:
-                          field.value instanceof File
-                            ? field.value
-                            : field.value?.originFileObj,
-                      },
-                    ]
-                  : []
-              }
-              onChange={({ fileList }) => {
-                const file = fileList[0];
-                field.onChange(file?.originFileObj || file?.url || "");
-              }}
-            >
-              {!field.value && (
-                <div>
-                  <PlusOutlined />
-                  <div>Upload Image</div>
-                </div>
-              )}
-            </Upload>
-          )}
-        />
+        <div className="space-y-4">
+          {/* ✅ Title (EN + VN) */}
+          <Controller
+            name={`${basePath}.title`}
+            control={control}
+            render={({ field }) => (
+              <TranslationInput
+                value={field.value || { en: "", vn: "" }}
+                placeholder="Image Title"
+                onChange={field.onChange}
+              />
+            )}
+          />
+
+          <Controller
+            name={`${basePath}.description.en`}
+            control={control}
+            render={({ field }) => (
+              <>
+                <p className="font-medium mb-1 text-white">Description (EN)</p>
+                <RichTextEditor value={field.value} onChange={field.onChange} />
+              </>
+            )}
+          />
+
+          <Controller
+            name={`${basePath}.description.vn`}
+            control={control}
+            render={({ field }) => (
+              <>
+                <p className="font-medium mt-3 mb-1 text-white">
+                  Description (VN)
+                </p>
+                <RichTextEditor value={field.value} onChange={field.onChange} />
+              </>
+            )}
+          />
+
+          {/* ✅ Image Upload */}
+
+          <h3 className="text-white mb-2 ">Upload Image</h3>
+          <Controller
+            name={`${basePath}.image`}
+            control={control}
+            render={({ field }) => (
+              <Upload
+                beforeUpload={() => false}
+                listType="picture-card"
+                fileList={
+                  field.value
+                    ? [
+                        {
+                          uid: "-1",
+                          name: field.value.name || "image.png",
+                          status: "done",
+                          url:
+                            typeof field.value === "string"
+                              ? field.value
+                              : undefined,
+                          originFileObj:
+                            field.value instanceof File
+                              ? field.value
+                              : field.value?.originFileObj,
+                        },
+                      ]
+                    : []
+                }
+                onChange={({ fileList }) => {
+                  const file = fileList[0];
+                  field.onChange(file?.originFileObj || file?.url || "");
+                }}
+              >
+                {!field.value && (
+                  <div>
+                    <PlusOutlined style={{ color: "#fff" }} />
+                    <div className="text-white">Upload Image</div>
+                  </div>
+                )}
+              </Upload>
+            )}
+          />
+        </div>
       );
 
     case "tabs": {
@@ -350,18 +638,50 @@ const SectionEditor = ({ basePath, section, control }) => {
       return (
         <>
           <Button
-            type="dashed"
+            icon={<PlusOutlined />}
             onClick={() =>
               appendTab({ tabTitle: { en: "", vn: "" }, sections: [] })
             }
+            style={{
+              borderRadius: "999px",
+              fontWeight: 500,
+              color: "#fff",
+              background: "#0288d1",
+              border: "1px solid #0288d1",
+              padding: "10px 24px",
+              height: "auto",
+              marginBottom: "20px",
+            }}
           >
-            + Add Tab
+            Add New Tab
           </Button>
+
           <Tabs
-            className="mt-3"
+            className="mt-6 pill-tabs"
             items={tabFields.map((tab, ti) => ({
               key: tab.id,
-              label: tab.tabTitle?.en || `Tab ${ti + 1}`,
+              label: (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <span>{tab.tabTitle?.en || `Tab ${ti + 1}`}</span>
+                  <CloseOutlined
+                    style={{
+                      color: "red", // 🔴 red cross
+                      fontSize: "12px",
+                      cursor: "pointer",
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation(); // don’t switch tab when clicking X
+                      removeTab(ti); // remove tab
+                    }}
+                  />
+                </div>
+              ),
               children: (
                 <>
                   <Controller
@@ -377,9 +697,6 @@ const SectionEditor = ({ basePath, section, control }) => {
                       control={control}
                     />
                   </div>
-                  <Button danger onClick={() => removeTab(ti)}>
-                    Remove Tab
-                  </Button>
                 </>
               ),
             }))}
@@ -391,59 +708,102 @@ const SectionEditor = ({ basePath, section, control }) => {
     case "table":
       return (
         <>
+          {/* ✅ Table Header with EN/VN */}
           <Controller
             name={`${basePath}.table.header`}
             control={control}
             render={({ field }) => (
-              <Input
+              <TranslationInput
                 {...field}
                 placeholder="Table Title (e.g., Specifications)"
               />
             )}
           />
+
+          {/* ✅ Table Rows with EN/VN per cell */}
           <Controller
             name={`${basePath}.table.rows`}
             control={control}
             render={({ field }) => (
               <div className="mt-3">
-                <Button
-                  type="dashed"
-                  onClick={() => field.onChange([...(field.value || []), [""]])}
-                >
-                  + Add Row
-                </Button>
                 {(field.value || []).map((row, ri) => (
                   <Card size="small" key={ri} className="mt-2">
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-3">
+                      {/* Each Cell with Remove option */}
                       {row.map((cell, ci) => (
-                        <Input
+                        <div
                           key={ci}
-                          placeholder={`Cell ${ci + 1}`}
-                          value={cell}
-                          onChange={(e) => {
-                            const rows = [...field.value];
-                            rows[ri][ci] = e.target.value;
-                            field.onChange(rows);
-                          }}
-                        />
+                          className="grid grid-cols-2 items-end gap-2"
+                        >
+                          <TranslationInput
+                            value={cell}
+                            placeholder={`Cell ${ci + 1}`}
+                            onChange={(val) => {
+                              const rows = [...field.value];
+                              rows[ri][ci] = val;
+                              field.onChange(rows);
+                            }}
+                          />
+
+                          <Button
+                            size="small"
+                            icon={<DeleteOutlined />}
+                            style={{
+                              borderRadius: "999px",
+                              fontWeight: 500,
+                              background: "#E50000", // red
+                              color: "#fff",
+                              border: "none",
+                              padding: "12px 24px",
+                              height: "auto",
+                            }}
+                            onClick={() => {
+                              const rows = [...field.value];
+                              rows[ri].splice(ci, 1); // remove that cell
+                              field.onChange(rows);
+                            }}
+                          ></Button>
+                        </div>
                       ))}
-                      <div className="flex gap-2 mt-2">
+
+                      {/* Row-level actions */}
+                      <div className="flex gap-2 mt-3">
                         <Button
                           size="small"
+                          icon={<PlusOutlined />}
+                          style={{
+                            borderRadius: "999px",
+                            fontWeight: 500,
+                            background: "#171717",
+                            color: "#fff",
+                            padding: "12px 20px",
+                            height: "auto",
+                            border: "1px solid #2E2F2F",
+                          }}
                           onClick={() => {
                             const rows = [...field.value];
-                            rows[ri].push("");
+                            rows[ri].push({ en: "", vn: "" }); // add new EN+VN cell
                             field.onChange(rows);
                           }}
                         >
-                          + Add Cell
+                          Add Cell
                         </Button>
+
                         <Button
                           size="small"
-                          danger
+                          icon={<DeleteOutlined />}
+                          style={{
+                            borderRadius: "999px",
+                            fontWeight: 500,
+                            background: "#E50000",
+                            color: "#fff",
+                            border: "none",
+                            padding: "12px 20px",
+                            height: "auto",
+                          }}
                           onClick={() => {
                             const rows = [...field.value];
-                            rows.splice(ri, 1);
+                            rows.splice(ri, 1); // remove whole row
                             field.onChange(rows);
                           }}
                         >
@@ -453,10 +813,75 @@ const SectionEditor = ({ basePath, section, control }) => {
                     </div>
                   </Card>
                 ))}
+
+                {/* Add new row button */}
+                <Button
+                  type="dashed"
+                  block={false}
+                  icon={<PlusOutlined />}
+                  style={{
+                    borderRadius: "999px",
+                    background: "#0288d1",
+                    border: "none",
+                    color: "#fff",
+                    fontWeight: 500,
+                    padding: "10px 20px",
+                    height: "auto",
+                    marginTop: "20px",
+                  }}
+                  onClick={() =>
+                    field.onChange([
+                      ...(field.value || []),
+                      [{ en: "", vn: "" }],
+                    ])
+                  }
+                >
+                  Add New Row
+                </Button>
               </div>
             )}
           />
         </>
+      );
+
+    case "button":
+      return (
+        <div className="space-y-4">
+          {/* ✅ Button Name (EN + VN) */}
+          <Controller
+            name={`${basePath}.button.name`}
+            control={control}
+            render={({ field }) => (
+              <TranslationInput
+                value={field.value || { en: "", vn: "" }}
+                placeholder="Button Label"
+                onChange={field.onChange}
+              />
+            )}
+          />
+
+          {/* ✅ Button Link */}
+          <Controller
+            name={`${basePath}.button.link`}
+            control={control}
+            render={({ field }) => (
+              <Input
+                className="custom-dark-input"
+                style={{
+                  backgroundColor: "#262626",
+                  border: "1px solid #2E2F2F",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                  transition: "all 0.3s ease",
+                }}
+                {...field}
+                placeholder="Enter button link (e.g. https://example.com/download)"
+              />
+            )}
+          />
+        </div>
       );
 
     default:
@@ -482,6 +907,7 @@ const TabSectionsEditor = ({ basePath, control }) => {
                 e.stopPropagation();
                 remove(i);
               }}
+              className="text-white"
             />
           ),
           children: (
@@ -498,7 +924,12 @@ const TabSectionsEditor = ({ basePath, control }) => {
 };
 
 /* ---------- Main Component ---------- */
-const MachinePageCreate = ({ onSuccess }) => {
+const MachinePageCreate = ({
+  onSuccess,
+  initialData,
+  isEdit = false,
+  onSubmitUpdate,
+}) => {
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       categoryId: "",
@@ -534,7 +965,23 @@ const MachinePageCreate = ({ onSuccess }) => {
     })();
   }, []);
 
-  const onSubmit = async (values) => {
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData);
+      if (initialData.banner) {
+        setBannerFile([
+          {
+            uid: "-1",
+            name: "banner.png",
+            status: "done",
+            url: initialData.banner,
+          },
+        ]);
+      }
+    }
+  }, [initialData, reset]);
+
+  const handleFormSubmit = async (values) => {
     try {
       setLoading(true);
       const formData = new FormData();
@@ -614,31 +1061,66 @@ const MachinePageCreate = ({ onSuccess }) => {
 
       formData.append("sections", JSON.stringify(sections));
 
-      await createMachinePage(formData);
-      message.success("✅ Machine Page created");
-      onSuccess?.();
-      reset();
+      if (isEdit) {
+        await onSubmitUpdate(formData); // update API
+        toast.success("Page updated successfully");
+      } else {
+        await createMachinePage(formData); // create API
+        toast.success("Page created successfully");
+        onSuccess?.();
+        reset();
+      }
     } catch (err) {
-      message.error(err?.response?.data?.error || "❌ Something went wrong");
-    } finally {
-      setLoading(false);
+      console.error("Form submit error:", err); // keep this for developers in console
+
+      // Default user message
+      let userMessage = "Something went wrong. Please try again.";
+
+      // Show nicer messages based on known error types
+      if (err?.response?.status === 400) {
+        userMessage =
+          "Some fields are missing or invalid. Please check your input.";
+      } else if (err?.response?.status === 401) {
+        userMessage = "You are not authorized. Please login again.";
+      } else if (err?.response?.status === 404) {
+        userMessage = "Requested resource not found.";
+      } else if (err?.response?.status === 500) {
+        userMessage = "Server is having trouble. Please try again later.";
+      }
+
+      toast.error(userMessage);
     }
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <Card className="mb-6 shadow-md">
-        <Steps current={step} onChange={setStep} responsive>
-          <Step title="Basic Info" icon={<FileTextOutlined />} />
-          <Step title="Sections" icon={<AppstoreOutlined />} />
-          <Step title="SEO & Banner" icon={<SettingOutlined />} />
-          <Step title="Review" icon={<FileAddOutlined />} />
-        </Steps>
+    <div className="p-6 min-h-screen edit-form">
+      {/* 🔙 Back Button */}
+      <div className="mb-4">
+        <Button
+          icon={<LeftOutlined />}
+          onClick={() => window.history.back()} // or use navigate(-1) if using react-router
+          style={{
+            borderRadius: 8,
+            fontWeight: 500,
+            background: "#171717",
+            color: "#fff",
+            border: "1px solid #2d2d2d",
+          }}
+        >
+          Back
+        </Button>
+      </div>
+      <Card className="mb-6 shadow-md bg-[#171717] border border-[#2E2F2F]">
+        <CustomStepper
+          steps={stepsList}
+          currentStep={step}
+          onStepChange={setStep}
+        />
       </Card>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="bg-[#171717]">
         {step === 0 && (
-          <Card title="Basic Information" className="shadow-md">
+          <Card title="Basic Information" className="shadow-md bg-red-500">
             <Controller
               name="categoryId"
               control={control}
@@ -646,8 +1128,18 @@ const MachinePageCreate = ({ onSuccess }) => {
               render={({ field }) => (
                 <Select
                   {...field}
+                  value={field.value || undefined}
                   placeholder="Select category"
-                  className="w-72"
+                  className="w-72 custom-dark-select"
+                  allowClear
+                  style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff !impotant",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
                 >
                   {categories.map((cat) => (
                     <Select.Option key={cat._id} value={cat._id}>
@@ -657,6 +1149,7 @@ const MachinePageCreate = ({ onSuccess }) => {
                 </Select>
               )}
             />
+
             <Controller
               name="title"
               control={control}
@@ -675,17 +1168,56 @@ const MachinePageCreate = ({ onSuccess }) => {
                 />
               )}
             />
+            <h3 className="text-white mt-5 text-md">slug</h3>
             <Controller
               name="slug"
               control={control}
               rules={{ required: "Slug is required" }}
-              render={({ field }) => <Input {...field} placeholder="slug" />}
+              render={({ field }) => (
+                <Input
+                  className="custom-dark-input"
+                  style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
+                  {...field}
+                  placeholder="slug"
+                />
+              )}
             />
+
+            {/* ✅ Banner Upload moved here */}
+            <div className="mt-4">
+              <h3 className="mb-2 font-medium text-white">
+                Meta Image / Banner
+              </h3>
+              <Upload
+                style={{
+                  color: "white",
+                }}
+                beforeUpload={() => false}
+                listType="picture-card"
+                fileList={bannerFile}
+                onChange={({ fileList }) => setBannerFile(fileList)}
+              >
+                {bannerFile.length === 0 && (
+                  <div>
+                    <PlusOutlined />
+                    <div className="text-white">Upload</div>
+                  </div>
+                )}
+              </Upload>
+            </div>
           </Card>
         )}
 
         {step === 1 && (
-          <Card title="Sections Builder" className="shadow-md">
+          <Card title="Sections Builder" className="text-white">
             <div className="mb-4">
               <SectionToolbar onAdd={(type) => append(newBlankSection(type))} />
             </div>
@@ -694,14 +1226,8 @@ const MachinePageCreate = ({ onSuccess }) => {
               items={sections.map((s, i) => ({
                 key: s.id,
                 label: `Section (${s.type})`,
-                extra: (
-                  <DeleteOutlined
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      remove(i);
-                    }}
-                  />
-                ),
+                // 👈 use it here
+                extra: <DeleteConfirm onConfirm={() => remove(i)} />,
                 children: (
                   <SectionEditor
                     basePath={`sections.${i}`}
@@ -715,63 +1241,158 @@ const MachinePageCreate = ({ onSuccess }) => {
         )}
 
         {step === 2 && (
-          <Card title="SEO & Banner" className="shadow-md">
-            <Controller
-              name="metaTitle"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} placeholder="Meta Title" />
-              )}
-            />
-            <Controller
-              name="metaDescription"
-              control={control}
-              render={({ field }) => (
-                <TextArea {...field} placeholder="Meta Description" rows={2} />
-              )}
-            />
-            <Controller
-              name="keywords"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} placeholder="Keywords (comma separated)" />
-              )}
-            />
-            <Upload
-              beforeUpload={() => false}
-              listType="picture-card"
-              fileList={bannerFile}
-              onChange={({ fileList }) => setBannerFile(fileList)}
-            >
-              {bannerFile.length === 0 && (
-                <div>
-                  <PlusOutlined />
-                  <div>Upload</div>
-                </div>
-              )}
-            </Upload>
+          <Card title="SEO & Create" className="text-white">
+            <div style={{ marginBottom: 16 }}>
+              <Controller
+                name="metaTitle"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    className="custom-dark-input"
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                      fontSize: "14px",
+                      transition: "all 0.3s ease",
+                    }}
+                    {...field}
+                    placeholder="Meta Title"
+                  />
+                )}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <Controller
+                name="metaDescription"
+                control={control}
+                render={({ field }) => (
+                  <TextArea
+                    className="custom-dark-input"
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                      fontSize: "14px",
+                      transition: "all 0.3s ease",
+                    }}
+                    {...field}
+                    placeholder="Meta Description"
+                    rows={2}
+                  />
+                )}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <Controller
+                name="keywords"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    className="custom-dark-input"
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                      fontSize: "14px",
+                      transition: "all 0.3s ease",
+                    }}
+                    {...field}
+                    placeholder="Keywords (comma separated)"
+                  />
+                )}
+              />
+            </div>
+
+            {/* ✅ Create Page Button now here */}
+            <div className="flex justify-end mt-6">
+  <Button
+    type="primary"
+    htmlType="submit"
+    loading={loading}
+    size="large"
+    icon={<CheckCircleOutlined />}
+    style={{
+      borderRadius: "9999px", // pill shape for modern look
+      fontWeight: 600,
+      padding: "26px 36px",
+      background: "linear-gradient(135deg, #1677ff, #3b82f6)", // vibrant blue gradient
+      boxShadow: "0 6px 14px rgba(59,130,246,0.3)",
+      border: "none",
+      color: "#fff",
+      transition: "all 0.3s ease",
+    }}
+    onMouseEnter={(e) =>
+      (e.currentTarget.style.background =
+        "linear-gradient(135deg, #0a66e5, #2563eb)")
+    }
+    onMouseLeave={(e) =>
+      (e.currentTarget.style.background =
+        "linear-gradient(135deg, #1677ff, #3b82f6)")
+    }
+  >
+    {isEdit ? "Update Page" : "Create Page"}
+  </Button>
+</div>
+
           </Card>
         )}
 
         {step === 3 && (
-          <Card title="Review & Create" className="shadow-md">
-            <p className="text-gray-600">
-              ✅ All set! Click <b>Create</b> to save your page.
-            </p>
-          </Card>
+          <Card
+            className="shadow-lg rounded-2xl border text-center bg-[#0A0A0A]"
+            bodyStyle={{ padding: "40px" }}
+          ></Card>
         )}
 
-        <div className="flex justify-between mt-6">
-          {step > 0 && <Button onClick={() => setStep(step - 1)}>Back</Button>}
-          {step < 3 && (
-            <Button type="primary" onClick={() => setStep(step + 1)}>
-              Next
-            </Button>
+        <div className="flex items-center justify-between p-6">
+          {step > 0 && (
+            <Button
+  onClick={() => setStep(step - 1)}
+  size="large"
+  icon={<LeftOutlined />}
+  style={{
+    borderRadius: "9999px", // pill shape
+    fontWeight: 600,
+    padding: "22px 36px",
+    background: "#2E2F2F", // dark gray gradient
+    color: "#fff",
+    border: "none",
+    transition: "all 0.3s ease",
+  }}
+>
+  Previous
+</Button>
+
           )}
-          {step === 3 && (
-            <Button type="primary" htmlType="submit" loading={loading}>
-              Create Page
-            </Button>
+
+          {step < 2 && ( // ✅ now only 3 steps total
+            <Button
+  type="primary"
+  onClick={() => setStep(step + 1)}
+  size="large"
+  icon={<RightOutlined />}
+  iconPosition="end"
+  style={{
+    borderRadius: "9999px", // pill shape
+    fontWeight: 600,
+    padding: "22px 36px",
+    background:"#0085C8",
+    border: "none",
+    transition: "all 0.3s ease",
+  }}
+>
+  Next
+</Button>
+
           )}
         </div>
       </form>

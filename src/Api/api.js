@@ -69,17 +69,26 @@ export const deleteMachineSection = (id) =>
    MACHINE PAGES
    (Backend route: /machines/pages)
 ========================================================= */
-export const createMachinePage = (data) => API.post("/machines/pages", data);
+export const createMachinePage = (formData) =>
+  API.post("/machines/pages", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 export const getMachinePages = () => API.get("/machines/pages");
 export const getMachinePageBySlug = (slug) =>
   API.get(`/machines/pages/${slug}`);
-export const updateMachinePage = (id, data) =>
-  API.put(`/machines/pages/${id}`, data);
+export const updateMachinePage = (id, formData) =>
+  API.put(`/machines/pages/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 export const deleteMachinePage = (id) => API.delete(`/machines/pages/${id}`);
 
 // 🔹 Get all pages by category slug
 export const getMachinePagesByCategorySlug = (categorySlug) =>
   API.get(`/machines/pages/category/${categorySlug}`);
+
+export const getMachinePageById = (id) =>
+  API.get(`/machines/pages/${id}`);
+
 
 /* =========================================================
    BLOGS

@@ -88,43 +88,44 @@ const MachinePageDetail = () => {
           </div>
         );
       case "table":
-        return (
-          <div key={index} className="overflow-x-auto my-10 page-width">
-            {section.table.header && (
-              <h3 className="text-2xl font-bold mb-4">
-                {section.table.header}
-              </h3>
-            )}
-            <table className="table-auto border-collapse w-full text-sm">
-              <thead>
-                <tr className="bg-[#11456C] text-white">
-                  {section.table.rows?.[0]?.map((_, ci) => (
-                    <th
-                      key={ci}
-                      className="border border-gray-300 px-4 py-2 text-left font-semibold"
-                    >
-                      {section.table.rows[0][ci] || ""}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {section.table.rows?.slice(1).map((row, ri) => (
-                  <tr key={ri} className="odd:bg-white even:bg-gray-50">
-                    {row.map((cell, ci) => (
-                      <td
-                        key={ci}
-                        className="border border-gray-300 px-4 py-2 text-gray-800"
-                      >
-                        {cell}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
+  return (
+    <div key={index} className="overflow-x-auto my-10 page-width">
+      {section.table?.header && (
+        <h3 className="text-2xl font-bold mb-4">
+          {section.table.header?.en || section.table.header?.vn || ""}
+        </h3>
+      )}
+      <table className="table-auto border-collapse w-full text-sm">
+        <thead>
+          <tr className="bg-[#11456C] text-white">
+            {section.table.rows?.[0]?.map((cell, ci) => (
+              <th
+                key={ci}
+                className="border border-gray-300 px-4 py-2 text-left font-semibold"
+              >
+                {cell?.en || cell?.vn || ""}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {section.table.rows?.slice(1).map((row, ri) => (
+            <tr key={ri} className="odd:bg-white even:bg-gray-50">
+              {row.map((cell, ci) => (
+                <td
+                  key={ci}
+                  className="border border-gray-300 px-4 py-2 text-gray-800"
+                >
+                  {cell?.en || cell?.vn || ""}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
       case "image":
         return (
           <div key={index} className="page-width my-10 flex justify-center">

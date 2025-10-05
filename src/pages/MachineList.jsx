@@ -137,36 +137,36 @@ const MachineList = () => {
       {/* ================= MACHINE PAGES LIST ================= */}
       <div className="page-width py-12">
         <Row gutter={[24, 24]}>
-          {machines.map((machine) => (
-            <Col xs={24} sm={12} md={12} key={machine._id}>
-              <Link to={`/machines/${categorySlug}/${machine.slug}`}>
-                <div className="rounded-xl overflow-hidden transition duration-300">
-                  {/* Image */}
-                  {machine.banner && (
-                    <img
-                      alt={machine.title?.en}
-                      src={
-                        machine.banner.startsWith("/uploads")
-                          ? `${API_URL}${machine.banner}`
-                          : machine.banner
-                      }
-                      className="max-h-[300px] w-full object-cover rounded-xl"
-                    />
-                  )}
+         {machines.map((machine) => (
+  <Col xs={24} sm={12} md={12} key={machine._id}>
+    {/* ✅ Public detail page, not admin */}
+    <Link to={`/machines/${categorySlug}/${machine.slug}`}>
+      <div className="rounded-xl overflow-hidden transition duration-300">
+        {machine.banner && (
+          <img
+            alt={machine.title?.en}
+            src={
+              machine.banner.startsWith("/uploads")
+                ? `${API_URL}${machine.banner}`
+                : machine.banner
+            }
+            className="max-h-[300px] w-full object-cover rounded-xl"
+          />
+        )}
 
-                  {/* Footer */}
-                  <div className="flex justify-between items-center bg-[#0D3B66] text-white px-5 py-8 mt-4 rounded-xl">
-                    <h3 className="font-semibold uppercase tracking-wide text-sm md:text-base">
-                      {machine.title?.en}
-                    </h3>
-                    <div className="w-9 h-9 flex items-center justify-center border border-white text-white  rounded-full  transition hover:bg-white hover:text-[#0D3B66]">
-                      <FiArrowUpRight size={18} />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </Col>
-          ))}
+        <div className="flex justify-between items-center bg-[#0D3B66] text-white px-5 py-8 mt-4 rounded-xl">
+          <h3 className="font-semibold uppercase tracking-wide text-sm md:text-base">
+            {machine.title?.en}
+          </h3>
+          <div className="w-9 h-9 flex items-center justify-center border border-white text-white rounded-full transition hover:bg-white hover:text-[#0D3B66]">
+            <FiArrowUpRight size={18} />
+          </div>
+        </div>
+      </div>
+    </Link>
+  </Col>
+))}
+
         </Row>
       </div>
 
