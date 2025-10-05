@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { getContactPage } from "../../Api/api"; // ✅ API
+import { getContactPage, submitContactForm } from "../../Api/api"; // ✅ Using both APIs
 
 export default function ContactSection() {
   const [contactFormData, setContactFormData] = useState(null);
@@ -69,7 +69,7 @@ export default function ContactSection() {
   );
 }
 
-/** ---------- Contact Form Component ---------- */
+/** ---------- Contact Form Component (with API submit) ---------- */
 function ContactForm({ heading }) {
   const [values, setValues] = useState({
     name: "",
@@ -91,9 +91,10 @@ function ContactForm({ heading }) {
     "mt-2 w-full h-13 rounded-lg bg-slate-50 border border-transparent px-4 text-[15px] text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-slate-300 focus:ring-2 focus:ring-slate-200 [box-shadow:rgba(0,0,0,0.1)_0px_1px_3px_0px,rgba(0,0,0,0.06)_0px_2px_2px_0px]";
 
   const getFieldClass = (name) =>
-    `${baseFieldClass} ${errors[name] && touched[name]
-      ? "border-red-400 focus:border-red-400 ring-2 ring-red-200"
-      : ""
+    `${baseFieldClass} ${
+      errors[name] && touched[name]
+        ? "border-red-400 focus:border-red-400 ring-2 ring-red-200"
+        : ""
     }`;
 
   // ------- validators -------
@@ -202,8 +203,10 @@ function ContactForm({ heading }) {
     }
   };
 
+  // ✅ API Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setTouched({
       name: true,
       company: true,
@@ -237,9 +240,20 @@ function ContactForm({ heading }) {
 
     setSubmitting(true);
     setSuccess("");
+
     try {
-      // simulate submit (replace with real API later)
-      await new Promise((r) => setTimeout(r, 800));
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("company", values.company);
+      formData.append("email", values.email);
+      formData.append("phone", values.phone);
+      formData.append("product", values.product);
+      formData.append("message", values.message);
+      if (values.file) formData.append("file", values.file);
+
+      // ✅ Real API call
+      const res = await submitContactForm(formData);
+
       setSuccess("✅ Your message has been sent successfully.");
       setValues({
         name: "",
@@ -253,6 +267,7 @@ function ContactForm({ heading }) {
       setTouched({});
       setErrors({});
     } catch (err) {
+      console.error(err.response?.data || err.message);
       setSuccess("❌ Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
@@ -266,14 +281,16 @@ function ContactForm({ heading }) {
           color: #314158 !important;
         }
       `}</style>
+
       <h3 className="text-xl font-semibold text-slate-900">{heading}</h3>
 
       {success && (
         <div
-          className={`mt-4 rounded-lg border px-4 py-3 text-sm ${success.startsWith("✅")
-            ? "border-green-200 bg-green-50 text-green-700"
-            : "border-red-200 bg-red-50 text-red-700"
-            }`}
+          className={`mt-4 rounded-lg border px-4 py-3 text-sm ${
+            success.startsWith("✅")
+              ? "border-green-200 bg-green-50 text-green-700"
+              : "border-red-200 bg-red-50 text-red-700"
+          }`}
           role="status"
           aria-live="polite"
         >
@@ -282,7 +299,7 @@ function ContactForm({ heading }) {
       )}
 
       <form className="mt-6 space-y-8" noValidate onSubmit={handleSubmit}>
-        {/* Row 1 */}
+        {/* Name + Company */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm text-slate-700">
@@ -313,7 +330,7 @@ function ContactForm({ heading }) {
           </div>
         </div>
 
-        {/* Row 2 */}
+        {/* Email + Phone */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm text-slate-700">
@@ -351,7 +368,7 @@ function ContactForm({ heading }) {
           </div>
         </div>
 
-        {/* Product */}
+        {/* Product Interest */}
         <div>
           <label className="block text-sm text-slate-700">
             Product Interest <span className="text-red-500">*</span>
@@ -392,7 +409,7 @@ function ContactForm({ heading }) {
           )}
         </div>
 
-        {/* File */}
+        {/* File Upload */}
         <div>
           <label className="block text-sm text-slate-700">
             Upload Specifications (Optional)

@@ -3,79 +3,100 @@ import { X } from "lucide-react";
 import TranslationTabs from "../TranslationTabs";
 import { slugify } from "../../utils/helpers";
 import {
-  createCategory,
-  updateCategory,
-  getMainBlogCategories,
+  createBlogMainCategory,
+  updateBlogMainCategory,
 } from "../../Api/api";
 import { CommonToaster } from "../../Common/CommonToaster";
 
 const labels = {
   en: {
-    edit: "Edit Category",
-    create: "Create New Category",
-    categoryName: "Category Name",
+    edit: "Edit Main Category",
+    create: "Create Main Category",
+    name: "Main Category Name",
     slug: "Slug",
-    mainCategory: "Main Category",
-    selectMain: "-- Select Main Category --",
+    bgImage: "Background Image",
+    bgAlt: "Background Image Alt Text",
     cancel: "Cancel",
     saving: "Saving...",
-    update: "Update Category",
-    save: "Create Category",
+    update: "Update Main Category",
+    save: "Create Main Category",
     requiredEn: "English name is required",
     requiredVn: "Vietnamese name is required",
     requiredSlug: "Slug is required",
-    requiredMain: "Main category is required",
+    successCreate: "Main Category created successfully!",
+    successUpdate: "Main Category updated successfully!",
+    fail: "Failed to save main category. Try again later.",
   },
   vn: {
-    edit: "Chỉnh sửa Danh mục",
-    create: "Tạo Danh mục mới",
-    categoryName: "Tên Danh mục",
+    edit: "Chỉnh sửa Danh mục chính",
+    create: "Tạo Danh mục chính",
+    name: "Tên Danh mục chính",
     slug: "Đường dẫn",
-    mainCategory: "Danh mục chính",
-    selectMain: "-- Chọn Danh mục chính --",
+    bgImage: "Ảnh nền",
+    bgAlt: "Mô tả ảnh nền",
     cancel: "Hủy",
     saving: "Đang lưu...",
-    update: "Cập nhật Danh mục",
-    save: "Tạo Danh mục",
+    update: "Cập nhật Danh mục chính",
+    save: "Tạo Danh mục chính",
     requiredEn: "Tên tiếng Anh là bắt buộc",
     requiredVn: "Tên tiếng Việt là bắt buộc",
     requiredSlug: "Đường dẫn là bắt buộc",
-    requiredMain: "Danh mục chính là bắt buộc",
+    successCreate: "Tạo danh mục chính thành công!",
+    successUpdate: "Cập nhật danh mục chính thành công!",
+    fail: "Lưu danh mục chính thất bại. Vui lòng thử lại sau.",
   },
 };
 
-const NewsCategoryForm = ({ category, onClose, onSave }) => {
+const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
   const [activeLanguage, setActiveLanguage] = useState("en");
   const [formData, setFormData] = useState({
-    name: category?.name || { en: "", vn: "" },
-    slug: category?.slug || "",
-    mainCategory: category?.mainCategory?._id || "",
+    name: mainCategory?.name || { en: "", vn: "" },
+    slug: mainCategory?.slug || "",
+    bgImage: mainCategory?.bgImage || { url: "", alt: "" },
   });
+  const [preview, setPreview] = useState(mainCategory?.bgImage?.url || "");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [mainCategories, setMainCategories] = useState([]);
 
-  const isCreating = !category;
+  const isCreating = !mainCategory;
 
-  // ✅ Auto-generate slug from English name
   useEffect(() => {
     if (isCreating && formData.name.en) {
       setFormData((prev) => ({ ...prev, slug: slugify(prev.name.en) }));
     }
   }, [formData.name.en, isCreating]);
 
-  // ✅ Load main categories
-  useEffect(() => {
-    const fetchMainCats = async () => {
-      try {
-        const res = await getMainBlogCategories();
-        setMainCategories(res.data.data || res.data);
-      } catch (err) {
-        console.error("Failed to load main categories", err);
-      }
-    };
-    fetchMainCats();
-  }, []);
+  const handleChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      name: {
+        ...prev.name,
+        [activeLanguage]: value,
+      },
+    }));
+  };
+
+  const handleSlugChange = (value) => {
+    setFormData((prev) => ({ ...prev, slug: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        bgImage: { ...prev.bgImage, file },
+      }));
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleAltChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      bgImage: { ...prev.bgImage, alt: value },
+    }));
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -92,53 +113,49 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
       newErrors.slug = labels[activeLanguage].requiredSlug;
     }
 
-    if (!formData.mainCategory) {
-      newErrors.mainCategory = labels[activeLanguage].requiredMain;
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (isLoading) return;
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
-      let savedCategory;
-      if (isCreating) {
-        const res = await createCategory(formData);
-        savedCategory = res.data.data || res.data;
-        CommonToaster(
-          activeLanguage === "vn"
-            ? "Tạo danh mục thành công!"
-            : "Category created successfully!",
-          "success"
-        );
-      } else {
-        const res = await updateCategory(category._id || category.id, formData);
-        savedCategory = res.data.data || res.data;
-        CommonToaster(
-          activeLanguage === "vn"
-            ? "Cập nhật danh mục thành công!"
-            : "Category updated successfully!",
-          "success"
-        );
+      // ✅ Prepare FormData with dot notation keys
+      const data = new FormData();
+      data.append("slug", formData.slug);
+      data.append("name.en", formData.name.en || "");
+      data.append("name.vn", formData.name.vn || "");
+      data.append("bgImage.alt", formData.bgImage.alt || "");
+      if (formData.bgImage.file) {
+        data.append("bgImageFile", formData.bgImage.file);
       }
 
-      if (onSave) onSave(savedCategory);
+      let savedMainCategory;
+      if (isCreating) {
+        const res = await createBlogMainCategory(data, true);
+        savedMainCategory = res.data.data || res.data;
+        CommonToaster(labels[activeLanguage].successCreate, "success");
+      } else {
+        const res = await updateBlogMainCategory(
+          mainCategory._id || mainCategory.id,
+          data,
+          true
+        );
+        savedMainCategory = res.data.data || res.data;
+        CommonToaster(labels[activeLanguage].successUpdate, "success");
+      }
+      if (onSave) onSave(savedMainCategory);
     } catch (error) {
-      console.error("Category save error:", error.response || error);
+      console.error("MainCategory save error:", error.response || error);
       setErrors({
         submit:
           error.response?.data?.error ||
           error.response?.data?.message ||
-          (activeLanguage === "vn"
-            ? "Lưu danh mục thất bại. Vui lòng thử lại sau."
-            : "Failed to save category. Try again later."),
+          labels[activeLanguage].fail,
       });
     } finally {
       setIsLoading(false);
@@ -152,10 +169,9 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          {category ? labels[activeLanguage].edit : labels[activeLanguage].create}
+          {mainCategory ? labels[activeLanguage].edit : labels[activeLanguage].create}
         </h2>
         <button
           onClick={onClose}
@@ -164,24 +180,15 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
           <X size={24} />
         </button>
       </div>
-
-      {/* Tabs */}
       <TranslationTabs
         activeLanguage={activeLanguage}
         setActiveLanguage={setActiveLanguage}
       />
 
-      {/* Form */}
-      <form
-        onSubmit={handleSubmit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") e.preventDefault();
-        }}
-        className="mt-6 space-y-6"
-      >
+      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         {/* Name EN */}
         <div>
-          <label className={labelClasses}>{labels.en.categoryName} (EN)</label>
+          <label className={labelClasses}>{labels.en.name} (EN)</label>
           <input
             type="text"
             className={inputClasses}
@@ -201,7 +208,7 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
 
         {/* Name VN */}
         <div>
-          <label className={labelClasses}>{labels.vn.categoryName} (VN)</label>
+          <label className={labelClasses}>{labels.vn.name} (VN)</label>
           <input
             type="text"
             className={inputClasses}
@@ -234,31 +241,36 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
           )}
         </div>
 
-        {/* Main Category */}
+        {/* Background Image Upload */}
         <div>
-          <label className={labelClasses}>
-            {labels[activeLanguage].mainCategory}
-          </label>
-          <select
+          <label className={labelClasses}>{labels[activeLanguage].bgImage}</label>
+          <input
+            type="file"
+            accept="image/*"
             className={inputClasses}
-            value={formData.mainCategory}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, mainCategory: e.target.value }))
-            }
-          >
-            <option value="">{labels[activeLanguage].selectMain}</option>
-            {mainCategories.map((mc) => (
-              <option key={mc._id} value={mc._id}>
-                {mc.name[activeLanguage] || mc.name.en}
-              </option>
-            ))}
-          </select>
-          {errors.mainCategory && (
-            <p className="text-red-500 text-sm mt-1">{errors.mainCategory}</p>
+            onChange={handleFileChange}
+          />
+          {preview && (
+            <img
+              src={preview}
+              alt="Preview"
+              className="mt-3 h-32 w-auto rounded-md object-cover border"
+            />
           )}
         </div>
 
-        {/* Submit error */}
+        {/* Background Image Alt */}
+        <div>
+          <label className={labelClasses}>{labels[activeLanguage].bgAlt}</label>
+          <input
+            type="text"
+            className={inputClasses}
+            value={formData.bgImage?.alt || ""}
+            onChange={(e) => handleAltChange(e.target.value)}
+            placeholder="Background image description"
+          />
+        </div>
+
         {errors.submit && (
           <div className="bg-red-50 dark:bg-red-900 p-3 rounded text-red-600 dark:text-red-200 text-sm">
             {errors.submit}
@@ -266,7 +278,7 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
         )}
 
         {/* Actions */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end space-x-3 pt-4 border-t">
           <button
             type="button"
             onClick={onClose}
@@ -281,7 +293,7 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
           >
             {isLoading
               ? labels[activeLanguage].saving
-              : category
+              : mainCategory
               ? labels[activeLanguage].update
               : labels[activeLanguage].save}
           </button>
@@ -291,4 +303,4 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
   );
 };
 
-export default NewsCategoryForm;
+export default MainCategoryForm;

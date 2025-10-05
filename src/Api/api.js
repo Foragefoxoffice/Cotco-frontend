@@ -17,6 +17,7 @@ API.interceptors.request.use((config) => {
 
 export default API;
 
+
 /* =========================================================
    AUTH
 ========================================================= */
@@ -38,6 +39,7 @@ export const getUsers = () => API.get("/users");
 export const getUserById = (id) => API.get(`/users/${id}`);
 export const updateUser = (id, data) => API.put(`/users/${id}`, data);
 export const deleteUser = (id) => API.delete(`/users/${id}`);
+
 
 /* =========================================================
    MACHINE CATEGORIES
@@ -93,16 +95,8 @@ export const getMachinePageById = (id) =>
 /* =========================================================
    BLOGS
 ========================================================= */
-export const getBlogs = async (params = {}) => {
-  const { data } = await API.get("/blogs", { params });
-  return data.data; // ✅ return only the array
-};
-
-export const getBlogBySlug = async (slug) => {
-  const { data } = await API.get(`/blogs/${slug}`);
-  return data.data; // ✅ return only the object
-};
-
+export const getBlogs = (params = {}) => API.get("/blogs", { params });
+export const getBlogBySlug = (slug) => API.get(`/blogs/${slug}`);
 export const createBlog = (data) => API.post("/blogs", data);
 export const updateBlog = (id, data) => API.put(`/blogs/${id}`, data);
 export const deleteBlog = (id) => API.delete(`/blogs/${id}`);
@@ -121,12 +115,35 @@ export const getSection = (id) => API.get(`/sections/${id}`);
 export const updateSection = (id, data) => API.put(`/sections/${id}`, data);
 export const deleteSection = (id) => API.delete(`/sections/${id}`);
 
+
+/* =========================================================
+   MAIN CATEGORIES (Generic for blog/news/categories)
+   Backend route: /main-categories
+========================================================= */
+export const createBlogMainCategory = (data) =>
+  API.post("/maincategories", data);
+
+export const getMainBlogCategories = () =>
+  API.get("/maincategories");
+
+export const getMainBlogCategory = (id) =>
+  API.get(`/maincategories/${id}`);
+
+export const updateBlogMainCategory = (id, data) =>
+  API.put(`/maincategories/${id}`, data);
+
+export const deleteBlogMainCategory = (id) =>
+  API.delete(`/maincategories/${id}`);
+
+
 // ================= PAGES ================= //
 export const createPage = (data) => API.post("/pages", data);
 export const getPages = () => API.get("/pages");
 export const getPageBySlug = (slug) => API.get(`/pages/${slug}`);
 export const updatePage = (id, data) => API.put(`/pages/${id}`, data);
 export const deletePage = (id) => API.delete(`/pages/${id}`);
+
+
 
 /* =========================================================
    HOMEPAGE
@@ -225,3 +242,28 @@ export const updateFooterPage = (formData) =>
   API.post("/footerpage", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+
+
+  /* =========================================================
+   CONTACT FORM
+========================================================= */
+// Create a new contact entry (with file)
+export const submitContactForm = (formData) =>
+  API.post("/contactentries", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+// Get all contact entries (admin)
+export const getAllContacts = () => API.get("/contactentries");
+
+// Delete a contact entry by ID (admin)
+export const deleteContact = (id) => API.delete(`/contactentries/${id}`);
+
+/* =========================================================
+   ROLES (Admin only)
+========================================================= */
+export const createRole = (data) => API.post("/roles", data);
+export const getRoles = () => API.get("/roles");
+export const getRoleById = (id) => API.get(`/roles/${id}`);
+export const updateRole = (id, data) => API.put(`/roles/${id}`, data);
+export const deleteRole = (id) => API.delete(`/roles/${id}`);

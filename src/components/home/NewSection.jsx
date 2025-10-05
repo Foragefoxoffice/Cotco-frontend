@@ -4,47 +4,40 @@ import React, { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { RxArrowTopRight } from "react-icons/rx";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getBlogBySlug, getBlogs } from "../../Api/api";
+import { getBlogs, getBlogBySlug } from "../../Api/api";
 
-export default function NewsSection() {
-  const { slug } = useParams(); // slug from /news/:slug
+export default function BlogsSection() {
+  const { slug } = useParams();
   const navigate = useNavigate();
 
-  const [isWide, setIsWide] = useState(
-    typeof window !== "undefined" ? window.innerWidth > 700 : false
-  );
-
-  // Blogs state
-  const [blogs, setBlogs] = useState([]);
-  const [blog, setBlog] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Embla carousel
   const [emblaRef, embla] = useEmblaCarousel({
     loop: true,
     align: "center",
     containScroll: "trimSnaps",
-    dragFree: false,
-    skipSnaps: false,
     slidesToScroll: 1,
   });
 
+  const [isWide, setIsWide] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth > 700 : false
+  );
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
 
-  // Handle window resize
+  const [blogs, setBlogs] = useState([]);
+  const [blog, setBlog] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // ✅ Resize handler
   useEffect(() => {
-    const handleResize = () => {
-      setIsWide(window.innerWidth > 700);
-    };
+    const handleResize = () => setIsWide(window.innerWidth > 700);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Embla select handler
+  // ✅ Embla select events
   const onSelect = useCallback(() => {
     if (!embla) return;
     setSelectedIndex(embla.selectedScrollSnap());
@@ -66,22 +59,24 @@ export default function NewsSection() {
   const scrollPrev = useCallback(() => embla && embla.scrollPrev(), [embla]);
   const scrollNext = useCallback(() => embla && embla.scrollNext(), [embla]);
 
-  // Fetch blogs
+  // ✅ Fetch blogs or single blog
   useEffect(() => {
+    setLoading(true);
     if (slug) {
-      setLoading(true);
       getBlogBySlug(slug)
-        .then((res) => setBlog(res)) // now res is blog object ✅
+        .then((res) => setBlog(res))
         .finally(() => setLoading(false));
     } else {
-      setLoading(true);
       getBlogs()
-        .then((res) => setBlogs(res)) // now res is array ✅
+        .then((res) => {
+          const items = res.data?.data || res.data || res;
+          setBlogs(items);
+        })
         .finally(() => setLoading(false));
     }
   }, [slug]);
 
-  // ====== SINGLE BLOG VIEW ====== //
+  // ✅ Single Blog View
   if (slug) {
     if (loading) return <p className="text-center py-20">Loading...</p>;
     if (!blog) return <p className="text-center py-20">Blog not found</p>;
@@ -114,7 +109,7 @@ export default function NewsSection() {
             <div className="absolute inset-y-0 right-0 w-[92%] bg-[#0E2F47] rounded-[36px] md:rounded-l-[48px]" />
 
             <div className="relative pt-20 pb-10 pl-4 pr-4 md:pl-6 md:pr-6">
-              <article className="origin-center rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden p-6 shadow-md relative z-20">
+              <article className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden p-6 shadow-md relative z-20">
                 {blog.coverImage?.url && (
                   <img
                     src={blog.coverImage.url}
@@ -128,7 +123,6 @@ export default function NewsSection() {
                 </h1>
                 <p className="mt-2 text-slate-600">{blog.excerpt?.en}</p>
 
-                {/* Blocks */}
                 <div className="mt-6 space-y-6">
                   {blog.blocks?.map((block, i) => {
                     if (block.type === "richtext") {
@@ -157,13 +151,13 @@ export default function NewsSection() {
                 </div>
 
                 <button
-                  onClick={() => navigate("/news")}
+                  onClick={() => navigate("/blog")}
                   className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[#0F3A56]"
                 >
                   <span className="grid h-8 w-8 place-items-center rounded-full bg-[#1276BD] text-white text-[16px]">
                     <RxArrowTopRight />
                   </span>
-                  Back to News
+                  Back to Blogs
                 </button>
               </article>
             </div>
@@ -173,7 +167,7 @@ export default function NewsSection() {
     );
   }
 
-  // ====== BLOG LIST (CAROUSEL) ====== //
+  // ✅ Blog List Carousel
   if (loading) {
     return <p className="text-center py-20">Loading...</p>;
   }
@@ -188,7 +182,7 @@ export default function NewsSection() {
         {/* Left column */}
         <div className="col-span-12 md:col-span-3 h-full grid place-content-center">
           <TitleAnimation
-            text={"NEWS"}
+            text={"BLOGS"}
             className="heading"
             align="heading text-center md:text-left"
             delay={0.05}
@@ -196,12 +190,11 @@ export default function NewsSection() {
             once={true}
           />
           <p className="mt-4 text-slate-600 text-center md:text-left leading-relaxed max-w-sm">
-            Conveniently located and surrounded by natural beauty, it's the
-            perfect spot for our celebration.
+            Discover the latest insights, stories, and updates from our team.
           </p>
         </div>
 
-        {/* Right column: carousel */}
+        {/* Right column: Carousel */}
         <div className="col-span-12 md:col-span-9 overflow-x-hidden relative md:mt-0 mt-6">
           <div className="absolute inset-y-0 right-0 w-[92%] bg-[#0E2F47] rounded-[36px] md:rounded-l-[48px]" />
 
@@ -233,11 +226,20 @@ export default function NewsSection() {
             {/* Embla viewport */}
             <div ref={emblaRef}>
               <div className="flex gap-3 md:gap-3">
-                {blogs.map((n, i) => {
+                {blogs.map((b, i) => {
                   const isActive = selectedIndex === i;
+                  const title = b.title?.en || "Untitled";
+                  const excerpt =
+                    b.excerpt?.en ||
+                    "Read more about this blog post and explore insights.";
+                  const image =
+                    b.coverImage?.url ||
+                    "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop";
+                  const link = `/blogs/${b.slug}`;
+
                   return (
                     <div
-                      key={n._id}
+                      key={b._id || i}
                       className="flex-none basis-8/12 lg:basis-1/3"
                     >
                       <article
@@ -246,22 +248,20 @@ export default function NewsSection() {
                           isActive ? "scale-100 z-20" : "scale-90 z-10",
                         ].join(" ")}
                       >
-                        {n.coverImage?.url && (
-                          <img
-                            src={n.coverImage.url}
-                            alt={n.coverImage.alt || n.title?.en}
-                            className="h-44 w-full rounded-xl object-cover md:h-56 lg:h-60"
-                          />
-                        )}
+                        <img
+                          src={image}
+                          alt={title}
+                          className="h-44 w-full rounded-xl object-cover md:h-56 lg:h-60"
+                        />
                         <div className="py-4">
                           <h3 className="text-[18px] font-semibold leading-snug text-slate-900">
-                            {n.title?.en}
+                            {title}
                           </h3>
                           <p className="mt-2 line-clamp-2 text-sm text-slate-600">
-                            {n.excerpt?.en}
+                            {excerpt}
                           </p>
-                          <button
-                            onClick={() => navigate(`/blogs/${n.slug}`)}
+                          <Link
+                            to={link}
                             className={[
                               "mt-4 inline-flex items-center gap-2 text-sm font-medium",
                               isActive ? "text-[#0F3A56]" : "text-[#0F3A56]/80",
@@ -271,7 +271,7 @@ export default function NewsSection() {
                               <RxArrowTopRight />
                             </span>
                             Learn More
-                          </button>
+                          </Link>
                         </div>
                       </article>
                     </div>

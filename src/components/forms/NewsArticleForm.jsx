@@ -1,26 +1,83 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, Upload, PlusCircle, Trash2 } from "lucide-react";
 import TranslationTabs from "../TranslationTabs";
-import WysiwygEditor from "../WysiwygEditor";
+import RichTextEditor from "../RichTextEditor"; // ✅ TipTap editor
 import { slugify } from "../../utils/helpers";
-import { getCategories } from "../../Api/api"; // ✅ fetch real categories
+import { getCategories, getMainBlogCategories } from "../../Api/api"; // ✅ fetch real categories + main categories
 
-const blockTypes = [
-  { value: "richtext", label: "Rich Text" },
-  { value: "image", label: "Image" },
-  { value: "list", label: "List" },
-  { value: "quote", label: "Quote" },
-  { value: "code", label: "Code Snippet" },
-];
+const labels = {
+  en: {
+    edit: "Edit Blog",
+    create: "Create Resources",
+    title: "Title",
+    slug: "Slug",
+    coverImage: "Cover Image",
+    preview: "Preview",
+    upload: "Upload",
+    description: "Description",
+    mainCategory: "Main Category",
+    category: "Category",
+    status: "Status",
+    draft: "Draft",
+    published: "Published",
+    tags: "Tags",
+    addTag: "Add tag and press Enter",
+    seo: "SEO Settings",
+    metaTitle: "Meta Title",
+    metaDescription: "Meta Description",
+    cancel: "Cancel",
+    update: "Update Resources",
+    save: "Create Resources",
+    blockTypes: {
+      richtext: "Description",
+      image: "Image",
+      list: "Bullet Points",
+      quote: "Highlighted",
+      code: "Code Snippet (For Developers)",
+    },
+  },
+  vn: {
+    edit: "Chỉnh sửa Bài viết",
+    create: "Tạo Tin tức & Sự kiện",
+    title: "Tiêu đề",
+    slug: "Đường dẫn",
+    coverImage: "Ảnh bìa",
+    preview: "Xem trước",
+    upload: "Tải lên",
+    description: "Mô tả",
+    mainCategory: "Danh mục chính",
+    category: "Danh mục phụ",
+    status: "Trạng thái",
+    draft: "Bản nháp",
+    published: "Đã xuất bản",
+    tags: "Thẻ",
+    addTag: "Thêm thẻ và nhấn Enter",
+    seo: "Cài đặt SEO",
+    metaTitle: "Tiêu đề SEO",
+    metaDescription: "Mô tả SEO",
+    cancel: "Hủy",
+    update: "Cập nhật",
+    save: "Tạo mới",
+    blockTypes: {
+      richtext: "Mô tả",
+      image: "Hình ảnh",
+      list: "Danh sách gạch đầu dòng",
+      quote: "Trích dẫn",
+      code: "Đoạn mã (cho lập trình viên)",
+    },
+  },
+};
 
 const NewsArticleForm = ({ article, onClose, onSave }) => {
   const [activeLanguage, setActiveLanguage] = useState("en");
   const fileInputRef = useRef(null);
   const [tagInput, setTagInput] = useState("");
+  const [formErrors, setFormErrors] = useState([]);
   const isCreating = !article;
 
   // ✅ Categories state
   const [categories, setCategories] = useState([]);
+  const [mainCategories, setMainCategories] = useState([]);
 
   const [formData, setFormData] = useState({
     title: { en: "", vn: "" },
@@ -30,7 +87,8 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     blocks: [],
     publishedAt: new Date().toISOString().split("T")[0],
     author: "Admin User",
-    category: "", // ✅ dynamically filled
+    mainCategory: "",
+    category: "",
     tags: [],
     status: "draft",
     seo: {
@@ -39,21 +97,23 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     },
   });
 
-  // ✅ Fetch categories from backend
+  // ✅ Fetch categories & main categories
   useEffect(() => {
-    getCategories()
-      .then((res) => {
-        const cats = res.data.data || res.data;
+    Promise.all([getMainBlogCategories(), getCategories()])
+      .then(([mainRes, catRes]) => {
+        const mains = mainRes.data.data || mainRes.data;
+        const cats = catRes.data.data || catRes.data;
+
+        setMainCategories(mains);
         setCategories(cats);
 
-        // prefill category if empty
-        if (!formData.category && cats.length > 0) {
-          setFormData((prev) => ({ ...prev, category: cats[0].slug }));
-        }
+        setFormData((prev) => ({
+          ...prev,
+          mainCategory: prev.mainCategory || (mains.length > 0 ? mains[0]._id : ""),
+          category: prev.category || (cats.length > 0 ? cats[0]._id : ""),
+        }));
       })
-      .catch((err) => {
-        console.error("Failed to fetch categories:", err);
-      });
+      .catch((err) => console.error("Failed to fetch categories:", err));
   }, []);
 
   // ✅ Load article if editing
@@ -63,7 +123,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     }
   }, [article]);
 
-  // ✅ Auto-generate slug
+  // ✅ Auto-slug
   useEffect(() => {
     if (isCreating && formData.title.en) {
       setFormData((prev) => ({ ...prev, slug: slugify(prev.title.en) }));
@@ -75,7 +135,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
   const labelClasses =
     "block text-sm font-medium text-gray-700 dark:text-gray-300";
 
-  // ✅ General field change
+  // ✅ Change handlers
   const handleChange = (field, value, isTranslatable = false) => {
     if (isTranslatable) {
       setFormData((prev) => ({
@@ -90,7 +150,6 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     }
   };
 
-  // ✅ SEO change
   const handleSEOChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -104,7 +163,6 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     }));
   };
 
-  // ✅ Image upload
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
@@ -153,11 +211,14 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
   const updateBlock = (index, value) => {
     setFormData((prev) => {
       const blocks = [...prev.blocks];
-      blocks[index].content =
-        typeof blocks[index].content === "object" &&
-        blocks[index].type !== "image"
-          ? { ...blocks[index].content, [activeLanguage]: value }
-          : value;
+      if (blocks[index].type === "image") {
+        blocks[index].content = value;
+      } else {
+        blocks[index].content = {
+          ...blocks[index].content,
+          [activeLanguage]: value,
+        };
+      }
       return { ...prev, blocks };
     });
   };
@@ -169,8 +230,45 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     }));
   };
 
+  // ✅ Submit with validation
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errors = [];
+
+    if (!formData.title.en.trim() || !formData.title.vn.trim()) {
+      errors.push("Both EN and VN Title are required.");
+    }
+
+    if (!formData.excerpt.en.trim() || !formData.excerpt.vn.trim()) {
+      errors.push("Both EN and VN Description are required.");
+    }
+
+    if (!formData.seo.title.en.trim() || !formData.seo.title.vn.trim()) {
+      errors.push("Both EN and VN SEO Title are required.");
+    }
+
+    if (!formData.seo.description.en.trim() || !formData.seo.description.vn.trim()) {
+      errors.push("Both EN and VN SEO Description are required.");
+    }
+
+    if (!formData.coverImage.url) {
+      errors.push("Cover image is required.");
+    }
+
+    if (!formData.mainCategory) {
+      errors.push("Main category is required.");
+    }
+
+    if (!formData.category) {
+      errors.push("Category is required.");
+    }
+
+    if (errors.length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    setFormErrors([]);
     onSave(formData);
   };
 
@@ -179,7 +277,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-          {article ? "Edit Blog" : "Create New Blog"}
+          {article ? labels[activeLanguage].edit : labels[activeLanguage].create}
         </h2>
         <button
           onClick={onClose}
@@ -189,7 +287,6 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
         </button>
       </div>
 
-      {/* Language Tabs */}
       <TranslationTabs
         activeLanguage={activeLanguage}
         setActiveLanguage={setActiveLanguage}
@@ -198,7 +295,10 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         {/* Title */}
         <div>
-          <label className={labelClasses}>Title</label>
+          <label className={labelClasses}>
+            {labels[activeLanguage].title}
+            <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             className={inputClasses}
@@ -210,16 +310,16 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
 
         {/* Slug */}
         <div>
-          <label className={labelClasses}>Slug</label>
+          <label className={labelClasses}>
+            {labels[activeLanguage].slug}
+            <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             className={inputClasses}
             value={formData.slug}
             onChange={(e) =>
-              handleChange(
-                "slug",
-                e.target.value.toLowerCase().replace(/\s+/g, "-")
-              )
+              handleChange("slug", e.target.value.toLowerCase().replace(/\s+/g, "-"))
             }
             required
           />
@@ -227,7 +327,10 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
 
         {/* Cover Image */}
         <div>
-          <label className={labelClasses}>Cover Image</label>
+          <label className={labelClasses}>
+            {labels[activeLanguage].coverImage}
+            <span className="text-red-500">*</span>
+          </label>
           <div className="flex items-center space-x-4">
             <div className="w-24 h-24 border rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
               {formData.coverImage.url ? (
@@ -237,7 +340,9 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-gray-400 text-xs">Preview</span>
+                <span className="text-gray-400 text-xs">
+                  {labels[activeLanguage].preview}
+                </span>
               )}
             </div>
             <input
@@ -253,14 +358,18 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
               className="px-3 py-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 rounded-md"
             >
               <Upload size={16} className="inline mr-2" />
-              Upload
+              {labels[activeLanguage].upload}
             </button>
           </div>
+          <p>(2MB maximum upload size)</p>
         </div>
 
         {/* Excerpt */}
         <div>
-          <label className={labelClasses}>Excerpt</label>
+          <label className={labelClasses}>
+            {labels[activeLanguage].description}
+            <span className="text-red-500">*</span>
+          </label>
           <textarea
             className={inputClasses}
             rows={3}
@@ -269,7 +378,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           />
         </div>
 
-        {/* Dynamic Blocks */}
+        {/* Blocks */}
         <div>
           <label className={labelClasses}>Content Blocks</label>
           <div className="space-y-4 mt-2">
@@ -279,7 +388,9 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                 className="p-3 border rounded-md bg-gray-50 dark:bg-gray-700/30"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium capitalize">{block.type}</span>
+                  <span className="font-medium capitalize">
+                    {labels[activeLanguage].blockTypes[block.type]}
+                  </span>
                   <button
                     type="button"
                     onClick={() => removeBlock(i)}
@@ -288,21 +399,58 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                     <Trash2 size={16} />
                   </button>
                 </div>
+
                 {block.type === "richtext" && (
-                  <WysiwygEditor
+                  <RichTextEditor
+                    key={`${i}-${activeLanguage}`}
                     value={block.content[activeLanguage] || ""}
                     onChange={(content) => updateBlock(i, content)}
                   />
                 )}
+
                 {block.type === "image" && (
-                  <input
-                    type="text"
-                    className={inputClasses}
-                    placeholder="Image URL"
-                    value={block.content.url}
-                    onChange={(e) => updateBlock(i, { url: e.target.value })}
-                  />
+                  <div className="flex items-center space-x-4">
+                    <div className="w-32 h-32 border rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                      {block.content.url ? (
+                        <img
+                          src={block.content.url}
+                          alt={`block-${i}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-xs">
+                          {labels[activeLanguage].preview}
+                        </span>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      id={`block-image-${i}`}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            updateBlock(i, { url: reader.result });
+                          };
+                          reader.readAsDataURL(e.target.files[0]);
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        document.getElementById(`block-image-${i}`).click()
+                      }
+                      className="px-3 py-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 rounded-md"
+                    >
+                      <Upload size={16} className="inline mr-2" />
+                      {labels[activeLanguage].upload}
+                    </button>
+                  </div>
                 )}
+
                 {block.type === "list" && (
                   <textarea
                     className={inputClasses}
@@ -312,6 +460,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                     onChange={(e) => updateBlock(i, e.target.value)}
                   />
                 )}
+
                 {block.type === "quote" && (
                   <textarea
                     className={inputClasses}
@@ -321,6 +470,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                     onChange={(e) => updateBlock(i, e.target.value)}
                   />
                 )}
+
                 {block.type === "code" && (
                   <textarea
                     className={`${inputClasses} font-mono`}
@@ -333,107 +483,89 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
               </div>
             ))}
           </div>
+
           <div className="flex space-x-2 mt-3">
-            {blockTypes.map((bt) => (
-              <button
-                key={bt.value}
-                type="button"
-                onClick={() => addBlock(bt.value)}
-                className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm flex items-center"
-              >
-                <PlusCircle size={14} className="mr-1" /> {bt.label}
-              </button>
-            ))}
+            {Object.entries(labels[activeLanguage].blockTypes).map(
+              ([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => addBlock(value)}
+                  className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm flex items-center"
+                >
+                  <PlusCircle size={14} className="mr-1" /> {label}
+                </button>
+              )
+            )}
           </div>
         </div>
 
-        {/* Meta: Date, Author, Category, Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className={labelClasses}>Published Date</label>
-            <input
-              type="date"
-              className={inputClasses}
-              value={formData.publishedAt}
-              onChange={(e) => handleChange("publishedAt", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelClasses}>Author</label>
-            <input
-              type="text"
-              className={inputClasses}
-              value={formData.author}
-              onChange={(e) => handleChange("author", e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* ✅ Category Select */}
+        {/* Main Category */}
         <div>
-          <label className={labelClasses}>Category</label>
+          <label className={labelClasses}>
+            {labels[activeLanguage].mainCategory}
+            <span className="text-red-500">*</span>
+          </label>
           <select
             className={inputClasses}
-            value={formData.category}
-            onChange={(e) => handleChange("category", e.target.value)}
+            value={formData.mainCategory}
+            onChange={(e) => handleChange("mainCategory", e.target.value)}
+            required
           >
-            {categories.map((c) => (
-              <option key={c._id} value={c.slug}>
-                {c.name[activeLanguage] || c.name.en}
+            {mainCategories.map((mc) => (
+              <option key={mc._id} value={mc._id}>
+                {mc.name[activeLanguage] || mc.name.en}
               </option>
             ))}
           </select>
         </div>
 
+        {/* Category */}
         <div>
-          <label className={labelClasses}>Status</label>
+          <label className={labelClasses}>
+            {labels[activeLanguage].category}
+            <span className="text-red-500">*</span>
+          </label>
+          <select
+            className={inputClasses}
+            value={formData.category}
+            onChange={(e) => handleChange("category", e.target.value)}
+          >
+            {categories
+              .filter((c) => c.mainCategory?._id === formData.mainCategory)
+              .map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.name[activeLanguage] || c.name.en}
+                </option>
+              ))}
+          </select>
+        </div>
+
+        {/* Status */}
+        <div>
+          <label className={labelClasses}>
+            {labels[activeLanguage].status}{" "}
+            <span className="text-red-500">*</span>
+          </label>
           <select
             className={inputClasses}
             value={formData.status}
             onChange={(e) => handleChange("status", e.target.value)}
           >
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
+            <option value="draft">{labels[activeLanguage].draft}</option>
+            <option value="published">{labels[activeLanguage].published}</option>
           </select>
-        </div>
-
-        {/* Tags */}
-        <div>
-          <label className={labelClasses}>Tags</label>
-          <div className="flex mt-1 flex-wrap gap-2 p-2 border rounded-md bg-white dark:bg-gray-700">
-            {formData.tags.map((tag) => (
-              <span
-                key={tag}
-                className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200 px-2 py-1 rounded-full text-sm flex items-center"
-              >
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTag(tag)}
-                  className="ml-2 text-indigo-600 hover:text-indigo-800"
-                >
-                  <X size={14} />
-                </button>
-              </span>
-            ))}
-            <input
-              type="text"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleTagKeyDown}
-              placeholder="Add tag and press Enter"
-              className="flex-grow outline-none bg-transparent text-gray-800 dark:text-gray-100 p-1"
-            />
-          </div>
         </div>
 
         {/* SEO */}
         <div className="space-y-3 border-t pt-4">
           <h3 className="font-medium text-gray-800 dark:text-gray-200">
-            SEO Settings
+            {labels[activeLanguage].seo}
           </h3>
           <div>
-            <label className={labelClasses}>Meta Title</label>
+            <label className={labelClasses}>
+              {labels[activeLanguage].metaTitle}
+            </label>
             <input
               type="text"
               className={inputClasses}
@@ -442,7 +574,9 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             />
           </div>
           <div>
-            <label className={labelClasses}>Meta Description</label>
+            <label className={labelClasses}>
+              {labels[activeLanguage].metaDescription}
+            </label>
             <textarea
               rows={2}
               className={inputClasses}
@@ -452,6 +586,19 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           </div>
         </div>
 
+        
+      {/* Error messages */}
+      {formErrors.length > 0 && (
+        <div className="p-3 bg-red-100 text-red-700 rounded-md mb-4">
+          <ul className="list-disc pl-5">
+            {formErrors.map((err, i) => (
+              <li key={i}>{err}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-4 border-t">
           <button
@@ -459,13 +606,13 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             onClick={onClose}
             className="px-4 py-2 bg-white dark:bg-gray-600 border rounded-md cursor-pointer hover:bg-red-50 dark:hover:bg-red-500 text-red-600 dark:text-red-300 hover:text-white-800"
           >
-            Cancel
+            {labels[activeLanguage].cancel}
           </button>
           <button
             type="submit"
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 cursor-pointer"
           >
-            {article ? "Update Blog" : "Create Blog"}
+            {article ? labels[activeLanguage].update : labels[activeLanguage].save}
           </button>
         </div>
       </form>
