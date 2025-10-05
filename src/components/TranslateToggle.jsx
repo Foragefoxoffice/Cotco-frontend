@@ -98,7 +98,7 @@ export default function TranslateToggle() {
             title={label}
             className={[
               "h-9 w-9 md:h-10 md:w-10 rounded-full flex items-center justify-center",
-              "transition ring-1 ring-black/5",
+              "transition ring-1 ring-black/5 cursor-pointer",
               isActive ? "bg-white shadow scale-[1.06]" : "hover:bg-white/70"
             ].join(" ")}
           >

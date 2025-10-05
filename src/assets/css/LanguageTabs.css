@@ -58,7 +58,7 @@
   border: none !important;
 }
 .custom-dark-select{
-  padding: 22px 10px;
+  margin-bottom: 20px;
 }
 .custom-dark-select .ant-select-selection-placeholder {
   color: #fff !important;

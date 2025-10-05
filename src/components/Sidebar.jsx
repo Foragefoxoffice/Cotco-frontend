@@ -7,6 +7,7 @@ import {
   Settings,
   Cog,
   Shield,
+  UsersRound
 } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -49,10 +50,10 @@ const Sidebar = () => {
     machines: isVietnamese ? "Máy móc" : "Machines",
     machineCategories: isVietnamese ? "Danh mục máy móc" : "Categories",
     machineList: isVietnamese ? "Danh sách máy móc" : "List",
-    roleManagement: isVietnamese ? "Quản lý Vai trò" : "Role Management",
+    roleManagement: isVietnamese ? "Quản lý Vai trò" : "Manage Staffs",
     roles: isVietnamese ? "Vai trò" : "Roles",
     users: isVietnamese ? "Người dùng" : "Users",
-    allContacts: isVietnamese ? "Tất cả liên hệ" : "All Contacts",
+    allContacts: isVietnamese ? "Tất cả liên hệ" : "Enquiry Details",
     footerLabel: isVietnamese
       ? "Cotco Hệ thống quản trị"
       : "Cotco CMS",
@@ -126,7 +127,7 @@ const Sidebar = () => {
 
     {
       label: t.roleManagement,
-      icon: <Shield size={18} />,
+      icon: <UsersRound size={18} />,
       key: "roles",
       subItems: [
         { path: "/admin/roles", label: t.roles },
@@ -161,7 +162,7 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`w-64 h-full flex flex-col transition-colors duration-300 border-r 
+      className={`w-64 h-full flex flex-col transition-colors duration-300 border-r
       ${
         theme === "light"
           ? "bg-white border-gray-200"
@@ -190,7 +191,7 @@ const Sidebar = () => {
       </div>
 
       {/* ---------- Navigation ---------- */}
-      <nav className="flex-1 overflow-y-auto py-4">
+      <nav className="flex-1 overflow-y-auto py-4 scrollbar-hide">
         <ul className="space-y-1">
           {menuItems.map((item) => (
             <li key={item.key || item.path} className="px-2">
@@ -207,11 +208,14 @@ const Sidebar = () => {
                       openMenus[item.key] ? "font-semibold" : "font-normal"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 text-white">
                       {item.icon}
                       {item.label}
                     </div>
                     <ChevronRight
+                      style={{
+                        color:"#fff"
+                      }}
                       size={16}
                       className={`transition-transform ${
                         openMenus[item.key] ? "rotate-90" : ""

@@ -46,15 +46,30 @@ const MachineCategoriesScreen = () => {
   return (
     <div>
       {/* Page Header */}
-      <div className="mb-6 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="mb-6 p-6 bg-[#171717] dark:bg-gray-800 rounded-lg shadow-sm border border-[#2E2F2F] dark:border-gray-700">
         <div className="mt-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Machine Categories
-          </h1>
+          <h1 className="text-2xl font-bold text-white">Machine Categories</h1>
           <Button
-            type="primary"
             icon={<Plus size={16} />}
             onClick={() => setIsCreateModalOpen(true)}
+            style={{
+              backgroundColor: "#0085C8",
+              border: "none",
+              borderRadius: "8px",
+              color: "#fff",
+              fontWeight: "500",
+              padding: "8px 16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              transition: "all 0.3s ease",
+            }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.backgroundColor = "#009FE3")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.backgroundColor = "#0085C8")
+            }
           >
             Add Machine Category
           </Button>
@@ -69,7 +84,7 @@ const MachineCategoriesScreen = () => {
           {categories.map((category) => (
             <div
               key={category._id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md dark:hover:shadow-indigo-500/10 transition-shadow transform hover:-translate-y-1 duration-200 group"
+              className="bg-[#171717] rounded-lg shadow-sm border border-[#2E2F2F] dark:border-gray-700 overflow-hidden hover:shadow-md dark:hover:shadow-indigo-500/10 transition-shadow transform hover:-translate-y-1 duration-200 group"
             >
               <div className="h-48 overflow-hidden">
                 <img
@@ -80,11 +95,8 @@ const MachineCategoriesScreen = () => {
               </div>
               <div className="p-5">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                    <Cpu
-                      size={20}
-                      className="mr-2 text-indigo-600 dark:text-indigo-400"
-                    />
+                  <h3 className="text-lg font-medium text-white flex items-center">
+                    <Cpu size={20} className="mr-2 text-white" />
                     {category.name?.[activeLanguage] || category.slug}
                   </h3>
                 </div>
@@ -97,30 +109,69 @@ const MachineCategoriesScreen = () => {
                   </Tag>
                 </p>
 
-                <p className="text-sm text-gray-500 dark:text-gray-400 h-10">
+                <p className="text-sm text-white h-10">
                   {category.description?.[activeLanguage] || ""}
                 </p>
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-3">
+                  {/* Edit Button */}
                   <Button
                     size="small"
-                    type="primary"
                     icon={<Edit2 size={14} />}
                     onClick={() => {
                       setSelectedCategory(category);
                       setIsEditModalOpen(true);
                     }}
+                    style={{
+                      backgroundColor: "#0085C8",
+                      border: "none",
+                      borderRadius: "6px",
+                      color: "#fff",
+                      fontWeight: 500,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.3s ease",
+                    }}
+                    onMouseOver={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#009FE3")
+                    }
+                    onMouseOut={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#0085C8")
+                    }
                   >
                     Edit
                   </Button>
+
+                  {/* Delete Button */}
                   <Popconfirm
                     title="Are you sure you want to delete this category?"
                     okText="Yes"
                     cancelText="No"
                     onConfirm={() => handleDelete(category._id)}
                   >
-                    <Button size="small" danger icon={<Trash2 size={14} />}>
+                    <Button
+                      size="small"
+                      icon={<Trash2 size={14} />}
+                      style={{
+                        backgroundColor: "#E74C3C",
+                        border: "none",
+                        borderRadius: "6px",
+                        color: "#fff",
+                        fontWeight: 500,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        transition: "all 0.3s ease",
+                      }}
+                      onMouseOver={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#FF6B5C")
+                      }
+                      onMouseOut={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#E74C3C")
+                      }
+                    >
                       Delete
                     </Button>
                   </Popconfirm>
@@ -133,11 +184,32 @@ const MachineCategoriesScreen = () => {
 
       {/* Modal: Create */}
       <Modal
-        title="Create Machine Category"
+        title={
+          <h2
+            style={{
+              color: "#fff",
+              fontSize: "28px",
+              fontWeight: "600",
+              margin: 0,
+              background: "#171717",
+            }}
+          >
+            Create Machine Category
+          </h2>
+        }
         open={isCreateModalOpen}
         footer={null}
         onCancel={() => setIsCreateModalOpen(false)}
         destroyOnClose
+        bodyStyle={{
+          backgroundColor: "#171717",
+          borderTop: "1px solid #2E2F2F",
+        }}
+        style={{
+          backgroundColor: "#171717",
+          borderRadius: "12px",
+          overflow: "hidden",
+        }}
       >
         <MachineCategoryCreate
           onSuccess={() => {
@@ -149,7 +221,19 @@ const MachineCategoriesScreen = () => {
 
       {/* Modal: Edit */}
       <Modal
-        title="Edit Machine Category"
+        title={
+          <h2
+            style={{
+              color: "#fff",
+              fontSize: "28px",
+              fontWeight: "600",
+              margin: 0,
+              background: "#171717",
+            }}
+          >
+            Edit Machine Category
+          </h2>
+        }
         open={isEditModalOpen}
         footer={null}
         onCancel={() => setIsEditModalOpen(false)}

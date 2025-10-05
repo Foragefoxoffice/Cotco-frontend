@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getBlogBySlug, getBlogs } from "../Api/api";
-import { FaArrowRight } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { FiChevronRight } from "react-icons/fi";
 import BlogOverviewSkeleton from "../pages/BlogOverviewSkeleton";
 import Header from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
@@ -12,60 +12,35 @@ export default function BlogOverview() {
   const navigate = useNavigate();
 
   const [blog, setBlog] = useState(null);
-  const [recommendedRaw, setRecommendedRaw] = useState([]);
+  const [recentBlogs, setRecentBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeLang, setActiveLang] = useState("en"); // "en" | "vn"
-  const { mainCategorySlug } = useParams();
+  const [activeLang, setActiveLang] = useState("en");
 
-  // -- Helpers ---------------------------------------------------------------
-  const mapPrefToLangKey = (pref) => (pref === "vi" ? "vn" : "en");
-  const computeLangFromDOM = () => {
-    if (typeof document === "undefined") return "en";
-    return document.body.classList.contains("vi-mode") ? "vn" : "en";
-  };
-
-  // Detect language
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const pref = window.localStorage.getItem("preferred_lang");
-    if (pref === "vi" || pref === "en") {
-      setActiveLang(mapPrefToLangKey(pref));
+    const computeLang = () => {
+      if (typeof document === "undefined") return "en";
+      return document.body.classList.contains("vi-mode") ? "vn" : "en";
+    };
+    const stored = window.localStorage.getItem("preferred_lang");
+    if (stored === "vi" || stored === "en") {
+      setActiveLang(stored === "vi" ? "vn" : "en");
     } else {
-      setActiveLang(computeLangFromDOM());
+      setActiveLang(computeLang());
     }
-
-    const observer = new MutationObserver(() => {
-      setActiveLang(computeLangFromDOM());
-    });
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-
-    const onStorage = (e) => {
-      if (e.key === "preferred_lang") {
-        const val = e.newValue === "vi" ? "vn" : "en";
-        setActiveLang(val);
-      }
-    };
-    window.addEventListener("storage", onStorage);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("storage", onStorage);
-    };
   }, []);
 
-  // Fetch blog + recommended
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         const res = await getBlogBySlug(slug);
-        if (!mounted) return;
-        setBlog(res.data?.data || res.data);
+        const blogData = res.data?.data || res.data;
+        if (mounted) setBlog(blogData);
 
         const recRes = await getBlogs({ limit: 6, sort: "-createdAt" });
-        if (!mounted) return;
-        const list = recRes.data?.data || recRes.data || [];
-        setRecommendedRaw(list.filter((b) => b.slug !== slug).slice(0, 3));
+        const allBlogs = recRes.data?.data || recRes.data || [];
+        const filtered = allBlogs.filter((b) => b.slug !== slug).slice(0, 5);
+        if (mounted) setRecentBlogs(filtered);
       } catch (err) {
         console.error("Error fetching blog:", err);
       } finally {
@@ -76,202 +51,142 @@ export default function BlogOverview() {
   }, [slug]);
 
   if (loading) return <BlogOverviewSkeleton />;
-  if (!blog) return <p className="text-center text-red-500">Blog not found.</p>;
+  if (!blog) return <p className="text-center text-red-500 py-20">Blog not found.</p>;
 
-  // Derive fields
   const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vn ?? "";
-  const title = pick(blog.title, activeLang) || "Untitled Blog";
+  const title = pick(blog.title, activeLang);
   const coverImage = blog.coverImage?.url || "/img/blog/blog-img.png";
-  const excerpt = pick(blog.excerpt, activeLang);
-  const category = blog.category?.name?.[activeLang] || blog.category || "General";
-
-  const cardVariants = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
+  const publishedAt = new Date(blog.publishedAt || blog.createdAt).toLocaleDateString();
+  const category = blog.category?.name?.[activeLang] || blog.category?.name?.en || "General";
 
   return (
     <>
-      <style>{`nav { background: #0A1C2E; }`}</style>
+    <style>
+  {`
+    header, nav {
+      background-color: #0A1C2E !important;
+      box-shadow: none !important;
+    }
+  `}
+</style>
       <Header />
 
-      <div className="max-w-6xl mx-auto py-10 mt-30 px-4">
-        {/* 🔹 Breadcrumbs */}
-        <div className="text-sm flex justify-between text-gray-500 mb-6">
-          <ol className="list-reset flex flex-wrap gap-1">
-            <li>
-              <Link to="/" className="hover:text-[#1276BD]">Home</Link>
-              <span className="mx-2">/</span>
-            </li>
-            
-            {mainCategorySlug && (
-              <li>
-                <Link
-                  to={`/resources/${mainCategorySlug}`}
-                  className="hover:text-[#1276BD] capitalize"
-                >
-                  {mainCategorySlug}
-                </Link>
-                <span className="mx-2">/</span>
-              </li>
-            )}
-            <li className="text-gray-700">{title}</li>
-          </ol>
-
-          <div className="flex justify-center mb-6">
-            <span className="text-md font-medium px-4 py-1 rounded-full">
-              Category: <span className="font-bold">{category}</span>
-            </span>
-          </div>
+      <section className="max-w-6xl mx-auto px-4 md:px-6 py-10 mt-24">
+        {/* ---------- Breadcrumb ---------- */}
+        <div className="text-sm text-gray-500 mb-6 flex flex-wrap items-center gap-1">
+          <Link to="/" className="hover:text-[#1276BD]">
+            Home
+          </Link>
+          <span>/</span>
+          <span className="capitalize">{category}</span>
+          <span>/</span>
+          <span className="text-gray-700 font-medium truncate max-w-[240px]">{title}</span>
         </div>
 
-        {/* Title */}
-        <h1 className="text-4xl font-bold text-center mb-4">{title}</h1>
+        <div className="grid lg:grid-cols-[2fr_1fr] gap-10">
+          {/* ---------- LEFT: MAIN ARTICLE ---------- */}
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-[#0A1C2E] mb-3 leading-tight">
+              {title}
+            </h1>
 
-        {/* Excerpt */}
-        {excerpt && (
-          <p className="text-lg text-gray-600 text-center mt-5 mb-14">{excerpt}</p>
-        )}
+            <p className="text-gray-500 mb-6 text-sm">
+              {publishedAt} • <span className="capitalize">{category}</span>
+            </p>
 
-        {/* Cover Image */}
-        <img src={coverImage} alt={title} className="w-full rounded-xl shadow mb-10" />
+            <img
+              src={coverImage}
+              alt={title}
+              className="w-full rounded-lg mb-8 shadow-sm"
+            />
 
-        {/* Blog Content */}
-        <div
-          className="prose prose-lg max-w-none space-y-8
-            prose-p:text-[1.125rem] prose-p:leading-relaxed
-            prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-h4:text-xl prose-h5:text-lg"
-        >
-          {blog.blocks?.map((block, idx) => {
-            if (block.type === "richtext") {
-              const html = pick(block.content, activeLang) || "<p></p>";
-              return <div key={idx} dangerouslySetInnerHTML={{ __html: html }} />;
-            }
-
-            if (block.type === "image") {
-              return (
-                <div key={idx} className="my-8">
-                  <img
-                    src={block.content?.url}
-                    alt={`blog-image-${idx}`}
-                    className="w-full rounded-lg shadow"
-                  />
-                </div>
-              );
-            }
-
-            if (block.type === "list") {
-              const raw = pick(block.content, activeLang) || "";
-              const items = raw.split("\n").map((line) => line.trim()).filter(Boolean);
-
-              return (
-                <ul key={idx} className="list-disc list-inside my-6 space-y-2">
-                  {items.map((item, i) => (
-                    <li key={i} className="text-lg text-gray-700 leading-relaxed">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              );
-            }
-
-            if (block.type === "quote") {
-              const quote = pick(block.content, activeLang);
-              return (
-                <blockquote
-                  key={idx}
-                  className="border-l-4 border-blue-500 pl-4 italic text-gray-700 my-6"
-                >
-                  {quote}
-                </blockquote>
-              );
-            }
-
-            if (block.type === "code") {
-              const code = pick(block.content, activeLang);
-              return (
-                <pre
-                  key={idx}
-                  className="bg-gray-900 text-gray-100 rounded-md p-4 overflow-x-auto text-sm"
-                >
-                  <code>{code}</code>
-                </pre>
-              );
-            }
-
-            if (block.type === "style") {
-              return (
-                <style
-                  key={idx}
-                  dangerouslySetInnerHTML={{ __html: block.content?.css || "" }}
-                />
-              );
-            }
-
-            return null;
-          })}
-        </div>
-      </div>
-
-      {/* Recommended */}
-      <div className="mx-auto py-10 pb-40 px-28">
-        {recommendedRaw.length > 0 && (
-          <div className="mt-1">
-            <motion.h2
-              className="text-7xl md:text-4xl font-bold text-center mb-12"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+            {/* Content blocks */}
+            <div
+              className="prose prose-lg max-w-none text-gray-800
+              prose-p:leading-relaxed prose-img:rounded-lg prose-img:shadow-sm
+              prose-headings:text-[#0A1C2E] prose-h1:text-3xl prose-h2:text-2xl"
             >
-              Recommended Articles
-            </motion.h2>
-
-            <div className="grid gap-20 md:grid-cols-3">
-              {recommendedRaw.map((rec, index) => {
-                const recTitle = pick(rec.title, activeLang) || "Untitled Blog";
-                const recExcerpt = pick(rec.excerpt, activeLang);
-                const recImg = rec.coverImage?.url || "/img/blog/blog-img.png";
-
-                return (
-                  <motion.div
-                    key={rec._id || rec.slug || index}
-                    className="rounded-xl overflow-hidden transition cursor-pointer bg-white border border-none"
-                    variants={cardVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                    transition={{ duration: 0.6, delay: index * 0.2 }}
-                    whileHover={{ scale: 1.02, y: -4 }}
-                  >
-                    <motion.img
-                      src={recImg}
-                      alt={recTitle}
-                      className="w-full object-cover h-60"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.3 }}
+              {blog.blocks?.map((block, idx) => {
+                if (block.type === "richtext") {
+                  const html = pick(block.content, activeLang);
+                  return (
+                    <div
+                      key={idx}
+                      dangerouslySetInnerHTML={{ __html: html }}
                     />
-                    <div className="pt-5 px-1.5">
-                      <h3 className="font-medium text-xl mb-2">{recTitle}</h3>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                        {recExcerpt ? recExcerpt.slice(0, 150) + "..." : "No description"}
-                      </p>
-                      <motion.a
-                        onClick={() =>
-                          navigate(`/blogs/${rec.category?.slug || "general"}/${rec.slug}`)
-                        }
-                        className="flex items-center gap-2 text-black font-medium cursor-pointer"
-                        whileHover={{ x: 4 }}
-                      >
-                        <span className="bg-[#1276BD] text-white p-2 rounded-full text-xs flex items-center justify-center">
-                          <FaArrowRight />
-                        </span>
-                        Learn More
-                      </motion.a>
+                  );
+                }
+                if (block.type === "image") {
+                  return (
+                    <div key={idx} className="my-6">
+                      <img
+                        src={block.content?.url}
+                        alt=""
+                        className="rounded-lg w-full"
+                      />
                     </div>
-                  </motion.div>
-                );
+                  );
+                }
+                if (block.type === "list") {
+                  const content = pick(block.content, activeLang);
+                  const items = content.split("\n").filter(Boolean);
+                  return (
+                    <ul key={idx} className="list-disc list-inside space-y-2 my-4">
+                      {items.map((li, i) => (
+                        <li key={i}>{li}</li>
+                      ))}
+                    </ul>
+                  );
+                }
+                if (block.type === "quote") {
+                  const quote = pick(block.content, activeLang);
+                  return (
+                    <blockquote
+                      key={idx}
+                      className="border-l-4 border-[#1276BD] pl-4 italic text-gray-700 my-4"
+                    >
+                      {quote}
+                    </blockquote>
+                  );
+                }
+                return null;
               })}
             </div>
           </div>
-        )}
-      </div>
+
+          {/* ---------- RIGHT: SIDEBAR ---------- */}
+          <aside className="space-y-6">
+            <h3 className="text-[#164B8B] font-bold uppercase text-lg border-b border-gray-200 pb-2">
+              Recent
+            </h3>
+            <div className="space-y-4">
+              {recentBlogs.map((b) => (
+                <div
+                  key={b._id}
+                  className="flex gap-3 items-start cursor-pointer group"
+                  onClick={() =>
+                    navigate(`/blogs/${b.category?.slug || "general"}/${b.slug}`)
+                  }
+                >
+                  <img
+                    src={b.coverImage?.url || "/img/blog/blog-img.png"}
+                    alt={b.title?.[activeLang] || b.title?.en}
+                    className="w-20 h-16 object-cover rounded-md"
+                  />
+                  <div>
+                    <h4 className="text-[15px] font-semibold text-gray-800 group-hover:text-[#164B8B] transition">
+                      {b.title?.[activeLang] || b.title?.en}
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(b.publishedAt || b.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </section>
 
       <Footer />
     </>

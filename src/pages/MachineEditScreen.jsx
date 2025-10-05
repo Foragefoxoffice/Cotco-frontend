@@ -845,44 +845,65 @@ const SectionEditor = ({ basePath, section, control }) => {
       );
 
     case "button":
-      return (
-        <div className="space-y-4">
-          {/* ✅ Button Name (EN + VN) */}
-          <Controller
-            name={`${basePath}.button.name`}
-            control={control}
-            render={({ field }) => (
-              <TranslationInput
-                value={field.value || { en: "", vn: "" }}
-                placeholder="Button Label"
-                onChange={field.onChange}
-              />
-            )}
+  return (
+    <div className="space-y-4">
+      {/* ✅ Button Label (EN + VN) */}
+      <Controller
+        name={`${basePath}.button.name`}
+        control={control}
+        render={({ field }) => (
+          <TranslationInput
+            value={field.value || { en: "", vn: "" }}
+            placeholder="Button Label"
+            onChange={field.onChange}
           />
+        )}
+      />
 
-          {/* ✅ Button Link */}
-          <Controller
-            name={`${basePath}.button.link`}
-            control={control}
-            render={({ field }) => (
-              <Input
-                className="custom-dark-input"
-                style={{
-                  backgroundColor: "#262626",
-                  border: "1px solid #2E2F2F",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  padding: "10px 14px",
-                  fontSize: "14px",
-                  transition: "all 0.3s ease",
-                }}
-                {...field}
-                placeholder="Enter button link (e.g. https://example.com/download)"
-              />
-            )}
+      {/* ✅ Button Link */}
+      <Controller
+        name={`${basePath}.button.link`}
+        control={control}
+        render={({ field }) => (
+          <Input
+            className="custom-dark-input"
+            style={{
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "10px 14px",
+              fontSize: "14px",
+              transition: "all 0.3s ease",
+            }}
+            {...field}
+            placeholder="Enter button link (e.g. https://example.com/download)"
           />
-        </div>
-      );
+        )}
+      />
+
+      {/* ✅ Optional Alignment Dropdown */}
+      <Controller
+        name={`${basePath}.button.align`}
+        control={control}
+        render={({ field }) => (
+          <select
+            style={{
+              color:"#fff",
+              marginTop:"10px"
+            }}
+            {...field}
+            className="px-3 py-2  text-sm border border-[#2E2F2F] bg-[#1F1F1F] text-white rounded-lg outline-none cursor-pointer"
+          >
+            <option className="text-white" value="center">Center</option>
+            <option className="text-white" value="left">Left</option>
+            <option className="text-white" value="right">Right</option>
+          </select>
+        )}
+      />
+    </div>
+  );
+
 
     default:
       return <p>⚠ Unsupported section type: {section.type}</p>;
@@ -966,131 +987,133 @@ const MachinePageCreate = ({
   }, []);
 
   useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-      if (initialData.banner) {
-        setBannerFile([
-          {
-            uid: "-1",
-            name: "banner.png",
-            status: "done",
-            url: initialData.banner,
-          },
-        ]);
-      }
+  if (initialData) {
+    reset({
+      categoryId: initialData.categoryId || "",
+      title: initialData.title || { en: "", vn: "" },
+      description: initialData.description || { en: "", vn: "" },
+      slug: initialData.slug || "",
+      metaTitle: initialData.metaTitle || "",
+      metaDescription: initialData.metaDescription || "",
+      keywords: initialData.keywords || "",
+      sections: initialData.sections || [],
+    });
+
+    if (initialData.banner) {
+      setBannerFile([
+        {
+          uid: "-1",
+          name: "banner.png",
+          status: "done",
+          url: initialData.banner,
+        },
+      ]);
     }
-  }, [initialData, reset]);
+  }
+}, [initialData, reset]);
 
-  const handleFormSubmit = async (values) => {
-    try {
-      setLoading(true);
-      const formData = new FormData();
 
-      formData.append("categoryId", values.categoryId);
-      formData.append("title", JSON.stringify(values.title));
-      formData.append("description", JSON.stringify(values.description));
-      formData.append("slug", values.slug);
+ const handleFormSubmit = async (values) => {
+  try {
+    setLoading(true);
+    const formData = new FormData();
 
-      const seo = {
-        metaTitle: values.metaTitle,
-        metaDescription: values.metaDescription,
-        keywords: values.keywords
-          ? values.keywords.split(",").map((k) => k.trim())
-          : [],
-      };
-      formData.append("seo", JSON.stringify(seo));
+    formData.append("categoryId", values.categoryId);
+    formData.append("title", JSON.stringify(values.title));
+    formData.append("description", JSON.stringify(values.description));
+    formData.append("slug", values.slug);
 
-      if (bannerFile.length > 0) {
-        formData.append("banner", bannerFile[0].originFileObj);
+    const seo = {
+      metaTitle: values.metaTitle,
+      metaDescription: values.metaDescription,
+      keywords: values.keywords
+        ? values.keywords.split(",").map((k) => k.trim())
+        : [],
+    };
+    formData.append("seo", JSON.stringify(seo));
+
+    if (bannerFile.length > 0) {
+      formData.append("banner", bannerFile[0].originFileObj);
+    }
+
+    // Handle sections + nested images
+    const sections = values.sections.map((s, i) => {
+      if (["image", "imageLeft", "imageRight"].includes(s.type) && s.image) {
+        const fieldName = `sectionImage_${i}`;
+        const file = s.image.originFileObj || s.image;
+        if (file instanceof File) {
+          formData.append(fieldName, file);
+          return { ...s, image: fieldName };
+        }
       }
 
-      // ✅ Handle sections + block + tab images
-      const sections = values.sections.map((s, i) => {
-        // Section images
-        if (["image", "imageLeft", "imageRight"].includes(s.type) && s.image) {
-          const fieldName = `sectionImage_${i}`;
-          const file = s.image.originFileObj || s.image;
-          if (file instanceof File) {
-            formData.append(fieldName, file);
-            return { ...s, image: fieldName };
+      if (s.type === "blocks" && Array.isArray(s.blocks)) {
+        const updatedBlocks = s.blocks.map((block, bi) => {
+          if (block.image) {
+            const blockKey = `section_${i}_block_${bi}`;
+            const file = block.image.originFileObj || block.image;
+            if (file instanceof File) {
+              formData.append(blockKey, file);
+              return { ...block, image: blockKey };
+            }
           }
-        }
+          return block;
+        });
+        return { ...s, blocks: updatedBlocks };
+      }
 
-        // Block images
-        if (s.type === "blocks" && Array.isArray(s.blocks)) {
-          const updatedBlocks = s.blocks.map((block, bi) => {
-            if (block.image) {
-              const blockKey = `section_${i}_block_${bi}`;
-              const file = block.image.originFileObj || block.image;
+      if (s.type === "tabs" && Array.isArray(s.tabs)) {
+        const updatedTabs = s.tabs.map((tab, ti) => {
+          const updatedSections = tab.sections.map((subSection, si) => {
+            if (
+              ["image", "imageLeft", "imageRight"].includes(subSection.type) &&
+              subSection.image
+            ) {
+              const tabImgKey = `section_${i}_tab_${ti}_section_${si}`;
+              const file = subSection.image.originFileObj || subSection.image;
               if (file instanceof File) {
-                formData.append(blockKey, file);
-                return { ...block, image: blockKey };
+                formData.append(tabImgKey, file);
+                return { ...subSection, image: tabImgKey };
               }
             }
-            return block;
+            return subSection;
           });
-          return { ...s, blocks: updatedBlocks };
-        }
-
-        // ✅ Tab section images
-        if (s.type === "tabs" && Array.isArray(s.tabs)) {
-          const updatedTabs = s.tabs.map((tab, ti) => {
-            const updatedSections = tab.sections.map((subSection, si) => {
-              if (
-                ["image", "imageLeft", "imageRight"].includes(
-                  subSection.type
-                ) &&
-                subSection.image
-              ) {
-                const tabImgKey = `section_${i}_tab_${ti}_section_${si}`;
-                const file = subSection.image.originFileObj || subSection.image;
-                if (file instanceof File) {
-                  formData.append(tabImgKey, file);
-                  return { ...subSection, image: tabImgKey };
-                }
-              }
-              return subSection;
-            });
-            return { ...tab, sections: updatedSections };
-          });
-          return { ...s, tabs: updatedTabs };
-        }
-
-        return s;
-      });
-
-      formData.append("sections", JSON.stringify(sections));
-
-      if (isEdit) {
-        await onSubmitUpdate(formData); // update API
-        toast.success("Page updated successfully");
-      } else {
-        await createMachinePage(formData); // create API
-        toast.success("Page created successfully");
-        onSuccess?.();
-        reset();
-      }
-    } catch (err) {
-      console.error("Form submit error:", err); // keep this for developers in console
-
-      // Default user message
-      let userMessage = "Something went wrong. Please try again.";
-
-      // Show nicer messages based on known error types
-      if (err?.response?.status === 400) {
-        userMessage =
-          "Some fields are missing or invalid. Please check your input.";
-      } else if (err?.response?.status === 401) {
-        userMessage = "You are not authorized. Please login again.";
-      } else if (err?.response?.status === 404) {
-        userMessage = "Requested resource not found.";
-      } else if (err?.response?.status === 500) {
-        userMessage = "Server is having trouble. Please try again later.";
+          return { ...tab, sections: updatedSections };
+        });
+        return { ...s, tabs: updatedTabs };
       }
 
-      toast.error(userMessage);
+      return s;
+    });
+
+    formData.append("sections", JSON.stringify(sections));
+
+    if (isEdit) {
+      await onSubmitUpdate(formData);
+      toast.success("Page updated successfully ✅");
+    } else {
+      await createMachinePage(formData);
+      toast.success("Page created successfully 🎉");
+      onSuccess?.();
+      reset();
     }
-  };
+  } catch (err) {
+    console.error("Form submit error:", err);
+    let userMessage = "Something went wrong. Please try again.";
+    if (err?.response?.status === 400)
+      userMessage = "Some fields are missing or invalid.";
+    else if (err?.response?.status === 401)
+      userMessage = "You are not authorized.";
+    else if (err?.response?.status === 404)
+      userMessage = "Requested resource not found.";
+    else if (err?.response?.status === 500)
+      userMessage = "Server error. Please try again later.";
+    toast.error(userMessage);
+  } finally {
+    setLoading(false); // ✅ ensures button returns to normal
+  }
+};
+
 
   return (
     <div className="p-6 min-h-screen edit-form">

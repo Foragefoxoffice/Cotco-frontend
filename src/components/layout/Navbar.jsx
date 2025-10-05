@@ -134,7 +134,13 @@ const Navbar = () => {
                       {/* ✅ Resources Dropdown */}
                       <div className="relative group">
                         <button
-                          className={getLinkClass("#") + " flex items-center gap-1"}
+                          style={{
+                            color: "#fff",
+                          }}
+                          className={
+                            getLinkClass("#") +
+                            " flex items-center gap-1 cursor-pointer"
+                          }
                         >
                           Resources
                           <FiChevronDown className="transition-transform group-hover:rotate-180" />
@@ -190,16 +196,26 @@ const Navbar = () => {
             <TranslateToggle />
           </div>
 
-          {/* ---------- MOBILE TOGGLE ---------- */}
-          <button
-            className={`md:hidden text-2xl cursor-pointer z-[60] ${
-              isOpen ? "text-white" : "text-gray-800"
-            }`}
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <FaTimes /> : <FaBars />}
-          </button>
+          {/* ---------- MOBILE: LANG + MENU TOGGLE ---------- */}
+          <div className="flex items-center gap-4 md:hidden">
+            {/* 🔹 Language Toggle */}
+            <div className="translate-toggle-mobile">
+              <TranslateToggle />
+            </div>
+
+            {/* 🔹 Hamburger Button */}
+            <button
+              style={{
+                color: "#fff",
+                fontSize: "28px",
+              }}
+              className="text-3xl cursor-pointer z-[60] text-white"
+              onClick={toggleMenu}
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <FaTimes /> : <FaBars />}
+            </button>
+          </div>
         </div>
 
         {/* ✅ Google Translate widget */}

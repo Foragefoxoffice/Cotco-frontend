@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, message, Upload } from "antd";
+import { Form, Input, Button, Upload } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { updateMachineCategory } from "../../Api/api";
 import TranslationTabs from "../TranslationTabs";
@@ -71,8 +71,21 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
     }
   };
 
+  // ✅ Shared dark input style
+  const darkInputStyle = {
+    backgroundColor: "#262626",
+    border: "1px solid #2E2F2F",
+    borderRadius: "8px",
+    color: "#fff",
+    padding: "10px 14px",
+    fontSize: "14px",
+    transition: "all 0.3s ease",
+  };
+
+  const labelStyle = { color: "#ccc", fontWeight: 500 };
+
   return (
-    <div>
+    <div style={{ backgroundColor: "#171717", borderRadius: "12px", padding: "4px" }}>
       <div className="mb-4">
         <TranslationTabs
           activeLanguage={activeLanguage}
@@ -84,47 +97,57 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
         {/* English */}
         <Form.Item
           name="name_en"
-          label="Name (English)"
+          label={<span style={labelStyle}>Name (English)</span>}
           rules={[{ required: true, message: "Please enter English name" }]}
           style={{ display: activeLanguage === "en" ? "block" : "none" }}
         >
-          <Input placeholder="Enter category name (EN)" />
+          <Input placeholder="Enter category name (EN)" style={darkInputStyle} />
         </Form.Item>
+
         <Form.Item
           name="description_en"
-          label="Description (English)"
+          label={<span style={labelStyle}>Description (English)</span>}
           style={{ display: activeLanguage === "en" ? "block" : "none" }}
         >
-          <Input.TextArea placeholder="Enter description (EN)" rows={3} />
+          <Input.TextArea
+            placeholder="Enter description (EN)"
+            rows={3}
+            style={{ ...darkInputStyle, resize: "none" }}
+          />
         </Form.Item>
 
         {/* Vietnamese */}
         <Form.Item
           name="name_vn"
-          label="Name (Vietnamese)"
+          label={<span style={labelStyle}>Name (Vietnamese)</span>}
           style={{ display: activeLanguage === "vn" ? "block" : "none" }}
         >
-          <Input placeholder="Enter category name (VN)" />
-        </Form.Item>
-        <Form.Item
-          name="description_vn"
-          label="Description (Vietnamese)"
-          style={{ display: activeLanguage === "vn" ? "block" : "none" }}
-        >
-          <Input.TextArea placeholder="Enter description (VN)" rows={3} />
+          <Input placeholder="Enter category name (VN)" style={darkInputStyle} />
         </Form.Item>
 
-        {/* Common */}
+        <Form.Item
+          name="description_vn"
+          label={<span style={labelStyle}>Description (Vietnamese)</span>}
+          style={{ display: activeLanguage === "vn" ? "block" : "none" }}
+        >
+          <Input.TextArea
+            placeholder="Enter description (VN)"
+            rows={3}
+            style={{ ...darkInputStyle, resize: "none" }}
+          />
+        </Form.Item>
+
+        {/* Common Fields */}
         <Form.Item
           name="slug"
-          label="Slug"
+          label={<span style={labelStyle}>Slug</span>}
           rules={[{ required: true, message: "Please enter slug" }]}
         >
-          <Input placeholder="Unique slug (e.g. weaving)" />
+          <Input placeholder="Unique slug (e.g. weaving)" style={darkInputStyle} />
         </Form.Item>
 
         {/* Uploads */}
-        <Form.Item name="image" label="Upload Image">
+        <Form.Item name="image" label={<span style={labelStyle}>Upload Image</span>}>
           <Upload
             beforeUpload={() => false}
             listType="picture-card"
@@ -134,13 +157,13 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
             {fileList.length === 0 && (
               <div>
                 <PlusOutlined />
-                <div>Upload Image</div>
+                <div style={{ marginTop: 8, color: "#aaa" }}>Upload Image</div>
               </div>
             )}
           </Upload>
         </Form.Item>
 
-        <Form.Item name="icon" label="Upload Icon">
+        <Form.Item name="icon" label={<span style={labelStyle}>Upload Icon</span>}>
           <Upload
             beforeUpload={() => false}
             listType="picture-card"
@@ -150,14 +173,30 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
             {iconList.length === 0 && (
               <div>
                 <PlusOutlined />
-                <div>Upload Icon</div>
+                <div style={{ marginTop: 8, color: "#aaa" }}>Upload Icon</div>
               </div>
             )}
           </Upload>
         </Form.Item>
 
+        {/* Submit */}
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading} block>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            block
+            style={{
+              backgroundColor: "#0085C8",
+              border: "none",
+              borderRadius: "8px",
+              color: "#fff",
+              fontWeight: 500,
+              padding: "10px 0",
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#009FE3")}
+            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#0085C8")}
+          >
             Update Machine Category
           </Button>
         </Form.Item>

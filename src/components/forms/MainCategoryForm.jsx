@@ -60,21 +60,12 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
 
   const isCreating = !mainCategory;
 
+  // ✅ Auto-generate slug on create
   useEffect(() => {
     if (isCreating && formData.name.en) {
       setFormData((prev) => ({ ...prev, slug: slugify(prev.name.en) }));
     }
   }, [formData.name.en, isCreating]);
-
-  const handleChange = (value) => {
-    setFormData((prev) => ({
-      ...prev,
-      name: {
-        ...prev.name,
-        [activeLanguage]: value,
-      },
-    }));
-  };
 
   const handleSlugChange = (value) => {
     setFormData((prev) => ({ ...prev, slug: value }));
@@ -101,14 +92,12 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    // ✅ Both EN & VN required
     if (!formData.name.en?.trim()) {
       newErrors["name-en"] = labels.en.requiredEn;
     }
     if (!formData.name.vn?.trim()) {
       newErrors["name-vn"] = labels.vn.requiredVn;
     }
-
     if (!formData.slug?.trim()) {
       newErrors.slug = labels[activeLanguage].requiredSlug;
     }
@@ -124,7 +113,6 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
 
     setIsLoading(true);
     try {
-      // ✅ Prepare FormData with dot notation keys
       const data = new FormData();
       data.append("slug", formData.slug);
       data.append("name.en", formData.name.en || "");
@@ -148,50 +136,73 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
         savedMainCategory = res.data.data || res.data;
         CommonToaster(labels[activeLanguage].successUpdate, "success");
       }
+
       if (onSave) onSave(savedMainCategory);
-    } catch (error) {
-      console.error("MainCategory save error:", error.response || error);
-      setErrors({
-        submit:
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          labels[activeLanguage].fail,
-      });
-    } finally {
+    }  catch (error) {
+  console.error(
+    "MainCategory save error:",
+    error.response?.data || error.message || error
+  );
+
+  setErrors({
+    submit:
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message ||
+      labels[activeLanguage].fail,
+  });
+}
+ finally {
       setIsLoading(false);
     }
   };
 
-  const inputClasses =
-    "mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500";
+  // ✅ Shared dark input styling
+  const darkInputStyle = {
+    backgroundColor: "#262626",
+    border: "1px solid #2E2F2F",
+    borderRadius: "8px",
+    color: "#fff",
+    padding: "10px 14px",
+    fontSize: "14px",
+    width: "100%",
+    transition: "all 0.3s ease",
+  };
+
   const labelClasses =
-    "block text-sm font-medium text-gray-700 dark:text-gray-300";
+    "block text-sm font-medium text-gray-300";
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-[#171717] rounded-lg">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          {mainCategory ? labels[activeLanguage].edit : labels[activeLanguage].create}
+        <h2 className="text-lg font-semibold text-white">
+          {mainCategory
+            ? labels[activeLanguage].edit
+            : labels[activeLanguage].create}
         </h2>
         <button
           onClick={onClose}
-          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+          className="text-gray-400 hover:text-gray-200 transition"
         >
           <X size={24} />
         </button>
       </div>
+
+      {/* Language Tabs */}
       <TranslationTabs
         activeLanguage={activeLanguage}
         setActiveLanguage={setActiveLanguage}
       />
 
+      {/* Form */}
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         {/* Name EN */}
         <div>
           <label className={labelClasses}>{labels.en.name} (EN)</label>
           <input
             type="text"
-            className={inputClasses}
+            style={darkInputStyle}
             value={formData.name.en}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -211,7 +222,7 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
           <label className={labelClasses}>{labels.vn.name} (VN)</label>
           <input
             type="text"
-            className={inputClasses}
+            style={darkInputStyle}
             value={formData.name.vn}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -231,7 +242,7 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
           <label className={labelClasses}>{labels[activeLanguage].slug}</label>
           <input
             type="text"
-            className={inputClasses}
+            style={darkInputStyle}
             value={formData.slug}
             onChange={(e) => handleSlugChange(e.target.value)}
             required
@@ -241,20 +252,26 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
           )}
         </div>
 
-        {/* Background Image Upload */}
+        {/* Background Image */}
         <div>
-          <label className={labelClasses}>{labels[activeLanguage].bgImage}</label>
+          <label className={labelClasses}>
+            {labels[activeLanguage].bgImage}
+          </label>
           <input
             type="file"
             accept="image/*"
-            className={inputClasses}
+            style={{
+              ...darkInputStyle,
+              padding: "6px",
+              cursor: "pointer",
+            }}
             onChange={handleFileChange}
           />
           {preview && (
             <img
               src={preview}
               alt="Preview"
-              className="mt-3 h-32 w-auto rounded-md object-cover border"
+              className="mt-3 h-32 w-auto rounded-md object-cover border border-[#2E2F2F]"
             />
           )}
         </div>
@@ -264,32 +281,33 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
           <label className={labelClasses}>{labels[activeLanguage].bgAlt}</label>
           <input
             type="text"
-            className={inputClasses}
+            style={darkInputStyle}
             value={formData.bgImage?.alt || ""}
             onChange={(e) => handleAltChange(e.target.value)}
             placeholder="Background image description"
           />
         </div>
 
+        {/* Error Message */}
         {errors.submit && (
-          <div className="bg-red-50 dark:bg-red-900 p-3 rounded text-red-600 dark:text-red-200 text-sm">
+          <div className="bg-red-900 p-3 rounded text-red-200 text-sm">
             {errors.submit}
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex justify-end space-x-3 pt-4 border-t">
+        {/* Buttons */}
+        <div className="flex justify-end space-x-3 pt-4 border-t border-[#2E2F2F]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-white dark:bg-gray-600 border rounded-md hover:bg-red-50 dark:hover:bg-red-500 text-red-600 dark:text-red-300"
+            className="px-4 py-2 border border-[#2E2F2F] rounded-md text-gray-300 hover:bg-[#2E2F2F] transition"
           >
             {labels[activeLanguage].cancel}
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-70"
+            className="px-4 py-2 bg-[#0085C8] text-white rounded-md hover:bg-blue-700 transition disabled:opacity-70"
           >
             {isLoading
               ? labels[activeLanguage].saving

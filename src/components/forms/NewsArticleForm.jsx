@@ -109,7 +109,8 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
 
         setFormData((prev) => ({
           ...prev,
-          mainCategory: prev.mainCategory || (mains.length > 0 ? mains[0]._id : ""),
+          mainCategory:
+            prev.mainCategory || (mains.length > 0 ? mains[0]._id : ""),
           category: prev.category || (cats.length > 0 ? cats[0]._id : ""),
         }));
       })
@@ -131,19 +132,17 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
   }, [formData.title.en, isCreating]);
 
   const inputClasses =
-    "mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500";
+    "mt-1 block w-full border border-[#2E2F2F] rounded-lg shadow-sm py-2 px-3 bg-[#1F1F1F] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0085C8] focus:border-[#0085C8] transition-all duration-200";
+
   const labelClasses =
-    "block text-sm font-medium text-gray-700 dark:text-gray-300";
+    "block text-sm font-medium text-gray-300 mb-1";
 
   // ✅ Change handlers
   const handleChange = (field, value, isTranslatable = false) => {
     if (isTranslatable) {
       setFormData((prev) => ({
         ...prev,
-        [field]: {
-          ...prev[field],
-          [activeLanguage]: value,
-        },
+        [field]: { ...prev[field], [activeLanguage]: value },
       }));
     } else {
       setFormData((prev) => ({ ...prev, [field]: value }));
@@ -155,10 +154,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
       ...prev,
       seo: {
         ...prev.seo,
-        [field]: {
-          ...prev.seo[field],
-          [activeLanguage]: value,
-        },
+        [field]: { ...prev.seo[field], [activeLanguage]: value },
       },
     }));
   };
@@ -273,15 +269,36 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-[#0A0A0A] text-white rounded-xl">
+      <style>
+        {`
+          .richtext-editor {
+            border: 1px solid #2E2F2F;
+            background: transparent;
+            bord
+          }
+
+          .richtext-editor:focus {
+            outline: none;
+          }
+            .richtext-editor .toolbar{
+              background:#2E2F2F;
+              border:none;
+              padding:5px 10px;
+            }
+              .richtext-editor .ProseMirror{
+              padding:20px;
+              }
+        `}
+      </style>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+      <div className="flex justify-between items-center mb-6 border-b border-[#2E2F2F] pb-3">
+        <h2 className="text-xl font-bold text-white">
           {article ? labels[activeLanguage].edit : labels[activeLanguage].create}
         </h2>
         <button
           onClick={onClose}
-          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+          className="text-gray-400 hover:text-red-500 transition"
         >
           <X size={24} />
         </button>
@@ -332,7 +349,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             <span className="text-red-500">*</span>
           </label>
           <div className="flex items-center space-x-4">
-            <div className="w-24 h-24 border rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+            <div className="w-24 h-24 border border-[#2E2F2F] rounded-md overflow-hidden bg-[#1F1F1F] flex items-center justify-center">
               {formData.coverImage.url ? (
                 <img
                   src={formData.coverImage.url}
@@ -340,7 +357,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-gray-400 text-xs">
+                <span className="text-gray-500 text-xs">
                   {labels[activeLanguage].preview}
                 </span>
               )}
@@ -355,13 +372,13 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="px-3 py-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 rounded-md"
+              className="px-3 py-2 bg-[#0085C8]/20 text-[#00A8FF] rounded-md hover:bg-[#0085C8]/40 transition"
             >
               <Upload size={16} className="inline mr-2" />
               {labels[activeLanguage].upload}
             </button>
           </div>
-          <p>(2MB maximum upload size)</p>
+          <p className="text-gray-400 text-xs mt-1">(2MB maximum upload size)</p>
         </div>
 
         {/* Excerpt */}
@@ -378,17 +395,17 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           />
         </div>
 
-        {/* Blocks */}
+        {/* Content Blocks */}
         <div>
           <label className={labelClasses}>Content Blocks</label>
           <div className="space-y-4 mt-2">
             {formData.blocks.map((block, i) => (
               <div
                 key={i}
-                className="p-3 border rounded-md bg-gray-50 dark:bg-gray-700/30"
+                className="p-3 border border-[#2E2F2F] rounded-md bg-[#1F1F1F]"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium capitalize">
+                  <span className="font-medium text-gray-300 capitalize">
                     {labels[activeLanguage].blockTypes[block.type]}
                   </span>
                   <button
@@ -410,7 +427,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
 
                 {block.type === "image" && (
                   <div className="flex items-center space-x-4">
-                    <div className="w-32 h-32 border rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                    <div className="w-32 h-32 border border-[#2E2F2F] rounded-md overflow-hidden bg-[#1F1F1F] flex items-center justify-center">
                       {block.content.url ? (
                         <img
                           src={block.content.url}
@@ -418,7 +435,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-gray-400 text-xs">
+                        <span className="text-gray-500 text-xs">
                           {labels[activeLanguage].preview}
                         </span>
                       )}
@@ -443,7 +460,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                       onClick={() =>
                         document.getElementById(`block-image-${i}`).click()
                       }
-                      className="px-3 py-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 rounded-md"
+                      className="px-3 py-2 bg-[#0085C8]/20 text-[#00A8FF] rounded-md hover:bg-[#0085C8]/40 transition"
                     >
                       <Upload size={16} className="inline mr-2" />
                       {labels[activeLanguage].upload}
@@ -484,14 +501,14 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             ))}
           </div>
 
-          <div className="flex space-x-2 mt-3">
+          <div className="flex flex-wrap gap-2 mt-3">
             {Object.entries(labels[activeLanguage].blockTypes).map(
               ([value, label]) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => addBlock(value)}
-                  className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm flex items-center"
+                  className="px-3 py-1 bg-[#0085C8]/20 text-[#00A8FF] rounded-md text-sm flex items-center hover:bg-[#0085C8]/40 transition"
                 >
                   <PlusCircle size={14} className="mr-1" /> {label}
                 </button>
@@ -500,11 +517,10 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           </div>
         </div>
 
-        {/* Main Category */}
+        {/* Category Selectors */}
         <div>
           <label className={labelClasses}>
             {labels[activeLanguage].mainCategory}
-            <span className="text-red-500">*</span>
           </label>
           <select
             className={inputClasses}
@@ -520,11 +536,9 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           </select>
         </div>
 
-        {/* Category */}
         <div>
           <label className={labelClasses}>
             {labels[activeLanguage].category}
-            <span className="text-red-500">*</span>
           </label>
           <select
             className={inputClasses}
@@ -544,8 +558,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
         {/* Status */}
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].status}{" "}
-            <span className="text-red-500">*</span>
+            {labels[activeLanguage].status}
           </label>
           <select
             className={inputClasses}
@@ -558,8 +571,8 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
         </div>
 
         {/* SEO */}
-        <div className="space-y-3 border-t pt-4">
-          <h3 className="font-medium text-gray-800 dark:text-gray-200">
+        <div className="space-y-3 border-t border-[#2E2F2F] pt-4">
+          <h3 className="font-semibold text-gray-200 text-lg">
             {labels[activeLanguage].seo}
           </h3>
           <div>
@@ -586,31 +599,29 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           </div>
         </div>
 
-        
-      {/* Error messages */}
-      {formErrors.length > 0 && (
-        <div className="p-3 bg-red-100 text-red-700 rounded-md mb-4">
-          <ul className="list-disc pl-5">
-            {formErrors.map((err, i) => (
-              <li key={i}>{err}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
+        {/* Error Messages */}
+        {formErrors.length > 0 && (
+          <div className="p-3 bg-red-500/20 text-red-300 rounded-md">
+            <ul className="list-disc pl-5 space-y-1">
+              {formErrors.map((err, i) => (
+                <li key={i}>{err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Actions */}
-        <div className="flex justify-end space-x-3 pt-4 border-t">
+        <div className="flex justify-end gap-3 pt-4 border-t border-[#2E2F2F]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-white dark:bg-gray-600 border rounded-md cursor-pointer hover:bg-red-50 dark:hover:bg-red-500 text-red-600 dark:text-red-300 hover:text-white-800"
+            className="px-4 py-2 border border-[#2E2F2F] text-gray-300 rounded-md hover:bg-red-500/20 hover:text-red-300 transition"
           >
             {labels[activeLanguage].cancel}
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 cursor-pointer"
+            className="px-4 py-2 bg-[#0085C8] text-white rounded-md hover:bg-[#009FE3] transition"
           >
             {article ? labels[activeLanguage].update : labels[activeLanguage].save}
           </button>

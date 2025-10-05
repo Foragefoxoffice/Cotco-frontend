@@ -116,12 +116,12 @@ createRoot(document.getElementById("root")).render(
 
           {/* 🏭 Machines (Public) */}
           <Route path="/machines" element={<MachinesMain />} />
-          <Route path="/machines/:mainSlug" element={<MachineCategories />} />
-          <Route path="/machines/:mainSlug/:categorySlug" element={<MachineList />} />
+          <Route path="/machines/:categorySlug" element={<MachineList />} />
           <Route
-            path="/machines/:mainSlug/:categorySlug/:pageSlug"
-            element={<MachineDetail />}
+            path="/machines/:categorySlug/:pageSlug"
+            element={<MachinePage />}
           />
+
 
           {/* 🧭 Admin Section */}
           <Route

@@ -120,8 +120,17 @@ export const deleteSection = (id) => API.delete(`/sections/${id}`);
    MAIN CATEGORIES (Generic for blog/news/categories)
    Backend route: /main-categories
 ========================================================= */
-export const createBlogMainCategory = (data) =>
-  API.post("/maincategories", data);
+export const createBlogMainCategory = (data, isFormData = false) =>
+  API.post("/maincategories", data, {
+    headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+  });
+
+export const updateBlogMainCategory = (id, data, isFormData = false) =>
+  API.put(`/maincategories/${id}`, data, {
+    headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+  });
+
+
 
 export const getMainBlogCategories = () =>
   API.get("/maincategories");
@@ -129,11 +138,14 @@ export const getMainBlogCategories = () =>
 export const getMainBlogCategory = (id) =>
   API.get(`/maincategories/${id}`);
 
-export const updateBlogMainCategory = (id, data) =>
-  API.put(`/maincategories/${id}`, data);
+// export const updateBlogMainCategory = (id, data, isFormData = false) =>
+//   axios.put(`/api/blog-main-categories/${id}`, data, {
+//     headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+//   });
 
 export const deleteBlogMainCategory = (id) =>
   API.delete(`/maincategories/${id}`);
+
 
 
 // ================= PAGES ================= //

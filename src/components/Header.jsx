@@ -76,11 +76,11 @@ const Header = () => {
 
   return (
     <header
-      className="bg-white dark:bg-[#171717] border-b border-gray-200 dark:border-[#2E2F2F]
+      className="bg-[#171717]  
                  py-4 px-6 flex items-center justify-between sticky top-0 z-20 transition-colors duration-300 rounded-2xl"
     >
       {/* ---------- LEFT: Title ---------- */}
-      <div className="text-lg font-semibold text-gray-800 dark:text-white">
+      <div className="text-lg font-semibold text-white">
         {t.dashboard}
       </div>
 
@@ -93,14 +93,14 @@ const Header = () => {
         <div className="relative">
           <button
             className="p-2 rounded-full border border-gray-300 dark:border-gray-600 
-                       hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white 
+                       hover:bg-gray-500 
                        cursor-pointer relative transition-colors duration-200"
             onClick={() => {
               setShowNotifications(!showNotifications);
               setShowUserMenu(false);
             }}
           >
-            <Bell size={20} className="text-gray-700 dark:text-gray-300" />
+            <Bell size={20} className="text-gray-300" />
             {unreadCount > 0 && (
               <span className="absolute -top-[3px] -right-[3px] h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
                 {unreadCount}
@@ -153,7 +153,7 @@ const Header = () => {
             <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
               <User size={16} />
             </div>
-            <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">
+            <span className="ml-2 text-sm font-medium text-white hidden sm:block">
               {t.user}
             </span>
           </div>

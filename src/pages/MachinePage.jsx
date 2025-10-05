@@ -87,44 +87,68 @@ const MachinePageDetail = () => {
             </div>
           </div>
         );
+      case "button":
+        return (
+          <div
+            key={index}
+            className={`my-12 page-width flex ${
+              section.button?.align === "left"
+                ? "justify-start"
+                : section.button?.align === "right"
+                ? "justify-end"
+                : "justify-center"
+            }`}
+          >
+            <button
+              onClick={() => {
+                if (section.button?.link)
+                  window.open(section.button.link, "_blank");
+              }}
+              className="px-6 py-3 bg-[#11456C] text-white font-medium text-sm md:text-base rounded-lg shadow-md hover:bg-[#0E3A5D] transition-all duration-300 hover:scale-105"
+            >
+              {section.button?.name?.en || "Learn More"}
+            </button>
+          </div>
+        );
+
       case "table":
-  return (
-    <div key={index} className="overflow-x-auto my-10 page-width">
-      {section.table?.header && (
-        <h3 className="text-2xl font-bold mb-4">
-          {section.table.header?.en || section.table.header?.vn || ""}
-        </h3>
-      )}
-      <table className="table-auto border-collapse w-full text-sm">
-        <thead>
-          <tr className="bg-[#11456C] text-white">
-            {section.table.rows?.[0]?.map((cell, ci) => (
-              <th
-                key={ci}
-                className="border border-gray-300 px-4 py-2 text-left font-semibold"
-              >
-                {cell?.en || cell?.vn || ""}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {section.table.rows?.slice(1).map((row, ri) => (
-            <tr key={ri} className="odd:bg-white even:bg-gray-50">
-              {row.map((cell, ci) => (
-                <td
-                  key={ci}
-                  className="border border-gray-300 px-4 py-2 text-gray-800"
-                >
-                  {cell?.en || cell?.vn || ""}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+        return (
+          <div key={index} className="overflow-x-auto my-10 page-width">
+            {section.table?.header && (
+              <h3 className="text-2xl font-bold mb-4">
+                {section.table.header?.en || section.table.header?.vn || ""}
+              </h3>
+            )}
+            <table className="table-auto border-collapse w-full text-sm">
+              <thead>
+                <tr className="bg-[#11456C] text-white">
+                  {section.table.rows?.[0]?.map((cell, ci) => (
+                    <th
+                      key={ci}
+                      className="border border-gray-300 px-4 py-2 text-left font-semibold"
+                    >
+                      {cell?.en || cell?.vn || ""}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {section.table.rows?.slice(1).map((row, ri) => (
+                  <tr key={ri} className="odd:bg-white even:bg-gray-50">
+                    {row.map((cell, ci) => (
+                      <td
+                        key={ci}
+                        className="border border-gray-300 px-4 py-2 text-gray-800"
+                      >
+                        {cell?.en || cell?.vn || ""}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
 
       case "image":
         return (

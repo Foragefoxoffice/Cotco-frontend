@@ -26,7 +26,7 @@ export default function MachinesBenefits({
         </p>
 
         {/* Card + image block */}
-        <div className="relative">
+        <div className="relative mt-16">
           {/* angled blue card */}
           <div
             className="

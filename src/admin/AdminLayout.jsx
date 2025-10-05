@@ -11,10 +11,10 @@ const AdminLayout = () => {
   const { theme } = useTheme();
 
   return (
-     <div className="flex h-screen font-sans text-black dark:text-gray-100"
+     <div className="flex h-screen font-sans bg-[#0A0A0A]"
        
      style={{
-        background: theme === "dark" ? "#0f1116" : "#f5f7fa",
+        
         fontFamily: "Manrope"
       }}
       >

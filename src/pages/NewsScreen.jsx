@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Calendar, User, Tag, Edit, Trash2, Eye, Search } from "lucide-react";
+import {
+  Plus,
+  Calendar,
+  User,
+  Tag,
+  Edit,
+  Trash2,
+  Eye,
+  Search,
+} from "lucide-react";
 import NewsArticleForm from "../components/forms/NewsArticleForm";
 import { getBlogs, createBlog, updateBlog, deleteBlog } from "../Api/api";
 import { CommonToaster } from "../Common/CommonToaster";
@@ -34,7 +43,10 @@ const NewsScreen = () => {
     };
     checkLang();
     const observer = new MutationObserver(checkLang);
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -55,12 +67,20 @@ const NewsScreen = () => {
     deleteConfirm: isVietnamese
       ? "Bạn có chắc muốn xóa bài viết này?"
       : "Are you sure you want to delete this blog?",
-    deleteSuccess: isVietnamese ? "Xóa bài viết thành công" : "Blog deleted successfully",
-    deleteFail: isVietnamese ? "Xóa bài viết thất bại" : "Failed to delete blog",
+    deleteSuccess: isVietnamese
+      ? "Xóa bài viết thành công"
+      : "Blog deleted successfully",
+    deleteFail: isVietnamese
+      ? "Xóa bài viết thất bại"
+      : "Failed to delete blog",
     loadFail: isVietnamese ? "Không thể tải tin tức" : "Failed to load blogs",
     saveFail: isVietnamese ? "Lưu bài viết thất bại" : "Failed to save blog",
-    saveSuccess: isVietnamese ? "Lưu bài viết thành công" : "Blog created successfully",
-    updateSuccess: isVietnamese ? "Cập nhật thành công" : "Blog updated successfully",
+    saveSuccess: isVietnamese
+      ? "Lưu bài viết thành công"
+      : "Blog created successfully",
+    updateSuccess: isVietnamese
+      ? "Cập nhật thành công"
+      : "Blog updated successfully",
     filterMain: isVietnamese ? "Danh mục chính" : "Main Category",
     filterCategory: isVietnamese ? "Danh mục phụ" : "Category",
     all: isVietnamese ? "Tất cả" : "All",
@@ -183,7 +203,9 @@ const NewsScreen = () => {
     const title = isVietnamese
       ? article.title?.vn || article.title?.en
       : article.title?.en;
-    const matchesSearch = title?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = title
+      ?.toLowerCase()
+      .includes(searchQuery.toLowerCase());
 
     const matchesMain =
       mainCategoryFilter === "all" ||
@@ -218,7 +240,11 @@ const NewsScreen = () => {
   return (
     <div
       className={`transition-colors pb-5 duration-300 
-        ${theme === "light" ? "bg-gray-50 text-gray-900" : "bg-[#171717] text-gray-100"}`}
+        ${
+          theme === "light"
+            ? "bg-gray-50 text-gray-900"
+            : "bg-[#171717] text-gray-100"
+        }`}
     >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-1 p-6 gap-4">
@@ -253,7 +279,16 @@ const NewsScreen = () => {
               setCurrentPage(1);
             }}
             placeholder={t.search}
-            className="w-full pl-10 pr-3 py-2 border rounded text-sm dark:dark:bg-gray-700 dark:border-gray-600"
+            style={{
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "10px 14px 10px 38px", // space for icon
+              fontSize: "14px",
+              width: "100%",
+              transition: "all 0.3s ease",
+            }}
           />
         </div>
 
@@ -264,11 +299,26 @@ const NewsScreen = () => {
             setSortOption(e.target.value);
             setCurrentPage(1);
           }}
-          className="border rounded px-3 py-2 text-sm dark:dark:bg-gray-700 dark:border-gray-600"
+          style={{
+            backgroundColor: "#262626",
+            border: "1px solid #2E2F2F",
+            borderRadius: "8px",
+            color: "#fff",
+            padding: "10px 14px",
+            fontSize: "14px",
+            transition: "all 0.3s ease",
+            cursor: "pointer",
+          }}
         >
-          <option value="newest">{t.newest}</option>
-          <option value="oldest">{t.oldest}</option>
-          <option value="title">{t.titleSort}</option>
+          <option className="bg-[#262626] text-white" value="newest">
+            {t.newest}
+          </option>
+          <option className="bg-[#262626] text-white" value="oldest">
+            {t.oldest}
+          </option>
+          <option className="bg-[#262626] text-white" value="title">
+            {t.titleSort}
+          </option>
         </select>
 
         {/* Status Filter */}
@@ -278,11 +328,26 @@ const NewsScreen = () => {
             setStatusFilter(e.target.value);
             setCurrentPage(1);
           }}
-          className="border rounded px-3 py-2 text-sm dark:dark:bg-gray-700 dark:border-gray-600"
+          style={{
+            backgroundColor: "#262626",
+            border: "1px solid #2E2F2F",
+            borderRadius: "8px",
+            color: "#fff",
+            padding: "10px 14px",
+            fontSize: "14px",
+            transition: "all 0.3s ease",
+            cursor: "pointer",
+          }}
         >
-          <option value="all">{t.all} Status</option>
-          <option value="published">{t.published}</option>
-          <option value="draft">{t.draft}</option>
+          <option className="bg-[#262626] text-white" value="all">
+            {t.all} Status
+          </option>
+          <option className="bg-[#262626] text-white" value="published">
+            {t.published}
+          </option>
+          <option className="bg-[#262626] text-white" value="draft">
+            {t.draft}
+          </option>
         </select>
 
         {/* Filter by Main Category */}
@@ -293,11 +358,26 @@ const NewsScreen = () => {
             setCategoryFilter("all");
             setCurrentPage(1);
           }}
-          className="border rounded px-3 py-2 text-sm dark:dark:bg-gray-700 dark:border-gray-600"
+          style={{
+            backgroundColor: "#262626",
+            border: "1px solid #2E2F2F",
+            borderRadius: "8px",
+            color: "#fff",
+            padding: "10px 14px",
+            fontSize: "14px",
+            transition: "all 0.3s ease",
+            cursor: "pointer",
+          }}
         >
-          <option value="all">{t.all} {t.filterMain}</option>
+          <option className="bg-[#262626] text-white" value="all">
+            {t.all} {t.filterMain}
+          </option>
           {uniqueMainCategories.map((mc) => (
-            <option key={mc.id} value={mc.id}>
+            <option
+              key={mc.id}
+              value={mc.id}
+              className="bg-[#262626] text-white"
+            >
               {mc.name[isVietnamese ? "vn" : "en"] || mc.name.en || mc.name}
             </option>
           ))}
@@ -310,15 +390,32 @@ const NewsScreen = () => {
             setCategoryFilter(e.target.value);
             setCurrentPage(1);
           }}
-          className="border rounded px-3 py-2 text-sm dark:dark:bg-gray-700 dark:border-gray-600"
+          style={{
+            backgroundColor: "#262626",
+            border: "1px solid #2E2F2F",
+            borderRadius: "8px",
+            color: "#fff",
+            padding: "10px 14px",
+            fontSize: "14px",
+            transition: "all 0.3s ease",
+            cursor: "pointer",
+          }}
         >
-          <option value="all">{t.all} {t.filterCategory}</option>
+          <option className="bg-[#262626] text-white" value="all">
+            {t.all} {t.filterCategory}
+          </option>
           {uniqueCategories
             .filter((c) =>
-              mainCategoryFilter === "all" ? true : c.main === mainCategoryFilter
+              mainCategoryFilter === "all"
+                ? true
+                : c.main === mainCategoryFilter
             )
             .map((c) => (
-              <option key={c.id} value={c.id}>
+              <option
+                key={c.id}
+                value={c.id}
+                className="bg-[#262626] text-white"
+              >
                 {c.name[isVietnamese ? "vn" : "en"] || c.name.en || c.name}
               </option>
             ))}
@@ -331,8 +428,7 @@ const NewsScreen = () => {
           {currentArticles.map((article) => (
             <div
               key={article._id}
-              className={`rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow flex flex-col 
-                ${theme === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"}`}
+              className="rounded-lg shadow-sm border border-[#2E2F2F] overflow-hidden hover:shadow-md transition-shadow flex flex-col bg-[#262626]"
             >
               <div className="h-48 overflow-hidden">
                 <img
@@ -343,13 +439,17 @@ const NewsScreen = () => {
               </div>
               <div className="p-5 flex flex-col flex-grow">
                 <h3 className="text-lg font-medium mb-2">
-                  {isVietnamese ? article.title?.vn || article.title?.en : article.title?.en}
+                  {isVietnamese
+                    ? article.title?.vn || article.title?.en
+                    : article.title?.en}
                 </h3>
                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4 flex-wrap gap-x-3">
                   {/* Date */}
                   <div className="flex items-center">
                     <Calendar size={16} className="mr-1" />
-                    <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                    <span>
+                      {new Date(article.publishedAt).toLocaleDateString()}
+                    </span>
                   </div>
 
                   {/* Author */}

@@ -34,7 +34,7 @@ const MachinesMain = () => {
       <Navbar />
       <Machines />
       <MachineBenifie />
-      <div className="page-width py-3">
+      <div className="page-width py-3 ">
         <Row gutter={[16, 16]}>
           {categories.map((cat) => (
             <Col xs={24} md={12} lg={12} key={cat._id}>

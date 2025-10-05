@@ -1,94 +1,57 @@
 import { useEffect, useState } from "react";
-import { getBlogs, getCategories, getMainBlogCategories } from "../Api/api"; 
-import { FaArrowRight } from "react-icons/fa";
+import { getBlogs, getCategories, getMainBlogCategories } from "../Api/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiChevronRight } from "react-icons/fi";
 
 export default function BlogLists() {
   const navigate = useNavigate();
-  const { mainCategorySlug } = useParams(); // ✅ URL param: /blogs/:mainCategorySlug
+  const { mainCategorySlug } = useParams();
 
   const [blogs, setBlogs] = useState([]);
-  const [filteredBlogs, setFilteredBlogs] = useState([]);
-  const [categories, setCategories] = useState([{ name: "All", id: "all" }]);
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const blogsPerPage = 6;
+  const [activeCategoryName, setActiveCategoryName] = useState("All");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1️⃣ Get all main categories
         const mainRes = await getMainBlogCategories();
         const mainCategory = mainRes.data.data.find(
           (mc) => mc.slug === mainCategorySlug
         );
+        if (!mainCategory) return setLoading(false);
 
-        if (!mainCategory) {
-          console.warn("No main category found for slug:", mainCategorySlug);
-          setLoading(false);
-          return;
-        }
-
-        // 2️⃣ Get all categories under this main category
         const catRes = await getCategories();
         const matchedCategories = catRes.data.data.filter(
           (cat) => cat.mainCategory?._id === mainCategory._id
         );
 
-        // Format categories
-        const categoryList = matchedCategories.map((cat) => ({
-          name: cat.name?.en || cat.name?.vn || "Unnamed Category",
-          id: cat._id,
-        }));
-        setCategories([{ name: "All", id: "all" }, ...categoryList]);
-
-        // 3️⃣ Get all blogs
         const blogRes = await getBlogs();
-        const formattedBlogs = blogRes.data.data
-          .filter((blog) => blog.status === "published") // ✅ only published
-          .map((blog) => ({
-            id: blog._id,
-            title: blog.title?.en || blog.title?.vn || "Untitled Blog",
+        const formatted = blogRes.data.data
+          .filter((b) => b.status === "published")
+          .map((b) => ({
+            id: b._id,
+            title: b.title?.en || b.title?.vn || "Untitled Blog",
             desc:
-              (typeof blog.excerpt?.en === "string"
-                ? blog.excerpt.en
-                : blog.excerpt?.vn || ""
-              ).slice(0, 150) + "...",
-            img: blog.coverImage?.url || "/img/blog/blog-img.png",
-            slug: blog.slug,
-
-            // ✅ category + mainCategory
-            categoryId: blog.category?._id || null,
+              (b.excerpt?.en || b.description?.en || "").slice(0, 250) + "...",
+            img: b.coverImage?.url || "/img/blog/blog-img.png",
+            slug: b.slug,
+            publishedAt: b.publishedAt || b.createdAt,
+            categoryId: b.category?._id || b.category,
             categoryName:
-              blog.category?.name?.en ||
-              blog.category?.name?.vn ||
-              "General",
-
-            mainCategoryId: blog.mainCategory?._id || null,
-            mainCategorySlug: blog.mainCategory?.slug || null,
-            mainCategoryName:
-              blog.mainCategory?.name?.en ||
-              blog.mainCategory?.name?.vn ||
-              "Main",
+              b.category?.name?.en || b.category?.name?.vn || "General",
           }));
 
-        // 4️⃣ Filter blogs that belong to matched categories (by _id)
-        const allowedCategoryIds = matchedCategories.map((c) =>
-          c._id.toString()
-        );
-        const blogsInMainCategory = formattedBlogs.filter((b) =>
-          allowedCategoryIds.includes(b.categoryId?.toString())
+        const sorted = formatted.sort(
+          (a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)
         );
 
-        setBlogs(blogsInMainCategory);
-        setFilteredBlogs(blogsInMainCategory);
+        setBlogs(sorted);
+        setCategories(matchedCategories);
       } catch (err) {
-        console.error("❌ Error fetching blogs:", err);
+        console.error("Error loading blogs:", err);
       } finally {
         setLoading(false);
       }
@@ -97,120 +60,234 @@ export default function BlogLists() {
     fetchData();
   }, [mainCategorySlug]);
 
-  // 🔹 Category filter
-  const handleCategoryChange = (catId) => {
+  // ✅ Handle category change
+  const handleCategoryChange = (catId, name) => {
     setSelectedCategory(catId);
-    setCurrentPage(1);
-    if (catId === "all") {
-      setFilteredBlogs(blogs);
-    } else {
-      setFilteredBlogs(blogs.filter((b) => b.categoryId === catId));
-    }
+    setActiveCategoryName(name);
   };
 
-  // Pagination logic
-  const indexOfLastBlog = currentPage * blogsPerPage;
-  const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
-  const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, indexOfLastBlog);
-  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
+  if (loading)
+    return (
+      <p className="text-center py-20 text-gray-500 tracking-wide">
+        Loading blog articles...
+      </p>
+    );
 
-  if (loading) return <p className="text-center py-10">Loading blogs...</p>;
+  // ✅ Filter blogs dynamically
+  const filteredBlogs =
+    selectedCategory === "all"
+      ? blogs
+      : blogs.filter((b) => b.categoryId === selectedCategory);
+
+  const featuredBlog = filteredBlogs[0];
+  const nextThree = filteredBlogs.slice(1, 4);
+  const remaining = filteredBlogs.slice(4);
 
   return (
-    <div className="max-w-7xl mx-auto px-1 py-12 pb-20">
-      {/* Category Filter */}
-      <div className="flex flex-wrap justify-center gap-3 mb-10">
-        {categories.map((cat) => (
+    <section className="max-w-[1200px] mx-auto px-4 md:px-6 py-10 text-[#1a1a1a]">
+      {/* ---------- DYNAMIC TITLE ---------- */}
+      <h1 className="text-[#164B8B] text-xl md:text-2xl font-extrabold uppercase mb-6 tracking-wide">
+        {activeCategoryName.toUpperCase()}
+      </h1>
+
+      {/* ---------- MOBILE CATEGORY BAR ---------- */}
+      <div className="block lg:hidden sticky top-0 bg-white z-30 py-3 mb-8 border-b border-gray-200 overflow-x-auto">
+        <div className="flex space-x-3 w-max px-2">
+          {/* ALL option */}
           <button
-            key={cat.id}
-            onClick={() => handleCategoryChange(cat.id)}
-            className={`px-4 py-2 rounded-full border ${
-              selectedCategory === cat.id
-                ? "bg-[#1276BD] text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100"
+            onClick={() => handleCategoryChange("all", "All")}
+            className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+              selectedCategory === "all"
+                ? "!bg-[#164B8B] !text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            {cat.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Blog Cards */}
-      {currentBlogs.length === 0 ? (
-        <p className="text-center text-gray-500">No blogs found.</p>
-      ) : (
-        <div className="grid gap-20 md:grid-cols-3">
-          {currentBlogs.map((blog, index) => (
-            <motion.div
-              key={blog.id}
-              onClick={() =>
-                navigate(`/${mainCategorySlug}/${blog.slug}`) // ✅ includes mainCategorySlug
-              }
-              className="rounded-xl overflow-hidden transition cursor-pointer bg-white border border-none hover:shadow-lg"
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
-              whileHover={{ scale: 1.02, y: -4 }}
-            >
-              <motion.img
-                src={blog.img}
-                alt={blog.title}
-                className="w-full object-cover h-60"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.3 }}
-              />
-              <div className="pt-5 px-1.5 pb-4">
-                <h3 className="font-medium text-xl mb-2">{blog.title}</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                  {blog.desc}
-                </p>
-                <div className="flex items-center gap-2 text-black font-medium">
-                  <span className="bg-[#1276BD] text-white p-2 rounded-full text-xs flex items-center justify-center">
-                    <FaArrowRight />
-                  </span>
-                  Learn More
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-12 gap-2 items-center">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-full border text-gray-600 disabled:opacity-40"
-          >
-            <FiChevronLeft />
+            All
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => (
+          {/* Dynamic categories */}
+          {categories.map((cat) => (
             <button
-              key={i + 1}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`w-8 h-8 flex items-center justify-center rounded-full border transition ${
-                currentPage === i + 1
-                  ? "bg-[#1276BD] text-white font-bold"
-                  : "bg-white text-gray-600 hover:bg-gray-100"
+              key={cat._id}
+              onClick={() =>
+                handleCategoryChange(cat._id, cat.name?.en || cat.name)
+              }
+              className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+                selectedCategory === cat._id
+                  ? "!bg-[#164B8B] !text-white shadow-md"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              {i + 1}
+              {cat.name?.en || cat.name}
             </button>
           ))}
-
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-full border text-gray-600 disabled:opacity-40"
-          >
-            <FiChevronRight />
-          </button>
         </div>
-      )}
-    </div>
+      </div>
+
+      {/* ---------- MAIN GRID ---------- */}
+      <div className="grid lg:grid-cols-[2fr_1fr] gap-8">
+        {/* ---------- LEFT: ARTICLES ---------- */}
+        <div>
+          {/* FEATURED ARTICLE */}
+          {featuredBlog && (
+            <div
+              className="flex flex-col md:flex-row gap-6 border-b pb-6 mb-10 cursor-pointer"
+              onClick={() =>
+                navigate(`/${mainCategorySlug}/${featuredBlog.slug}`)
+              }
+            >
+              <div className="md:w-1/2">
+                <img
+                  src={featuredBlog.img}
+                  alt={featuredBlog.title}
+                  className="w-full h-[280px] md:h-[320px] object-cover rounded-lg"
+                />
+              </div>
+
+              <div className="flex-1">
+                <h2 className="text-xl font-bold mb-2 hover:text-[#164B8B] transition">
+                  {featuredBlog.title}
+                </h2>
+                <p className="text-gray-500 text-sm mb-3">
+                  {new Date(featuredBlog.publishedAt).toLocaleDateString()}
+                </p>
+                <p className="text-gray-700 text-sm md:text-[15px] leading-6 mb-4">
+                  {featuredBlog.desc}
+                </p>
+                <button
+                  className="text-[#164B8B] font-semibold flex items-center gap-1 hover:underline"
+                  onClick={() =>
+                    navigate(`/${mainCategorySlug}/${featuredBlog.slug}`)
+                  }
+                >
+                  Detail <FiChevronRight className="inline-block" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* NEXT ARTICLES GRID */}
+          {nextThree.length > 0 && (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+              {nextThree.map((b) => (
+                <motion.div
+                  key={b.id}
+                  whileHover={{ scale: 1.03 }}
+                  onClick={() => navigate(`/${mainCategorySlug}/${b.slug}`)}
+                  className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
+                >
+                  <img
+                    src={b.img}
+                    alt={b.title}
+                    className="w-full h-44 object-cover"
+                  />
+                  <div className="p-3">
+                    <h4 className="font-semibold text-[15px] hover:text-[#164B8B] mb-1">
+                      {b.title}
+                    </h4>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {new Date(b.publishedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {/* REMAINING LIST - full width one by one */}
+          {remaining.length > 0 && (
+            <div className="space-y-8">
+              {remaining.map((b) => (
+                <div
+                  key={b.id}
+                  className="grid md:grid-cols-[260px_1fr] gap-6 border-b pb-6 cursor-pointer hover:bg-gray-50 transition-all duration-200"
+                  onClick={() => navigate(`/${mainCategorySlug}/${b.slug}`)}
+                >
+                  <img
+                    src={b.img}
+                    alt={b.title}
+                    className="w-full h-[160px] object-cover rounded-md"
+                  />
+                  <div>
+                    <h3 className="font-bold text-lg mb-1 hover:text-[#164B8B] transition">
+                      {b.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-2">
+                      {new Date(b.publishedAt).toLocaleDateString()}
+                    </p>
+                    <p className="text-gray-700 text-[15px] leading-6">
+                      {b.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ---------- RIGHT SIDEBAR (Desktop only) ---------- */}
+        <aside className="hidden lg:block space-y-6">
+          <div className="bg-[#F9FAFB] rounded-lg shadow-sm p-4">
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => handleCategoryChange("all", "All")}
+                className={`relative text-left px-4 py-2 rounded-md border font-medium transition-all duration-200 ${
+                  selectedCategory === "all"
+                    ? "bg-[#164B8B] !text-white border-[#164B8B] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-[#164B8B] before:rounded-l-md"
+                    : "text-gray-800 hover:bg-gray-100 border-gray-200"
+                }`}
+              >
+                All
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat._id}
+                  onClick={() =>
+                    handleCategoryChange(cat._id, cat.name?.en || cat.name)
+                  }
+                  className={`relative text-left px-4 py-2 rounded-md border font-medium transition-all duration-200 ${
+                    selectedCategory === cat._id
+                      ? "bg-[#164B8B] !text-white border-[#164B8B] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-[#164B8B] before:rounded-l-md"
+                      : "text-gray-800 hover:bg-gray-100 border-gray-200"
+                  }`}
+                >
+                  {cat.name?.en || cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Articles */}
+          <div>
+            <h4 className="text-[#164B8B] font-bold uppercase text-lg mb-3">
+              Recent
+            </h4>
+            <div className="space-y-3">
+              {blogs.slice(0, 3).map((b) => (
+                <div
+                  key={b.id}
+                  className="flex gap-3 cursor-pointer"
+                  onClick={() => navigate(`/${mainCategorySlug}/${b.slug}`)}
+                >
+                  <img
+                    src={b.img}
+                    alt={b.title}
+                    className="w-20 h-16 object-cover rounded-md"
+                  />
+                  <div>
+                    <p className="text-[13px] font-medium leading-tight hover:text-[#164B8B]">
+                      {b.title.slice(0, 60)}...
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(b.publishedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
   );
 }
