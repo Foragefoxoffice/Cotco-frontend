@@ -4,7 +4,26 @@ import { getAboutPage } from "../../Api/api";
 
 export default function AboutUsSection() {
   const [overview, setOverview] = useState(null);
+  const [activeLang, setActiveLang] = useState("en");
 
+  // ✅ Detect language dynamically based on <body class="vi-mode">
+  useEffect(() => {
+    const detectLanguage = () => {
+      if (typeof document === "undefined") return "en";
+      return document.body.classList.contains("vi-mode") ? "vi" : "en";
+    };
+
+    setActiveLang(detectLanguage());
+
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Fetch About Page data
   useEffect(() => {
     getAboutPage()
       .then((res) => {
@@ -15,7 +34,7 @@ export default function AboutUsSection() {
       .catch((err) => console.error("Failed to load about overview:", err));
   }, []);
 
-  // ✅ API base
+  // ✅ API base and safe URL resolver
   const API_BASE = import.meta.env.VITE_API_URL;
   const getFullUrl = (path) => {
     if (!path) return "";
@@ -23,18 +42,21 @@ export default function AboutUsSection() {
     return `${API_BASE}${path}`;
   };
 
-  if (!overview) return null; // Wait until API loads
+  // ✅ Safe language picker
+  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
+
+  if (!overview) return null;
 
   return (
     <section className="bg-white">
       <div className="grid grid-cols-12 gap-8 md:gap-18 items-start page-width pt-6 md:pt-20">
-        {/* LEFT: Image */}
+        {/* ---------- LEFT: Image ---------- */}
         <div className="col-span-12 md:col-span-5">
           <div className="aspect-square w-full max-w-[420px] md:max-w-full rounded-[24px] overflow-hidden ring-1 ring-black/5 shadow-sm">
             {overview.aboutOverviewImg ? (
               <img
                 src={getFullUrl(overview.aboutOverviewImg)}
-                alt={overview.aboutOverviewTitle?.en || "About Overview"}
+                alt={pick(overview.aboutOverviewTitle, activeLang) || "About Overview"}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -45,10 +67,10 @@ export default function AboutUsSection() {
           </div>
         </div>
 
-        {/* RIGHT: Text */}
+        {/* ---------- RIGHT: Text ---------- */}
         <div className="col-span-12 md:col-span-7 grid h-full place-content-center">
           <TitleAnimation
-            text={overview.aboutOverviewTitle?.en || "About Us"}
+            text={pick(overview.aboutOverviewTitle, activeLang) || "About Us"}
             className="heading uppercase"
             align="center"
             mdAlign="left"
@@ -60,7 +82,7 @@ export default function AboutUsSection() {
 
           <div className="mt-4 space-y-4 text-slate-700 leading-relaxed max-w-2xl">
             <p className="font-medium">
-              {overview.aboutOverviewDes?.en ||
+              {pick(overview.aboutOverviewDes, activeLang) ||
                 "Default description goes here..."}
             </p>
           </div>

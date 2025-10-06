@@ -6,16 +6,41 @@ import { getHomepage } from "../../Api/api";
 export default function HeroSection() {
   const [scrolled, setScrolled] = useState(false);
   const [heroData, setHeroData] = useState(null);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ language state
   const videoRef = useRef(null);
 
   const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  // Detect scroll for animation
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ✅ Detect body language class
+  useEffect(() => {
+    const detectLanguage = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLanguage());
+    }
+
+    // Watch for changes
+    const observer = new MutationObserver(() =>
+      setActiveLang(detectLanguage())
+    );
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Fetch homepage hero data
   useEffect(() => {
     getHomepage().then((res) => {
       if (res.data?.heroSection) {
@@ -30,18 +55,29 @@ export default function HeroSection() {
     heroData.bgType === "video" ||
     /\.(mp4|webm|mov)$/i.test(heroData.bgUrl || "");
 
+  // ✅ Helper to pick correct language field
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
+
+  // ✅ Language toggle handler
+  const toggleLanguage = () => {
+    const newLang = activeLang === "en" ? "vi" : "en";
+    setActiveLang(newLang);
+    localStorage.setItem("preferred_lang", newLang);
+
+    // Update body class so other pages react too
+    document.body.classList.toggle("vi-mode", newLang === "vi");
+  };
+
   return (
     <motion.div
       initial={{ scale: 1, opacity: 1 }}
-      animate={
-        scrolled ? { scale: 0.95, opacity: 0.9 } : { scale: 1, opacity: 1 }
-      }
+      animate={scrolled ? { scale: 0.95, opacity: 0.9 } : { scale: 1, opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={`relative overflow-hidden hero min-h-screen transition-all duration-500 ease-out ${
         scrolled ? "rounded-2xl shadow-2xl" : ""
       }`}
     >
-      {/* Background */}
+      {/* ---------- Background ---------- */}
       {isVideo ? (
         <video
           ref={videoRef}
@@ -67,25 +103,34 @@ export default function HeroSection() {
         />
       )}
 
-      {/* Dark overlay */}
+      {/* ---------- Dark Overlay ---------- */}
       <div className="absolute inset-0 bg-black/40" />
 
-      {/* Text Content */}
+      {/* ---------- Language Switcher ---------- */}
+      <div className="absolute top-6 right-6 z-20">
+        <button
+          onClick={toggleLanguage}
+          className="px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-sm font-medium text-white backdrop-blur-md transition"
+        >
+          {activeLang === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}
+        </button>
+      </div>
+
+      {/* ---------- Text Content ---------- */}
       <div className="absolute md:bottom-0 bottom-10 md:px-12 p-6 pb-20 text-white max-w-4xl">
         <h1 className="text-4xl md:text-6xl font-semibold leading-tight">
-          {heroData.heroTitle?.en || "Your Trusted Partner"} <br />
+          {pick(heroData.heroTitle) || "Your Trusted Partner"} <br />
         </h1>
         <p className="mt-4 text-lg">
-          {heroData.heroDescription?.en ||
-            "Empowering Vietnam’s Textile Industry"}
+          {pick(heroData.heroDescription) || "Empowering Vietnam’s Textile Industry"}
         </p>
 
-        {heroData.heroButtonLink?.en && (
+        {heroData.heroButtonLink?.[activeLang] && (
           <a
-            href={heroData.heroButtonLink.en}
+            href={heroData.heroButtonLink[activeLang]}
             className="w-60 mt-6 px-5 py-2 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-xl font-semibold"
           >
-            {heroData.heroButtonText?.en || "Explore Products"}{" "}
+            {pick(heroData.heroButtonText) || "Explore Products"}{" "}
             <FiArrowDownRight />
           </a>
         )}

@@ -6,15 +6,26 @@ import { getAboutPage } from "../../Api/api";
 export default function FounderSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-10% 0px -10% 0px" });
-
   const [founder, setFounder] = useState(null);
+  const [activeLang, setActiveLang] = useState("en");
 
-  const getImageUrl = (path) => {
-    if (!path) return "";
-    if (path.startsWith("data:") || path.startsWith("http")) return path;
-    return `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${path}`;
-  };
+  // ✅ Language detection using body class
+  useEffect(() => {
+    const detectLanguage = () => {
+      if (typeof document === "undefined") return "en";
+      return document.body.classList.contains("vi-mode") ? "vi" : "en";
+    };
 
+    setActiveLang(detectLanguage());
+
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Fetch data
   useEffect(() => {
     getAboutPage()
       .then((res) => {
@@ -24,6 +35,16 @@ export default function FounderSection() {
       })
       .catch((err) => console.error("Failed to fetch founder:", err));
   }, []);
+
+  // ✅ Helper: pick language value safely
+  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
+
+  // ✅ Build image URL
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("data:") || path.startsWith("http")) return path;
+    return `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${path}`;
+  };
 
   const fadeLeft = {
     initial: { opacity: 1, x: -40 },
@@ -51,7 +72,7 @@ export default function FounderSection() {
         ref={ref}
         className="mx-auto md:grid md:grid-cols-12 md:gap-10 items-center page-width pt-6 md:pt-20"
       >
-        {/* LEFT: Founder text */}
+        {/* ---------- LEFT: Founder Text ---------- */}
         <motion.div
           className="col-span-12 md:col-span-6"
           initial="initial"
@@ -59,7 +80,7 @@ export default function FounderSection() {
           variants={fadeLeft}
         >
           <TitleAnimation
-            text={founder.aboutFounderTitle?.en || "Founder"}
+            text={pick(founder.aboutFounderTitle, activeLang) || "Founder"}
             className="heading uppercase"
             align="center"
             mdAlign="left"
@@ -70,10 +91,10 @@ export default function FounderSection() {
           />
 
           <h3 className="mt-1 text-xl md:text-2xl font-semibold text-slate-800 text-center md:text-left">
-            {founder.aboutFounderName?.en || ""}
+            {pick(founder.aboutFounderName, activeLang)}
           </h3>
 
-          {/* Mobile main image */}
+          {/* ---------- Mobile Main Image ---------- */}
           <div className="relative md:w-6/12 block md:hidden mt-4">
             {founder.founderImg1 && (
               <motion.img
@@ -84,14 +105,14 @@ export default function FounderSection() {
                 animate={
                   inView
                     ? {
-                      opacity: 1,
-                      y: 0,
-                      transition: {
-                        delay: 0.2,
-                        duration: 0.6,
-                        ease: [0.22, 1, 0.36, 1],
-                      },
-                    }
+                        opacity: 1,
+                        y: 0,
+                        transition: {
+                          delay: 0.2,
+                          duration: 0.6,
+                          ease: [0.22, 1, 0.36, 1],
+                        },
+                      }
                     : {}
                 }
                 whileHover={{ y: -4 }}
@@ -99,20 +120,20 @@ export default function FounderSection() {
             )}
           </div>
 
-          {/* Founder descriptions (multiple with bullets) */}
-          {Array.isArray(founder.aboutFounderDes) && founder.aboutFounderDes.length > 0 && (
-            <ul className="mt-5 space-y-2 text-slate-700 leading-relaxed list-disc pl-5 ">
-              {founder.aboutFounderDes.map((desc, idx) => (
-                <li style={{ fontSize: 18 }} key={idx}>
-                  {desc.en || ""}
-                </li>
-              ))}
-            </ul>
-          )}
-
+          {/* ---------- Founder Descriptions ---------- */}
+          {Array.isArray(founder.aboutFounderDes) &&
+            founder.aboutFounderDes.length > 0 && (
+              <ul className="mt-5 space-y-2 text-slate-700 leading-relaxed list-disc pl-5">
+                {founder.aboutFounderDes.map((desc, idx) => (
+                  <li style={{ fontSize: 18 }} key={idx}>
+                    {pick(desc, activeLang)}
+                  </li>
+                ))}
+              </ul>
+            )}
         </motion.div>
 
-        {/* RIGHT: Collage (main + 2 images) */}
+        {/* ---------- RIGHT: Collage (main + 2 images) ---------- */}
         <motion.div
           className="hidden md:flex w-full md:gap-10 gap-6 col-span-12 md:col-span-6 relative"
           initial="initial"
@@ -130,10 +151,10 @@ export default function FounderSection() {
                 animate={
                   inView
                     ? {
-                      opacity: 1,
-                      y: 0,
-                      transition: { delay: 0.2, duration: 0.6 },
-                    }
+                        opacity: 1,
+                        y: 0,
+                        transition: { delay: 0.2, duration: 0.6 },
+                      }
                     : {}
                 }
                 whileHover={{ y: -4 }}
@@ -152,11 +173,11 @@ export default function FounderSection() {
                 animate={
                   inView
                     ? {
-                      opacity: 1,
-                      x: 0,
-                      y: 0,
-                      transition: { delay: 0.35, duration: 0.55 },
-                    }
+                        opacity: 1,
+                        x: 0,
+                        y: 0,
+                        transition: { delay: 0.35, duration: 0.55 },
+                      }
                     : {}
                 }
                 whileHover={{ scale: 1.02 }}
@@ -172,11 +193,11 @@ export default function FounderSection() {
                 animate={
                   inView
                     ? {
-                      opacity: 1,
-                      x: 0,
-                      y: 0,
-                      transition: { delay: 0.45, duration: 0.55 },
-                    }
+                        opacity: 1,
+                        x: 0,
+                        y: 0,
+                        transition: { delay: 0.45, duration: 0.55 },
+                      }
                     : {}
                 }
                 whileHover={{ scale: 1.02 }}

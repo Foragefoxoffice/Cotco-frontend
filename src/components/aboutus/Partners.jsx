@@ -3,20 +3,41 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getHomepage } from "../../Api/api"; // adjust path
+import { getHomepage } from "../../Api/api";
 
 export default function PartnerSection() {
   const [logos, setLogos] = useState([]);
   const [heading, setHeading] = useState("PROUD PARTNERS OF GLOBAL LEADERS");
+  const [activeLang, setActiveLang] = useState("en");
 
+  // ✅ Detect active language from <body class="vi-mode">
+  useEffect(() => {
+    const detectLang = () => {
+      if (typeof document === "undefined") return "en";
+      return document.body.classList.contains("vi-mode") ? "vi" : "en";
+    };
+
+    setActiveLang(detectLang());
+
+    const observer = new MutationObserver(() => setActiveLang(detectLang()));
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Fetch Homepage data
   useEffect(() => {
     getHomepage().then((res) => {
       if (res.data?.companyLogosSection) {
         const section = res.data.companyLogosSection;
 
-        // ✅ Set heading dynamically
-        if (section.companyLogosHeading?.en) {
-          setHeading(section.companyLogosHeading.en);
+        // ✅ Handle multilingual heading
+        if (section.companyLogosHeading) {
+          setHeading(
+            section.companyLogosHeading[activeLang] ||
+              section.companyLogosHeading.en ||
+              "PROUD PARTNERS OF GLOBAL LEADERS"
+          );
         }
 
         let collected = [];
@@ -44,8 +65,9 @@ export default function PartnerSection() {
         setLogos(collected);
       }
     });
-  }, []);
+  }, [activeLang]); // refetch heading when language changes
 
+  // ✅ Slider settings
   const settings = {
     dots: false,
     infinite: true,
@@ -67,10 +89,16 @@ export default function PartnerSection() {
 
   if (!logos.length) return null;
 
+  // ✅ Fallback Vietnamese translation if no API text provided
+  const translatedHeading =
+    activeLang === "vi"
+      ? heading || "ĐỐI TÁC TỰ HÀO CỦA CÁC NHÀ LÃNH ĐẠO TOÀN CẦU"
+      : heading || "PROUD PARTNERS OF GLOBAL LEADERS";
+
   return (
     <section className="md:pt-20 mb-20 pt-6 page-width bg-white rounded-md partner-section">
       <TitleAnimation
-        text={heading}
+        text={translatedHeading}
         className="heading text-center mb-14"
         align="center"
         delay={0.05}
@@ -86,7 +114,7 @@ export default function PartnerSection() {
                 src={
                   partner.image?.startsWith("http")
                     ? partner.image
-                    : `http://localhost:5000${partner.image}`
+                    : `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${partner.image}`
                 }
                 alt={partner.name}
                 className="h-16 md:h-20 object-contain"

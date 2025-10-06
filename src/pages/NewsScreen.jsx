@@ -150,7 +150,7 @@ const NewsScreen = () => {
   };
 
   const handleView = (slug) => {
-    window.open(`/blogs/${slug}`, "_blank");
+    window.open(`/${slug}`, "_blank");
   };
 
   /**

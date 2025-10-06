@@ -3,25 +3,47 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getHomepage } from "../../Api/api"; // adjust path
+import { getHomepage } from "../../Api/api";
 
 export default function PartnerSection() {
   const [logos, setLogos] = useState([]);
   const [heading, setHeading] = useState("PROUD PARTNERS OF GLOBAL LEADERS");
+  const [activeLang, setActiveLang] = useState("en");
+  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  // ✅ Detect language dynamically from <body class="vi-mode">
+  useEffect(() => {
+    const detectLanguage = () => {
+      if (typeof document === "undefined") return "en";
+      return document.body.classList.contains("vi-mode") ? "vi" : "en";
+    };
+
+    setActiveLang(detectLanguage());
+
+    // Watch for dynamic changes to body class
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Helper function for multilingual content
+  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
+
+  // ✅ Fetch homepage data
   useEffect(() => {
     getHomepage().then((res) => {
       if (res.data?.companyLogosSection) {
         const section = res.data.companyLogosSection;
 
-        // ✅ Set heading dynamically
-        if (section.companyLogosHeading?.en) {
-          setHeading(section.companyLogosHeading.en);
-        }
+        // Set heading dynamically based on language
+        setHeading(pick(section.companyLogosHeading, activeLang));
 
         let collected = [];
 
-        // ✅ Prefer new array-based schema
+        // Prefer new array-based schema
         if (Array.isArray(section.logos) && section.logos.length > 0) {
           collected = section.logos
             .filter((logo) => logo.url)
@@ -30,7 +52,7 @@ export default function PartnerSection() {
               image: logo.url,
             }));
         } else {
-          // ✅ Fallback for old schema (companyLogo1..6)
+          // Fallback for old schema (companyLogo1...6)
           for (let i = 1; i <= 6; i++) {
             if (section[`companyLogo${i}`]) {
               collected.push({
@@ -44,7 +66,7 @@ export default function PartnerSection() {
         setLogos(collected);
       }
     });
-  }, []);
+  }, [activeLang]); // refetch when language changes
 
   const settings = {
     dots: false,
@@ -70,7 +92,7 @@ export default function PartnerSection() {
   return (
     <section className="md:pt-20 pt-6 page-width bg-white rounded-md partner-section">
       <TitleAnimation
-        text={heading}
+        text={heading || "PROUD PARTNERS OF GLOBAL LEADERS"}
         className="heading text-center mb-14"
         align="center"
         delay={0.05}
@@ -86,7 +108,7 @@ export default function PartnerSection() {
                 src={
                   partner.image?.startsWith("http")
                     ? partner.image
-                    : `http://localhost:5000${partner.image}`
+                    : `${BASE_URL}${partner.image}`
                 }
                 alt={partner.name}
                 className="h-16 md:h-20 object-contain"

@@ -19,7 +19,7 @@ export default function BlogsSection() {
     slidesToScroll: 1,
   });
 
-  const [isWide, setIsWide] = useState(() =>
+  const [isWide, setIsWide] = useState(
     typeof window !== "undefined" ? window.innerWidth > 700 : false
   );
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -29,8 +29,29 @@ export default function BlogsSection() {
   const [blogs, setBlogs] = useState([]);
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeLang, setActiveLang] = useState("en");
 
-  // ✅ Resize handler
+  // ✅ Detect and track current language (en / vi)
+  useEffect(() => {
+    const detectLanguage = () => {
+      if (typeof document === "undefined") return "en";
+      return document.body.classList.contains("vi-mode") ? "vi" : "en";
+    };
+
+    setActiveLang(detectLanguage());
+
+    // Watch for class changes dynamically
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Helper for picking language
+  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
+
+  // ✅ Handle resize
   useEffect(() => {
     const handleResize = () => setIsWide(window.innerWidth > 700);
     window.addEventListener("resize", handleResize);
@@ -64,12 +85,12 @@ export default function BlogsSection() {
     setLoading(true);
     if (slug) {
       getBlogBySlug(slug)
-        .then((res) => setBlog(res))
+        .then((res) => setBlog(res.data?.data || res.data))
         .finally(() => setLoading(false));
     } else {
       getBlogs()
         .then((res) => {
-          const items = res.data?.data || res.data || res;
+          const items = res.data?.data || res.data || [];
           setBlogs(items);
         })
         .finally(() => setLoading(false));
@@ -88,7 +109,7 @@ export default function BlogsSection() {
             isWide ? "page-width grid grid-cols-12" : ""
           }`}
         >
-          {/* Left column */}
+          {/* ---------- Left column ---------- */}
           <div className="col-span-12 md:col-span-3 h-full grid place-content-center">
             <TitleAnimation
               text={"BLOG"}
@@ -99,29 +120,33 @@ export default function BlogsSection() {
               once={true}
             />
             <p className="mt-4 text-slate-600 text-center md:text-left leading-relaxed max-w-sm">
-              {blog.excerpt?.en ||
-                "Insights, stories, and updates from our team and community."}
+              {pick(
+                blog.excerpt,
+                activeLang
+              ) || "Insights, stories, and updates from our team and community."}
             </p>
           </div>
 
-          {/* Right column */}
+          {/* ---------- Right column ---------- */}
           <div className="col-span-12 md:col-span-9 relative md:mt-0 mt-6">
             <div className="absolute inset-y-0 right-0 w-[92%] bg-[#0E2F47] rounded-[36px] md:rounded-l-[48px]" />
 
-            <div className="relative pt-20 pb-10 pl-4 pr-4 md:pl-6 md:pr-6">
+            <div className="relative pt-20 pb-10 px-4 md:px-6">
               <article className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden p-6 shadow-md relative z-20">
                 {blog.coverImage?.url && (
                   <img
                     src={blog.coverImage.url}
-                    alt={blog.coverImage.alt || blog.title?.en}
+                    alt={blog.coverImage.alt || pick(blog.title, activeLang)}
                     className="h-60 w-full rounded-xl object-cover mb-6"
                   />
                 )}
 
                 <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-                  {blog.title?.en}
+                  {pick(blog.title, activeLang)}
                 </h1>
-                <p className="mt-2 text-slate-600">{blog.excerpt?.en}</p>
+                <p className="mt-2 text-slate-600">
+                  {pick(blog.excerpt, activeLang)}
+                </p>
 
                 <div className="mt-6 space-y-6">
                   {blog.blocks?.map((block, i) => {
@@ -131,7 +156,7 @@ export default function BlogsSection() {
                           key={i}
                           className="prose prose-slate max-w-none"
                           dangerouslySetInnerHTML={{
-                            __html: block.content?.en || "",
+                            __html: pick(block.content, activeLang),
                           }}
                         />
                       );
@@ -157,7 +182,7 @@ export default function BlogsSection() {
                   <span className="grid h-8 w-8 place-items-center rounded-full bg-[#1276BD] text-white text-[16px]">
                     <RxArrowTopRight />
                   </span>
-                  Back to Blogs
+                  {activeLang === "vi" ? "Quay lại Blog" : "Back to Blogs"}
                 </button>
               </article>
             </div>
@@ -179,10 +204,10 @@ export default function BlogsSection() {
           isWide ? "page-width grid grid-cols-12" : ""
         }`}
       >
-        {/* Left column */}
+        {/* ---------- Left column ---------- */}
         <div className="col-span-12 md:col-span-3 h-full grid place-content-center">
           <TitleAnimation
-            text={"BLOGS"}
+            text={activeLang === "vi" ? "BLOG" : "BLOGS"}
             className="heading"
             align="heading text-center md:text-left"
             delay={0.05}
@@ -190,11 +215,13 @@ export default function BlogsSection() {
             once={true}
           />
           <p className="mt-4 text-slate-600 text-center md:text-left leading-relaxed max-w-sm">
-            Discover the latest insights, stories, and updates from our team.
+            {activeLang === "vi"
+              ? "Khám phá những câu chuyện, thông tin và cập nhật mới nhất từ đội ngũ của chúng tôi."
+              : "Discover the latest insights, stories, and updates from our team."}
           </p>
         </div>
 
-        {/* Right column: Carousel */}
+        {/* ---------- Right column: Carousel ---------- */}
         <div className="col-span-12 md:col-span-9 overflow-x-hidden relative md:mt-0 mt-6">
           <div className="absolute inset-y-0 right-0 w-[92%] bg-[#0E2F47] rounded-[36px] md:rounded-l-[48px]" />
 
@@ -223,15 +250,13 @@ export default function BlogsSection() {
               </button>
             </div>
 
-            {/* Embla viewport */}
+            {/* Carousel */}
             <div ref={emblaRef}>
               <div className="flex gap-3 md:gap-3">
                 {blogs.map((b, i) => {
                   const isActive = selectedIndex === i;
-                  const title = b.title?.en || "Untitled";
-                  const excerpt =
-                    b.excerpt?.en ||
-                    "Read more about this blog post and explore insights.";
+                  const title = pick(b.title, activeLang);
+                  const excerpt = pick(b.excerpt, activeLang);
                   const image =
                     b.coverImage?.url ||
                     "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop";
@@ -270,7 +295,7 @@ export default function BlogsSection() {
                             <span className="grid h-8 w-8 place-items-center rounded-full bg-[#1276BD] text-white text-[16px]">
                               <RxArrowTopRight />
                             </span>
-                            Learn More
+                            {activeLang === "vi" ? "Xem thêm" : "Learn More"}
                           </Link>
                         </div>
                       </article>

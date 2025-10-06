@@ -60,7 +60,25 @@ function Stat({
 /* ---------- section ---------- */
 export default function VissionMission() {
   const [data, setData] = useState(null);
+  const [activeLang, setActiveLang] = useState("en");
 
+  // ✅ Detect and react to <body class="vi-mode">
+  useEffect(() => {
+    const detectLanguage = () => {
+      if (typeof document === "undefined") return "en";
+      return document.body.classList.contains("vi-mode") ? "vi" : "en";
+    };
+
+    setActiveLang(detectLanguage());
+
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Fetch Mission & Vision data
   useEffect(() => {
     getAboutPage()
       .then((res) => {
@@ -71,6 +89,9 @@ export default function VissionMission() {
       .catch((err) => console.error("Failed to fetch mission & vision:", err));
   }, []);
 
+  // ✅ Helper to pick multilingual content safely
+  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
+
   if (!data) return null;
 
   const blocks = [1, 2, 3];
@@ -80,14 +101,17 @@ export default function VissionMission() {
       <div className="page-width pt-6 md:pt-20">
         <div className="relative rounded-[22px] md:rounded-[28px] bg-[#0E3E62] text-white shadow-xl">
           <div className="grid grid-cols-12 gap-8 md:gap-12 p-6 sm:p-8 md:p-12">
-            {/* LEFT: title + blurbs */}
+            {/* ---------- LEFT: title + blurbs ---------- */}
             <SlideIn
               direction="left"
               className="col-span-12 md:col-span-7 lg:col-span-8 md:pr-20"
             >
               <div>
                 <TitleAnimation
-                  text={data.aboutMissionVissionTitle?.en || "Mission & Vision"}
+                  text={
+                    pick(data.aboutMissionVissionTitle, activeLang) ||
+                    "Mission & Vision"
+                  }
                   className="font-extrabold text-white md:text-4xl text-3xl"
                   align="left"
                   delay={0.05}
@@ -99,11 +123,11 @@ export default function VissionMission() {
                   {blocks.map((i) => (
                     <div key={i}>
                       <h3 className="uppercase text-md font-bold tracking-wider">
-                        {data[`aboutMissionVissionSubhead${i}`]?.en ||
+                        {pick(data[`aboutMissionVissionSubhead${i}`], activeLang) ||
                           `Subhead ${i}`}
                       </h3>
                       <p className="mt-2 text-[16px] text-white/90 leading-relaxed">
-                        {data[`aboutMissionVissionDes${i}`]?.en || ""}
+                        {pick(data[`aboutMissionVissionDes${i}`], activeLang) || ""}
                       </p>
                     </div>
                   ))}
@@ -111,7 +135,7 @@ export default function VissionMission() {
               </div>
             </SlideIn>
 
-            {/* RIGHT: metrics */}
+            {/* ---------- RIGHT: metrics ---------- */}
             <SlideIn
               direction="right"
               className="col-span-12 md:col-span-5 lg:col-span-4"
@@ -122,7 +146,9 @@ export default function VissionMission() {
                     key={i}
                     value={data[`aboutMissionVissionBoxCount${i}`] || 0}
                     suffix={i === 3 ? "%+" : "+"}
-                    label={data[`aboutMissionBoxDes${i}`]?.en || ""}
+                    label={
+                      pick(data[`aboutMissionBoxDes${i}`], activeLang) || ""
+                    }
                     className="col-span-1 counters"
                   />
                 ))}
@@ -130,7 +156,7 @@ export default function VissionMission() {
             </SlideIn>
           </div>
 
-          {/* small top accent */}
+          {/* ---------- small top accent ---------- */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[3px] w-24 bg-white/60 rounded-b-full" />
         </div>
       </div>

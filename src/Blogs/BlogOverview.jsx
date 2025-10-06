@@ -16,19 +16,27 @@ export default function BlogOverview() {
   const [loading, setLoading] = useState(true);
   const [activeLang, setActiveLang] = useState("en");
 
-  useEffect(() => {
-    const computeLang = () => {
-      if (typeof document === "undefined") return "en";
-      return document.body.classList.contains("vi-mode") ? "vn" : "en";
-    };
-    const stored = window.localStorage.getItem("preferred_lang");
-    if (stored === "vi" || stored === "en") {
-      setActiveLang(stored === "vi" ? "vn" : "en");
-    } else {
-      setActiveLang(computeLang());
-    }
-  }, []);
+useEffect(() => {
+  const detectLanguage = () => {
+    if (typeof document === "undefined") return "en";
+    // ✅ Map vi-mode → vn (matches your JSON structure)
+    return document.body.classList.contains("vi-mode") ? "vi" : "en";
+  };
 
+  setActiveLang(detectLanguage());
+
+  // Watch body class changes dynamically
+  const observer = new MutationObserver(() => {
+    setActiveLang(detectLanguage());
+  });
+
+  observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+
+  return () => observer.disconnect();
+}, []);
+
+
+  // ✅ Fetch blog + recent blogs
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -53,30 +61,29 @@ export default function BlogOverview() {
   if (loading) return <BlogOverviewSkeleton />;
   if (!blog) return <p className="text-center text-red-500 py-20">Blog not found.</p>;
 
-  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vn ?? "";
+  // ✅ Safely pick localized text
+  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
+
   const title = pick(blog.title, activeLang);
   const coverImage = blog.coverImage?.url || "/img/blog/blog-img.png";
   const publishedAt = new Date(blog.publishedAt || blog.createdAt).toLocaleDateString();
-  const category = blog.category?.name?.[activeLang] || blog.category?.name?.en || "General";
+  const category = pick(blog.category?.name, activeLang) || "General";
 
   return (
     <>
-    <style>
-  {`
-    header, nav {
-      background-color: #0A1C2E !important;
-      box-shadow: none !important;
-    }
-  `}
-</style>
+      <style>{`
+        header, nav {
+          background-color: #0A1C2E !important;
+          box-shadow: none !important;
+        }
+      `}</style>
+
       <Header />
 
       <section className="max-w-6xl mx-auto px-4 md:px-6 py-10 mt-24">
         {/* ---------- Breadcrumb ---------- */}
         <div className="text-sm text-gray-500 mb-6 flex flex-wrap items-center gap-1">
-          <Link to="/" className="hover:text-[#1276BD]">
-            Home
-          </Link>
+          <Link to="/" className="hover:text-[#1276BD]">Home</Link>
           <span>/</span>
           <span className="capitalize">{category}</span>
           <span>/</span>
@@ -100,7 +107,7 @@ export default function BlogOverview() {
               className="w-full rounded-lg mb-8 shadow-sm"
             />
 
-            {/* Content blocks */}
+            {/* ---------- Content Blocks ---------- */}
             <div
               className="prose prose-lg max-w-none text-gray-800
               prose-p:leading-relaxed prose-img:rounded-lg prose-img:shadow-sm
@@ -109,21 +116,12 @@ export default function BlogOverview() {
               {blog.blocks?.map((block, idx) => {
                 if (block.type === "richtext") {
                   const html = pick(block.content, activeLang);
-                  return (
-                    <div
-                      key={idx}
-                      dangerouslySetInnerHTML={{ __html: html }}
-                    />
-                  );
+                  return <div key={idx} dangerouslySetInnerHTML={{ __html: html }} />;
                 }
                 if (block.type === "image") {
                   return (
                     <div key={idx} className="my-6">
-                      <img
-                        src={block.content?.url}
-                        alt=""
-                        className="rounded-lg w-full"
-                      />
+                      <img src={block.content?.url} alt="" className="rounded-lg w-full" />
                     </div>
                   );
                 }
@@ -132,19 +130,14 @@ export default function BlogOverview() {
                   const items = content.split("\n").filter(Boolean);
                   return (
                     <ul key={idx} className="list-disc list-inside space-y-2 my-4">
-                      {items.map((li, i) => (
-                        <li key={i}>{li}</li>
-                      ))}
+                      {items.map((li, i) => <li key={i}>{li}</li>)}
                     </ul>
                   );
                 }
                 if (block.type === "quote") {
                   const quote = pick(block.content, activeLang);
                   return (
-                    <blockquote
-                      key={idx}
-                      className="border-l-4 border-[#1276BD] pl-4 italic text-gray-700 my-4"
-                    >
+                    <blockquote key={idx} className="border-l-4 border-[#1276BD] pl-4 italic text-gray-700 my-4">
                       {quote}
                     </blockquote>
                   );
@@ -154,7 +147,7 @@ export default function BlogOverview() {
             </div>
           </div>
 
-          {/* ---------- RIGHT: SIDEBAR ---------- */}
+          {/* ---------- RIGHT: RECENT BLOGS ---------- */}
           <aside className="space-y-6">
             <h3 className="text-[#164B8B] font-bold uppercase text-lg border-b border-gray-200 pb-2">
               Recent
@@ -165,17 +158,17 @@ export default function BlogOverview() {
                   key={b._id}
                   className="flex gap-3 items-start cursor-pointer group"
                   onClick={() =>
-                    navigate(`/blogs/${b.category?.slug || "general"}/${b.slug}`)
+                    navigate(`/${b.category?.slug || "general"}/${b.slug}`)
                   }
                 >
                   <img
                     src={b.coverImage?.url || "/img/blog/blog-img.png"}
-                    alt={b.title?.[activeLang] || b.title?.en}
+                    alt={pick(b.title, activeLang)}
                     className="w-20 h-16 object-cover rounded-md"
                   />
                   <div>
                     <h4 className="text-[15px] font-semibold text-gray-800 group-hover:text-[#164B8B] transition">
-                      {b.title?.[activeLang] || b.title?.en}
+                      {pick(b.title, activeLang)}
                     </h4>
                     <p className="text-xs text-gray-500 mt-1">
                       {new Date(b.publishedAt || b.createdAt).toLocaleDateString()}

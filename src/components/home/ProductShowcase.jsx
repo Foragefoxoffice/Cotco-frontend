@@ -1,11 +1,34 @@
 import React, { useEffect, useState } from "react";
-import { getHomepage } from "../../Api/api"; // adjust path
+import { getHomepage } from "../../Api/api";
 import TitleAnimation from "../common/AnimatedTitle";
 
 export default function ProductShowcase() {
   const [data, setData] = useState(null);
+  const [activeLang, setActiveLang] = useState("en");
   const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  // ✅ Detect language dynamically based on <body class="vi-mode">
+  useEffect(() => {
+    const detectLanguage = () => {
+      if (typeof document === "undefined") return "en";
+      return document.body.classList.contains("vi-mode") ? "vi" : "en";
+    };
+
+    setActiveLang(detectLanguage());
+
+    // Watch for language class changes dynamically
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Helper for multilingual text
+  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
+
+  // ✅ Fetch homepage data
   useEffect(() => {
     getHomepage().then((res) => {
       if (res.data?.whatWeDoSection) {
@@ -16,12 +39,12 @@ export default function ProductShowcase() {
 
   if (!data) return null;
 
-  // Prepare categories dynamically
+  // ✅ Prepare categories dynamically with language support
   const categories = [
     {
-      title: data.whatWeDoTitle1?.en || "COTTON",
+      title: pick(data.whatWeDoTitle1, activeLang) || "COTTON",
       description:
-        data.whatWeDoDes1?.en ||
+        pick(data.whatWeDoDes1, activeLang) ||
         "Global cotton sourcing to power your production",
       image: data.whatWeDoImg1
         ? `${BASE_URL}${data.whatWeDoImg1}`
@@ -31,9 +54,9 @@ export default function ProductShowcase() {
         : "/img/home/icon1.png",
     },
     {
-      title: data.whatWeDoTitle2?.en || "FIBER",
+      title: pick(data.whatWeDoTitle2, activeLang) || "FIBER",
       description:
-        data.whatWeDoDes2?.en ||
+        pick(data.whatWeDoDes2, activeLang) ||
         "Eco-friendly fibers for fashion and nonwoven innovation",
       image: data.whatWeDoImg2
         ? `${BASE_URL}${data.whatWeDoImg2}`
@@ -43,9 +66,9 @@ export default function ProductShowcase() {
         : "/img/home/icon2.png",
     },
     {
-      title: data.whatWeDoTitle3?.en || "MACHINES",
+      title: pick(data.whatWeDoTitle3, activeLang) || "MACHINES",
       description:
-        data.whatWeDoDes3?.en ||
+        pick(data.whatWeDoDes3, activeLang) ||
         "Advanced machinery to elevate your textile operations",
       image: data.whatWeDoImg3
         ? `${BASE_URL}${data.whatWeDoImg3}`
@@ -59,10 +82,10 @@ export default function ProductShowcase() {
   return (
     <section className="bg-white page-width md:pt-20 pt-6">
       <div className="mx-auto grid md:grid-cols-6 gap-10">
-        {/* Left Section with Heading */}
+        {/* ---------- Left Section with Heading ---------- */}
         <div className="w-full col-span-3 place-content-center">
           <TitleAnimation
-            text={data.whatWeDoTitle?.en || "WHAT WE DO?"}
+            text={pick(data.whatWeDoTitle, activeLang) || "WHAT WE DO?"}
             className="heading mb-4"
             align="left"
             delay={0.05}
@@ -70,12 +93,15 @@ export default function ProductShowcase() {
             once={true}
           />
           <p className="text-lg text-gray-600">
-            {data.whatWeDoDec?.en ||
+            {pick(
+              data.whatWeDoDec,
+              activeLang
+            ) ||
               "Explore our complete range of premium cotton, sustainable fibers, and advanced textile machines"}
           </p>
         </div>
 
-        {/* Big First Card */}
+        {/* ---------- Big First Card ---------- */}
         <div className="relative col-span-3 h-72 rounded-2xl shadow-lg pro-img">
           <img
             src={categories[0].image}
@@ -93,7 +119,7 @@ export default function ProductShowcase() {
         </div>
       </div>
 
-      {/* Right Grid */}
+      {/* ---------- Right Grid ---------- */}
       <div className="w-full pt-12">
         <div className="grid md:grid-cols-6 gap-10">
           {categories.slice(1).map((item, idx) => (

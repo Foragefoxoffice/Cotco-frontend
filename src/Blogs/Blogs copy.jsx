@@ -288,7 +288,7 @@ export default function PremiumBlogs() {
                         ghost
                         className="premium-read-more"
                         block
-                        onClick={() => navigate(`/blogs/${blog.id}`)}
+                        onClick={() => navigate(`/${blog.id}`)}
                       >
                         Continue Reading <ArrowRightOutlined />
                       </Button>

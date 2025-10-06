@@ -17,6 +17,23 @@ export default function PinnedExpertiseTimeline() {
   const [historyData, setHistoryData] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState(0);
+  const [activeLang, setActiveLang] = useState("en");
+
+  // ✅ Detect active language dynamically via body class
+  useEffect(() => {
+    const detectLanguage = () => {
+      if (typeof document === "undefined") return "en";
+      return document.body.classList.contains("vi-mode") ? "vi" : "en";
+    };
+
+    setActiveLang(detectLanguage());
+
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   // ✅ API base
   const API_BASE = import.meta.env.VITE_API_URL;
@@ -32,11 +49,13 @@ export default function PinnedExpertiseTimeline() {
       .then((res) => {
         if (res.data?.aboutHistory?.length) {
           setHistoryData(res.data.aboutHistory);
-          console.log("Fetched history data:", res.data.aboutHistory);
         }
       })
       .catch((err) => console.error("Failed to load history:", err));
   }, []);
+
+  // ✅ Helper to pick correct language safely
+  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
 
   // ✅ Step count comes from backend history length
   const stepCount = historyData.length;
@@ -67,15 +86,17 @@ export default function PinnedExpertiseTimeline() {
     );
   }
 
+  const headingText = activeLang === "vi" ? "Lịch sử" : "OUR HISTORY";
+
   return (
     <section ref={sectionRef} className="relative h-[500vh] bg-[#E7EDF5]">
-      {/* Desktop Layout */}
+      {/* ---------- Desktop Layout ---------- */}
       <div className="hidden md:grid sticky top-0 h-screen grid-cols-1 md:grid-cols-2 gap-20 justify-center w-full px-6 md:pr-0 md:px-20">
         {/* Left: Years + Description */}
         <div className="flex flex-col justify-center space-y-4 h-full py-20">
           <div className="space-y-4">
             <h3 className="absolute left-[-100px] top-3/6 text-[#19191940] z-2 rotate-[270deg] text-6xl font-bold text-center">
-              OUR HISTORY
+              {headingText}
             </h3>
             {historyData.slice(0, currentIndex + 1).map((item, i) => (
               <motion.div
@@ -101,8 +122,7 @@ export default function PinnedExpertiseTimeline() {
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="text-lg text-end text-black max-w-2xl ml-auto font-normal pt-6 pl-16"
           >
-            {historyData[currentIndex]?.content?.en ||
-              historyData[currentIndex]?.content?.vi}
+            {pick(historyData[currentIndex]?.content, activeLang)}
           </motion.p>
         </div>
 
@@ -125,7 +145,7 @@ export default function PinnedExpertiseTimeline() {
                 initial={{ y: "100%", opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.1, ease: "easeInOut" }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="absolute inset-0 w-full h-full object-cover z-10"
               />
             )}
@@ -133,7 +153,7 @@ export default function PinnedExpertiseTimeline() {
         </div>
       </div>
 
-      {/* Mobile Layout */}
+      {/* ---------- Mobile Layout ---------- */}
       <div className="md:hidden sticky top-0 h-screen w-full overflow-hidden">
         {historyData[prevIndex]?.image && (
           <img
@@ -175,7 +195,7 @@ export default function PinnedExpertiseTimeline() {
           className="absolute top-24 left-10 z-30"
         >
           <p className="text-white font-semibold text-3xl uppercase mb-2">
-            Our History
+            {headingText}
           </p>
         </motion.div>
 
@@ -199,8 +219,7 @@ export default function PinnedExpertiseTimeline() {
           className="absolute bottom-24 right-0 p-6 z-30"
         >
           <p className="text-white text-sm leading-relaxed">
-            {historyData[currentIndex]?.content?.en ||
-              historyData[currentIndex]?.content?.vi}
+            {pick(historyData[currentIndex]?.content, activeLang)}
           </p>
         </motion.div>
       </div>

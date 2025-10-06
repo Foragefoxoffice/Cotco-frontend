@@ -5,7 +5,25 @@ import { getAboutPage } from "../../Api/api";
 
 export default function CoreStrengthSection() {
   const [coreData, setCoreData] = useState(null);
+  const [activeLang, setActiveLang] = useState("en");
 
+  // ✅ Detect active language dynamically via body class
+  useEffect(() => {
+    const detectLanguage = () => {
+      if (typeof document === "undefined") return "en";
+      return document.body.classList.contains("vi-mode") ? "vi" : "en";
+    };
+
+    setActiveLang(detectLanguage());
+
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Fetch data
   useEffect(() => {
     getAboutPage()
       .then((res) => {
@@ -22,28 +40,30 @@ export default function CoreStrengthSection() {
     return `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${path}`;
   };
 
+  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
+
   if (!coreData) return null;
 
-  // ✅ Normalize into array for mapping and use getImageUrl
+  // ✅ Normalize strengths with multilingual text
   const strengths = [
     {
-      title: coreData.aboutCoreTitle1?.en || "GLOBAL COTTON SOURCING",
+      title: pick(coreData.aboutCoreTitle1, activeLang) || "GLOBAL COTTON SOURCING",
       description:
-        coreData.aboutCoreDes1?.en ||
+        pick(coreData.aboutCoreDes1, activeLang) ||
         "We source high-quality cotton from around the globe.",
       image: getImageUrl(coreData.aboutCoreBg1) || "/img/home/cotton2.png",
     },
     {
-      title: coreData.aboutCoreTitle2?.en || "INNOVATIVE FIBERS",
+      title: pick(coreData.aboutCoreTitle2, activeLang) || "INNOVATIVE FIBERS",
       description:
-        coreData.aboutCoreDes2?.en ||
+        pick(coreData.aboutCoreDes2, activeLang) ||
         "Eco-friendly and cutting-edge fiber technologies.",
       image: getImageUrl(coreData.aboutCoreBg2) || "/img/home/cotton3.png",
     },
     {
-      title: coreData.aboutCoreTitle3?.en || "ADVANCED MACHINERY",
+      title: pick(coreData.aboutCoreTitle3, activeLang) || "ADVANCED MACHINERY",
       description:
-        coreData.aboutCoreDes3?.en ||
+        pick(coreData.aboutCoreDes3, activeLang) ||
         "Modern machinery for efficient textile processing.",
       image: getImageUrl(coreData.aboutCoreBg3) || "/img/home/cotton4.png",
     },
@@ -53,7 +73,7 @@ export default function CoreStrengthSection() {
     <section className="page-width md:py-20 py-6 bg-white core-strength">
       <div className="container mx-auto px-4">
         <TitleAnimation
-          text={"CORE STRENGTHS"}
+          text={activeLang === "vi" ? "THẾ MẠNH CỐT LÕI" : "CORE STRENGTHS"}
           className="heading uppercase"
           align="center"
           delay={0.05}
@@ -62,7 +82,7 @@ export default function CoreStrengthSection() {
         />
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Large Left Card */}
+          {/* ---------- Large Left Card ---------- */}
           <SlideIn direction="left" className="w-full md:w-1/2">
             <div className="relative rounded-xl overflow-hidden group h-[400px] md:h-auto">
               <img
@@ -83,7 +103,7 @@ export default function CoreStrengthSection() {
             </div>
           </SlideIn>
 
-          {/* Right Two Cards */}
+          {/* ---------- Right Two Cards ---------- */}
           <div className="w-full md:w-1/2 flex flex-col gap-6">
             {strengths.slice(1).map((item, index) => (
               <SlideIn key={index} direction="right">
@@ -99,9 +119,7 @@ export default function CoreStrengthSection() {
                     <p className="hidden md:block opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                       {item.description}
                     </p>
-                    <p className="block md:hidden text-sm">
-                      {item.description}
-                    </p>
+                    <p className="block md:hidden text-sm">{item.description}</p>
                   </div>
                 </div>
               </SlideIn>
