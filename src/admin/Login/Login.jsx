@@ -5,10 +5,10 @@ import { CommonToaster } from "../../Common/CommonToaster";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function Login() {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ identifier: "", password: "" });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // 👈 new state
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -19,10 +19,8 @@ export default function Login() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
+    if (!formData.identifier) {
+      newErrors.identifier = "Email or Employee ID is required";
     }
     if (!formData.password) {
       newErrors.password = "Password is required";
@@ -38,16 +36,29 @@ export default function Login() {
     if (!validateForm()) return;
 
     setIsLoading(true);
+
     try {
-      const response = await loginUser(formData);
+      // Detect if the identifier is an email or employeeId
+      const isEmail = /\S+@\S+\.\S+/.test(formData.identifier);
+      const loginPayload = {
+        password: formData.password,
+        ...(isEmail
+          ? { email: formData.identifier }
+          : { employeeId: formData.identifier }),
+      };
+
+      const response = await loginUser(loginPayload);
+
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
+
       CommonToaster("Login successful!", "success");
       navigate("/admin");
     } catch (error) {
       setErrors({
         submit:
-          error.response?.data?.error || "Login failed. Check credentials.",
+          error.response?.data?.error ||
+          "Login failed. Check your credentials.",
       });
     } finally {
       setIsLoading(false);
@@ -62,33 +73,33 @@ export default function Login() {
           {/* Heading */}
           <h2 className="text-2xl font-bold mb-2">Sign In</h2>
           <p className="text-gray-500 mb-6">
-            Enter your email address and password to access admin panel.
+            Enter your email address or employee ID to access the admin panel.
           </p>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
+            {/* Email or Employee ID */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                Email or Employee ID
               </label>
               <div className="relative">
                 <FiMail className="absolute left-3 top-3 text-gray-400" />
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  type="text"
+                  name="identifier"
+                  value={formData.identifier}
                   onChange={handleChange}
-                  placeholder="user@demo.com"
+                  placeholder="user@demo.com or EMP001"
                   className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 ${
-                    errors.email
+                    errors.identifier
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-indigo-500"
                   }`}
                 />
               </div>
-              {errors.email && (
-                <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+              {errors.identifier && (
+                <p className="text-sm text-red-500 mt-1">{errors.identifier}</p>
               )}
             </div>
 
@@ -102,7 +113,7 @@ export default function Login() {
               <div className="relative">
                 <FiLock className="absolute left-3 top-3 text-gray-400" />
                 <input
-                  type={showPassword ? "text" : "password"} // 👈 toggle
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
@@ -113,7 +124,6 @@ export default function Login() {
                       : "border-gray-300 focus:ring-indigo-500"
                   }`}
                 />
-                {/* Toggle Button */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -127,7 +137,7 @@ export default function Login() {
               )}
             </div>
 
-            {/* Remember me */}
+            {/* Remember Me */}
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -135,18 +145,18 @@ export default function Login() {
                 className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
               />
               <label htmlFor="remember" className="ml-2 text-sm text-gray-700">
-               <span  style={{color:"black"}}> Remember Me</span> 
+                <span style={{ color: "black" }}>Remember Me</span>
               </label>
             </div>
 
-            {/* Submit error */}
+            {/* Error */}
             {errors.submit && (
               <div className="rounded-md bg-red-50 p-3 text-red-700 text-sm">
                 {errors.submit}
               </div>
             )}
 
-            {/* Submit button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={isLoading}
@@ -161,7 +171,7 @@ export default function Login() {
       {/* Right Side Image */}
       <div className="hidden lg:flex flex-1 h-[90%] bg-gray-100 items-center justify-center rounded-l-3xl">
         <img
-          src="/img/about/contact.png" // replace with your actual image
+          src="/img/about/contact.png"
           alt="Login Illustration"
           className="w-full object-cover rounded-l-3xl"
         />

@@ -134,8 +134,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
   const inputClasses =
     "mt-1 block w-full border border-[#2E2F2F] rounded-lg shadow-sm py-2 px-3 bg-[#1F1F1F] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0085C8] focus:border-[#0085C8] transition-all duration-200";
 
-  const labelClasses =
-    "block text-sm font-medium text-gray-300 mb-1";
+  const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
 
   // ✅ Change handlers
   const handleChange = (field, value, isTranslatable = false) => {
@@ -243,7 +242,10 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
       errors.push("Both EN and VN SEO Title are required.");
     }
 
-    if (!formData.seo.description.en.trim() || !formData.seo.description.vn.trim()) {
+    if (
+      !formData.seo.description.en.trim() ||
+      !formData.seo.description.vn.trim()
+    ) {
       errors.push("Both EN and VN SEO Description are required.");
     }
 
@@ -289,12 +291,17 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
               .richtext-editor .ProseMirror{
               padding:20px;
               }
+              .ant-modal .ant-modal-close-x{
+        color:#fff;
+        }
         `}
       </style>
       {/* Header */}
       <div className="flex justify-between items-center mb-6 border-b border-[#2E2F2F] pb-3">
         <h2 className="text-xl font-bold text-white">
-          {article ? labels[activeLanguage].edit : labels[activeLanguage].create}
+          {article
+            ? labels[activeLanguage].edit
+            : labels[activeLanguage].create}
         </h2>
         <button
           onClick={onClose}
@@ -336,7 +343,10 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             className={inputClasses}
             value={formData.slug}
             onChange={(e) =>
-              handleChange("slug", e.target.value.toLowerCase().replace(/\s+/g, "-"))
+              handleChange(
+                "slug",
+                e.target.value.toLowerCase().replace(/\s+/g, "-")
+              )
             }
             required
           />
@@ -348,20 +358,23 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             {labels[activeLanguage].coverImage}
             <span className="text-red-500">*</span>
           </label>
-          <div className="flex items-center space-x-4">
-            <div className="w-24 h-24 border border-[#2E2F2F] rounded-md overflow-hidden bg-[#1F1F1F] flex items-center justify-center">
+          <div className="flex items-center gap-5 mt-4">
+            {/* 🖼️ Preview Box */}
+            <div className="relative w-28 h-28 border border-[#2E2F2F] rounded-xl overflow-hidden bg-[#141414] flex items-center justify-center shadow-inner">
               {formData.coverImage.url ? (
                 <img
                   src={formData.coverImage.url}
                   alt="cover"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                 />
               ) : (
-                <span className="text-gray-500 text-xs">
+                <span className="text-gray-500 text-xs tracking-wide">
                   {labels[activeLanguage].preview}
                 </span>
               )}
             </div>
+
+            {/* Hidden Input */}
             <input
               type="file"
               className="hidden"
@@ -369,16 +382,39 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
               accept="image/*"
               onChange={handleImageChange}
             />
+
+            {/* 💠 Upload Button (Styled Like “Save and Submit”) */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="px-3 py-2 bg-[#0085C8]/20 text-[#00A8FF] rounded-md hover:bg-[#0085C8]/40 transition"
+              className="flex items-center justify-center gap-2 px-8 py-3 
+               bg-[#0085C8] text-white text-base font-medium 
+               rounded-full transition-all duration-300 ease-in-out
+               hover:bg-[#0098E0] focus:outline-none 
+               focus:ring-2 focus:ring-[#33BFFF] focus:ring-offset-2 focus:ring-offset-[#171717]"
             >
-              <Upload size={16} className="inline mr-2" />
+              {/* SVG Upload Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="2"
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                />
+              </svg>
               {labels[activeLanguage].upload}
             </button>
           </div>
-          <p className="text-gray-400 text-xs mt-1">(2MB maximum upload size)</p>
+
+          <p className="text-gray-400 text-xs mt-1">
+            (2MB maximum upload size)
+          </p>
         </div>
 
         {/* Excerpt */}
@@ -398,25 +434,32 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
         {/* Content Blocks */}
         <div>
           <label className={labelClasses}>Content Blocks</label>
+
+          {/* 🧱 Block Items */}
           <div className="space-y-4 mt-2">
             {formData.blocks.map((block, i) => (
               <div
                 key={i}
-                className="p-3 border border-[#2E2F2F] rounded-md bg-[#1F1F1F]"
+                className="p-4 border border-[#2E2F2F] rounded-xl bg-[#141414] shadow-inner transition-all hover:border-[#3b3b3b]"
               >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-gray-300 capitalize">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="font-medium text-gray-200 capitalize">
                     {labels[activeLanguage].blockTypes[block.type]}
                   </span>
                   <button
                     type="button"
                     onClick={() => removeBlock(i)}
-                    className="text-red-500 hover:text-red-700"
+                    className="flex items-center justify-center px-4 py-1.5 
+                       bg-[#1E1E1E] text-white text-sm font-medium rounded-full
+                       border border-[#2E2E2E] hover:bg-[#2A2A2A] 
+                       transition-all duration-300"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} className="mr-1 text-red-400" />
+                    Remove
                   </button>
                 </div>
 
+                {/* 🧩 Conditional Block Types */}
                 {block.type === "richtext" && (
                   <RichTextEditor
                     key={`${i}-${activeLanguage}`}
@@ -426,13 +469,13 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                 )}
 
                 {block.type === "image" && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-32 h-32 border border-[#2E2F2F] rounded-md overflow-hidden bg-[#1F1F1F] flex items-center justify-center">
+                  <div className="flex items-center gap-4 mt-2">
+                    <div className="w-32 h-32 border border-[#2E2F2F] rounded-lg overflow-hidden bg-[#1F1F1F] flex items-center justify-center">
                       {block.content.url ? (
                         <img
                           src={block.content.url}
                           alt={`block-${i}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                         />
                       ) : (
                         <span className="text-gray-500 text-xs">
@@ -440,6 +483,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                         </span>
                       )}
                     </div>
+
                     <input
                       type="file"
                       id={`block-image-${i}`}
@@ -455,14 +499,19 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                         }
                       }}
                     />
+
+                    {/* 🔵 Upload Button (Dark-Pill Style) */}
                     <button
                       type="button"
                       onClick={() =>
                         document.getElementById(`block-image-${i}`).click()
                       }
-                      className="px-3 py-2 bg-[#0085C8]/20 text-[#00A8FF] rounded-md hover:bg-[#0085C8]/40 transition"
+                      className="flex items-center gap-2 px-6 py-4
+                         bg-[#0085C8] text-white font-medium 
+                         rounded-full shadow-md
+                         hover:bg-[#0098E0] transition-all duration-300"
                     >
-                      <Upload size={16} className="inline mr-2" />
+                      <Upload size={16} className="text-white" />
                       {labels[activeLanguage].upload}
                     </button>
                   </div>
@@ -501,16 +550,21 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             ))}
           </div>
 
-          <div className="flex flex-wrap gap-2 mt-3">
+          {/* ➕ Add Block Buttons */}
+          <div className="flex flex-wrap gap-2 mt-4">
             {Object.entries(labels[activeLanguage].blockTypes).map(
               ([value, label]) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => addBlock(value)}
-                  className="px-3 py-1 bg-[#0085C8]/20 text-[#00A8FF] rounded-md text-sm flex items-center hover:bg-[#0085C8]/40 transition"
+                  className="flex items-center gap-2 px-5 py-4 
+                   bg-[#1E1E1E] text-white text-sm font-medium rounded-full
+                   border border-[#2E2E2E] hover:bg-[#2A2A2A]
+                   transition-all duration-300"
                 >
-                  <PlusCircle size={14} className="mr-1" /> {label}
+                  <PlusCircle size={14} className="text-[#00A8FF]" />
+                  {label}
                 </button>
               )
             )}
@@ -566,7 +620,9 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             onChange={(e) => handleChange("status", e.target.value)}
           >
             <option value="draft">{labels[activeLanguage].draft}</option>
-            <option value="published">{labels[activeLanguage].published}</option>
+            <option value="published">
+              {labels[activeLanguage].published}
+            </option>
           </select>
         </div>
 
@@ -611,19 +667,31 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
         )}
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-[#2E2F2F]">
+        <div className="flex justify-end gap-4 pt-6 border-t border-[#2E2F2F]">
+          {/* Cancel Button (Dark Gray Pill) */}
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-[#2E2F2F] text-gray-300 rounded-md hover:bg-red-500/20 hover:text-red-300 transition"
+            className="px-8 py-4 rounded-full 
+               bg-[#1F1F1F] text-white font-medium
+               border border-[#2E2F2F]
+               hover:bg-[#2A2A2A] hover:border-[#3A3A3A]
+               transition-all duration-300"
           >
             {labels[activeLanguage].cancel}
           </button>
+
+          {/* Save / Update Button (Bright Blue Pill) */}
           <button
             type="submit"
-            className="px-4 py-2 bg-[#0085C8] text-white rounded-md hover:bg-[#009FE3] transition"
+            className="px-8 py-4 rounded-full 
+               bg-[#0085C8] text-white font-medium 
+               hover:bg-[#009FE3]
+               transition-all duration-300"
           >
-            {article ? labels[activeLanguage].update : labels[activeLanguage].save}
+            {article
+              ? labels[activeLanguage].update
+              : labels[activeLanguage].save}
           </button>
         </div>
       </form>

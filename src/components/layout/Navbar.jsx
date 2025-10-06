@@ -219,9 +219,9 @@ const Navbar = () => {
         </div>
 
         {/* ✅ Google Translate widget */}
-        <GoogleTranslate
+        {/* <GoogleTranslate
           defaultLang={localStorage.getItem("preferred_lang") || "en"}
-        />
+        /> */}
       </nav>
 
       {/* ---------- MOBILE MENU ---------- */}

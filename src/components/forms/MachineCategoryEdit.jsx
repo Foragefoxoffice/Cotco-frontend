@@ -85,7 +85,19 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
   const labelStyle = { color: "#ccc", fontWeight: 500 };
 
   return (
-    <div style={{ backgroundColor: "#171717", borderRadius: "12px", padding: "4px" }}>
+    <div
+      style={{
+        backgroundColor: "#171717",
+        borderRadius: "12px",
+        padding: "4px",
+        color: "white",
+      }}
+    >
+      <style>{`
+        .ant-modal .ant-modal-close-x{
+        color:#fff;
+        }
+      `}</style>
       <div className="mb-4">
         <TranslationTabs
           activeLanguage={activeLanguage}
@@ -101,7 +113,10 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
           rules={[{ required: true, message: "Please enter English name" }]}
           style={{ display: activeLanguage === "en" ? "block" : "none" }}
         >
-          <Input placeholder="Enter category name (EN)" style={darkInputStyle} />
+          <Input
+            placeholder="Enter category name (EN)"
+            style={darkInputStyle}
+          />
         </Form.Item>
 
         <Form.Item
@@ -122,7 +137,10 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
           label={<span style={labelStyle}>Name (Vietnamese)</span>}
           style={{ display: activeLanguage === "vn" ? "block" : "none" }}
         >
-          <Input placeholder="Enter category name (VN)" style={darkInputStyle} />
+          <Input
+            placeholder="Enter category name (VN)"
+            style={darkInputStyle}
+          />
         </Form.Item>
 
         <Form.Item
@@ -143,27 +161,70 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
           label={<span style={labelStyle}>Slug</span>}
           rules={[{ required: true, message: "Please enter slug" }]}
         >
-          <Input placeholder="Unique slug (e.g. weaving)" style={darkInputStyle} />
+          <Input
+            placeholder="Unique slug (e.g. weaving)"
+            style={darkInputStyle}
+          />
         </Form.Item>
 
         {/* Uploads */}
-        <Form.Item name="image" label={<span style={labelStyle}>Upload Image</span>}>
+        <Form.Item
+          name="image"
+          label={<span style={labelStyle}>Upload Image</span>}
+        >
           <Upload
             beforeUpload={() => false}
             listType="picture-card"
             fileList={fileList}
             onChange={({ fileList }) => setFileList(fileList)}
+            showUploadList={true}
           >
             {fileList.length === 0 && (
-              <div>
-                <PlusOutlined />
-                <div style={{ marginTop: 8, color: "#aaa" }}>Upload Image</div>
-              </div>
+              <label
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "22px",
+                  backgroundColor: "#0284C7",
+                  color: "#fff",
+                  fontWeight: "600",
+                  borderRadius: "9999px", // pill shape
+                  cursor: "pointer",
+                  transition: "background 0.3s ease",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#0369A1")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#0284C7")
+                }
+              >
+                {/* Upload SVG icon */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                  style={{ width: "18px", height: "18px" }}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                  />
+                </svg>
+                Upload Image
+              </label>
             )}
           </Upload>
         </Form.Item>
 
-        <Form.Item name="icon" label={<span style={labelStyle}>Upload Icon</span>}>
+        <Form.Item
+          name="icon"
+          label={<span style={labelStyle}>Upload Icon</span>}
+        >
           <Upload
             beforeUpload={() => false}
             listType="picture-card"
@@ -189,13 +250,11 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
             style={{
               backgroundColor: "#0085C8",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "2rem",
               color: "#fff",
               fontWeight: 500,
-              padding: "10px 0",
+              padding: "22px 0",
             }}
-            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#009FE3")}
-            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#0085C8")}
           >
             Update Machine Category
           </Button>

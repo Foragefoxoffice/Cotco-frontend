@@ -73,15 +73,26 @@ export default function BlogLists() {
       </p>
     );
 
-  // ✅ Filter blogs dynamically
+  // ✅ Always globally sort newest → oldest
+  const sortedBlogs = [...blogs].sort(
+    (a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)
+  );
+
+  // ✅ Apply category filter but keep order
   const filteredBlogs =
     selectedCategory === "all"
-      ? blogs
-      : blogs.filter((b) => b.categoryId === selectedCategory);
+      ? sortedBlogs
+      : sortedBlogs.filter((b) => b.categoryId === selectedCategory);
 
-  const featuredBlog = filteredBlogs[0];
-  const nextThree = filteredBlogs.slice(1, 4);
-  const remaining = filteredBlogs.slice(4);
+  // ✅ Always pick latest (most recent) blog as featured
+  const featuredBlog = sortedBlogs[0];
+
+  // ✅ Exclude featured from filtered list
+  const remainingBlogs = filteredBlogs.filter((b) => b.id !== featuredBlog.id);
+
+  // ✅ Next three + remaining
+  const nextThree = remainingBlogs.slice(0, 3);
+  const remaining = remainingBlogs.slice(3);
 
   return (
     <section className="max-w-[1200px] mx-auto px-4 md:px-6 py-10 text-[#1a1a1a]">
@@ -114,7 +125,7 @@ export default function BlogLists() {
               }
               className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                 selectedCategory === cat._id
-                  ? "!bg-[#164B8B] !text-white shadow-md"
+                  ? "!bg-[#164B8B] !text-white shadow"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -125,18 +136,18 @@ export default function BlogLists() {
       </div>
 
       {/* ---------- MAIN GRID ---------- */}
-      <div className="grid lg:grid-cols-[2fr_1fr] gap-8">
+      <div className="grid lg:grid-cols-[3fr_1fr] gap-8">
         {/* ---------- LEFT: ARTICLES ---------- */}
         <div>
           {/* FEATURED ARTICLE */}
           {featuredBlog && (
             <div
-              className="flex flex-col md:flex-row gap-6 border-b pb-6 mb-10 cursor-pointer"
+              className="flex flex-col md:flex-row gap-6 pb-6 mb-6 cursor-pointer"
               onClick={() =>
                 navigate(`/${mainCategorySlug}/${featuredBlog.slug}`)
               }
             >
-              <div className="md:w-1/2">
+              <div className="md:w-2/3">
                 <img
                   src={featuredBlog.img}
                   alt={featuredBlog.title}
@@ -145,7 +156,10 @@ export default function BlogLists() {
               </div>
 
               <div className="flex-1">
-                <h2 className="text-xl font-bold mb-2 hover:text-[#164B8B] transition">
+                <h2
+                  style={{ fontSize: "18px" }}
+                  className="text-lg font-bold mb-2 hover:text-[#164B8B] transition"
+                >
                   {featuredBlog.title}
                 </h2>
                 <p className="text-gray-500 text-sm mb-3">
@@ -168,13 +182,13 @@ export default function BlogLists() {
 
           {/* NEXT ARTICLES GRID */}
           {nextThree.length > 0 && (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10 pb-8 border-b border-[#cecece]">
               {nextThree.map((b) => (
                 <motion.div
                   key={b.id}
                   whileHover={{ scale: 1.03 }}
                   onClick={() => navigate(`/${mainCategorySlug}/${b.slug}`)}
-                  className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
+                  className="bg-white rounded-lg overflow-hidden hover:shadow-lg transition cursor-pointer"
                 >
                   <img
                     src={b.img}
@@ -194,7 +208,7 @@ export default function BlogLists() {
             </div>
           )}
 
-          {/* REMAINING LIST - full width one by one */}
+          {/* REMAINING LIST */}
           {remaining.length > 0 && (
             <div className="space-y-8">
               {remaining.map((b) => (
@@ -227,7 +241,7 @@ export default function BlogLists() {
 
         {/* ---------- RIGHT SIDEBAR (Desktop only) ---------- */}
         <aside className="hidden lg:block space-y-6">
-          <div className="bg-[#F9FAFB] rounded-lg shadow-sm p-4">
+          <div className="bg-[#F9FAFB] rounded-lg border border-black/5 p-4">
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => handleCategoryChange("all", "All")}
@@ -266,7 +280,7 @@ export default function BlogLists() {
               {blogs.slice(0, 3).map((b) => (
                 <div
                   key={b.id}
-                  className="flex gap-3 cursor-pointer"
+                  className="flex gap-3 cursor-pointer border-b border-black/10 pb-3"
                   onClick={() => navigate(`/${mainCategorySlug}/${b.slug}`)}
                 >
                   <img

@@ -23,7 +23,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 
 // 🧩 Context
-import { ThemeProvider } from "./contexts/ThemeContext";
+// import { ThemeProvider } from "./contexts/ThemeContext";
 
 // 🛠️ Admin Core
 import AdminLayout from "./admin/AdminLayout";
@@ -58,7 +58,6 @@ import ContactEntriesScreen from "./pages/ContactEntriesScreen";
 import RoleManagement from "./pages/RoleManagement";
 import StaffManagement from "./pages/StaffManagement";
 
-
 import MachineCategoriesScreen from "./pages/MachineCategoriesScreen";
 import MachineListScreen from "./pages/MachineListScreen";
 import MachineEditScreen from "./pages/MachineEditScreen";
@@ -80,110 +79,109 @@ const ProtectedRoute = ({ children }) => {
 // 🚀 Render App
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <ThemeProvider>
-      <BrowserRouter>
-        <ScrollToTop />
-        <ToastContainer
-          position="top-right"
-          autoClose={1500}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
+    {/* <ThemeProvider> */}
+    <BrowserRouter>
+      <ScrollToTop />
+      <ToastContainer
+        position="top-right"
+        autoClose={1500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
+      <Routes>
+        {/* 🌐 Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/aboutus" element={<Aboutus />} />
+        <Route path="/cotton" element={<Cotton />} />
+        <Route path="/fiber" element={<Fiber />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/contact" element={<Contactus />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-conditions" element={<TermsConditions />} />
+
+        {/* 📰 Blogs / Resources */}
+        <Route path="/blog" element={<BlogList />} />
+        <Route path="/:mainCategorySlug" element={<Blogs />} />
+        <Route path="/:mainCategorySlug/:slug" element={<BlogOverview />} />
+
+        {/* 🔐 Login */}
+        <Route path="/login" element={<Login />} />
+
+        {/* 🏭 Machines (Public) */}
+        <Route path="/machines" element={<MachinesMain />} />
+        <Route path="/machines/:categorySlug" element={<MachineList />} />
+        <Route
+          path="/machines/:categorySlug/:pageSlug"
+          element={<MachinePage />}
         />
 
-        <Routes>
-          {/* 🌐 Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/aboutus" element={<Aboutus />} />
-          <Route path="/cotton" element={<Cotton />} />
-          <Route path="/fiber" element={<Fiber />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/contact" element={<Contactus />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-conditions" element={<TermsConditions />} />
+        {/* 🧭 Admin Section */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          {/* 📊 Dashboard */}
+          <Route index element={<Dashboard />} />
 
-          {/* 📰 Blogs / Resources */}
-          <Route path="/blog" element={<BlogList />} />
-          <Route path="/:mainCategorySlug" element={<Blogs />} />
-          <Route path="/:mainCategorySlug/:slug" element={<BlogOverview />} />
+          {/* 📄 CMS Pages */}
+          <Route path="header" element={<HeaderPage />} />
+          <Route path="footer" element={<FooterPage />} />
+          <Route path="home" element={<Homepage />} />
+          <Route path="about" element={<AboutPage />} />
+          <Route path="cotton" element={<CottonPage />} />
+          <Route path="fiber" element={<FiberPage />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="privacy-policy" element={<PrivacyPage />} />
+          <Route path="terms-conditions" element={<TermsConditionsPage />} />
 
-          {/* 🔐 Login */}
-          <Route path="/login" element={<Login />} />
-
-          {/* 🏭 Machines (Public) */}
-          <Route path="/machines" element={<MachinesMain />} />
-          <Route path="/machines/:categorySlug" element={<MachineList />} />
+          {/* 📰 Resources / Blog Management */}
+          <Route path="resources" element={<NewsScreen />} />
           <Route
-            path="/machines/:categorySlug/:pageSlug"
-            element={<MachinePage />}
+            path="resources/main-categories"
+            element={<NewsMainCategoriesScreen />}
+          />
+          <Route
+            path="resources/categories"
+            element={<NewsCategoriesScreen />}
           />
 
-
-          {/* 🧭 Admin Section */}
+          {/* ⚙️ CMS & Settings */}
+          <Route path="pages" element={<PagesScreen />} />
+          <Route path="pages/:pageSlug" element={<PageEditScreen />} />
+          <Route path="products" element={<ProductsScreen />} />
           <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            {/* 📊 Dashboard */}
-            <Route index element={<Dashboard />} />
+            path="products/:categorySlug"
+            element={<ProductListScreen />}
+          />
+          <Route path="settings" element={<GlobalSettingsScreen />} />
 
-            {/* 📄 CMS Pages */}
-            <Route path="header" element={<HeaderPage />} />
-            <Route path="footer" element={<FooterPage />} />
-            <Route path="home" element={<Homepage />} />
-            <Route path="about" element={<AboutPage />} />
-            <Route path="cotton" element={<CottonPage />} />
-            <Route path="fiber" element={<FiberPage />} />
-            <Route path="contact" element={<ContactPage />} />
-            <Route path="privacy-policy" element={<PrivacyPage />} />
-            <Route path="terms-conditions" element={<TermsConditionsPage />} />
+          <Route
+            path="machines/categories"
+            element={<MachineCategoriesScreen />}
+          />
+          <Route path="machines/list" element={<MachineListScreen />} />
+          <Route path="machines/new" element={<MachineEditScreen />} />
+          <Route path="machines/pages/:id/edit" element={<EditMachinePage />} />
 
-            {/* 📰 Resources / Blog Management */}
-            <Route path="resources" element={<NewsScreen />} />
-            <Route
-              path="resources/main-categories"
-              element={<NewsMainCategoriesScreen />}
-            />
-            <Route
-              path="resources/categories"
-              element={<NewsCategoriesScreen />}
-            />
+          {/* 📬 Contact Entries */}
+          <Route path="contacts" element={<ContactEntriesScreen />} />
 
-            {/* ⚙️ CMS & Settings */}
-            <Route path="pages" element={<PagesScreen />} />
-            <Route path="pages/:pageSlug" element={<PageEditScreen />} />
-            <Route path="products" element={<ProductsScreen />} />
-            <Route
-              path="products/:categorySlug"
-              element={<ProductListScreen />}
-            />
-            <Route path="settings" element={<GlobalSettingsScreen />} />
-
-            <Route
-              path="machines/categories"
-              element={<MachineCategoriesScreen />}
-            />
-            <Route path="machines/list" element={<MachineListScreen />} />
-            <Route path="machines/new" element={<MachineEditScreen />} />
-            <Route path="machines/pages/:id/edit" element={<EditMachinePage />} />
-
-            {/* 📬 Contact Entries */}
-            <Route path="contacts" element={<ContactEntriesScreen />} />
-
-            {/* 👥 Roles & Staff */}
-            <Route path="roles" element={<RoleManagement />} />
-            <Route path="staffmanagement" element={<StaffManagement />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </ThemeProvider>
+          {/* 👥 Roles & Staff */}
+          <Route path="roles" element={<RoleManagement />} />
+          <Route path="staffmanagement" element={<StaffManagement />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+    {/* </ThemeProvider> */}
   </StrictMode>
 );

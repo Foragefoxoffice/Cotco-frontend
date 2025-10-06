@@ -17,7 +17,6 @@ API.interceptors.request.use((config) => {
 
 export default API;
 
-
 /* =========================================================
    AUTH
 ========================================================= */
@@ -25,7 +24,7 @@ export const registerUser = (data) => API.post("/auth/register", data);
 export const loginUser = (data) => API.post("/auth/login", data);
 export const getMe = () => API.get("/auth/me");
 export const updateDetails = (data) => API.put("/auth/updatedetails", data);
-export const updatePassword = (data) => API.put("/auth/updatepassword", data);
+export const updatePassword = (data) => API.put("/auth/update-password", data);
 export const logoutUser = () => API.get("/auth/logout");
 export const forgotPassword = (data) => API.post("/auth/forgotpassword", data);
 export const resetPassword = (data) => API.post("/auth/resetpassword", data);
@@ -39,7 +38,6 @@ export const getUsers = () => API.get("/users");
 export const getUserById = (id) => API.get(`/users/${id}`);
 export const updateUser = (id, data) => API.put(`/users/${id}`, data);
 export const deleteUser = (id) => API.delete(`/users/${id}`);
-
 
 /* =========================================================
    MACHINE CATEGORIES
@@ -88,9 +86,7 @@ export const deleteMachinePage = (id) => API.delete(`/machines/pages/${id}`);
 export const getMachinePagesByCategorySlug = (categorySlug) =>
   API.get(`/machines/pages/category/${categorySlug}`);
 
-export const getMachinePageById = (id) =>
-  API.get(`/machines/pages/${id}`);
-
+export const getMachinePageById = (id) => API.get(`/machines/pages/${id}`);
 
 /* =========================================================
    BLOGS
@@ -115,7 +111,6 @@ export const getSection = (id) => API.get(`/sections/${id}`);
 export const updateSection = (id, data) => API.put(`/sections/${id}`, data);
 export const deleteSection = (id) => API.delete(`/sections/${id}`);
 
-
 /* =========================================================
    MAIN CATEGORIES (Generic for blog/news/categories)
    Backend route: /main-categories
@@ -130,13 +125,9 @@ export const updateBlogMainCategory = (id, data, isFormData = false) =>
     headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
   });
 
+export const getMainBlogCategories = () => API.get("/maincategories");
 
-
-export const getMainBlogCategories = () =>
-  API.get("/maincategories");
-
-export const getMainBlogCategory = (id) =>
-  API.get(`/maincategories/${id}`);
+export const getMainBlogCategory = (id) => API.get(`/maincategories/${id}`);
 
 // export const updateBlogMainCategory = (id, data, isFormData = false) =>
 //   axios.put(`/api/blog-main-categories/${id}`, data, {
@@ -146,16 +137,12 @@ export const getMainBlogCategory = (id) =>
 export const deleteBlogMainCategory = (id) =>
   API.delete(`/maincategories/${id}`);
 
-
-
 // ================= PAGES ================= //
 export const createPage = (data) => API.post("/pages", data);
 export const getPages = () => API.get("/pages");
 export const getPageBySlug = (slug) => API.get(`/pages/${slug}`);
 export const updatePage = (id, data) => API.put(`/pages/${id}`, data);
 export const deletePage = (id) => API.delete(`/pages/${id}`);
-
-
 
 /* =========================================================
    HOMEPAGE
@@ -244,7 +231,6 @@ export const updateHeaderPage = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-
 /* =========================================================
  FOOTER PAGE
 ========================================================= */
@@ -255,8 +241,7 @@ export const updateFooterPage = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-
-  /* =========================================================
+/* =========================================================
    CONTACT FORM
 ========================================================= */
 // Create a new contact entry (with file)

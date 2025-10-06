@@ -845,65 +845,70 @@ const SectionEditor = ({ basePath, section, control }) => {
       );
 
     case "button":
-  return (
-    <div className="space-y-4">
-      {/* ✅ Button Label (EN + VN) */}
-      <Controller
-        name={`${basePath}.button.name`}
-        control={control}
-        render={({ field }) => (
-          <TranslationInput
-            value={field.value || { en: "", vn: "" }}
-            placeholder="Button Label"
-            onChange={field.onChange}
+      return (
+        <div className="space-y-4">
+          {/* ✅ Button Label (EN + VN) */}
+          <Controller
+            name={`${basePath}.button.name`}
+            control={control}
+            render={({ field }) => (
+              <TranslationInput
+                value={field.value || { en: "", vn: "" }}
+                placeholder="Button Label"
+                onChange={field.onChange}
+              />
+            )}
           />
-        )}
-      />
 
-      {/* ✅ Button Link */}
-      <Controller
-        name={`${basePath}.button.link`}
-        control={control}
-        render={({ field }) => (
-          <Input
-            className="custom-dark-input"
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-              fontSize: "14px",
-              transition: "all 0.3s ease",
-            }}
-            {...field}
-            placeholder="Enter button link (e.g. https://example.com/download)"
+          {/* ✅ Button Link */}
+          <Controller
+            name={`${basePath}.button.link`}
+            control={control}
+            render={({ field }) => (
+              <Input
+                className="custom-dark-input"
+                style={{
+                  backgroundColor: "#262626",
+                  border: "1px solid #2E2F2F",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                  transition: "all 0.3s ease",
+                }}
+                {...field}
+                placeholder="Enter button link (e.g. https://example.com/download)"
+              />
+            )}
           />
-        )}
-      />
 
-      {/* ✅ Optional Alignment Dropdown */}
-      <Controller
-        name={`${basePath}.button.align`}
-        control={control}
-        render={({ field }) => (
-          <select
-            style={{
-              color:"#fff",
-              marginTop:"10px"
-            }}
-            {...field}
-            className="px-3 py-2  text-sm border border-[#2E2F2F] bg-[#1F1F1F] text-white rounded-lg outline-none cursor-pointer"
-          >
-            <option className="text-white" value="center">Center</option>
-            <option className="text-white" value="left">Left</option>
-            <option className="text-white" value="right">Right</option>
-          </select>
-        )}
-      />
-    </div>
-  );
-
+          {/* ✅ Optional Alignment Dropdown */}
+          <Controller
+            name={`${basePath}.button.align`}
+            control={control}
+            render={({ field }) => (
+              <select
+                style={{
+                  color: "#fff",
+                  marginTop: "10px",
+                }}
+                {...field}
+                className="px-3 py-2  text-sm border border-[#2E2F2F] bg-[#1F1F1F] text-white rounded-lg outline-none cursor-pointer"
+              >
+                <option className="text-white" value="center">
+                  Center
+                </option>
+                <option className="text-white" value="left">
+                  Left
+                </option>
+                <option className="text-white" value="right">
+                  Right
+                </option>
+              </select>
+            )}
+          />
+        </div>
+      );
 
     default:
       return <p>⚠ Unsupported section type: {section.type}</p>;
@@ -987,133 +992,133 @@ const MachinePageCreate = ({
   }, []);
 
   useEffect(() => {
-  if (initialData) {
-    reset({
-      categoryId: initialData.categoryId || "",
-      title: initialData.title || { en: "", vn: "" },
-      description: initialData.description || { en: "", vn: "" },
-      slug: initialData.slug || "",
-      metaTitle: initialData.metaTitle || "",
-      metaDescription: initialData.metaDescription || "",
-      keywords: initialData.keywords || "",
-      sections: initialData.sections || [],
-    });
+    if (initialData) {
+      reset({
+        categoryId: initialData.categoryId || "",
+        title: initialData.title || { en: "", vn: "" },
+        description: initialData.description || { en: "", vn: "" },
+        slug: initialData.slug || "",
+        metaTitle: initialData.metaTitle || "",
+        metaDescription: initialData.metaDescription || "",
+        keywords: initialData.keywords || "",
+        sections: initialData.sections || [],
+      });
 
-    if (initialData.banner) {
-      setBannerFile([
-        {
-          uid: "-1",
-          name: "banner.png",
-          status: "done",
-          url: initialData.banner,
-        },
-      ]);
+      if (initialData.banner) {
+        setBannerFile([
+          {
+            uid: "-1",
+            name: "banner.png",
+            status: "done",
+            url: initialData.banner,
+          },
+        ]);
+      }
     }
-  }
-}, [initialData, reset]);
+  }, [initialData, reset]);
 
+  const handleFormSubmit = async (values) => {
+    try {
+      setLoading(true);
+      const formData = new FormData();
 
- const handleFormSubmit = async (values) => {
-  try {
-    setLoading(true);
-    const formData = new FormData();
+      formData.append("categoryId", values.categoryId);
+      formData.append("title", JSON.stringify(values.title));
+      formData.append("description", JSON.stringify(values.description));
+      formData.append("slug", values.slug);
 
-    formData.append("categoryId", values.categoryId);
-    formData.append("title", JSON.stringify(values.title));
-    formData.append("description", JSON.stringify(values.description));
-    formData.append("slug", values.slug);
+      const seo = {
+        metaTitle: values.metaTitle,
+        metaDescription: values.metaDescription,
+        keywords: values.keywords
+          ? values.keywords.split(",").map((k) => k.trim())
+          : [],
+      };
+      formData.append("seo", JSON.stringify(seo));
 
-    const seo = {
-      metaTitle: values.metaTitle,
-      metaDescription: values.metaDescription,
-      keywords: values.keywords
-        ? values.keywords.split(",").map((k) => k.trim())
-        : [],
-    };
-    formData.append("seo", JSON.stringify(seo));
-
-    if (bannerFile.length > 0) {
-      formData.append("banner", bannerFile[0].originFileObj);
-    }
-
-    // Handle sections + nested images
-    const sections = values.sections.map((s, i) => {
-      if (["image", "imageLeft", "imageRight"].includes(s.type) && s.image) {
-        const fieldName = `sectionImage_${i}`;
-        const file = s.image.originFileObj || s.image;
-        if (file instanceof File) {
-          formData.append(fieldName, file);
-          return { ...s, image: fieldName };
-        }
+      if (bannerFile.length > 0) {
+        formData.append("banner", bannerFile[0].originFileObj);
       }
 
-      if (s.type === "blocks" && Array.isArray(s.blocks)) {
-        const updatedBlocks = s.blocks.map((block, bi) => {
-          if (block.image) {
-            const blockKey = `section_${i}_block_${bi}`;
-            const file = block.image.originFileObj || block.image;
-            if (file instanceof File) {
-              formData.append(blockKey, file);
-              return { ...block, image: blockKey };
-            }
+      // Handle sections + nested images
+      const sections = values.sections.map((s, i) => {
+        if (["image", "imageLeft", "imageRight"].includes(s.type) && s.image) {
+          const fieldName = `sectionImage_${i}`;
+          const file = s.image.originFileObj || s.image;
+          if (file instanceof File) {
+            formData.append(fieldName, file);
+            return { ...s, image: fieldName };
           }
-          return block;
-        });
-        return { ...s, blocks: updatedBlocks };
-      }
+        }
 
-      if (s.type === "tabs" && Array.isArray(s.tabs)) {
-        const updatedTabs = s.tabs.map((tab, ti) => {
-          const updatedSections = tab.sections.map((subSection, si) => {
-            if (
-              ["image", "imageLeft", "imageRight"].includes(subSection.type) &&
-              subSection.image
-            ) {
-              const tabImgKey = `section_${i}_tab_${ti}_section_${si}`;
-              const file = subSection.image.originFileObj || subSection.image;
+        if (s.type === "blocks" && Array.isArray(s.blocks)) {
+          const updatedBlocks = s.blocks.map((block, bi) => {
+            if (block.image) {
+              const blockKey = `section_${i}_block_${bi}`;
+              const file = block.image.originFileObj || block.image;
               if (file instanceof File) {
-                formData.append(tabImgKey, file);
-                return { ...subSection, image: tabImgKey };
+                formData.append(blockKey, file);
+                return { ...block, image: blockKey };
               }
             }
-            return subSection;
+            return block;
           });
-          return { ...tab, sections: updatedSections };
-        });
-        return { ...s, tabs: updatedTabs };
+          return { ...s, blocks: updatedBlocks };
+        }
+
+        if (s.type === "tabs" && Array.isArray(s.tabs)) {
+          const updatedTabs = s.tabs.map((tab, ti) => {
+            const updatedSections = tab.sections.map((subSection, si) => {
+              if (
+                ["image", "imageLeft", "imageRight"].includes(
+                  subSection.type
+                ) &&
+                subSection.image
+              ) {
+                const tabImgKey = `section_${i}_tab_${ti}_section_${si}`;
+                const file = subSection.image.originFileObj || subSection.image;
+                if (file instanceof File) {
+                  formData.append(tabImgKey, file);
+                  return { ...subSection, image: tabImgKey };
+                }
+              }
+              return subSection;
+            });
+            return { ...tab, sections: updatedSections };
+          });
+          return { ...s, tabs: updatedTabs };
+        }
+
+        return s;
+      });
+
+      formData.append("sections", JSON.stringify(sections));
+
+      if (isEdit) {
+        await onSubmitUpdate(formData);
+        toast.success("Page updated successfully ✅");
+      } else {
+        await createMachinePage(formData);
+        toast.success("Page created successfully 🎉");
+        onSuccess?.();
+        reset();
       }
-
-      return s;
-    });
-
-    formData.append("sections", JSON.stringify(sections));
-
-    if (isEdit) {
-      await onSubmitUpdate(formData);
-      toast.success("Page updated successfully ✅");
-    } else {
-      await createMachinePage(formData);
-      toast.success("Page created successfully 🎉");
-      onSuccess?.();
-      reset();
+    } catch (err) {
+      console.error("Form submit error:", err);
+      let userMessage = "Something went wrong. Please try again.";
+      if (err?.response?.status === 400)
+        userMessage = "Some fields are missing or invalid.";
+      else if (err?.response?.status === 401)
+        userMessage = "You are not authorized.";
+      else if (err?.response?.status === 404)
+        userMessage = "Requested resource not found.";
+      else if (err?.response?.status === 500)
+        userMessage = "Server error. Please try again later.";
+      toast.error(userMessage);
+    } finally {
+      setLoading(false); // ✅ ensures button returns to normal
     }
-  } catch (err) {
-    console.error("Form submit error:", err);
-    let userMessage = "Something went wrong. Please try again.";
-    if (err?.response?.status === 400)
-      userMessage = "Some fields are missing or invalid.";
-    else if (err?.response?.status === 401)
-      userMessage = "You are not authorized.";
-    else if (err?.response?.status === 404)
-      userMessage = "Requested resource not found.";
-    else if (err?.response?.status === 500)
-      userMessage = "Server error. Please try again later.";
-    toast.error(userMessage);
-  } finally {
-    setLoading(false); // ✅ ensures button returns to normal
-  }
-};
-
+  };
 
   return (
     <div className="p-6 min-h-screen edit-form">
@@ -1141,7 +1146,10 @@ const MachinePageCreate = ({
         />
       </Card>
 
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="bg-[#171717]">
+      <form
+        onSubmit={handleSubmit(handleFormSubmit)}
+        className="bg-[#171717] rounded-2xl"
+      >
         {step === 0 && (
           <Card title="Basic Information" className="shadow-md bg-red-500">
             <Controller
@@ -1181,6 +1189,7 @@ const MachinePageCreate = ({
                 <TranslationInput {...field} placeholder="Page Title" />
               )}
             />
+            <br />
             <Controller
               name="description"
               control={control}
@@ -1191,7 +1200,8 @@ const MachinePageCreate = ({
                 />
               )}
             />
-            <h3 className="text-white mt-5 text-md">slug</h3>
+            <br />
+            <h3 className="text-white text-md">slug</h3>
             <Controller
               name="slug"
               control={control}
@@ -1337,35 +1347,34 @@ const MachinePageCreate = ({
 
             {/* ✅ Create Page Button now here */}
             <div className="flex justify-end mt-6">
-  <Button
-    type="primary"
-    htmlType="submit"
-    loading={loading}
-    size="large"
-    icon={<CheckCircleOutlined />}
-    style={{
-      borderRadius: "9999px", // pill shape for modern look
-      fontWeight: 600,
-      padding: "26px 36px",
-      background: "linear-gradient(135deg, #1677ff, #3b82f6)", // vibrant blue gradient
-      boxShadow: "0 6px 14px rgba(59,130,246,0.3)",
-      border: "none",
-      color: "#fff",
-      transition: "all 0.3s ease",
-    }}
-    onMouseEnter={(e) =>
-      (e.currentTarget.style.background =
-        "linear-gradient(135deg, #0a66e5, #2563eb)")
-    }
-    onMouseLeave={(e) =>
-      (e.currentTarget.style.background =
-        "linear-gradient(135deg, #1677ff, #3b82f6)")
-    }
-  >
-    {isEdit ? "Update Page" : "Create Page"}
-  </Button>
-</div>
-
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                size="large"
+                icon={<CheckCircleOutlined />}
+                style={{
+                  borderRadius: "9999px", // pill shape for modern look
+                  fontWeight: 600,
+                  padding: "26px 36px",
+                  background: "linear-gradient(135deg, #1677ff, #3b82f6)", // vibrant blue gradient
+                  boxShadow: "0 6px 14px rgba(59,130,246,0.3)",
+                  border: "none",
+                  color: "#fff",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background =
+                    "linear-gradient(135deg, #0a66e5, #2563eb)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background =
+                    "linear-gradient(135deg, #1677ff, #3b82f6)")
+                }
+              >
+                {isEdit ? "Update Page" : "Create Page"}
+              </Button>
+            </div>
           </Card>
         )}
 
@@ -1379,43 +1388,41 @@ const MachinePageCreate = ({
         <div className="flex items-center justify-between p-6">
           {step > 0 && (
             <Button
-  onClick={() => setStep(step - 1)}
-  size="large"
-  icon={<LeftOutlined />}
-  style={{
-    borderRadius: "9999px", // pill shape
-    fontWeight: 600,
-    padding: "22px 36px",
-    background: "#2E2F2F", // dark gray gradient
-    color: "#fff",
-    border: "none",
-    transition: "all 0.3s ease",
-  }}
->
-  Previous
-</Button>
-
+              onClick={() => setStep(step - 1)}
+              size="large"
+              icon={<LeftOutlined />}
+              style={{
+                borderRadius: "9999px", // pill shape
+                fontWeight: 600,
+                padding: "22px 36px",
+                background: "#2E2F2F", // dark gray gradient
+                color: "#fff",
+                border: "none",
+                transition: "all 0.3s ease",
+              }}
+            >
+              Previous
+            </Button>
           )}
 
           {step < 2 && ( // ✅ now only 3 steps total
             <Button
-  type="primary"
-  onClick={() => setStep(step + 1)}
-  size="large"
-  icon={<RightOutlined />}
-  iconPosition="end"
-  style={{
-    borderRadius: "9999px", // pill shape
-    fontWeight: 600,
-    padding: "22px 36px",
-    background:"#0085C8",
-    border: "none",
-    transition: "all 0.3s ease",
-  }}
->
-  Next
-</Button>
-
+              type="primary"
+              onClick={() => setStep(step + 1)}
+              size="large"
+              icon={<RightOutlined />}
+              iconPosition="end"
+              style={{
+                borderRadius: "9999px", // pill shape
+                fontWeight: 600,
+                padding: "22px 36px",
+                background: "#0085C8",
+                border: "none",
+                transition: "all 0.3s ease",
+              }}
+            >
+              Next
+            </Button>
           )}
         </div>
       </form>

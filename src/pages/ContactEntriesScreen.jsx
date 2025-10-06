@@ -59,7 +59,7 @@ const ContactEntriesScreen = () => {
   });
 
   return (
-    <div className="min-h-screen p-6 bg-[#171717] text-white">
+    <div className="min-h-screen p-6 bg-[#171717] rounded-2xl text-white">
       {/* Header */}
       <h1 className="text-3xl font-bold mb-1 text-white">{t.title}</h1>
       <p className="text-gray-400 mb-6">{t.subtitle}</p>
@@ -67,10 +67,7 @@ const ContactEntriesScreen = () => {
       {/* Search Bar */}
       <div className="mb-6 flex items-center gap-3">
         <div className="relative w-full md:w-72">
-          <Search
-            className="absolute left-3 top-2.5 text-gray-400"
-            size={18}
-          />
+          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
           <input
             type="text"
             value={searchQuery}
@@ -129,7 +126,9 @@ const ContactEntriesScreen = () => {
                   </td>
                   <td className="px-6 py-4 text-gray-300">{c.email}</td>
                   <td className="px-6 py-4 text-gray-300">{c.phone}</td>
-                  <td className="px-6 py-4 text-gray-300">{c.company || "-"}</td>
+                  <td className="px-6 py-4 text-gray-300">
+                    {c.company || "-"}
+                  </td>
                   <td className="px-6 py-4 text-center">
                     <button
                       onClick={(e) => {
@@ -154,7 +153,6 @@ const ContactEntriesScreen = () => {
                       }
                     >
                       <Trash2 size={14} className="inline mr-1" />
-                      Delete
                     </button>
                   </td>
                 </tr>
@@ -209,9 +207,7 @@ const ContactEntriesScreen = () => {
                 </p>
               )}
               {selectedContact.message && (
-                <p className="mt-2 text-gray-300">
-                  {selectedContact.message}
-                </p>
+                <p className="mt-2 text-gray-300">{selectedContact.message}</p>
               )}
               {selectedContact.fileUrl && (
                 <p className="mt-2">

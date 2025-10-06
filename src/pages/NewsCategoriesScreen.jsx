@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil, Search } from "lucide-react";
 import NewsCategoryForm from "../components/forms/NewsCategoryForm";
 import { getCategories, deleteCategory } from "../Api/api";
 import { CommonToaster } from "../Common/CommonToaster";
-import { useTheme } from "../contexts/ThemeContext";
 
 const NewsCategoriesScreen = () => {
   const [categories, setCategories] = useState([]);
@@ -15,8 +14,7 @@ const NewsCategoriesScreen = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [categoriesPerPage] = useState(8);
   const [sortOption, setSortOption] = useState("newest");
-
-  const { theme } = useTheme();
+  const [searchQuery, setSearchQuery] = useState("");
 
   // ✅ Detect language (EN/VN)
   useEffect(() => {
@@ -25,7 +23,10 @@ const NewsCategoriesScreen = () => {
     };
     checkLang();
     const observer = new MutationObserver(checkLang);
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -37,11 +38,14 @@ const NewsCategoriesScreen = () => {
       : "Manage categories for news articles",
     create: isVietnamese ? "Tạo danh mục" : "Create Category",
     edit: isVietnamese ? "Chỉnh sửa" : "Edit",
+    sno: isVietnamese ? "STT" : "S.No",
     name: isVietnamese ? "Tên danh mục" : "Category Name",
     parent: isVietnamese ? "Danh mục chính" : "Main Category",
     actions: isVietnamese ? "Hành động" : "Actions",
     loading: isVietnamese ? "Đang tải danh mục..." : "Loading categories...",
-    empty: isVietnamese ? "Không tìm thấy danh mục nào." : "No categories found.",
+    empty: isVietnamese
+      ? "Không tìm thấy danh mục nào."
+      : "No categories found.",
     sortBy: isVietnamese ? "Sắp xếp theo" : "Sort by",
     newest: isVietnamese ? "Mới nhất" : "Newest",
     oldest: isVietnamese ? "Cũ nhất" : "Oldest",
@@ -59,6 +63,7 @@ const NewsCategoriesScreen = () => {
     loadFail: isVietnamese
       ? "Không thể tải danh mục"
       : "Failed to load categories",
+    search: isVietnamese ? "Tìm kiếm..." : "Search...",
   };
 
   // ✅ Fetch categories
@@ -110,14 +115,21 @@ const NewsCategoriesScreen = () => {
     handleCloseForm();
   };
 
-  // 🔹 Sorting
-  const sortedCategories = [...categories].sort((a, b) => {
+  // 🔹 Filter + Sort
+  const filteredCategories = categories.filter((cat) => {
+    const name = isVietnamese ? cat.name?.vn || cat.name?.en : cat.name?.en;
+    return name?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const sortedCategories = [...filteredCategories].sort((a, b) => {
     const nameA = isVietnamese ? a.name?.vn || a.name?.en : a.name?.en;
     const nameB = isVietnamese ? b.name?.vn || b.name?.en : b.name?.en;
     if (sortOption === "az") return nameA.localeCompare(nameB);
     if (sortOption === "za") return nameB.localeCompare(nameA);
-    if (sortOption === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
-    if (sortOption === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
+    if (sortOption === "newest")
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    if (sortOption === "oldest")
+      return new Date(a.createdAt) - new Date(b.createdAt);
     return 0;
   });
 
@@ -128,21 +140,50 @@ const NewsCategoriesScreen = () => {
   const totalPages = Math.ceil(sortedCategories.length / categoriesPerPage);
 
   return (
-    <div className="min-h-screen p-6 transition-colors duration-300 text-white bg-[#171717]">
+    <div className="min-h-screen p-6 text-white bg-[#171717] rounded-2xl">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">{t.title}</h1>
-          <p className="text-gray-200">{t.subtitle}</p>
+          <p className="text-gray-300">{t.subtitle}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative">
+            <Search
+              className="absolute left-3 top-2.5 text-gray-400"
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder={t.search}
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              style={{
+                backgroundColor: "#1F1F1F",
+                border: "1px solid #2E2F2F",
+                borderRadius: "9999px",
+                color: "#fff",
+                padding: "15px 14px 15px 38px",
+                fontSize: "14px",
+                width: "200px",
+              }}
+            />
+          </div>
+
           <select
+            style={{
+              backgroundColor: "#1F1F1F",
+              border: "1px solid #2E2F2F",
+            }}
             value={sortOption}
             onChange={(e) => {
               setSortOption(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-4 py-2 text-sm border border-gray-600 bg-[#1F1F1F] text-white rounded-md focus:outline-none transition-all duration-150 cursor-pointer"
+            className="px-4 py-3 text-sm border border-gray-600 bg-[#1F1F1F] text-white rounded-full focus:outline-none transition-all cursor-pointer"
           >
             <option value="newest">{t.newest}</option>
             <option value="oldest">{t.oldest}</option>
@@ -152,7 +193,7 @@ const NewsCategoriesScreen = () => {
 
           <button
             onClick={handleCreate}
-            className="px-4 py-2 rounded-md flex items-center transition bg-[#0085C8] hover:bg-blue-600 cursor-pointer"
+            className="px-4 py-3 rounded-full flex items-center bg-[#0085C8] hover:bg-blue-600 transition"
           >
             <Plus size={18} className="mr-1" />
             {t.create}
@@ -164,10 +205,13 @@ const NewsCategoriesScreen = () => {
       {loading ? (
         <p className="p-4">{t.loading}</p>
       ) : (
-        <div className="rounded-lg border border-[#2E2F2F] shadow-sm overflow-hidden transition-colors duration-300">
+        <div className="rounded-lg border border-[#2E2F2F] shadow-sm overflow-hidden transition-colors">
           <table className="min-w-full divide-y divide-[#2E2F2F]">
             <thead>
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#fff]">
+                  {t.sno}
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[#fff]">
                   {t.name}
                 </th>
@@ -182,16 +226,19 @@ const NewsCategoriesScreen = () => {
             <tbody>
               {currentCategories.length === 0 ? (
                 <tr>
-                  <td colSpan="3" className="text-center py-6 text-gray-400">
+                  <td colSpan="4" className="text-center py-6 text-gray-400">
                     {t.empty}
                   </td>
                 </tr>
               ) : (
-                currentCategories.map((category) => (
+                currentCategories.map((category, index) => (
                   <tr
                     key={category._id}
-                    className="transition-colors px-6 py-4 text-white hover:bg-[#1F1F1F]"
+                    className="transition-colors hover:bg-[#1F1F1F]"
                   >
+                    <td className="px-6 py-4 text-sm text-gray-400">
+                      {(indexOfFirst + index + 1).toString().padStart(2, "0")}
+                    </td>
                     <td className="px-6 py-4 text-sm font-medium text-white">
                       {isVietnamese
                         ? category.name?.vn || category.name?.en
@@ -209,17 +256,17 @@ const NewsCategoriesScreen = () => {
                       <div className="flex justify-end space-x-2">
                         <button
                           onClick={() => handleEdit(category)}
-                          className="text-blue-500 hover:opacity-80 p-1 transition"
+                          className="text-blue-500 hover:opacity-80 p-1 transition cursor-pointer"
                           title={t.edit}
                         >
-                          <Edit size={18} />
+                          <Pencil size={18} />
                         </button>
                         <button
                           style={{
-                            color:"red",
+                            color: "red",
                           }}
                           onClick={() => handleDelete(category._id)}
-                          className="text-red-500 hover:opacity-80 p-1 transition"
+                          className="text-red-500 hover:opacity-80 p-1 transition cursor-pointer"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -258,11 +305,8 @@ const NewsCategoriesScreen = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 overflow-auto">
-          <div
-            className={`rounded-lg shadow-xl w-full max-w-lg transition-colors duration-300 overflow-auto
-              ${theme === "light" ? "bg-white" : "bg-gray-800"}`}
-          >
+        <div className="fixed inset-0 bg-black/80 bg-opacity-60 flex items-center justify-center z-50 overflow-auto">
+          <div className="rounded-lg shadow-xl w-full max-w-lg bg-[#1F1F1F] overflow-auto">
             <NewsCategoryForm
               category={editingCategory}
               onClose={handleCloseForm}

@@ -1,42 +1,34 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+// src/contexts/ThemeContext.jsx
+import React, { createContext, useContext } from "react";
 
-const ThemeContext = createContext(undefined);
+const ThemeContext = createContext({
+  theme: "light",
+  toggleTheme: () => {},
+  setTheme: () => {},
+});
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
-    // Check for saved theme in localStorage, default to 'light'
-    const savedTheme = localStorage.getItem("theme");
-    const userPrefersDark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return savedTheme || (userPrefersDark ? "dark" : "light");
-  });
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+  // No DOM side-effects, always "light"
+  const value = {
+    theme: "light",
+    toggleTheme: () => {}, // no-op
+    setTheme: () => {}, // no-op
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 };
 
 export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+  const ctx = useContext(ThemeContext);
+  if (!ctx) {
+    // defensive: return default shape if accidentally used outside provider
+    return {
+      theme: "light",
+      toggleTheme: () => {},
+      setTheme: () => {},
+    };
   }
-  return context;
+  return ctx;
 };

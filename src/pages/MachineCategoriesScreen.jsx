@@ -55,10 +55,10 @@ const MachineCategoriesScreen = () => {
             style={{
               backgroundColor: "#0085C8",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "2rem",
               color: "#fff",
               fontWeight: "500",
-              padding: "8px 16px",
+              padding: "22px",
               display: "flex",
               alignItems: "center",
               gap: "6px",
@@ -126,7 +126,8 @@ const MachineCategoriesScreen = () => {
                     style={{
                       backgroundColor: "#0085C8",
                       border: "none",
-                      borderRadius: "6px",
+                      borderRadius: "2rem",
+                      padding: "20px",
                       color: "#fff",
                       fontWeight: 500,
                       display: "flex",
@@ -157,7 +158,8 @@ const MachineCategoriesScreen = () => {
                       style={{
                         backgroundColor: "#E74C3C",
                         border: "none",
-                        borderRadius: "6px",
+                        borderRadius: "2rem",
+                        padding: "20px",
                         color: "#fff",
                         fontWeight: 500,
                         display: "flex",

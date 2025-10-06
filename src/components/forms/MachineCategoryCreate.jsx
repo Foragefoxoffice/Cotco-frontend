@@ -70,8 +70,13 @@ const MachineCategoryCreate = ({ onSuccess }) => {
   };
 
   return (
-    <div className="p-6 bg-[#171717] rounded-lg">
-      <div className="mb-4">
+    <div className=" bg-[#171717] rounded-lg">
+      <style>{`
+        .ant-modal .ant-modal-close-x{
+        color:#fff;
+        }
+      `}</style>
+      <div className="mb-4 text-white">
         <TranslationTabs
           activeLanguage={activeLanguage}
           setActiveLanguage={setActiveLanguage}
@@ -134,11 +139,17 @@ const MachineCategoryCreate = ({ onSuccess }) => {
           label={<span style={labelStyle}>Slug</span>}
           rules={[{ required: true, message: "Please enter slug" }]}
         >
-          <Input placeholder="Unique slug (e.g. weaving)" style={darkInputStyle} />
+          <Input
+            placeholder="Unique slug (e.g. weaving)"
+            style={darkInputStyle}
+          />
         </Form.Item>
 
         {/* Uploads */}
-        <Form.Item name="image" label={<span style={labelStyle}>Upload Image</span>}>
+        <Form.Item
+          name="image"
+          label={<span style={labelStyle}>Upload Image</span>}
+        >
           <Upload
             beforeUpload={() => false}
             listType="picture-card"
@@ -155,7 +166,10 @@ const MachineCategoryCreate = ({ onSuccess }) => {
           </Upload>
         </Form.Item>
 
-        <Form.Item name="icon" label={<span style={labelStyle}>Upload Icon</span>}>
+        <Form.Item
+          name="icon"
+          label={<span style={labelStyle}>Upload Icon</span>}
+        >
           <Upload
             beforeUpload={() => false}
             listType="picture-card"

@@ -511,7 +511,7 @@ const AboutPage = () => {
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "10px 20px",
+                padding: "22px",
                 borderRadius: "9999px", // pill shape
                 fontWeight: "500",
               }}
@@ -950,10 +950,10 @@ const AboutPage = () => {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "8px",
-                    backgroundColor: "#fff", // white button
-                    color: "#111827", // dark text
-                    border: "1px solid #ddd",
-                    padding: "10px 20px",
+                    backgroundColor: "#262626", // white button
+                    color: "#fff", // dark text
+                    border: "1px solid #2E2F2F",
+                    padding: "22px",
                     borderRadius: "9999px", // pill shape
                     fontWeight: "500",
                     fontSize: "14px",
@@ -1196,7 +1196,7 @@ const AboutPage = () => {
                       }}
                       value={
                         aboutMissionVission[`aboutMissionVissionSubhead${i}`][
-                        lang
+                          lang
                         ]
                       }
                       onChange={(e) =>
@@ -1204,7 +1204,7 @@ const AboutPage = () => {
                           ...aboutMissionVission,
                           [`aboutMissionVissionSubhead${i}`]: {
                             ...aboutMissionVission[
-                            `aboutMissionVissionSubhead${i}`
+                              `aboutMissionVissionSubhead${i}`
                             ],
                             [lang]: e.target.value,
                           },
@@ -1233,7 +1233,7 @@ const AboutPage = () => {
                           ...aboutMissionVission,
                           [`aboutMissionVissionDes${i}`]: {
                             ...aboutMissionVission[
-                            `aboutMissionVissionDes${i}`
+                              `aboutMissionVissionDes${i}`
                             ],
                             [lang]: e.target.value,
                           },
@@ -1743,175 +1743,187 @@ const AboutPage = () => {
 
               <div className="flex justify-end mt-3">
                 <Button
-  danger
-  onClick={async () => {
-    try {
-      // 1️⃣ Remove from local state
-      const newHistory = aboutHistory.filter((_, i) => i !== index);
-      setAboutHistory(newHistory);
+                  danger
+                  onClick={async () => {
+                    try {
+                      // 1️⃣ Remove from local state
+                      const newHistory = aboutHistory.filter(
+                        (_, i) => i !== index
+                      );
+                      setAboutHistory(newHistory);
 
-      // 2️⃣ Prepare FormData with updated history
-      const formData = new FormData();
-      formData.append("aboutHistory", JSON.stringify(newHistory));
+                      // 2️⃣ Prepare FormData with updated history
+                      const formData = new FormData();
+                      formData.append(
+                        "aboutHistory",
+                        JSON.stringify(newHistory)
+                      );
 
-      // ✅ Send files if any remain
-      newHistory.forEach((item, i) => {
-        if (item.imageFile instanceof File) {
-          formData.append(`historyImage${i}`, item.imageFile);
-        }
-      });
+                      // ✅ Send files if any remain
+                      newHistory.forEach((item, i) => {
+                        if (item.imageFile instanceof File) {
+                          formData.append(`historyImage${i}`, item.imageFile);
+                        }
+                      });
 
-      // 3️⃣ Update backend immediately
-      const res = await updateAboutPage(formData);
+                      // 3️⃣ Update backend immediately
+                      const res = await updateAboutPage(formData);
 
-      // 4️⃣ Sync state with DB response
-      if (res.data?.about?.aboutHistory) {
-        setAboutHistory(res.data.about.aboutHistory);
-        localStorage.removeItem("aboutHistory");
-        CommonToaster("History item removed successfully!", "success");
-      } else {
-        CommonToaster("Failed to remove history item", "error");
-      }
-    } catch (err) {
-      CommonToaster("Error", err.message || "Something went wrong!");
-    }
-  }}
-  style={{
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "8px",
-    backgroundColor: "#E50000", // red danger color
-    color: "#fff",
-    border: "none",
-    padding: "22px",
-    borderRadius: "9999px", // pill shape
-    fontWeight: "600",
-    fontSize: "14px",
-    cursor: "pointer",
-    transition: "all 0.3s ease",
-  }}
->
-  {/* 🗑️ Trash Icon */}
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-    style={{ width: "18px", height: "18px" }}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
-    />
-  </svg>
+                      // 4️⃣ Sync state with DB response
+                      if (res.data?.about?.aboutHistory) {
+                        setAboutHistory(res.data.about.aboutHistory);
+                        localStorage.removeItem("aboutHistory");
+                        CommonToaster(
+                          "History item removed successfully!",
+                          "success"
+                        );
+                      } else {
+                        CommonToaster("Failed to remove history item", "error");
+                      }
+                    } catch (err) {
+                      CommonToaster(
+                        "Error",
+                        err.message || "Something went wrong!"
+                      );
+                    }
+                  }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    backgroundColor: "#E50000", // red danger color
+                    color: "#fff",
+                    border: "none",
+                    padding: "22px",
+                    borderRadius: "9999px", // pill shape
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  {/* 🗑️ Trash Icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    style={{ width: "18px", height: "18px" }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
+                    />
+                  </svg>
 
-  {translations[currentLang].removeHistory}
-</Button>
-
-
+                  {translations[currentLang].removeHistory}
+                </Button>
               </div>
             </div>
           ))}
 
           <div className="flex justify-between mt-6">
-  {/* Add History Button */}
-  <Button
-    onClick={() =>
-      setAboutHistory([
-        ...aboutHistory,
-        {
-          year: "",
-          content: { en: "", vi: "" },
-          image: "",
-          imageFile: null,
-        },
-      ])
-    }
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      backgroundColor: "#0284C7", // blue button
-      color: "#fff",
-      border: "none",
-      padding: "22px",
-      borderRadius: "9999px", // pill shape
-      fontWeight: "600",
-      fontSize: "14px",
-      transition: "all 0.3s ease",
-    }}
-  >
-    {/* Plus Icon */}
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      style={{ width: "18px", height: "18px" }}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-    </svg>
-    {translations[currentLang].addHistory}
-  </Button>
+            {/* Add History Button */}
+            <Button
+              onClick={() =>
+                setAboutHistory([
+                  ...aboutHistory,
+                  {
+                    year: "",
+                    content: { en: "", vi: "" },
+                    image: "",
+                    imageFile: null,
+                  },
+                ])
+              }
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue button
+                color: "#fff",
+                border: "none",
+                padding: "22px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "600",
+                fontSize: "14px",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Plus Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              {translations[currentLang].addHistory}
+            </Button>
 
-  {/* Save History Button */}
-  <Button
-    type="primary"
-    onClick={async () => {
-      const formData = new FormData();
-      formData.append("aboutHistory", JSON.stringify(aboutHistory));
+            {/* Save History Button */}
+            <Button
+              type="primary"
+              onClick={async () => {
+                const formData = new FormData();
+                formData.append("aboutHistory", JSON.stringify(aboutHistory));
 
-      aboutHistory.forEach((item, i) => {
-        if (item.imageFile) {
-          formData.append(`historyImage${i}`, item.imageFile);
-        }
-      });
+                aboutHistory.forEach((item, i) => {
+                  if (item.imageFile) {
+                    formData.append(`historyImage${i}`, item.imageFile);
+                  }
+                });
 
-      const res = await updateAboutPage(formData);
-      if (res.data?.about?.aboutHistory) {
-        setAboutHistory(res.data.about.aboutHistory);
-        localStorage.removeItem("aboutHistory");
-        CommonToaster("History saved successfully!", "success");
-      } else {
-        CommonToaster("Failed to save history", "error");
-      }
-    }}
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      backgroundColor: "#10B981", // green save button
-      color: "#fff",
-      border: "none",
-      padding: "22px",
-      borderRadius: "9999px", // pill shape
-      fontWeight: "600",
-      fontSize: "14px",
-      transition: "all 0.3s ease",
-    }}
-  >
-    {/* Save Icon */}
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      style={{ width: "18px", height: "18px" }}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M5 13l4 4L19 7"
-      />
-    </svg>
-    {translations[currentLang].saveHistory}
-  </Button>
-</div>
-
+                const res = await updateAboutPage(formData);
+                if (res.data?.about?.aboutHistory) {
+                  setAboutHistory(res.data.about.aboutHistory);
+                  localStorage.removeItem("aboutHistory");
+                  CommonToaster("History saved successfully!", "success");
+                } else {
+                  CommonToaster("Failed to save history", "error");
+                }
+              }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#10B981", // green save button
+                color: "#fff",
+                border: "none",
+                padding: "22px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "600",
+                fontSize: "14px",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Save Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              {translations[currentLang].saveHistory}
+            </Button>
+          </div>
         </Panel>
 
         {/* TEAM */}
@@ -2071,7 +2083,7 @@ const AboutPage = () => {
                         alignItems: "center",
                         gap: "8px",
                         backgroundColor: "#E50000", // black button
-                        border:"1px solid #E50000",
+                        border: "1px solid #E50000",
                         color: "#fff",
                         padding: "22px",
                         borderRadius: "9999px", // pill shape
@@ -2240,72 +2252,78 @@ const AboutPage = () => {
             {/* Saved from DB */}
             {(aboutAlliances.aboutAlliancesImg || []).map((url, idx) => (
               <div key={`saved-${idx}`} className="relative rounded-lg p-2">
-  <img
-    src={getFullUrl(url)}
-    alt={`Alliance ${idx + 1}`}
-    className="w-full h-24 object-contain rounded-lg border border-[#2d2d2d]"
-  />
+                <img
+                  src={getFullUrl(url)}
+                  alt={`Alliance ${idx + 1}`}
+                  className="w-full h-24 object-contain rounded-lg border border-[#2d2d2d]"
+                />
 
-  <Button
-    danger
-    size="small"
-    className="absolute top-2 right-2"
-    onClick={async () => {
-      const updated = aboutAlliances.aboutAlliancesImg.filter(
-        (_, i) => i !== idx
-      );
-      const formData = new FormData();
-      formData.append(
-        "aboutAlliances",
-        JSON.stringify({ aboutAlliancesImg: updated })
-      );
-      const res = await updateAboutPage(formData);
-      if (res.data?.about?.aboutAlliances) {
-        setAboutAlliances({
-          ...res.data.about.aboutAlliances,
-          aboutAlliancesFiles: aboutAlliances.aboutAlliancesFiles,
-        });
-        localStorage.removeItem("aboutAlliances");
-        CommonToaster("Alliance removed successfully!", "success");
-      }
-    }}
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "#E50000", // vivid red
-      color: "#fff",
-      border: "none",
-      borderRadius: "9999px", // pill shape
-      width: "34px",
-      height: "34px",
-      fontWeight: "bold",
-      fontSize: "14px",
-      cursor: "pointer",
-      boxShadow: "0 2px 6px rgba(229, 0, 0, 0.3)",
-      transition: "all 0.3s ease",
-    }}
-    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#b70000")}
-    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#E50000")}
-  >
-    {/* Trash SVG icon for better visual */}
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth="2"
-      stroke="currentColor"
-      style={{ width: "16px", height: "16px" }}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
-      />
-    </svg>
-  </Button>
-</div>
-
+                <Button
+                  danger
+                  size="small"
+                  className="absolute top-2 right-2"
+                  onClick={async () => {
+                    const updated = aboutAlliances.aboutAlliancesImg.filter(
+                      (_, i) => i !== idx
+                    );
+                    const formData = new FormData();
+                    formData.append(
+                      "aboutAlliances",
+                      JSON.stringify({ aboutAlliancesImg: updated })
+                    );
+                    const res = await updateAboutPage(formData);
+                    if (res.data?.about?.aboutAlliances) {
+                      setAboutAlliances({
+                        ...res.data.about.aboutAlliances,
+                        aboutAlliancesFiles: aboutAlliances.aboutAlliancesFiles,
+                      });
+                      localStorage.removeItem("aboutAlliances");
+                      CommonToaster(
+                        "Alliance removed successfully!",
+                        "success"
+                      );
+                    }
+                  }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#E50000", // vivid red
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "9999px", // pill shape
+                    width: "34px",
+                    height: "34px",
+                    fontWeight: "bold",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 6px rgba(229, 0, 0, 0.3)",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#b70000")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#E50000")
+                  }
+                >
+                  {/* Trash SVG icon for better visual */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    stroke="currentColor"
+                    style={{ width: "16px", height: "16px" }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
+                    />
+                  </svg>
+                </Button>
+              </div>
             ))}
 
             {/* Unsaved local files */}

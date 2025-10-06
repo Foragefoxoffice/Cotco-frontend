@@ -13,7 +13,7 @@ import NewsArticleForm from "../components/forms/NewsArticleForm";
 import { getBlogs, createBlog, updateBlog, deleteBlog } from "../Api/api";
 import { CommonToaster } from "../Common/CommonToaster";
 import BlogCardSkeleton from "./BlogCardSkeleton";
-import { useTheme } from "../contexts/ThemeContext";
+// ThemeContext removed on purpose — using dark styles everywhere
 
 const NewsScreen = () => {
   const [view, setView] = useState("grid");
@@ -34,12 +34,13 @@ const NewsScreen = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const { theme } = useTheme();
-
-  // ✅ watch body class
+  // ✅ Watch language (body class)
   useEffect(() => {
     const checkLang = () => {
-      setIsVietnamese(document.body.classList.contains("vi-mode"));
+      setIsVietnamese(
+        typeof document !== "undefined" &&
+          document.body.classList.contains("vi-mode")
+      );
     };
     checkLang();
     const observer = new MutationObserver(checkLang);
@@ -86,18 +87,26 @@ const NewsScreen = () => {
     all: isVietnamese ? "Tất cả" : "All",
   };
 
-  // Fetch blogs
+  // ✅ Fetch blogs
   const fetchBlogs = async () => {
     try {
-      const res = await getBlogs(); // backend must use .populate("category").populate("mainCategory")
-      const blogs = (res.data.data || []).map((b) => ({
+      const res = await getBlogs();
+      const blogs = (res.data?.data || []).map((b) => ({
         ...b,
         mainCategoryId: b.mainCategory?._id || "",
         categoryId: b.category?._id || "",
         mainCategoryName: b.mainCategory?.name || {},
         categoryName: b.category?.name || {},
+        // normalize publishedAt fallback
+        publishedAt: b.publishedAt || b.createdAt || new Date().toISOString(),
       }));
-      setNewsArticles(blogs);
+
+      // Ensure newest first
+      const sorted = blogs.sort(
+        (a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)
+      );
+
+      setNewsArticles(sorted);
     } catch (err) {
       console.error("Error fetching blogs:", err);
       CommonToaster(t.loadFail, "error");
@@ -110,6 +119,7 @@ const NewsScreen = () => {
     fetchBlogs();
   }, []);
 
+  // ✅ Create/Edit/Delete Handlers
   const handleCreate = () => {
     setEditingArticle(null);
     setShowForm(true);
@@ -125,7 +135,8 @@ const NewsScreen = () => {
       try {
         await deleteBlog(id);
         CommonToaster(t.deleteSuccess, "success");
-        fetchBlogs();
+        // remove locally for instant feedback
+        setNewsArticles((prev) => prev.filter((a) => a._id !== id));
       } catch (err) {
         console.error("Delete error:", err);
         CommonToaster(t.deleteFail, "error");
@@ -142,16 +153,51 @@ const NewsScreen = () => {
     window.open(`/blogs/${slug}`, "_blank");
   };
 
+  /**
+   * Handle save (create or update).
+   * - For create: insert new blog at the top and ensure sorting by publishedAt.
+   * - For update: either refetch single item or update local list and keep sorting.
+   */
   const handleSaveArticle = async (articleData) => {
     try {
       if (editingArticle) {
-        await updateBlog(editingArticle._id, articleData);
+        // Update on server, then update local list
+        const res = await updateBlog(editingArticle._id, articleData);
+        const updated = res.data?.data || res.data;
+
+        setNewsArticles((prev) =>
+          prev
+            .map((p) =>
+              p._id === updated._id
+                ? {
+                    ...updated,
+                    publishedAt:
+                      updated.publishedAt || updated.createdAt || p.publishedAt,
+                  }
+                : p
+            )
+            .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
+        );
+
         CommonToaster(t.updateSuccess, "success");
       } else {
-        await createBlog(articleData);
+        // Create new blog
+        const res = await createBlog(articleData);
+        const newBlog = res.data?.data || res.data;
+
+        // Provide robust fallback timestamps
+        const publishedAt =
+          newBlog.publishedAt || newBlog.createdAt || new Date().toISOString();
+
+        // Add to top of list
+        setNewsArticles((prev) =>
+          [{ ...newBlog, publishedAt }, ...prev].sort(
+            (a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)
+          )
+        );
+
         CommonToaster(t.saveSuccess, "success");
       }
-      fetchBlogs();
     } catch (err) {
       console.error("Save error:", err);
       CommonToaster(t.saveFail, "error");
@@ -160,7 +206,7 @@ const NewsScreen = () => {
     }
   };
 
-  // 🔹 Collect unique categories from blogs
+  // 🔹 Unique categories (derived from current list)
   const uniqueMainCategories = Array.from(
     new Map(
       newsArticles
@@ -187,7 +233,7 @@ const NewsScreen = () => {
     ).values()
   );
 
-  // 🔹 Sort
+  // 🔹 Sorted according to selected sort option
   const sortedArticles = [...newsArticles].sort((a, b) => {
     if (sortOption === "newest")
       return new Date(b.publishedAt) - new Date(a.publishedAt);
@@ -198,7 +244,7 @@ const NewsScreen = () => {
     return 0;
   });
 
-  // 🔹 Filter
+  // 🔹 Filter by search, main category, category and status
   const filteredArticles = sortedArticles.filter((article) => {
     const title = isVietnamese
       ? article.title?.vn || article.title?.en
@@ -224,12 +270,10 @@ const NewsScreen = () => {
   const currentArticles = filteredArticles.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
 
+  // Loading state (dark style)
   if (loading) {
     return (
-      <div
-        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 
-          ${theme === "light" ? "bg-gray-50" : "bg-gray-900"}`}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-900">
         {Array.from({ length: 6 }).map((_, idx) => (
           <BlogCardSkeleton key={idx} />
         ))}
@@ -237,36 +281,25 @@ const NewsScreen = () => {
     );
   }
 
+  // Main render (dark-based styles)
   return (
-    <div
-      className={`transition-colors pb-5 duration-300 
-        ${
-          theme === "light"
-            ? "bg-gray-50 text-gray-900"
-            : "bg-[#171717] text-gray-100"
-        }`}
-    >
+    <div className="transition-colors pb-5 duration-300 rounded-2xl bg-[#171717] text-gray-100">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-1 p-6 gap-4">
         <div>
           <h1 className="text-4xl font-bold mb-2">{t.title}</h1>
-          <p className="text-gray-600 dark:text-gray-400">{t.subtitle}</p>
+          <p className="text-gray-400">{t.subtitle}</p>
         </div>
 
-        {/* Create Button */}
         <button
           onClick={handleCreate}
-          className={`px-4 py-2 rounded-md flex items-center cursor-pointer transition
-              ${
-                theme === "light"
-                  ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                  : "bg-[#0085C8] text-white hover:bg-indigo-400"
-              }`}
+          className="px-4 rounded-full py-4 flex items-center cursor-pointer transition bg-[#0085C8] text-white"
         >
-          <Plus size={18} className="mr-1" /> {t.create}
+          <Plus size={18} className="mr-2" /> {t.create}
         </button>
       </div>
 
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto px-6">
         {/* Search */}
         <div className="relative w-full sm:w-64">
@@ -282,9 +315,9 @@ const NewsScreen = () => {
             style={{
               backgroundColor: "#262626",
               border: "1px solid #2E2F2F",
-              borderRadius: "8px",
+              borderRadius: "2rem",
               color: "#fff",
-              padding: "10px 14px 10px 38px", // space for icon
+              padding: "15px 14px 15px 38px",
               fontSize: "14px",
               width: "100%",
               transition: "all 0.3s ease",
@@ -292,7 +325,7 @@ const NewsScreen = () => {
           />
         </div>
 
-        {/* Sort option */}
+        {/* Sort */}
         <select
           value={sortOption}
           onChange={(e) => {
@@ -302,23 +335,17 @@ const NewsScreen = () => {
           style={{
             backgroundColor: "#262626",
             border: "1px solid #2E2F2F",
-            borderRadius: "8px",
+            borderRadius: "2rem",
             color: "#fff",
-            padding: "10px 14px",
+            padding: "15px",
             fontSize: "14px",
             transition: "all 0.3s ease",
             cursor: "pointer",
           }}
         >
-          <option className="bg-[#262626] text-white" value="newest">
-            {t.newest}
-          </option>
-          <option className="bg-[#262626] text-white" value="oldest">
-            {t.oldest}
-          </option>
-          <option className="bg-[#262626] text-white" value="title">
-            {t.titleSort}
-          </option>
+          <option value="newest">{t.newest}</option>
+          <option value="oldest">{t.oldest}</option>
+          <option value="title">{t.titleSort}</option>
         </select>
 
         {/* Status Filter */}
@@ -331,26 +358,20 @@ const NewsScreen = () => {
           style={{
             backgroundColor: "#262626",
             border: "1px solid #2E2F2F",
-            borderRadius: "8px",
+            borderRadius: "2rem",
             color: "#fff",
-            padding: "10px 14px",
+            padding: "15px",
             fontSize: "14px",
             transition: "all 0.3s ease",
             cursor: "pointer",
           }}
         >
-          <option className="bg-[#262626] text-white" value="all">
-            {t.all} Status
-          </option>
-          <option className="bg-[#262626] text-white" value="published">
-            {t.published}
-          </option>
-          <option className="bg-[#262626] text-white" value="draft">
-            {t.draft}
-          </option>
+          <option value="all">{t.all} Status</option>
+          <option value="published">{t.published}</option>
+          <option value="draft">{t.draft}</option>
         </select>
 
-        {/* Filter by Main Category */}
+        {/* Main Category Filter */}
         <select
           value={mainCategoryFilter}
           onChange={(e) => {
@@ -361,29 +382,25 @@ const NewsScreen = () => {
           style={{
             backgroundColor: "#262626",
             border: "1px solid #2E2F2F",
-            borderRadius: "8px",
+            borderRadius: "2rem",
             color: "#fff",
-            padding: "10px 14px",
+            padding: "15px",
             fontSize: "14px",
             transition: "all 0.3s ease",
             cursor: "pointer",
           }}
         >
-          <option className="bg-[#262626] text-white" value="all">
+          <option value="all">
             {t.all} {t.filterMain}
           </option>
           {uniqueMainCategories.map((mc) => (
-            <option
-              key={mc.id}
-              value={mc.id}
-              className="bg-[#262626] text-white"
-            >
+            <option key={mc.id} value={mc.id}>
               {mc.name[isVietnamese ? "vn" : "en"] || mc.name.en || mc.name}
             </option>
           ))}
         </select>
 
-        {/* Filter by Category */}
+        {/* Category Filter */}
         <select
           value={categoryFilter}
           onChange={(e) => {
@@ -393,15 +410,15 @@ const NewsScreen = () => {
           style={{
             backgroundColor: "#262626",
             border: "1px solid #2E2F2F",
-            borderRadius: "8px",
+            borderRadius: "2rem",
             color: "#fff",
-            padding: "10px 14px",
+            padding: "15px",
             fontSize: "14px",
             transition: "all 0.3s ease",
             cursor: "pointer",
           }}
         >
-          <option className="bg-[#262626] text-white" value="all">
+          <option value="all">
             {t.all} {t.filterCategory}
           </option>
           {uniqueCategories
@@ -411,11 +428,7 @@ const NewsScreen = () => {
                 : c.main === mainCategoryFilter
             )
             .map((c) => (
-              <option
-                key={c.id}
-                value={c.id}
-                className="bg-[#262626] text-white"
-              >
+              <option key={c.id} value={c.id}>
                 {c.name[isVietnamese ? "vn" : "en"] || c.name.en || c.name}
               </option>
             ))}
@@ -443,27 +456,24 @@ const NewsScreen = () => {
                     ? article.title?.vn || article.title?.en
                     : article.title?.en}
                 </h3>
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4 flex-wrap gap-x-3">
-                  {/* Date */}
+                <div className="flex items-center text-sm text-gray-400 mb-4 flex-wrap gap-x-3">
                   <div className="flex items-center">
                     <Calendar size={16} className="mr-1" />
-                    <span>
+                    <span className="text-gray-300">
                       {new Date(article.publishedAt).toLocaleDateString()}
                     </span>
                   </div>
 
-                  {/* Author */}
                   <div className="flex items-center">
                     <User size={16} className="mr-1" />
-                    <span>{article.author}</span>
+                    <span className="text-gray-300">{article.author}</span>
                   </div>
 
-                  {/* Status */}
                   <span
                     className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
                       article.status === "published"
-                        ? "bg-green-100 text-green-700 dark:bg-green-700/30 dark:text-green-300"
-                        : "bg-yellow-100 text-yellow-700 dark:bg-yellow-700/30 dark:text-yellow-300"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
                     {article.status === "published" ? t.published : t.draft}
@@ -471,12 +481,7 @@ const NewsScreen = () => {
                 </div>
 
                 <div className="mt-auto flex justify-between items-center">
-                  <span
-                    className="flex items-center text-sm 
-                      bg-gray-100 text-gray-800 
-                      dark:bg-gray-700 dark:text-gray-200 
-                      px-2 py-1 rounded"
-                  >
+                  <span className="flex items-center text-sm bg-gray-700 text-gray-200 px-2 py-1 rounded">
                     <Tag size={14} className="mr-1" />
                     {article.categoryName?.[isVietnamese ? "vn" : "en"] ||
                       article.category?.en ||
@@ -486,19 +491,19 @@ const NewsScreen = () => {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleView(article.slug)}
-                      className="text-green-600 dark:text-green-400 hover:opacity-80 p-1 cursor-pointer"
+                      className="text-green-400 hover:opacity-80 p-1 cursor-pointer"
                     >
                       <Eye size={16} />
                     </button>
                     <button
                       onClick={() => handleEdit(article)}
-                      className="text-indigo-600 dark:text-indigo-400 hover:opacity-80 p-1 cursor-pointer"
+                      className="text-indigo-400 hover:opacity-80 p-1 cursor-pointer"
                     >
                       <Edit size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(article._id)}
-                      className="text-red-600 dark:text-red-400 hover:opacity-80 p-1 cursor-pointer"
+                      className="text-red-400 hover:opacity-80 p-1 cursor-pointer"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -509,43 +514,40 @@ const NewsScreen = () => {
           ))}
 
           {currentArticles.length === 0 && (
-            <p className="col-span-full text-center text-gray-500 dark:text-gray-400">
+            <p className="col-span-full text-center text-gray-400">
               {isVietnamese ? "Không tìm thấy kết quả" : "No results found"}
             </p>
           )}
         </div>
       ) : (
-        <p className="p-6">Table view here...</p>
+        <p className="p-6 text-gray-300">Table view here...</p>
       )}
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       <div className="flex justify-center items-center gap-2 my-6">
         <button
           disabled={currentPage === 1}
           onClick={() => setCurrentPage((p) => p - 1)}
-          className="px-3 py-1 rounded border disabled:opacity-50"
+          className="px-3 py-1 rounded border disabled:opacity-50 text-gray-200"
         >
           Prev
         </button>
-        <span>
+        <span className="text-gray-200">
           {currentPage} / {totalPages || 1}
         </span>
         <button
           disabled={currentPage === totalPages || totalPages === 0}
           onClick={() => setCurrentPage((p) => p + 1)}
-          className="px-3 py-1 rounded border disabled:opacity-50"
+          className="px-3 py-1 rounded-full border disabled:opacity-50 text-gray-200"
         >
           Next
         </button>
       </div>
 
-      {/* Blog Form Modal */}
+      {/* Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div
-            className={`rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto transition 
-              ${theme === "light" ? "bg-white" : "bg-gray-800"}`}
-          >
+        <div className="fixed inset-0 bg-black/80 bg-opacity-60 flex items-center justify-center z-50">
+          <div className="rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-800">
             <NewsArticleForm
               article={editingArticle}
               onClose={handleCloseForm}

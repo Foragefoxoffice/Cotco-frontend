@@ -5,7 +5,7 @@ import "react-quill-new/dist/quill.snow.css";
 
 import { getTermsPage, updateTermsPage } from "../../Api/api";
 import { CommonToaster } from "../../Common/CommonToaster";
-import "../../assets/css/LanguageTabs.css"
+import "../../assets/css/LanguageTabs.css";
 
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
@@ -84,7 +84,6 @@ const TermsConditionsPage = () => {
     }
   };
 
-
   // ✅ Save Content
   const handleSaveContent = async () => {
     if (!isValidMultiLang(termsConditionsContent)) {
@@ -125,8 +124,7 @@ const TermsConditionsPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-[#0A0A0A]">
-
+    <div className="max-w-6xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-[#171717]">
       <style>{`
   /* Quill editor wrapper */
   .ql-editor {
@@ -175,14 +173,18 @@ const TermsConditionsPage = () => {
       <Collapse accordion bordered={false} defaultActiveKey="banner">
         {/* ================= Banner ================= */}
         <Panel header="Terms & Conditions Banner" key="banner">
-          <Tabs activeKey={currentLang} onChange={setCurrentLang} className="pill-tabs">
+          <Tabs
+            activeKey={currentLang}
+            onChange={setCurrentLang}
+            className="pill-tabs"
+          >
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
                 <label className="block font-medium mt-5 mb-2">
                   {translations[currentLang].bannerTitle}
                 </label>
                 <input
-                 style={{
+                  style={{
                     backgroundColor: "#262626",
                     border: "1px solid #2E2F2F",
                     borderRadius: "8px",
@@ -208,7 +210,9 @@ const TermsConditionsPage = () => {
             ))}
           </Tabs>
 
-          <label className="mt-5 mb-1 text-white font-bold block">{translations[currentLang].bannerMedia}</label>
+          <label className="mt-5 mb-1 text-white font-bold block">
+            {translations[currentLang].bannerMedia}
+          </label>
 
           {termsBanner.termsBannerMediaFile ? (
             termsBanner.termsBannerMediaFile.type.startsWith("video/") ? (
@@ -241,215 +245,224 @@ const TermsConditionsPage = () => {
           ) : null}
 
           <div className="mb-3">
-  {/* Hidden Input */}
-  <input
-    id="fileUpload"
-    type="file"
-    accept="image/*,video/*"
-    style={{ display: "none" }}
-    onChange={handleFileChange}
-  />
+            {/* Hidden Input */}
+            <input
+              id="fileUpload"
+              type="file"
+              accept="image/*,video/*"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+            />
 
-  {/* Styled Label as Button */}
-  <label
-    htmlFor="fileUpload"
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      backgroundColor: "#0284C7", // blue
-      color: "#fff",
-      padding: "10px 20px",
-      borderRadius: "9999px", // pill shape
-      fontWeight: "500",
-      fontSize: "14px",
-      cursor: "pointer",
-      transition: "all 0.3s ease",
-    }}
-  >
-    {/* Upload Icon */}
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      style={{ width: "18px", height: "18px" }}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
-      />
-    </svg>
-    Upload File
-  </label>
-</div>
-
+            {/* Styled Label as Button */}
+            <label
+              htmlFor="fileUpload"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                padding: "10px 20px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Upload Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                />
+              </svg>
+              Upload File
+            </label>
+          </div>
 
           <div className="flex justify-end gap-4 mt-4">
-  {/* Cancel Button (Gray / Outline) */}
-  <Button
-    onClick={() => window.location.reload()}
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      backgroundColor: "transparent",
-      color: "#fff",
-      border: "1px solid #333",
-      padding: "22px",
-      borderRadius: "9999px", // pill shape
-      fontWeight: "500",
-      fontSize: "14px",
-      cursor: "pointer",
-      transition: "all 0.3s ease",
-    }}
-  >
-    {/* Cancel Icon (X) */}
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      style={{ width: "18px", height: "18px" }}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-    {translations[currentLang].cancel}
-  </Button>
+            {/* Cancel Button (Gray / Outline) */}
+            <Button
+              onClick={() => window.location.reload()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "22px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Cancel Icon (X) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+              {translations[currentLang].cancel}
+            </Button>
 
-  {/* Save Button (Blue) */}
-  <Button
-    onClick={handleSaveBanner}
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      backgroundColor: "#0284C7", // blue
-      color: "#fff",
-      border: "none",
-      padding: "22px",
-      borderRadius: "9999px", // pill shape
-      fontWeight: "500",
-      fontSize: "14px",
-      cursor: "pointer",
-      transition: "all 0.3s ease",
-    }}
-  >
-    {/* Save Icon */}
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      style={{ width: "18px", height: "18px" }}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
-      />
-    </svg>
-    {translations[currentLang].save}
-  </Button>
-</div>
-
+            {/* Save Button (Blue) */}
+            <Button
+              onClick={handleSaveBanner}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                border: "none",
+                padding: "22px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Save Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+                />
+              </svg>
+              {translations[currentLang].save}
+            </Button>
+          </div>
         </Panel>
 
         {/* ================= Content ================= */}
         <Panel header="Terms & Conditions Content" key="content">
-          <Tabs activeKey={currentLang} onChange={setCurrentLang} className="pill-tabs">
+          <Tabs
+            activeKey={currentLang}
+            onChange={setCurrentLang}
+            className="pill-tabs"
+          >
             {["en", "vi"].map((lang) => (
               <TabPane tab={lang.toUpperCase()} key={lang}>
                 <div className="mt-5">
                   <ReactQuill
-                  value={termsConditionsContent?.[lang] || ""}
-                  onChange={(value) =>
-                    setTermsConditionsContent((prev) => ({
-                      ...prev,
-                      [lang]: value,
-                    }))
-                  }
-                  style={{ minHeight: "300px", marginBottom: "20px" }}
-                />
+                    value={termsConditionsContent?.[lang] || ""}
+                    onChange={(value) =>
+                      setTermsConditionsContent((prev) => ({
+                        ...prev,
+                        [lang]: value,
+                      }))
+                    }
+                    style={{ minHeight: "300px", marginBottom: "20px" }}
+                  />
                 </div>
               </TabPane>
             ))}
           </Tabs>
 
           <div className="flex justify-end gap-4 mt-4">
-  {/* Cancel Button (Gray / Outline) */}
-  <Button
-    onClick={() => window.location.reload()}
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      backgroundColor: "transparent",
-      color: "#fff",
-      border: "1px solid #333",
-      padding: "22px",
-      borderRadius: "9999px", // pill shape
-      fontWeight: "500",
-      fontSize: "14px",
-      cursor: "pointer",
-      transition: "all 0.3s ease",
-    }}
-  >
-    {/* Cancel Icon */}
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      style={{ width: "18px", height: "18px" }}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-    {translations[currentLang].cancel}
-  </Button>
+            {/* Cancel Button (Gray / Outline) */}
+            <Button
+              onClick={() => window.location.reload()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "22px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Cancel Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+              {translations[currentLang].cancel}
+            </Button>
 
-  {/* Save Button (Blue) */}
-  <Button
-    onClick={handleSaveContent}
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      backgroundColor: "#0284C7", // blue
-      color: "#fff",
-      border: "none",
-      padding: "22px",
-      borderRadius: "9999px", // pill shape
-      fontWeight: "500",
-      fontSize: "14px",
-      cursor: "pointer",
-      transition: "all 0.3s ease",
-    }}
-  >
-    {/* Save Icon */}
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      style={{ width: "18px", height: "18px" }}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
-      />
-    </svg>
-    {translations[currentLang].save}
-  </Button>
-</div>
-
+            {/* Save Button (Blue) */}
+            <Button
+              onClick={handleSaveContent}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7", // blue
+                color: "#fff",
+                border: "none",
+                padding: "22px",
+                borderRadius: "9999px", // pill shape
+                fontWeight: "500",
+                fontSize: "14px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {/* Save Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: "18px", height: "18px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+                />
+              </svg>
+              {translations[currentLang].save}
+            </Button>
+          </div>
         </Panel>
       </Collapse>
     </div>

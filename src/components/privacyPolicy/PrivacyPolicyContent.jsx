@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Collapse, Spin } from "antd";
-import {
-  Shield,
-  FileText,
-  Globe,
-  Cookie,
-  Users,
-  Smartphone,
-  GitMerge,
-  RefreshCw,
-  Plus,
-  Minus,
-} from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import { getPrivacyPage } from "../../Api/api";
 
 const { Panel } = Collapse;
@@ -23,39 +12,70 @@ export default function PrivacyPolicyContent() {
 
   useEffect(() => {
     getPrivacyPage().then((res) => {
-      if (res.data) {
-        setPrivacy(res.data);
-      }
+      if (res.data) setPrivacy(res.data);
       setLoading(false);
     });
   }, []);
-
-  const sections = [
-    { key: "generalInformation", title: "General information on data processing" },
-    { key: "website", title: "Website" },
-    { key: "cookies", title: "Cookies" },
-    { key: "socialMedia", title: "Social Media" },
-    { key: "app", title: "App" },
-    { key: "integration", title: "Integration" },
-    { key: "changesPrivacy", title: "Changes to Privacy Policy" },
-  ];
 
   const handlePanelChange = (keys) => setActiveKeys(keys);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
+      <div className="min-h-screen flex justify-center items-center bg-white">
         <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!privacy || !privacy.privacyPolicies?.length) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-white text-gray-600">
+        <p>No Privacy Policies found.</p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-white">
+      {/* ===== Banner Section ===== */}
+      {privacy.privacyBanner && (
+        <div className="w-full relative overflow-hidden">
+          {privacy.privacyBanner.privacyBannerMedia ? (
+            /\.(mp4|webm|ogg)$/i.test(
+              privacy.privacyBanner.privacyBannerMedia
+            ) ? (
+              <video
+                src={`${import.meta.env.VITE_API_URL}${
+                  privacy.privacyBanner.privacyBannerMedia
+                }`}
+                autoPlay
+                loop
+                muted
+                className="w-full h-[350px] object-cover"
+              />
+            ) : (
+              <img
+                src={`${import.meta.env.VITE_API_URL}${
+                  privacy.privacyBanner.privacyBannerMedia
+                }`}
+                alt="Privacy Banner"
+                className="w-full h-[350px] object-cover"
+              />
+            )
+          ) : null}
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <h1 className="text-4xl font-bold text-white text-center">
+              {privacy.privacyBanner.privacyBannerTitle?.en || "Privacy Policy"}
+            </h1>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Policies Section ===== */}
       <div className="w-10/12 mx-auto px-6 py-16">
-        <h1 className="text-3xl font-bold mb-10 text-gray-800 text-center">
+        <h2 className="text-3xl font-bold mb-10 text-gray-800 text-center">
           Privacy Policy
-        </h1>
+        </h2>
 
         <Collapse
           accordion
@@ -65,22 +85,24 @@ export default function PrivacyPolicyContent() {
           expandIconPosition="end"
           expandIcon={({ isActive }) => (
             <div
-              className={`w-12 h-12 flex items-center justify-center rounded-full transition-all duration-200 ${
-                isActive ? "bg-gray-300 text-gray-700" : "bg-gray-100 text-black"
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 ${
+                isActive
+                  ? "bg-gray-300 text-gray-700"
+                  : "bg-gray-100 text-black"
               }`}
             >
-              {isActive ? <Minus size={20} /> : <Plus size={20} />}
+              {isActive ? <Minus size={18} /> : <Plus size={18} />}
             </div>
           )}
           className="privacy-collapse"
         >
-          {sections.map((section, index) => (
+          {privacy.privacyPolicies.map((policy, index) => (
             <Panel
-              key={section.key}
+              key={index}
               header={
-                <div className="flex items-center justify-between w-full ">
+                <div className="flex items-center justify-between w-full">
                   <span className="text-gray-800 text-md font-medium">
-                    {index + 1}. {section.title}
+                    {index + 1}. {policy.policyTitle?.en || "Untitled Policy"}
                   </span>
                 </div>
               }
@@ -91,8 +113,8 @@ export default function PrivacyPolicyContent() {
                   className="text-gray-700 leading-relaxed text-[15px]"
                   dangerouslySetInnerHTML={{
                     __html:
-                      privacy[section.key]?.content?.en ||
-                      "<p class='text-gray-500 italic'>No content available for this section.</p>",
+                      policy.policyContent?.en ||
+                      "<p class='text-gray-500 italic'>No content available.</p>",
                   }}
                 />
               </div>
@@ -111,15 +133,16 @@ export default function PrivacyPolicyContent() {
           border-bottom: none !important;
         }
         .privacy-collapse .ant-collapse-header {
-          padding: 50px 0 !important;
-          font-size: 20px !important;
+          padding: 40px 0 !important;
+          font-size: 18px !important;
           font-weight: 500;
           color: #111827;
           background: white !important;
+          transition: all 0.3s ease;
         }
-        .privacy-collapse .ant-collapse-header:hover{
-            margin-left:60px;
-            opacity:0.9;
+        .privacy-collapse .ant-collapse-header:hover {
+          margin-left: 40px;
+          opacity: 0.9;
         }
         .privacy-collapse .ant-collapse-content {
           border: none !important;
@@ -129,14 +152,18 @@ export default function PrivacyPolicyContent() {
           padding: 0 0 20px 0 !important;
         }
         .privacy-collapse .ant-collapse-item-active .ant-collapse-header {
-          padding:30px 0;
+          padding: 30px 0 !important;
         }
         .privacy-collapse .ant-collapse-arrow {
           display: none;
         }
-          .privacy-collapse .ant-collapse-expand-icon{
-            color:black;
-          }
+        .privacy-collapse .ant-collapse-expand-icon {
+          color: black !important;
+        }
+        .ql-container.ql-snow {
+          background: transparent !important;
+          color: #fff !important;
+        }
       `}</style>
     </div>
   );

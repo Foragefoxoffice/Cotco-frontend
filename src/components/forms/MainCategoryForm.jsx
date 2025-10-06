@@ -2,10 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import TranslationTabs from "../TranslationTabs";
 import { slugify } from "../../utils/helpers";
-import {
-  createBlogMainCategory,
-  updateBlogMainCategory,
-} from "../../Api/api";
+import { createBlogMainCategory, updateBlogMainCategory } from "../../Api/api";
 import { CommonToaster } from "../../Common/CommonToaster";
 
 const labels = {
@@ -138,21 +135,20 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
       }
 
       if (onSave) onSave(savedMainCategory);
-    }  catch (error) {
-  console.error(
-    "MainCategory save error:",
-    error.response?.data || error.message || error
-  );
+    } catch (error) {
+      console.error(
+        "MainCategory save error:",
+        error.response?.data || error.message || error
+      );
 
-  setErrors({
-    submit:
-      error.response?.data?.error ||
-      error.response?.data?.message ||
-      error.message ||
-      labels[activeLanguage].fail,
-  });
-}
- finally {
+      setErrors({
+        submit:
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          labels[activeLanguage].fail,
+      });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -169,8 +165,7 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
     transition: "all 0.3s ease",
   };
 
-  const labelClasses =
-    "block text-sm font-medium text-gray-300";
+  const labelClasses = "block text-sm font-medium text-gray-300";
 
   return (
     <div className="p-6 bg-[#171717] rounded-lg">
@@ -296,18 +291,30 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
         )}
 
         {/* Buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-[#2E2F2F]">
+        <div className="flex justify-end gap-4 pt-6 border-t border-[#2E2F2F]">
+          {/* Cancel Button — Dark Pill */}
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-[#2E2F2F] rounded-md text-gray-300 hover:bg-[#2E2F2F] transition"
+            className="px-8 py-3 rounded-full 
+               bg-[#1F1F1F] text-white font-medium 
+               border border-[#2E2F2F]
+               hover:bg-[#2A2A2A] hover:border-[#3A3A3A]
+               transition-all duration-300 cursor-pointer"
           >
             {labels[activeLanguage].cancel}
           </button>
+
+          {/* Save / Update Button — Bright Blue Pill */}
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 bg-[#0085C8] text-white rounded-md hover:bg-blue-700 transition disabled:opacity-70"
+            className={`px-8 py-3 rounded-full font-medium text-white transition-all duration-300 cursor-pointer
+                ${
+                  isLoading
+                    ? "bg-[#0085C8]/70 cursor-not-allowed"
+                    : "bg-[#0085C8] hover:bg-[#009FE3]"
+                }`}
           >
             {isLoading
               ? labels[activeLanguage].saving

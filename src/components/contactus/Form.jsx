@@ -61,7 +61,9 @@ export default function ContactSection() {
 
           {/* RIGHT: Form */}
           <div className="rounded-2xl ring-1 ring-slate-200 bg-white p-6 md:p-8 shadow-sm">
-            <ContactForm heading={contactFormData?.contactForm?.en || "Send Us a Message"} />
+            <ContactForm
+              heading={contactFormData?.contactForm?.en || "Send Us a Message"}
+            />
           </div>
         </div>
       </div>
@@ -88,7 +90,7 @@ function ContactForm({ heading }) {
   const firstErrorRef = useRef(null);
 
   const baseFieldClass =
-    "mt-2 w-full h-13 rounded-lg bg-slate-50 border border-transparent px-4 text-[15px] text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-slate-300 focus:ring-2 focus:ring-slate-200 [box-shadow:rgba(0,0,0,0.1)_0px_1px_3px_0px,rgba(0,0,0,0.06)_0px_2px_2px_0px]";
+    "mt-2 w-full h-13 rounded-lg bg-slate-50 border border-gray-200 px-4 text-[15px] text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-slate-300 focus:ring-2 focus:ring-slate-200";
 
   const getFieldClass = (name) =>
     `${baseFieldClass} ${
@@ -231,9 +233,7 @@ function ContactForm({ heading }) {
         "file",
       ].find((k) => newErrors[k]);
       if (firstKey) {
-        firstErrorRef.current
-          ?.querySelector(`[name="${firstKey}"]`)
-          ?.focus();
+        firstErrorRef.current?.querySelector(`[name="${firstKey}"]`)?.focus();
       }
       return;
     }
@@ -439,9 +439,12 @@ function ContactForm({ heading }) {
 
         {/* Submit */}
         <button
+          style={{
+            color: "#fff",
+          }}
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-[#0E3A5B] hover:bg-[#0B2F49] disabled:opacity-70 disabled:cursor-not-allowed text-white text-[15px] font-medium py-3.5 cursor-pointer"
+          className="w-full rounded-full bg-[#0E3A5B] hover:bg-[#0B2F49] disabled:opacity-70 disabled:cursor-not-allowed text-white text-[15px] font-medium py-4 cursor-pointer"
         >
           {submitting ? "Sending..." : "Send Message"}
         </button>

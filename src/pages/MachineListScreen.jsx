@@ -84,7 +84,7 @@ const MachinePagesList = () => {
 
         <button
           onClick={handleCreate}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold shadow-md transition-all duration-300 bg-[#0085C8] hover:bg-[#009FE3] text-white"
+          className="flex items-center gap-2 px-5 py-4 rounded-full font-semibold shadow-md transition-all duration-300 bg-[#0085C8] hover:bg-[#009FE3] text-white"
         >
           <Plus size={18} />
           Create Page
@@ -95,10 +95,7 @@ const MachinePagesList = () => {
       <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
         {/* Search Input */}
         <div className="relative w-full sm:w-64">
-          <Search
-            className="absolute left-3 top-2.5 text-gray-400"
-            size={18}
-          />
+          <Search className="absolute left-3 top-4  text-gray-400" size={18} />
           <input
             type="text"
             placeholder="Search by title or slug..."
@@ -107,7 +104,7 @@ const MachinePagesList = () => {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-10 pr-3 py-2 bg-[#1F1F1F] border border-[#2E2F2F] rounded-lg text-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-[#0085C8] outline-none"
+            className="w-full pl-10 pr-3 py-4 bg-[#1F1F1F] border border-[#2E2F2F] rounded-full text-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-[#0085C8] outline-none"
           />
         </div>
 
@@ -118,7 +115,7 @@ const MachinePagesList = () => {
             setSortOption(e.target.value);
             setCurrentPage(1);
           }}
-          className="px-4 py-2 text-sm border border-[#2E2F2F] bg-[#1F1F1F] text-white rounded-lg focus:ring-2 focus:ring-[#0085C8] outline-none cursor-pointer"
+          className="px-4 py-3 text-sm border border-[#2E2F2F] bg-[#1F1F1F] text-white rounded-full focus:ring-2 focus:ring-[#0085C8] outline-none cursor-pointer"
         >
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
