@@ -5,6 +5,7 @@ import { getFiberPage } from "../../Api/api";
 
 const SustainabilitySection = () => {
   const [data, setData] = useState(null);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
 
   const API_BASE = import.meta.env.VITE_API_URL;
   const getFullUrl = (path) => {
@@ -12,6 +13,31 @@ const SustainabilitySection = () => {
     if (path.startsWith("http")) return path;
     return `${API_BASE}${path}`;
   };
+
+  // ✅ Language detection from body class or localStorage
+  useEffect(() => {
+    const detectLang = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLang());
+    }
+
+    const observer = new MutationObserver(() => setActiveLang(detectLang()));
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Helper to pick correct language field
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
   useEffect(() => {
     getFiberPage().then((res) => {
@@ -28,12 +54,15 @@ const SustainabilitySection = () => {
       <div className="mx-auto text-center">
         {/* Label */}
         <span className="text-sm font-semibold text-black px-4 py-1 bg-blue-100 rounded-full mb-4 inline-block">
-          {data.fiberSustainabilitySubText?.en || "Sustainability"}
+          {pick(data.fiberSustainabilitySubText) || "Sustainability"}
         </span>
 
         {/* Title */}
         <TitleAnimation
-          text={data.fiberSustainabilityTitle?.en || "ECO-FRIENDLY FROM PRODUCTION TO DISPOSAL"}
+          text={
+            pick(data.fiberSustainabilityTitle) ||
+            "ECO-FRIENDLY FROM PRODUCTION TO DISPOSAL"
+          }
           className="heading mb-4"
           align="center"
           delay={0.05}
@@ -43,7 +72,7 @@ const SustainabilitySection = () => {
 
         {/* Description */}
         <p className="text-gray-600 text-lg mb-10">
-          {data.fiberSustainabilityDes?.en ||
+          {pick(data.fiberSustainabilityDes) ||
             "Our viscose fibers are designed with the environment in mind at every stage of their lifecycle."}
         </p>
 
@@ -51,7 +80,10 @@ const SustainabilitySection = () => {
           {/* Image */}
           <div className="h-full">
             <img
-              src={getFullUrl(data.fiberSustainabilityImg) || "/img/fiber/eco.jpg"}
+              src={
+                getFullUrl(data.fiberSustainabilityImg) ||
+                "/img/fiber/eco.jpg"
+              }
               alt="Eco Fabrics"
               className="rounded-lg shadow-lg w-full h-full object-cover"
             />
@@ -63,10 +95,10 @@ const SustainabilitySection = () => {
               <FaRecycle className="text-blue-500 text-xl mt-1" />
               <div>
                 <h4 className="font-semibold text-lg text-gray-900">
-                  {data.fiberSustainabilitySubTitle1?.en || "Biodegradable"}
+                  {pick(data.fiberSustainabilitySubTitle1) || "Biodegradable"}
                 </h4>
                 <p className="text-gray-600 text-sm">
-                  {data.fiberSustainabilitySubDes1?.en ||
+                  {pick(data.fiberSustainabilitySubDes1) ||
                     "Naturally breaks down without leaving microplastics in the environment after disposal."}
                 </p>
               </div>
@@ -76,10 +108,11 @@ const SustainabilitySection = () => {
               <FaDroplet className="text-blue-500 text-xl mt-1" />
               <div>
                 <h4 className="font-semibold text-lg text-gray-900">
-                  {data.fiberSustainabilitySubTitle2?.en || "Efficient Production"}
+                  {pick(data.fiberSustainabilitySubTitle2) ||
+                    "Efficient Production"}
                 </h4>
                 <p className="text-gray-600 text-sm">
-                  {data.fiberSustainabilitySubDes2?.en ||
+                  {pick(data.fiberSustainabilitySubDes2) ||
                     "Manufactured using increasingly energy- and water-efficient processes to minimize environmental impact."}
                 </p>
               </div>
@@ -89,10 +122,11 @@ const SustainabilitySection = () => {
               <FaEarthAmericas className="text-blue-500 text-xl mt-1" />
               <div>
                 <h4 className="font-semibold text-lg text-gray-900">
-                  {data.fiberSustainabilitySubTitle3?.en || "Sustainable Fashion"}
+                  {pick(data.fiberSustainabilitySubTitle3) ||
+                    "Sustainable Fashion"}
                 </h4>
                 <p className="text-gray-600 text-sm">
-                  {data.fiberSustainabilitySubDes3?.en ||
+                  {pick(data.fiberSustainabilitySubDes3) ||
                     "Supports the global shift towards greener fashion alternatives without compromising quality."}
                 </p>
               </div>

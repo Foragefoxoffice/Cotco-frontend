@@ -11,8 +11,7 @@ function PlusIcon({ open }) {
       aria-hidden="true"
     >
       <FiPlus
-        className={`transition-transform duration-300 ${open ? "rotate-45" : ""
-          }`}
+        className={`transition-transform duration-300 ${open ? "rotate-45" : ""}`}
       />
     </span>
   );
@@ -43,7 +42,34 @@ function MemberCard({ name, role, phone, email }) {
 export default function MeetOurTeam() {
   const [openIndex, setOpenIndex] = useState(null);
   const [teamData, setTeamData] = useState(null);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
 
+  // ✅ Detect language (sync with global toggle)
+  useEffect(() => {
+    const detectLang = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLang());
+    }
+
+    const observer = new MutationObserver(() => setActiveLang(detectLang()));
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Helper to pick correct language
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
+
+  // ✅ Fetch data
   useEffect(() => {
     getAboutPage()
       .then((res) => {
@@ -56,18 +82,18 @@ export default function MeetOurTeam() {
 
   if (!teamData) return null;
 
-  // Convert API data to sections
+  // ✅ Only Fiber Team
   const TEAM_SECTIONS = [
-    { key: "fiberTeam", title: "Fiber" },
-  ].map((section) => ({
-    title: section.title,
-    members: (teamData[section.key] || []).map((m) => ({
-      name: m.teamName?.en || "",
-      role: m.teamDesgn?.en || "",
-      phone: m.teamPhone || "",
-      email: m.teamEmail || "",
-    })),
-  }));
+    {
+      title: "Fiber",
+      members: (teamData?.fiberTeam || []).map((m) => ({
+        name: pick(m.teamName),
+        role: pick(m.teamDesgn),
+        phone: m.teamPhone || "",
+        email: m.teamEmail || "",
+      })),
+    },
+  ];
 
   return (
     <section className="pt-6 md:pt-10 mb-15">
@@ -79,7 +105,7 @@ export default function MeetOurTeam() {
           </span>
 
           <TitleAnimation
-            text={"Meet our team"}
+            text={activeLang === "vi" ? "Gặp gỡ đội ngũ của chúng tôi" : "Meet our team"}
             className="heading uppercase"
             align="center"
             delay={0.05}
@@ -87,9 +113,9 @@ export default function MeetOurTeam() {
             once={true}
           />
           <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
-            Our experienced professionals combine deep textile industry
-            knowledge with international trade expertise, ensuring seamless
-            transactions and technical support for our clients.
+            {activeLang === "vi"
+              ? "Đội ngũ chuyên gia giàu kinh nghiệm của chúng tôi kết hợp kiến thức sâu rộng trong ngành dệt may với chuyên môn thương mại quốc tế, đảm bảo các giao dịch diễn ra suôn sẻ và hỗ trợ kỹ thuật tối ưu."
+              : "Our experienced professionals combine deep textile industry knowledge with international trade expertise, ensuring seamless transactions and technical support for our clients."}
           </p>
         </div>
 
@@ -113,8 +139,9 @@ export default function MeetOurTeam() {
 
                 {/* Collapsible content */}
                 <div
-                  className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-[1000px] py-3" : "max-h-0"
-                    }`}
+                  className={`overflow-hidden transition-all duration-300 ${
+                    isOpen ? "max-h-[1000px] py-3" : "max-h-0"
+                  }`}
                 >
                   {section.members.length > 0 && (
                     <ul className="space-y-3 rounded-xl bg-slate-50/50 p-1">

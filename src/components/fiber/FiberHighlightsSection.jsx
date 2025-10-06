@@ -5,6 +5,7 @@ export default function FiberInfoBlocks() {
   const [products, setProducts] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
 
   const API_BASE = import.meta.env.VITE_API_URL;
   const getFullUrl = (path) => {
@@ -12,6 +13,31 @@ export default function FiberInfoBlocks() {
     if (path.startsWith("http")) return path;
     return `${API_BASE}${path}`;
   };
+
+  // ✅ Detect and sync language
+  useEffect(() => {
+    const detectLang = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLang());
+    }
+
+    const observer = new MutationObserver(() => setActiveLang(detectLang()));
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Helper to pick correct language
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
   useEffect(() => {
     getFiberPage().then((res) => {
@@ -68,24 +94,26 @@ export default function FiberInfoBlocks() {
 
             {/* FLOATING IMAGE (desktop) */}
             <div
-              className={`absolute bottom-[-60px] right-0 z-30 w-48 -translate-x-1/2 transform transition-opacity duration-500 ${isActive ? "opacity-100" : "opacity-0"
-                }`}
+              className={`absolute bottom-[-60px] right-0 z-30 w-48 -translate-x-1/2 transform transition-opacity duration-500 ${
+                isActive ? "opacity-100" : "opacity-0"
+              }`}
             >
               <img
                 src={getFullUrl(section.fiberProductImg)}
-                alt={section.fiberProductTitle?.en}
+                alt={pick(section.fiberProductTitle)}
                 className="hidden h-auto w-full md:block"
               />
             </div>
 
             {/* CONTENT */}
             <div
-              className={`relative z-20 page-width grid gap-10 py-20 transition-colors duration-500 md:grid-cols-4 md:gap-20 ${isActive ? "text-white" : "text-black"
-                }`}
+              className={`relative z-20 page-width grid gap-10 py-20 transition-colors duration-500 md:grid-cols-4 md:gap-20 ${
+                isActive ? "text-white" : "text-black"
+              }`}
             >
               <h3
                 className="outlined-text flex min-w-[180px] items-center text-4xl font-extrabold uppercase tracking-wide md:col-span-2 md:text-6xl"
-                dangerouslySetInnerHTML={{ __html: section.fiberProductTitle?.en }}
+                dangerouslySetInnerHTML={{ __html: pick(section.fiberProductTitle) }}
               />
 
               <ul className="md:col-span-2 space-y-3 text-sm leading-relaxed md:text-base">
@@ -94,7 +122,7 @@ export default function FiberInfoBlocks() {
                     key={i}
                     className="relative pl-6 before:absolute before:left-0 before:top-1 before:content-['--']"
                   >
-                    {line.en}
+                    {pick(line)}
                   </li>
                 ))}
               </ul>
@@ -105,14 +133,12 @@ export default function FiberInfoBlocks() {
 
       {/* Footer CTA */}
       <div className="page-width relative z-20 grid gap-8 pt-10 transition-all md:pt-26">
-        <p className="text-center text-xl">
-          {products.fiberProductBottomCon?.en}
-        </p>
+        <p className="text-center text-xl">{pick(products.fiberProductBottomCon)}</p>
         <a
           className="mx-auto w-60 rounded-xl bg-[#143A59] p-3 text-center text-white"
           href={products.fiberProductButtonLink || "/contact"}
         >
-          {products.fiberProductButtonText?.en || "Contact Our Team"}
+          {pick(products.fiberProductButtonText) || "Contact Our Team"}
         </a>
       </div>
     </section>

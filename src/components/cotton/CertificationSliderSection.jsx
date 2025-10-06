@@ -9,9 +9,9 @@ import { getCottonPage } from "../../Api/api";
 export default function CertificationSliderSection() {
   const [certData, setCertData] = useState(null);
   const [current, setCurrent] = useState(0);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ bilingual state
   const sectionRef = useRef(null);
   const intervalRef = useRef(null);
-
   const controls = useAnimation();
   const { ref: inViewRef, inView } = useInView({ threshold: 0.3 });
 
@@ -21,6 +21,27 @@ export default function CertificationSliderSection() {
     if (path.startsWith("http")) return path;
     return `${API_BASE}${path}`;
   };
+
+  /* ---------- Detect and sync language ---------- */
+  useEffect(() => {
+    const detectLanguage = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLanguage());
+    }
+
+    const observer = new MutationObserver(() => setActiveLang(detectLanguage()));
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Helper to pick correct language text
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
   // ✅ Fetch from cottonMember
   useEffect(() => {
@@ -65,18 +86,36 @@ export default function CertificationSliderSection() {
     return stopAutoSlide;
   }, [inView, certData?.cottonMemberImg?.length]);
 
-  if (!certData) return null; // don’t render until loaded
+  if (!certData) return null;
+
+  // ✅ Optional language toggle
+  const toggleLanguage = () => {
+    const newLang = activeLang === "en" ? "vi" : "en";
+    setActiveLang(newLang);
+    localStorage.setItem("preferred_lang", newLang);
+    document.body.classList.toggle("vi-mode", newLang === "vi");
+  };
 
   return (
     <section
       ref={sectionRef}
-      className="py-20 page-width bg-white overflow-x-hidden"
+      className="py-20 page-width bg-white overflow-x-hidden relative"
     >
+      {/* 🔘 Language Toggle Button */}
+      {/* <div className="absolute top-6 right-6 z-20">
+        <button
+          onClick={toggleLanguage}
+          className="px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-sm font-medium text-gray-800 backdrop-blur-md transition"
+        >
+          {activeLang === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}
+        </button>
+      </div> */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-10">
-        {/* Left Side */}
+        {/* ---------- Left Side ---------- */}
         <div>
           <TitleAnimation
-            text={certData.cottonMemberTitle?.en || "Our Certifications"}
+            text={pick(certData.cottonMemberTitle) || "Our Certifications"}
             className="heading mb-6 leading-snug text-black"
             align="center"
             mdAlign="left"
@@ -86,19 +125,19 @@ export default function CertificationSliderSection() {
             once={true}
           />
 
-          {certData.cottonMemberButtonText?.en &&
+          {certData.cottonMemberButtonText &&
             certData.cottonMemberButtonLink && (
               <a
                 href={certData.cottonMemberButtonLink}
                 className="w-72 mt-6 px-5 py-2 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-xl font-semibold"
                 style={{ fontSize: "20px" }}
               >
-                {certData.cottonMemberButtonText?.en} <FiArrowDownRight />
+                {pick(certData.cottonMemberButtonText)} <FiArrowDownRight />
               </a>
             )}
         </div>
 
-        {/* Right Side - Slider */}
+        {/* ---------- Right Side - Slider ---------- */}
         <motion.div
           ref={inViewRef}
           animate={controls}
@@ -106,23 +145,19 @@ export default function CertificationSliderSection() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="relative w-full flex flex-col items-center justify-center"
         >
-          {/* Certificate Stack */}
           <div className="relative w-full h-full md:h-100">
             {certData.cottonMemberImg?.map((src, i) => {
               const isActive = i === current;
-
               return (
                 <img
                   key={i}
                   src={getFullUrl(src)}
                   alt={`Certificate ${i + 1}`}
-                  className={`absolute certificate-slider-img top-0 left-0 w-[600px] h-[200px] md:h-[450px] rounded-2xl transition-all duration-700 ease-in-out
-                    ${
-                      isActive
-                        ? "z-30 scale-100 rotate-0 opacity-100"
-                        : "z-10 opacity-40 scale-[0.95]"
-                    }
-                  `}
+                  className={`absolute certificate-slider-img top-0 left-0 w-[600px] h-[200px] md:h-[450px] rounded-2xl transition-all duration-700 ease-in-out ${
+                    isActive
+                      ? "z-30 scale-100 rotate-0 opacity-100"
+                      : "z-10 opacity-40 scale-[0.95]"
+                  }`}
                   style={{
                     transform: isActive
                       ? "rotate(0deg) translateX(0)"
@@ -133,7 +168,7 @@ export default function CertificationSliderSection() {
             })}
           </div>
 
-          {/* Navigation */}
+          {/* ---------- Navigation ---------- */}
           <div className="flex gap-4 mt-33 certification-slider-controls">
             <button
               onClick={() => {

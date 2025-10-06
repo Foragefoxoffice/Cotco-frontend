@@ -14,6 +14,7 @@ import { getFiberPage } from "../../Api/api";
 export default function WhyChooseViscose() {
   const [chooseUs, setChooseUs] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ language state
 
   const API_BASE = import.meta.env.VITE_API_URL;
   const getFullUrl = (path) => {
@@ -21,6 +22,31 @@ export default function WhyChooseViscose() {
     if (path.startsWith("http")) return path;
     return `${API_BASE}${path}`;
   };
+
+  // ✅ Detect language from body class or localStorage
+  useEffect(() => {
+    const detectLang = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLang());
+    }
+
+    const observer = new MutationObserver(() => setActiveLang(detectLang()));
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Helper to pick correct language field
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
   useEffect(() => {
     getFiberPage().then((res) => {
@@ -36,7 +62,7 @@ export default function WhyChooseViscose() {
     <section className="bg-white py-6 md:py-20 page-width">
       <div className="mx-auto text-center">
         <TitleAnimation
-          text={chooseUs.fiberChooseUsTitle?.en || "WHY CHOOSE VISCOSE FIBER?"}
+          text={pick(chooseUs.fiberChooseUsTitle) || "WHY CHOOSE VISCOSE FIBER?"}
           className="heading -900 mb-2"
           align="center"
           delay={0.05}
@@ -44,7 +70,7 @@ export default function WhyChooseViscose() {
           once={true}
         />
         <p className="text-gray-600 mb-10">
-          {chooseUs.fiberChooseUsDes?.en ||
+          {pick(chooseUs.fiberChooseUsDes) ||
             "Superior performance meets sustainability in our premium viscose fibers."}
         </p>
 
@@ -73,10 +99,10 @@ export default function WhyChooseViscose() {
                     <Icon />
                   </div>
                   <h4 className="font-semibold text-lg">
-                    {box.fiberChooseUsBoxTitle?.en}
+                    {pick(box.fiberChooseUsBoxTitle)}
                   </h4>
                   <p className="text-sm text-gray-200 mt-1">
-                    {box.fiberChooseUsDes?.en}
+                    {pick(box.fiberChooseUsDes)}
                   </p>
                 </div>
               </div>
@@ -97,21 +123,22 @@ export default function WhyChooseViscose() {
               <div
                 key={idx}
                 onMouseEnter={() => setActiveIndex(idx)}
-                className={`relative overflow-hidden rounded-xl shadow-md group cursor-pointer flex-shrink-0 transition-[flex] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isActive ? "flex-[2]" : "flex-[1]"
-                  }`}
+                className={`relative overflow-hidden rounded-xl shadow-md group cursor-pointer flex-shrink-0 transition-[flex] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  isActive ? "flex-[2]" : "flex-[1]"
+                }`}
               >
                 {/* Background overlay */}
                 <div
-                  className={`absolute inset-0 transition-opacity duration-700 group-hover:opacity-0 ${isActive ? "bg-[#0c1b34]/60" : " bg-transparent"
-                    }`}
+                  className={`absolute inset-0 transition-opacity duration-700 group-hover:opacity-0 ${
+                    isActive ? "bg-[#0c1b34]/60" : " bg-transparent"
+                  }`}
                 ></div>
 
                 {/* Background image */}
                 <div
-                  className={`absolute inset-0 transition-opacity duration-700 ${isActive
-                    ? "opacity-100"
-                    : "opacity-0 group-hover:opacity-100"
-                    }`}
+                  className={`absolute inset-0 transition-opacity duration-700 ${
+                    isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                  }`}
                   style={{
                     backgroundImage: `url(${getFullUrl(
                       box.fiberChooseUsBoxBg
@@ -123,8 +150,9 @@ export default function WhyChooseViscose() {
 
                 {/* Overlay */}
                 <div
-                  className={`absolute inset-0 transition-opacity duration-700 group-hover:opacity-0 ${isActive ? "bg-transparent" : "  bg-[#11456C]"
-                    }`}
+                  className={`absolute inset-0 transition-opacity duration-700 group-hover:opacity-0 ${
+                    isActive ? "bg-transparent" : "  bg-[#11456C]"
+                  }`}
                 ></div>
 
                 {/* Content */}
@@ -133,16 +161,17 @@ export default function WhyChooseViscose() {
                     <Icon />
                   </div>
                   <h4 className="font-semibold text-lg">
-                    {box.fiberChooseUsBoxTitle?.en}
+                    {pick(box.fiberChooseUsBoxTitle)}
                   </h4>
                   <div
-                    className={`overflow-hidden transition-all duration-700 ease-out ${isActive
-                      ? "opacity-100 max-h-32 mt-1"
-                      : "opacity-0 max-h-0"
-                      }`}
+                    className={`overflow-hidden transition-all duration-700 ease-out ${
+                      isActive
+                        ? "opacity-100 max-h-32 mt-1"
+                        : "opacity-0 max-h-0"
+                    }`}
                   >
                     <p className="text-sm text-gray-200">
-                      {box.fiberChooseUsDes?.en}
+                      {pick(box.fiberChooseUsDes)}
                     </p>
                   </div>
                 </div>

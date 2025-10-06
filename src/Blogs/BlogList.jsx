@@ -8,11 +8,26 @@ export default function BlogLists() {
   const navigate = useNavigate();
   const { mainCategorySlug } = useParams();
 
+  const [language, setLanguage] = useState("en"); // ✅ inline language state
   const [blogs, setBlogs] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
   const [activeCategoryName, setActiveCategoryName] = useState("All");
+
+  // ✅ detect language mode directly from body
+  useEffect(() => {
+    const detectLanguage = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+    setLanguage(detectLanguage());
+
+    const observer = new MutationObserver(() => {
+      setLanguage(detectLanguage());
+    });
+
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,15 +48,22 @@ export default function BlogLists() {
           .filter((b) => b.status === "published")
           .map((b) => ({
             id: b._id,
-            title: b.title?.en || b.title?.vn || "Untitled Blog",
+            title: b.title?.[language] || b.title?.en || b.title?.vi || "Untitled Blog",
             desc:
-              (b.excerpt?.en || b.description?.en || "").slice(0, 250) + "...",
+              (b.excerpt?.[language] ||
+                b.excerpt?.en ||
+                b.description?.[language] ||
+                b.description?.en ||
+                "").slice(0, 250) + "...",
             img: b.coverImage?.url || "/img/blog/blog-img.png",
             slug: b.slug,
             publishedAt: b.publishedAt || b.createdAt,
             categoryId: b.category?._id || b.category,
             categoryName:
-              b.category?.name?.en || b.category?.name?.vn || "General",
+              b.category?.name?.[language] ||
+              b.category?.name?.en ||
+              b.category?.name?.vi ||
+              "General",
           }));
 
         const sorted = formatted.sort(
@@ -58,9 +80,8 @@ export default function BlogLists() {
     };
 
     fetchData();
-  }, [mainCategorySlug]);
+  }, [mainCategorySlug, language]); // ✅ reload when language changes
 
-  // ✅ Handle category change
   const handleCategoryChange = (catId, name) => {
     setSelectedCategory(catId);
     setActiveCategoryName(name);
@@ -73,30 +94,21 @@ export default function BlogLists() {
       </p>
     );
 
-  // ✅ Always globally sort newest → oldest
   const sortedBlogs = [...blogs].sort(
     (a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)
   );
-
-  // ✅ Apply category filter but keep order
   const filteredBlogs =
     selectedCategory === "all"
       ? sortedBlogs
       : sortedBlogs.filter((b) => b.categoryId === selectedCategory);
 
-  // ✅ Always pick latest (most recent) blog as featured
   const featuredBlog = sortedBlogs[0];
-
-  // ✅ Exclude featured from filtered list
   const remainingBlogs = filteredBlogs.filter((b) => b.id !== featuredBlog.id);
-
-  // ✅ Next three + remaining
   const nextThree = remainingBlogs.slice(0, 3);
   const remaining = remainingBlogs.slice(3);
 
   return (
     <section className="max-w-[1200px] mx-auto px-4 md:px-6 py-10 text-[#1a1a1a]">
-      {/* ---------- DYNAMIC TITLE ---------- */}
       <h1 className="text-[#164B8B] text-xl md:text-2xl font-extrabold uppercase mb-6 tracking-wide">
         {activeCategoryName.toUpperCase()}
       </h1>
@@ -104,7 +116,6 @@ export default function BlogLists() {
       {/* ---------- MOBILE CATEGORY BAR ---------- */}
       <div className="block lg:hidden sticky top-0 bg-white z-30 py-3 mb-8 border-b border-gray-200 overflow-x-auto">
         <div className="flex space-x-3 w-max px-2">
-          {/* ALL option */}
           <button
             onClick={() => handleCategoryChange("all", "All")}
             className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
@@ -116,12 +127,14 @@ export default function BlogLists() {
             All
           </button>
 
-          {/* Dynamic categories */}
           {categories.map((cat) => (
             <button
               key={cat._id}
               onClick={() =>
-                handleCategoryChange(cat._id, cat.name?.en || cat.name)
+                handleCategoryChange(
+                  cat._id,
+                  cat.name?.[language] || cat.name?.en || cat.name
+                )
               }
               className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                 selectedCategory === cat._id
@@ -129,7 +142,7 @@ export default function BlogLists() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              {cat.name?.en || cat.name}
+              {cat.name?.[language] || cat.name?.en || cat.name}
             </button>
           ))}
         </div>
@@ -139,7 +152,6 @@ export default function BlogLists() {
       <div className="grid lg:grid-cols-[3fr_1fr] gap-8">
         {/* ---------- LEFT: ARTICLES ---------- */}
         <div>
-          {/* FEATURED ARTICLE */}
           {featuredBlog && (
             <div
               className="flex flex-col md:flex-row gap-6 pb-6 mb-6 cursor-pointer"
@@ -180,7 +192,6 @@ export default function BlogLists() {
             </div>
           )}
 
-          {/* NEXT ARTICLES GRID */}
           {nextThree.length > 0 && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10 pb-8 border-b border-[#cecece]">
               {nextThree.map((b) => (
@@ -208,7 +219,6 @@ export default function BlogLists() {
             </div>
           )}
 
-          {/* REMAINING LIST */}
           {remaining.length > 0 && (
             <div className="space-y-8">
               {remaining.map((b) => (
@@ -239,7 +249,7 @@ export default function BlogLists() {
           )}
         </div>
 
-        {/* ---------- RIGHT SIDEBAR (Desktop only) ---------- */}
+        {/* ---------- RIGHT SIDEBAR ---------- */}
         <aside className="hidden lg:block space-y-6">
           <div className="bg-[#F9FAFB] rounded-lg border border-black/5 p-4">
             <div className="flex flex-col gap-2">
@@ -253,11 +263,15 @@ export default function BlogLists() {
               >
                 All
               </button>
+
               {categories.map((cat) => (
                 <button
                   key={cat._id}
                   onClick={() =>
-                    handleCategoryChange(cat._id, cat.name?.en || cat.name)
+                    handleCategoryChange(
+                      cat._id,
+                      cat.name?.[language] || cat.name?.en || cat.name
+                    )
                   }
                   className={`relative text-left px-4 py-2 rounded-md border font-medium transition-all duration-200 ${
                     selectedCategory === cat._id
@@ -265,13 +279,12 @@ export default function BlogLists() {
                       : "text-gray-800 hover:bg-gray-100 border-gray-200"
                   }`}
                 >
-                  {cat.name?.en || cat.name}
+                  {cat.name?.[language] || cat.name?.en || cat.name}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Recent Articles */}
           <div>
             <h4 className="text-[#164B8B] font-bold uppercase text-lg mb-3">
               Recent

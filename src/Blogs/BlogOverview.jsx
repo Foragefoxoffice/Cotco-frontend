@@ -14,29 +14,29 @@ export default function BlogOverview() {
   const [blog, setBlog] = useState(null);
   const [recentBlogs, setRecentBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeLang, setActiveLang] = useState("en");
+  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
 
-useEffect(() => {
-  const detectLanguage = () => {
-    if (typeof document === "undefined") return "en";
-    // ✅ Map vi-mode → vn (matches your JSON structure)
-    return document.body.classList.contains("vi-mode") ? "vi" : "en";
-  };
+  // ✅ Detect current language mode (en / vi) by body class
+  useEffect(() => {
+    const detectLanguage = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
 
-  setActiveLang(detectLanguage());
-
-  // Watch body class changes dynamically
-  const observer = new MutationObserver(() => {
     setActiveLang(detectLanguage());
-  });
 
-  observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    // watch for body class changes (for dynamic language toggle)
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
 
-  return () => observer.disconnect();
-}, []);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
+    return () => observer.disconnect();
+  }, []);
 
-  // ✅ Fetch blog + recent blogs
+  // ✅ Fetch blog data + recent blogs
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -59,9 +59,10 @@ useEffect(() => {
   }, [slug]);
 
   if (loading) return <BlogOverviewSkeleton />;
-  if (!blog) return <p className="text-center text-red-500 py-20">Blog not found.</p>;
+  if (!blog)
+    return <p className="text-center text-red-500 py-20">Blog not found.</p>;
 
-  // ✅ Safely pick localized text
+  // ✅ Safe helper for localized text
   const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
 
   const title = pick(blog.title, activeLang);
@@ -83,11 +84,15 @@ useEffect(() => {
       <section className="max-w-6xl mx-auto px-4 md:px-6 py-10 mt-24">
         {/* ---------- Breadcrumb ---------- */}
         <div className="text-sm text-gray-500 mb-6 flex flex-wrap items-center gap-1">
-          <Link to="/" className="hover:text-[#1276BD]">Home</Link>
+          <Link to="/" className="hover:text-[#1276BD]">
+            Home
+          </Link>
           <span>/</span>
           <span className="capitalize">{category}</span>
           <span>/</span>
-          <span className="text-gray-700 font-medium truncate max-w-[240px]">{title}</span>
+          <span className="text-gray-700 font-medium truncate max-w-[240px]">
+            {title}
+          </span>
         </div>
 
         <div className="grid lg:grid-cols-[2fr_1fr] gap-10">
@@ -121,7 +126,11 @@ useEffect(() => {
                 if (block.type === "image") {
                   return (
                     <div key={idx} className="my-6">
-                      <img src={block.content?.url} alt="" className="rounded-lg w-full" />
+                      <img
+                        src={block.content?.url}
+                        alt=""
+                        className="rounded-lg w-full"
+                      />
                     </div>
                   );
                 }
@@ -129,15 +138,23 @@ useEffect(() => {
                   const content = pick(block.content, activeLang);
                   const items = content.split("\n").filter(Boolean);
                   return (
-                    <ul key={idx} className="list-disc list-inside space-y-2 my-4">
-                      {items.map((li, i) => <li key={i}>{li}</li>)}
+                    <ul
+                      key={idx}
+                      className="list-disc list-inside space-y-2 my-4"
+                    >
+                      {items.map((li, i) => (
+                        <li key={i}>{li}</li>
+                      ))}
                     </ul>
                   );
                 }
                 if (block.type === "quote") {
                   const quote = pick(block.content, activeLang);
                   return (
-                    <blockquote key={idx} className="border-l-4 border-[#1276BD] pl-4 italic text-gray-700 my-4">
+                    <blockquote
+                      key={idx}
+                      className="border-l-4 border-[#1276BD] pl-4 italic text-gray-700 my-4"
+                    >
                       {quote}
                     </blockquote>
                   );
@@ -171,7 +188,9 @@ useEffect(() => {
                       {pick(b.title, activeLang)}
                     </h4>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(b.publishedAt || b.createdAt).toLocaleDateString()}
+                      {new Date(
+                        b.publishedAt || b.createdAt
+                      ).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

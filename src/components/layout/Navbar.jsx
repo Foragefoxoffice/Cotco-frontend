@@ -175,6 +175,9 @@ const Navbar = () => {
                 if (label === "Contact") {
                   return (
                     <Link
+                      style={{
+                        padding:"15px 10px"
+                      }}
                       key={label}
                       to={href}
                       className={contactClasses(isActive)}

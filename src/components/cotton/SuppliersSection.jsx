@@ -7,18 +7,38 @@ import { getCottonPage } from "../../Api/api";
 export default function SuppliersSection() {
   const [suppliers, setSuppliers] = useState([]);
   const [index, setIndex] = useState(0);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ language state
 
   const sectionRef = useRef(null);
-
   const API_BASE = import.meta.env.VITE_API_URL;
 
+  // ✅ Helper to build full URLs
   const getFullUrl = (path) => {
     if (!path) return "";
-    if (path.startsWith("http")) return path; // already full URL
+    if (path.startsWith("http")) return path;
     return `${API_BASE}${path}`;
   };
 
-  /* ---------- Fetch from backend ---------- */
+  // ✅ Detect and sync language (with body + localStorage)
+  useEffect(() => {
+    const detectLanguage = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLanguage());
+    }
+
+    const observer = new MutationObserver(() => setActiveLang(detectLanguage()));
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Fetch suppliers data
   useEffect(() => {
     getCottonPage().then((res) => {
       if (res.data?.cottonSupplier) {
@@ -27,19 +47,19 @@ export default function SuppliersSection() {
     });
   }, []);
 
+  // ✅ pick helper for bilingual content
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
+
   const clamp = (n) => Math.max(0, Math.min(n, suppliers.length - 1));
 
   /* ---------- Scroll listener ---------- */
   useEffect(() => {
     const onScroll = () => {
       if (!sectionRef.current) return;
-
       const rect = sectionRef.current.getBoundingClientRect();
       const sectionTop = rect.top + window.scrollY;
       const scrollY = window.scrollY - sectionTop;
       const vh = window.innerHeight;
-
-      // which slide index we are closest to
       const idx = Math.round(scrollY / vh);
       setIndex(clamp(idx));
     };
@@ -50,20 +70,37 @@ export default function SuppliersSection() {
 
   if (!suppliers.length) return null;
 
+  // ✅ Language toggle (optional)
+  const toggleLanguage = () => {
+    const newLang = activeLang === "en" ? "vi" : "en";
+    setActiveLang(newLang);
+    localStorage.setItem("preferred_lang", newLang);
+    document.body.classList.toggle("vi-mode", newLang === "vi");
+  };
+
   return (
     <section
       ref={sectionRef}
       style={{ height: `${suppliers.length * 100}vh` }}
       className="relative"
     >
+      {/* ✅ Language switch button */}
+      {/* <div className="absolute top-6 right-6 z-30">
+        <button
+          onClick={toggleLanguage}
+          className="px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-sm font-medium text-white backdrop-blur-md transition"
+        >
+          {activeLang === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}
+        </button>
+      </div> */}
+
       <div className="sticky top-0 h-screen overflow-hidden">
-        {/* Backgrounds cross-fade */}
+        {/* ---------- Background Crossfade ---------- */}
         <div className="absolute inset-0">
           {suppliers.map((s, i) => {
             const bg = s.cottonSupplierBg?.trim()
-              ? getFullUrl(s.cottonSupplierBg) // ✅ use new field
+              ? getFullUrl(s.cottonSupplierBg)
               : "/img/cotton/placeholder.jpg";
-
             return (
               <motion.img
                 key={s._id || i}
@@ -78,12 +115,12 @@ export default function SuppliersSection() {
           })}
         </div>
 
-        {/* dim layer */}
+        {/* Overlay */}
         <div className="absolute inset-0 bg-black/60" />
 
-        {/* Content */}
+        {/* ---------- Content ---------- */}
         <div className="relative z-10 mx-auto flex h-full w-full flex-col items-start justify-between gap-8 page-width md:flex-row md:items-center">
-          {/* Left info */}
+          {/* ---------- Left info ---------- */}
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 28 }}
@@ -92,7 +129,7 @@ export default function SuppliersSection() {
             className="mt-24 max-w-2xl md:mt-0"
           >
             <TitleAnimation
-              text={suppliers[index].cottonSupplierTitle?.en || "Supplier"}
+              text={pick(suppliers[index].cottonSupplierTitle) || "Supplier"}
               className="mb-8 text-3xl font-bold tracking-wide text-white md:text-4xl"
               align="left"
               delay={0.05}
@@ -101,10 +138,11 @@ export default function SuppliersSection() {
             />
 
             <div className="mb-4 inline-block rounded-full bg-white/95 px-5 py-2 font-medium text-black shadow">
-              {suppliers[index].cottonSupplierLogoName?.en ||
-                suppliers[index].cottonSupplierTitle?.en}
+              {pick(suppliers[index].cottonSupplierLogoName) ||
+                pick(suppliers[index].cottonSupplierTitle)}
             </div>
 
+            {/* Mobile logo */}
             {suppliers[index].cottonSupplierLogo?.trim() ? (
               <img
                 src={getFullUrl(suppliers[index].cottonSupplierLogo)}
@@ -115,17 +153,20 @@ export default function SuppliersSection() {
 
             <hr className="my-4 w-4/6 border-white/90" />
 
+            {/* Descriptions */}
             {Array.isArray(suppliers[index].cottonSupplierDes) &&
               suppliers[index].cottonSupplierDes.length > 0 && (
                 <ul className="pt-4 list-disc text-base leading-relaxed text-white/90 md:text-lg">
                   {suppliers[index].cottonSupplierDes.map((desc, dIdx) => (
-                    <li className="text-[18px] mb-3" key={dIdx}>{desc.en}</li>
+                    <li className="text-[18px] mb-3" key={dIdx}>
+                      {pick(desc)}
+                    </li>
                   ))}
                 </ul>
               )}
           </motion.div>
 
-          {/* Right logos (desktop) */}
+          {/* ---------- Right logos (desktop) ---------- */}
           <div className="my-auto hidden rounded-lg bg-white/30 p-4 shadow backdrop-blur-md md:flex md:flex-col md:items-end md:gap-4">
             {suppliers.map((s, i) => (
               <button
@@ -148,7 +189,7 @@ export default function SuppliersSection() {
                 {s.cottonSupplierLogo?.trim() ? (
                   <img
                     src={getFullUrl(s.cottonSupplierLogo)}
-                    alt={s.cottonSupplierTitle?.en || "Supplier"}
+                    alt={pick(s.cottonSupplierTitle) || "Supplier"}
                     className="h-16 w-full object-contain"
                   />
                 ) : (
@@ -160,7 +201,7 @@ export default function SuppliersSection() {
             ))}
           </div>
 
-          {/* Mobile dots */}
+          {/* ---------- Mobile dots ---------- */}
           <div className="absolute bottom-4 left-0 right-0 z-10 mx-auto flex justify-center gap-2 md:hidden">
             {suppliers.map((_, i) => (
               <button

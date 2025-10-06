@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Spin } from "antd";
 import { Link } from "react-router-dom";
-import { getMachineCategories } from "../Api/api"; // ✅ use machine categories
+import { getMachineCategories } from "../Api/api";
 import MachineBenifie from "../components/machines/MachinesBenifite";
 import Machines from "../components/machines/Machines";
 import Navbar from "../components/layout/Navbar";
@@ -13,6 +13,29 @@ import OurTeam from "../components/coctoproducts/OurTeam";
 const MachinesMain = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [activeLang, setActiveLang] = useState("en");
+
+  // ✅ Detect current language (from <body> class or localStorage)
+  useEffect(() => {
+    const detectLang = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLang());
+    }
+
+    const observer = new MutationObserver(() => setActiveLang(detectLang()));
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -29,12 +52,16 @@ const MachinesMain = () => {
 
   if (loading) return <Spin />;
 
+  // ✅ Helper for picking translation
+  const pick = (en, vi) => (activeLang === "vi" ? vi || en : en);
+
   return (
     <main>
       <Navbar />
       <Machines />
       <MachineBenifie />
-      <div className="page-width py-3 ">
+
+      <div className="page-width py-3">
         <Row gutter={[16, 16]}>
           {categories.map((cat) => (
             <Col xs={24} md={12} lg={12} key={cat._id}>
@@ -43,7 +70,7 @@ const MachinesMain = () => {
                   {/* Background image */}
                   <img
                     src={`http://localhost:5000${cat.image}`}
-                    alt={cat.name.en}
+                    alt={pick(cat.name.en, cat.name.vi)}
                     className="w-full h-[400px] object-cover transform group-hover:scale-105 transition-transform duration-500"
                   />
 
@@ -71,10 +98,10 @@ const MachinesMain = () => {
                   {/* Bottom text */}
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <h3 className="text-white text-3xl font-semibold">
-                      {cat.name.en}
+                      {pick(cat.name.en, cat.name.vi)}
                     </h3>
                     <p className="text-white/80 text-md font-light">
-                      {cat.description.en}
+                      {pick(cat.description.en, cat.description.vi)}
                     </p>
                   </div>
                 </div>
@@ -83,6 +110,7 @@ const MachinesMain = () => {
           ))}
         </Row>
       </div>
+
       <PartnerSection />
       <OurTeam />
       <Footer />

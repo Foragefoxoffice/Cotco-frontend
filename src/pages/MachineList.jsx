@@ -1,6 +1,5 @@
-// pages/MachineList.jsx
 import React, { useEffect, useState, useRef } from "react";
-import { Spin, Row, Col, Card } from "antd";
+import { Spin, Row, Col } from "antd";
 import { Link, useParams } from "react-router-dom";
 import { FiArrowUpRight } from "react-icons/fi";
 import {
@@ -17,33 +16,50 @@ const MachineList = () => {
   const [machines, setMachines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
   const containerRef = useRef(null);
 
+  // ✅ Detect language dynamically from <body class="vi-mode">
+  useEffect(() => {
+    const detectLanguage = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    setActiveLang(detectLanguage());
+
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Fetch category and machine pages
   useEffect(() => {
     (async () => {
       try {
-        // ✅ Fetch category
         const catRes = await getMachineCategories();
         const cats = catRes.data.data || [];
         const foundCat = cats.find((c) => c.slug === categorySlug);
         setCategory(foundCat || null);
 
-        // ✅ Fetch machine pages for this category
         const machineRes = await getMachinePagesByCategorySlug(categorySlug);
         setMachines(machineRes.data.data || []);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching machine data:", err);
       } finally {
         setLoading(false);
       }
     })();
   }, [categorySlug]);
 
-  // Scroll shrink effect
+  // ✅ Scroll shrink effect
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -54,12 +70,14 @@ const MachineList = () => {
 
   if (loading) return <Spin />;
 
-  // ✅ Dynamic banner from category
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const bannerUrl =
     category?.banner && category.banner.startsWith("/uploads")
       ? `${API_URL}${category.banner}`
       : category?.banner || "/img/default-banner.jpg";
+
+  // ✅ Safe language selector
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
   return (
     <div>
@@ -81,10 +99,8 @@ const MachineList = () => {
           scrolled ? "rounded-2xl" : ""
         }`}
       >
-        {/* Overlay */}
         <div className="absolute inset-0 bg-black/30 z-10" />
 
-        {/* Breadcrumb + Title */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -93,7 +109,7 @@ const MachineList = () => {
         >
           <div className="text-sm opacity-90 mb-2">
             <Link to="/machines" className="hover:underline">
-              Machines
+              {activeLang === "vi" ? "Máy móc" : "Machines"}
             </Link>{" "}
             &gt;{" "}
             <span className="capitalize">
@@ -102,7 +118,7 @@ const MachineList = () => {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-wider">
-            {category?.name?.en || categorySlug.replace(/-/g, " ")}
+            {pick(category?.name) || categorySlug.replace(/-/g, " ")}
           </h1>
         </motion.div>
       </motion.section>
@@ -113,7 +129,7 @@ const MachineList = () => {
           {/* Left side - Description */}
           <Col xs={24} md={14}>
             <p className="text-gray-700 text-lg leading-relaxed">
-              {category?.description?.en}
+              {pick(category?.description)}
             </p>
           </Col>
 
@@ -126,7 +142,7 @@ const MachineList = () => {
                     ? `${API_URL}${category.icon}`
                     : category.icon
                 }
-                alt={category?.name?.en}
+                alt={pick(category?.name)}
                 className="max-h-40 object-contain"
               />
             )}
@@ -139,12 +155,11 @@ const MachineList = () => {
         <Row gutter={[24, 24]}>
           {machines.map((machine) => (
             <Col xs={24} sm={12} md={12} key={machine._id}>
-              {/* ✅ Public detail page, not admin */}
               <Link to={`/machines/${categorySlug}/${machine.slug}`}>
                 <div className="rounded-xl overflow-hidden transition duration-300">
                   {machine.banner && (
                     <img
-                      alt={machine.title?.en}
+                      alt={pick(machine.title)}
                       src={
                         machine.banner.startsWith("/uploads")
                           ? `${API_URL}${machine.banner}`
@@ -156,7 +171,7 @@ const MachineList = () => {
 
                   <div className="flex justify-between items-center bg-[#0D3B66] text-white px-5 py-8 mt-4 rounded-xl">
                     <h3 className="font-semibold uppercase tracking-wide text-sm md:text-base">
-                      {machine.title?.en}
+                      {pick(machine.title)}
                     </h3>
                     <div className="w-9 h-9 flex items-center justify-center border border-white text-white rounded-full transition hover:bg-white hover:text-[#0D3B66]">
                       <FiArrowUpRight size={18} />

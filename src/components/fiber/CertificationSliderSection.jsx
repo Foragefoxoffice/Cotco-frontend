@@ -9,6 +9,7 @@ import { getFiberPage } from "../../Api/api";
 export default function CertificationSliderSection() {
   const [certification, setCertification] = useState(null);
   const [current, setCurrent] = useState(0);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ language state
   const sectionRef = useRef(null);
   const intervalRef = useRef(null);
 
@@ -22,6 +23,32 @@ export default function CertificationSliderSection() {
     return `${API_BASE}${path}`;
   };
 
+  // ✅ Detect and sync global language
+  useEffect(() => {
+    const detectLang = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLang());
+    }
+
+    const observer = new MutationObserver(() => setActiveLang(detectLang()));
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Language helper
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
+
+  // ✅ Fetch certification data
   useEffect(() => {
     getFiberPage().then((res) => {
       if (res.data?.fiberCertification) {
@@ -45,7 +72,7 @@ export default function CertificationSliderSection() {
   };
 
   const startAutoSlide = () => {
-    stopAutoSlide(); // Clear existing
+    stopAutoSlide();
     intervalRef.current = setInterval(() => {
       nextSlide();
     }, 4000);
@@ -55,7 +82,7 @@ export default function CertificationSliderSection() {
     if (intervalRef.current) clearInterval(intervalRef.current);
   };
 
-  // Auto slide control with visibility
+  // Auto slide when visible
   useEffect(() => {
     if (inView) {
       controls.start({ opacity: 1, x: 0 });
@@ -78,7 +105,7 @@ export default function CertificationSliderSection() {
         {/* Left Side */}
         <div className="text-center md:text-left">
           <TitleAnimation
-            text={certification.fiberCertificationTitle?.en || "GROW IN TRUST AND QUALITY"}
+            text={pick(certification.fiberCertificationTitle) || "GROW IN TRUST AND QUALITY"}
             className="heading mb-6 leading-snug text-black"
             align="center"
             mdAlign="left"
@@ -88,14 +115,16 @@ export default function CertificationSliderSection() {
             once={true}
           />
 
-          <a
-            href={certification.fiberCertificationButtonLink || "/products"}
-            className="w-72 mt-6 px-5 py-2 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-xl font-semibold"
-            style={{ fontSize: "20px" }}
-          >
-            {certification.fiberCertificationButtonText?.en || "Explore Certifications"}
-            <FiArrowDownRight />
-          </a>
+          {certification.fiberCertificationButtonText && (
+            <a
+              href={certification.fiberCertificationButtonLink || "/products"}
+              className="w-72 mt-6 px-5 py-2 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-xl font-semibold"
+              style={{ fontSize: "20px" }}
+            >
+              {pick(certification.fiberCertificationButtonText) || "Explore Certifications"}
+              <FiArrowDownRight />
+            </a>
+          )}
         </div>
 
         {/* Right Side - Slider */}
@@ -116,7 +145,11 @@ export default function CertificationSliderSection() {
                   src={getFullUrl(src)}
                   alt={`Certificate ${i + 1}`}
                   className={`absolute certificate-slider-img top-0 left-0 w-[600px] h-[450px] rounded-2xl transition-all duration-700 ease-in-out
-                    ${isActive ? "z-30 scale-100 rotate-0 opacity-100" : "z-10 opacity-40 scale-[0.95]"}
+                    ${
+                      isActive
+                        ? "z-30 scale-100 rotate-0 opacity-100"
+                        : "z-10 opacity-40 scale-[0.95]"
+                    }
                   `}
                   style={{
                     transform: isActive

@@ -5,6 +5,7 @@ import { getFiberPage } from "../../Api/api";
 export default function SupplierSection() {
   const [supplier, setSupplier] = useState(null);
   const [current, setCurrent] = useState(0);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
 
   const API_BASE = import.meta.env.VITE_API_URL;
   const getFullUrl = (path) => {
@@ -12,6 +13,31 @@ export default function SupplierSection() {
     if (path.startsWith("http")) return path;
     return `${API_BASE}${path}`;
   };
+
+  // ✅ Detect language from body or localStorage
+  useEffect(() => {
+    const detectLang = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLang());
+    }
+
+    const observer = new MutationObserver(() => setActiveLang(detectLang()));
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Helper to pick correct language
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
   useEffect(() => {
     getFiberPage().then((res) => {
@@ -37,7 +63,7 @@ export default function SupplierSection() {
         {/* Left Text Content */}
         <div className="md:col-span-2">
           <TitleAnimation
-            text={supplier.fiberSupplierTitle?.en || "SUPPLIER"}
+            text={pick(supplier.fiberSupplierTitle) || "SUPPLIER"}
             className="mb-8 fontbold text-3xl font-extrabold tracking-wide text-white md:text-4xl"
             align="left"
             delay={0.05}
@@ -46,7 +72,7 @@ export default function SupplierSection() {
           />
           <ul className="space-y-3 text-sm md:text-base text-white/90 leading-relaxed">
             {supplier.fiberSupplierDes?.map((d, idx) => (
-              <li key={idx}>• {d.en}</li>
+              <li key={idx}>• {pick(d)}</li>
             ))}
           </ul>
         </div>

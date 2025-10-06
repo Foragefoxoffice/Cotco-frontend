@@ -7,11 +7,38 @@ export default function Machines() {
   const [isMobile, setIsMobile] = useState(false);
   const [bubbleRotation, setBubbleRotation] = useState("-16deg");
   const [scrolled, setScrolled] = useState(false);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
+
   const controls = useAnimation();
   const shadowControls = useAnimation();
   const textControls = useAnimation();
   const ref = useRef(null);
   const isInView = useInView(ref, { threshold: 0.4 });
+
+  // ✅ Detect global language mode
+  useEffect(() => {
+    const detectLang = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLang());
+    }
+
+    const observer = new MutationObserver(() => setActiveLang(detectLang()));
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Helper to switch text language
+  const pick = (en, vi) => (activeLang === "vi" ? vi || en : en);
 
   useEffect(() => {
     const checkIfMobile = () => setIsMobile(window.innerWidth < 768);
@@ -131,11 +158,8 @@ export default function Machines() {
               transition={{ duration: 0.8, delay: 0.1 }}
               className="text-8xl uppercase text-white font-bold cotton-section-heading"
             >
-              Machines
+              {pick("Machines", "Máy Móc")}
             </motion.h1>
-            {/* <p className="text-white text-xl pl-6.5 pt-3 cotton-section-subheading">
-            Empowering Vietnam’s Textile Industry Since 2016
-          </p> */}
           </div>
 
           {/* Desktop Video */}
@@ -145,9 +169,9 @@ export default function Machines() {
             loop
             playsInline
             preload="none"
-        poster="/img/fallback/product.png"
+            poster="/img/fallback/product.png"
             src="/video/products.webm"
-            className="w-full rounded-xl  hidden md:block"
+            className="w-full rounded-xl hidden md:block"
             whileHover={{ scale: 1.01 }}
             transition={{ duration: 0.3 }}
           />
@@ -172,7 +196,7 @@ export default function Machines() {
         </motion.div>
       </motion.div>
 
-      <div className=" mx-auto grid md:grid-cols-2  items-start">
+      <div className="mx-auto grid md:grid-cols-2 items-start">
         {/* Right Column: Image shown first on mobile */}
         <motion.div
           className="flex justify-center items-center order-1 md:order-2 z-10 md:-ml-16"

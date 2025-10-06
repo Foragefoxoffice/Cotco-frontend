@@ -6,17 +6,37 @@ import { getMainBlogCategories } from "../Api/api";
 const HeroSection = () => {
   const [mainCategory, setMainCategory] = useState(null);
   const [scrolled, setScrolled] = useState(false);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
   const containerRef = useRef(null);
   const { mainCategorySlug } = useParams(); // ✅ e.g. /resources/cotton
 
+  // ✅ Detect language dynamically via <body class="vi-mode">
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
+    const detectLanguage = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    setActiveLang(detectLanguage());
+
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Handle scroll scaling
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ✅ Fetch category info
   useEffect(() => {
     const fetchCategory = async () => {
       try {
@@ -30,10 +50,13 @@ const HeroSection = () => {
     fetchCategory();
   }, [mainCategorySlug]);
 
-  // Parallax setup
+  // ✅ Parallax setup
   const { scrollY } = useScroll();
-  const yImage = useTransform(scrollY, [0, 500], [0, 0]); // background moves slower
-  const yTitle = useTransform(scrollY, [0, 300], [0, -50]); // title moves slightly
+  const yImage = useTransform(scrollY, [0, 500], [0, 0]);
+  const yTitle = useTransform(scrollY, [0, 300], [0, -50]);
+
+  // ✅ Language-safe getter
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
   return (
     <motion.div
@@ -57,7 +80,7 @@ const HeroSection = () => {
         className="text-4xl z-20 absolute bottom-24 left-24 text-[#fff] md:text-6xl font-bold tracking-wider uppercase"
         style={{ y: yTitle }}
       >
-        {mainCategory?.name?.en || mainCategory?.name?.vn || "Resources"}
+        {pick(mainCategory?.name) || "Resources"}
       </h3>
       <div className="absolute inset-0 bg-black/20 z-10" />
     </motion.div>

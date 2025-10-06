@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useAnimation, useInView } from "framer-motion";
 import { getCottonPage } from "../../Api/api";
@@ -7,6 +6,7 @@ export default function CottonHero() {
   const [isMobile, setIsMobile] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [bannerData, setBannerData] = useState(null);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ bilingual support
 
   const controls = useAnimation();
   const shadowControls = useAnimation();
@@ -23,6 +23,7 @@ export default function CottonHero() {
     });
   }, []);
 
+  // ✅ Detect screen size + scroll
   useEffect(() => {
     const checkIfMobile = () => setIsMobile(window.innerWidth < 768);
     checkIfMobile();
@@ -36,6 +37,35 @@ export default function CottonHero() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  // ✅ Language Detection + Sync with body + LocalStorage
+  useEffect(() => {
+    const detectLanguage = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLanguage());
+    }
+
+    const observer = new MutationObserver(() => {
+      setActiveLang(detectLanguage());
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Language switcher handler
+  const toggleLanguage = () => {
+    const newLang = activeLang === "en" ? "vi" : "en";
+    setActiveLang(newLang);
+    localStorage.setItem("preferred_lang", newLang);
+    document.body.classList.toggle("vi-mode", newLang === "vi");
+  };
 
   useEffect(() => {
     if (isInView) {
@@ -83,50 +113,64 @@ export default function CottonHero() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
 
-  if (!bannerData) return null
+  if (!bannerData) return null;
 
   const API_BASE = import.meta.env.VITE_API_URL;
-
-
   const getFullUrl = (path) => {
     if (!path) return "";
     if (path.startsWith("http")) return path;
     return `${API_BASE}${path}`;
   };
 
+  // ✅ Helper to get correct language text
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
   const bannerMedia = getFullUrl(bannerData.cottonBannerImg);
   const bannerSlides = (bannerData.cottonBannerSlideImg || []).map(getFullUrl);
 
-  const description = bannerData.cottonBannerDes?.en || "";
-  const title = bannerData.cottonBannerTitle?.en || "";
-  const overview = bannerData.cottonBannerOverview?.en || "";
+  const title = pick(bannerData.cottonBannerTitle);
+  const description = pick(bannerData.cottonBannerDes);
+  const overview = pick(bannerData.cottonBannerOverview);
 
   const isVideo =
     bannerMedia?.endsWith(".mp4") ||
     bannerMedia?.endsWith(".webm") ||
     bannerMedia?.endsWith(".ogg");
 
-  // Split overview into paragraphs
   const overviewParagraphs = overview.split("\n").filter((p) => p.trim() !== "");
 
   return (
     <section className="relative bg-white hero overflow-hidden">
-      {/* Video/Image Section */}
+      {/* ✅ Language Switcher */}
+      <div className="absolute top-6 right-6 z-30">
+        <button
+          onClick={toggleLanguage}
+          className="px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-sm font-medium text-white backdrop-blur-md transition"
+        >
+          {activeLang === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}
+        </button>
+      </div>
+
+      {/* ---------- Media Section ---------- */}
       <motion.div
         initial={{ scale: 1, opacity: 1 }}
         animate={scrolled ? { scale: 0.9, opacity: 0.9 } : { scale: 1, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className={`relative z-10 transition-all duration-500 ease-out ${scrolled ? "rounded-2xl shadow-2xl" : ""
-          }`}
+        className={`relative z-10 transition-all duration-500 ease-out ${
+          scrolled ? "rounded-2xl shadow-2xl" : ""
+        }`}
       >
         <motion.div className="w-full flex justify-center">
           <div className="absolute z-10 bottom-[190px] left-6 md:left-15">
-            <h1 className="text-9xl text-white font-bold cotton-section-heading">{title}</h1>
-            <p className="text-white text-xl pl-6.5 pt-3 cotton-section-subheading">{description}</p>
+            <h1 className="text-6xl md:text-8xl text-white font-bold cotton-section-heading">
+              {title}
+            </h1>
+            <p className="text-white text-xl pl-1 pt-3 cotton-section-subheading">
+              {description}
+            </p>
           </div>
 
-          {/* ✅ Show video if video uploaded, else image */}
+          {/* ✅ Show video if uploaded, else image */}
           {isVideo ? (
             <motion.video
               autoPlay
@@ -135,13 +179,17 @@ export default function CottonHero() {
               playsInline
               preload="none"
               src={bannerMedia}
-              className={`w-full hidden md:block ${scrolled ? "rounded-3xl" : "rounded-none"}`}
+              className={`w-full hidden md:block ${
+                scrolled ? "rounded-3xl" : "rounded-none"
+              }`}
             />
           ) : (
             <motion.img
               src={bannerMedia}
               alt="Cotton Banner"
-              className={`w-full hidden md:block ${scrolled ? "rounded-3xl" : "rounded-none"}`}
+              className={`w-full hidden md:block ${
+                scrolled ? "rounded-3xl" : "rounded-none"
+              }`}
             />
           )}
 
@@ -166,7 +214,7 @@ export default function CottonHero() {
             )}
           </div>
 
-          {/* ✅ Left Static Bubble (first slide if available) */}
+          {/* ✅ Left Bubble */}
           {bannerSlides[0] && (
             <motion.img
               src={bannerSlides[0]}
@@ -179,11 +227,11 @@ export default function CottonHero() {
             />
           )}
 
-          {/* ✅ Right Animated Bubble with Shadow (second slide if available, else reuse first) */}
+          {/* ✅ Right Bubble + Shadow */}
           {(bannerSlides[1] || bannerSlides[0]) && (
             <motion.div
               initial={{ position: "absolute", right: "-200px", top: "70%" }}
-              animate={controls}  // scroll-based animation handles "top: 110%" when in view
+              animate={controls}
               className="hidden md:block"
               style={{ position: "absolute" }}
               whileHover={{ scale: 1.05 }}
@@ -199,12 +247,10 @@ export default function CottonHero() {
               />
             </motion.div>
           )}
-
-
         </motion.div>
       </motion.div>
 
-      {/* ✅ Text Section (CMS Overview paragraphs) */}
+      {/* ✅ Overview Text Section */}
       <div className="page-width md:pt-20 md:pb-30 p-6">
         <div ref={ref} className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto px-4 mt-10 items-center">
           <motion.div initial="hidden" animate={textControls} variants={textVariants}>
@@ -228,4 +274,3 @@ export default function CottonHero() {
     </section>
   );
 }
-
