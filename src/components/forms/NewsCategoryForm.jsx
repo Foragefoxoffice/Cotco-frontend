@@ -2,18 +2,15 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import TranslationTabs from "../TranslationTabs";
 import { slugify } from "../../utils/helpers";
-import {
-  createCategory,
-  updateCategory,
-  getMainBlogCategories,
-} from "../../Api/api";
+import { createCategory, updateCategory, getMainBlogCategories } from "../../Api/api";
 import { CommonToaster } from "../../Common/CommonToaster";
+import "../../assets/css/LanguageTabs.css";
 
 const labels = {
   en: {
     edit: "Edit Category",
-    create: "Create New Category",
-    categoryName: "Category Name",
+    create: "Create Category",
+    name: "Category Name",
     slug: "Slug",
     mainCategory: "Main Category",
     selectMain: "-- Select Main Category --",
@@ -22,17 +19,17 @@ const labels = {
     update: "Update Category",
     save: "Create Category",
     requiredEn: "English name is required",
-    requiredVn: "Vietnamese name is required",
+    requiredVi: "Vietnamese name is required",
     requiredSlug: "Slug is required",
     requiredMain: "Main category is required",
     successCreate: "Category created successfully!",
     successUpdate: "Category updated successfully!",
     fail: "Failed to save category. Try again later.",
   },
-  vn: {
+  vi: {
     edit: "Chỉnh sửa Danh mục",
-    create: "Tạo Danh mục mới",
-    categoryName: "Tên Danh mục",
+    create: "Tạo Danh mục",
+    name: "Tên Danh mục",
     slug: "Đường dẫn",
     mainCategory: "Danh mục chính",
     selectMain: "-- Chọn Danh mục chính --",
@@ -41,7 +38,7 @@ const labels = {
     update: "Cập nhật Danh mục",
     save: "Tạo Danh mục",
     requiredEn: "Tên tiếng Anh là bắt buộc",
-    requiredVn: "Tên tiếng Việt là bắt buộc",
+    requiredVi: "Tên tiếng Việt là bắt buộc",
     requiredSlug: "Đường dẫn là bắt buộc",
     requiredMain: "Danh mục chính là bắt buộc",
     successCreate: "Tạo danh mục thành công!",
@@ -51,19 +48,20 @@ const labels = {
 };
 
 const NewsCategoryForm = ({ category, onClose, onSave }) => {
+  const [showDropdown, setShowDropdown] = useState(false);
   const [activeLanguage, setActiveLanguage] = useState("en");
   const [formData, setFormData] = useState({
-    name: category?.name || { en: "", vn: "" },
+    name: category?.name || { en: "", vi: "" },
     slug: category?.slug || "",
     mainCategory: category?.mainCategory?._id || "",
   });
+
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [mainCategories, setMainCategories] = useState([]);
-
   const isCreating = !category;
 
-  // ✅ Auto-generate slug
+  // ✅ Auto-generate slug when creating
   useEffect(() => {
     if (isCreating && formData.name.en) {
       setFormData((prev) => ({ ...prev, slug: slugify(prev.name.en) }));
@@ -83,16 +81,20 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
     fetchMainCats();
   }, []);
 
+  // ✅ Validation
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.en?.trim()) newErrors["name-en"] = labels.en.requiredEn;
-    if (!formData.name.vn?.trim()) newErrors["name-vn"] = labels.vn.requiredVn;
-    if (!formData.slug?.trim()) newErrors.slug = labels[activeLanguage].requiredSlug;
-    if (!formData.mainCategory) newErrors.mainCategory = labels[activeLanguage].requiredMain;
+    if (!formData.name.vi?.trim()) newErrors["name-vi"] = labels.en.requiredVi;
+    if (!formData.slug?.trim())
+      newErrors.slug = labels[activeLanguage].requiredSlug;
+    if (!formData.mainCategory)
+      newErrors.mainCategory = labels[activeLanguage].requiredMain;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isLoading) return;
@@ -101,6 +103,7 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
     setIsLoading(true);
     try {
       let savedCategory;
+
       if (isCreating) {
         const res = await createCategory(formData);
         savedCategory = res.data.data || res.data;
@@ -110,13 +113,15 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
         savedCategory = res.data.data || res.data;
         CommonToaster(labels[activeLanguage].successUpdate, "success");
       }
+
       if (onSave) onSave(savedCategory);
     } catch (error) {
-      console.error("Category save error:", error.response || error);
+      console.error("Category save error:", error);
       setErrors({
         submit:
           error.response?.data?.error ||
           error.response?.data?.message ||
+          error.message ||
           labels[activeLanguage].fail,
       });
     } finally {
@@ -124,7 +129,7 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
     }
   };
 
-  // ✅ Unified dark input style
+  // ✅ Input styles
   const darkInputStyle = {
     backgroundColor: "#262626",
     border: "1px solid #2E2F2F",
@@ -136,21 +141,16 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
     transition: "all 0.3s ease",
   };
 
-  const labelClasses = "block text-sm font-medium text-gray-300";
+  const labelClasses = "block text-md font-medium text-gray-300 mb-2";
 
   return (
     <div className="p-6 bg-[#171717] rounded-lg">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-white">
-          {category
-            ? labels[activeLanguage].edit
-            : labels[activeLanguage].create}
-        </h2>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-200 transition"
-        >
+        <h3 className="text-2xl font-semibold text-white">
+          {category ? labels[activeLanguage].edit : labels[activeLanguage].create}
+        </h3>
+        <button onClick={onClose} className="text-gray-400 !bg-red-600 transition rounded-full p-1 cursor-pointer">
           <X size={24} />
         </button>
       </div>
@@ -162,54 +162,54 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
       />
 
       {/* Form */}
-      <form
-        onSubmit={handleSubmit}
-        className="mt-6 space-y-6"
-        onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
-      >
-        {/* Name EN */}
-        <div>
-          <label className={labelClasses}>{labels.en.categoryName} (EN)</label>
-          <input
-            type="text"
-            style={darkInputStyle}
-            value={formData.name.en}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                name: { ...prev.name, en: e.target.value },
-              }))
-            }
-            required
-          />
-          {errors["name-en"] && (
-            <p className="text-red-500 text-sm mt-1">{errors["name-en"]}</p>
-          )}
-        </div>
+      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+        {/* English Field */}
+        {activeLanguage === "en" && (
+          <div>
+            <label className={labelClasses}>{labels.en.name}<span className="text-red-500 text-lg">*</span></label>
+            <input
+              type="text"
+              style={darkInputStyle}
+              value={formData.name.en}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  name: { ...prev.name, en: e.target.value },
+                }))
+              }
+              required
+            />
+            {errors["name-en"] && (
+              <p className="text-red-500 text-sm mt-1">{errors["name-en"]}</p>
+            )}
+          </div>
+        )}
 
-        {/* Name VN */}
-        <div>
-          <label className={labelClasses}>{labels.vn.categoryName} (VN)</label>
-          <input
-            type="text"
-            style={darkInputStyle}
-            value={formData.name.vn}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                name: { ...prev.name, vn: e.target.value },
-              }))
-            }
-            required
-          />
-          {errors["name-vn"] && (
-            <p className="text-red-500 text-sm mt-1">{errors["name-vn"]}</p>
-          )}
-        </div>
+        {/* Vietnamese Field */}
+        {activeLanguage === "vi" && (
+          <div>
+            <label className={labelClasses}>{labels.vi.name}<span className="text-red-500 text-lg">*</span></label>
+            <input
+              type="text"
+              style={darkInputStyle}
+              value={formData.name.vi}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  name: { ...prev.name, vi: e.target.value },
+                }))
+              }
+              required
+            />
+            {errors["name-vi"] && (
+              <p className="text-red-500 text-sm mt-1">{errors["name-vi"]}</p>
+            )}
+          </div>
+        )}
 
         {/* Slug */}
         <div>
-          <label className={labelClasses}>{labels[activeLanguage].slug}</label>
+          <label className={labelClasses}>{labels[activeLanguage].slug} <span className="text-red-500 text-lg">*</span></label>
           <input
             type="text"
             style={darkInputStyle}
@@ -219,58 +219,112 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
             }
             required
           />
-          {errors.slug && (
-            <p className="text-red-500 text-sm mt-1">{errors.slug}</p>
-          )}
+          {errors.slug && <p className="text-red-500 text-sm mt-1">{errors.slug}</p>}
         </div>
 
         {/* Main Category */}
-        <div>
-          <label className={labelClasses}>
-            {labels[activeLanguage].mainCategory}
-          </label>
-          <select
-            style={darkInputStyle}
-            value={formData.mainCategory}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                mainCategory: e.target.value,
-              }))
-            }
-          >
-            <option value="">{labels[activeLanguage].selectMain}</option>
-            {mainCategories.map((mc) => (
-              <option key={mc._id} value={mc._id}>
-                {mc.name[activeLanguage] || mc.name.en}
-              </option>
-            ))}
-          </select>
-          {errors.mainCategory && (
-            <p className="text-red-500 text-sm mt-1">{errors.mainCategory}</p>
-          )}
-        </div>
+       {/* Main Category */}
+<div>
+  <label className={labelClasses}>
+    {labels[activeLanguage].mainCategory}<span className="text-red-500 text-lg">*</span>
+  </label>
 
-        {/* Submit error */}
+  {/* Custom Floating Dropdown */}
+  <div className="relative mt-2">
+    <button
+      type="button"
+      onClick={() => setShowDropdown((prev) => !prev)}
+      className="flex items-center justify-between w-full px-4 py-3 text-sm rounded-lg bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 focus:border-[#3A3A3A] transition-all cursor-pointer"
+    >
+      {formData.mainCategory
+        ? mainCategories.find((mc) => mc._id === formData.mainCategory)?.name[activeLanguage] ||
+          mainCategories.find((mc) => mc._id === formData.mainCategory)?.name.en
+        : labels[activeLanguage].selectMain}
+
+      <svg
+        className={`ml-2 w-4 h-4 transform transition-transform ${
+          showDropdown ? "rotate-180" : ""
+        }`}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+
+    {showDropdown && (
+      <div
+        className="absolute left-0 mt-2 w-full rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-20 animate-fadeIn"
+        style={{ animation: "fadeIn 0.15s ease-in-out" }}
+      >
+        <p className="px-4 pt-2 text-gray-400 text-xs">
+          {labels[activeLanguage].mainCategory}
+        </p>
+
+        {mainCategories.length > 0 ? (
+          mainCategories.map((mc) => (
+            <button
+              key={mc._id}
+              onClick={() => {
+                setFormData((prev) => ({
+                  ...prev,
+                  mainCategory: mc._id,
+                }));
+                setShowDropdown(false);
+              }}
+              className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
+                formData.mainCategory === mc._id
+                  ? "bg-[#2E2F2F] text-white rounded-lg"
+                  : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+              }`}
+            >
+              {mc.name[activeLanguage] || mc.name.en}
+            </button>
+          ))
+        ) : (
+          <p className="px-4 py-2 text-gray-400 text-sm">
+            No main categories found
+          </p>
+        )}
+
+        <div className="pb-2" />
+      </div>
+    )}
+  </div>
+
+  {errors.mainCategory && (
+    <p className="text-red-500 text-sm mt-1">{errors.mainCategory}</p>
+  )}
+</div>
+
+
+        {/* Submit Error */}
         {errors.submit && (
-          <div className="bg-red-900 p-3 rounded text-red-200 text-sm">
+          <div className="bg-red-900/80 text-red-100 text-sm p-3 rounded-lg mb-4 border border-red-800">
             {errors.submit}
           </div>
         )}
 
         {/* Buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-[#2E2F2F]">
+        <div className="flex justify-end gap-4 border-t border-[#2E2F2F] pt-6">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-[#2E2F2F] rounded-md text-gray-300 hover:bg-[#2E2F2F] transition"
+            className="cursor-pointer px-8 py-3 rounded-full bg-[#1F1F1F] text-white font-medium border border-[#2E2F2F] hover:bg-[#2A2A2A] hover:border-[#3A3A3A] transition-all duration-300"
           >
             {labels[activeLanguage].cancel}
           </button>
+
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 bg-[#0085C8] text-white rounded-md hover:bg-blue-700 transition disabled:opacity-70"
+            className={`px-8 py-3 rounded-full font-medium text-white transition-all duration-300 cursor-pointer ${
+              isLoading
+                ? "bg-[#0085C8]/70 cursor-not-allowed"
+                : "bg-[#0085C8] hover:bg-[#009FE3]"
+            }`}
           >
             {isLoading
               ? labels[activeLanguage].saving

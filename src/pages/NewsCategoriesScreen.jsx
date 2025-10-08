@@ -13,8 +13,9 @@ const NewsCategoriesScreen = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [categoriesPerPage] = useState(8);
-  const [sortOption, setSortOption] = useState("newest");
+  const [sortOption, setSortOption] = useState("oldest");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // ✅ Detect language (EN/VN)
   useEffect(() => {
@@ -93,15 +94,26 @@ const NewsCategoriesScreen = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm(t.deleteConfirm)) return;
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+
+  const confirmDelete = (id) => {
+    setDeleteId(id);
+    setShowConfirm(true);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!deleteId) return;
     try {
-      await deleteCategory(id);
+      await deleteCategory(deleteId);
       CommonToaster(t.deleteSuccess, "success");
       fetchCategories();
     } catch (err) {
       console.error("Delete error:", err);
       CommonToaster(t.deleteFail, "error");
+    } finally {
+      setShowConfirm(false);
+      setDeleteId(null);
     }
   };
 
@@ -117,13 +129,19 @@ const NewsCategoriesScreen = () => {
 
   // 🔹 Filter + Sort
   const filteredCategories = categories.filter((cat) => {
-    const name = isVietnamese ? cat.name?.vn || cat.name?.en : cat.name?.en;
-    return name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const name = isVietnamese ? cat.name?.vi || cat.name?.en : cat.name?.en;
+    if (!name) return false;
+
+    // 🧹 Exclude Common / Chung category
+    const lowerName = name.toLowerCase();
+    if (lowerName === "common" || lowerName === "chung") return false;
+
+    return lowerName.includes(searchQuery.toLowerCase());
   });
 
   const sortedCategories = [...filteredCategories].sort((a, b) => {
-    const nameA = isVietnamese ? a.name?.vn || a.name?.en : a.name?.en;
-    const nameB = isVietnamese ? b.name?.vn || b.name?.en : b.name?.en;
+    const nameA = isVietnamese ? a.name?.vi || a.name?.en : a.name?.en;
+    const nameB = isVietnamese ? b.name?.vi || b.name?.en : b.name?.en;
     if (sortOption === "az") return nameA.localeCompare(nameB);
     if (sortOption === "za") return nameB.localeCompare(nameA);
     if (sortOption === "newest")
@@ -150,7 +168,7 @@ const NewsCategoriesScreen = () => {
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative">
             <Search
-              className="absolute left-3 top-2.5 text-gray-400"
+              className="absolute left-3 top-3.5 text-gray-400"
               size={18}
             />
             <input
@@ -173,27 +191,72 @@ const NewsCategoriesScreen = () => {
             />
           </div>
 
-          <select
-            style={{
-              backgroundColor: "#1F1F1F",
-              border: "1px solid #2E2F2F",
-            }}
-            value={sortOption}
-            onChange={(e) => {
-              setSortOption(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-4 py-3 text-sm border border-gray-600 bg-[#1F1F1F] text-white rounded-full focus:outline-none transition-all cursor-pointer"
-          >
-            <option value="newest">{t.newest}</option>
-            <option value="oldest">{t.oldest}</option>
-            <option value="az">{t.az}</option>
-            <option value="za">{t.za}</option>
-          </select>
+          {/* Custom Floating Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowDropdown((prev) => !prev)}
+              className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 focus:border-[#3A3A3A] transition-all cursor-pointer"
+            >
+              {sortOption === "oldest"
+                ? t.oldest
+                : sortOption === "newest"
+                ? t.newest
+                : sortOption === "az"
+                ? t.az
+                : t.za}
+              <svg
+                className={`ml-2 w-4 h-4 transform transition-transform ${
+                  showDropdown ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {showDropdown && (
+              <div
+                className="absolute right-0 mt-2 w-48 rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-20 animate-fadeIn cursor-pointer"
+                style={{ animation: "fadeIn 0.15s ease-in-out" }}
+              >
+                <p className="px-4 pt-2 text-gray-400 text-xs">{t.sortBy}</p>
+                {[
+                  { value: "oldest", label: t.oldest },
+                  { value: "newest", label: t.newest },
+                  { value: "az", label: t.az },
+                  { value: "za", label: t.za },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setSortOption(option.value);
+                      setShowDropdown(false);
+                      setCurrentPage(1);
+                    }}
+                    className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
+                      sortOption === option.value
+                        ? "bg-[#2E2F2F] text-white rounded-lg"
+                        : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+                <div className="pb-2" />
+              </div>
+            )}
+          </div>
 
           <button
             onClick={handleCreate}
-            className="px-4 py-3 rounded-full flex items-center bg-[#0085C8] hover:bg-blue-600 transition"
+            className="px-4 py-3 rounded-full flex items-center bg-[#0085C8] hover:bg-blue-600 transition cursor-pointer"
           >
             <Plus size={18} className="mr-1" />
             {t.create}
@@ -209,20 +272,21 @@ const NewsCategoriesScreen = () => {
           <table className="min-w-full divide-y divide-[#2E2F2F]">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#fff]">
+                <th className="px-6 py-3 text-left text-md uppercase font-medium text-[#fff]">
                   {t.sno}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#fff]">
+                <th className="px-6 py-3 text-left text-md uppercase font-medium text-[#fff]">
                   {t.name}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#fff]">
+                <th className="px-6 py-3 text-left text-md uppercase font-medium text-[#fff]">
                   {t.parent}
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-[#fff] uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-md font-medium text-[#fff] uppercase tracking-wider">
                   {t.actions}
                 </th>
               </tr>
             </thead>
+
             <tbody>
               {currentCategories.length === 0 ? (
                 <tr>
@@ -239,19 +303,25 @@ const NewsCategoriesScreen = () => {
                     <td className="px-6 py-4 text-sm text-gray-400">
                       {(indexOfFirst + index + 1).toString().padStart(2, "0")}
                     </td>
+
+                    {/* ✅ Category Name with dynamic language */}
                     <td className="px-6 py-4 text-sm font-medium text-white">
                       {isVietnamese
-                        ? category.name?.vn || category.name?.en
+                        ? category.name?.vi || category.name?.en
                         : category.name?.en}
                     </td>
+
+                    {/* ✅ Parent Main Category Name with dynamic language */}
                     <td className="px-6 py-4 text-sm text-gray-300">
                       {category.mainCategory
                         ? isVietnamese
-                          ? category.mainCategory.name?.vn ||
+                          ? category.mainCategory.name?.vi ||
                             category.mainCategory.name?.en
                           : category.mainCategory.name?.en
                         : "-"}
                     </td>
+
+                    {/* ✅ Actions */}
                     <td className="px-6 py-4 text-sm font-medium text-right">
                       <div className="flex justify-end space-x-2">
                         <button
@@ -262,14 +332,36 @@ const NewsCategoriesScreen = () => {
                           <Pencil size={18} />
                         </button>
                         <button
-                          style={{
-                            color: "red",
-                          }}
-                          onClick={() => handleDelete(category._id)}
-                          className="text-red-500 hover:opacity-80 p-1 transition cursor-pointer"
+                          onClick={() => confirmDelete(category._id)}
+                          className="!text-red-500 hover:opacity-80 p-1 transition cursor-pointer"
+                          title={t.delete}
                         >
                           <Trash2 size={18} />
                         </button>
+                        {showConfirm && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-[#1f1f1f85] border border-[#2E2F2F] rounded-2xl p-6 w-full max-w-sm text-left shadow-xl animate-fadeIn">
+      <h3 className="text-lg font-semibold text-white mb-3">
+        {t.deleteConfirm}
+      </h3>
+      <div className="flex justify-end gap-4 mt-4">
+        <button
+          onClick={handleDeleteConfirmed}
+          className="px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white transition cursor-pointer"
+        >
+          {isVietnamese ? "Xóa" : "Delete"}
+        </button>
+        <button
+          onClick={() => setShowConfirm(false)}
+          className="px-5 py-2 rounded-full bg-gray-600 hover:bg-gray-700 text-white transition cursor-pointer"
+        >
+          {isVietnamese ? "Hủy" : "Cancel"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
                       </div>
                     </td>
                   </tr>

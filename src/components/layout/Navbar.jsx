@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { FiArrowDownRight, FiChevronDown } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +25,9 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState(null);
+
+  const [isResourcesOpen, setIsResourcesOpen] = useState(false);
+  const resourcesRef = useRef(null);
 
   // ✅ Dynamic data
   const [headerLogo, setHeaderLogo] = useState("");
@@ -66,6 +69,17 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
+  // ✅ Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (resourcesRef.current && !resourcesRef.current.contains(e.target)) {
+        setIsResourcesOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const toggleMenu = () => setIsOpen((s) => !s);
 
   const navClasses = `top-0 left-0 w-full z-50 transition-all duration-300 ${
@@ -97,7 +111,7 @@ const Navbar = () => {
     <>
       {/* ---------- NAVBAR ---------- */}
       <nav className={navClasses}>
-        <div className="mx-auto px-6 md:px-20 py-4 flex justify-between items-center">
+        <div className="mx-auto px-6 md:px-20 py-4 flex justify-between items-center relative z-50">
           {/* ✅ Logo */}
           <div className="flex items-center gap-2 font-bold text-xl text-blue-700">
             <Link to="/">
@@ -131,41 +145,59 @@ const Navbar = () => {
                         {label}
                       </Link>
 
-                      {/* ✅ Resources Dropdown */}
-                      <div className="relative group">
+                      {/* ✅ Resources Dropdown (Fixed hover cut) */}
+                      <div
+                        ref={resourcesRef}
+                        className="relative"
+                        onMouseEnter={() => setIsResourcesOpen(true)}
+                        onMouseLeave={() => setIsResourcesOpen(false)}
+                      >
                         <button
-                          style={{
-                            color: "#fff",
-                          }}
+                          style={{ color: "#fff" }}
                           className={
                             getLinkClass("#") +
-                            " flex items-center gap-1 cursor-pointer"
+                            " flex items-center gap-1 cursor-pointer select-none"
                           }
                         >
                           Resources
-                          <FiChevronDown className="transition-transform group-hover:rotate-180" />
+                          <FiChevronDown
+                            className={`transition-transform duration-300 ${
+                              isResourcesOpen ? "rotate-180" : ""
+                            }`}
+                          />
                         </button>
-                        <div className="absolute left-0 mt-2 hidden group-hover:block bg-white text-black rounded shadow-lg py-2 min-w-[200px]">
-                          {loadingCats ? (
-                            <span className="block px-4 py-2 text-gray-500">
-                              Loading...
-                            </span>
-                          ) : mainCategories.length > 0 ? (
-                            mainCategories.map((mc) => (
-                              <Link
-                                key={mc._id}
-                                to={`/${mc.slug}`}
-                                className="block px-4 py-2 hover:bg-gray-100"
-                              >
-                                {mc.name?.en || "Untitled"}
-                              </Link>
-                            ))
-                          ) : (
-                            <span className="block px-4 py-2 text-gray-400">
-                              No Categories
-                            </span>
+
+                        <AnimatePresence>
+                          {isResourcesOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -5 }}
+                              transition={{ duration: 0.2 }}
+                              className="absolute left-0 mt-2 bg-white text-black rounded shadow-lg py-2 min-w-[220px] z-[100]"
+                            >
+                              {loadingCats ? (
+                                <span className="block px-4 py-2 text-gray-500">
+                                  Loading...
+                                </span>
+                              ) : mainCategories.length > 0 ? (
+                                mainCategories.map((mc) => (
+                                  <Link
+                                    key={mc._id}
+                                    to={`/${mc.slug}`}
+                                    className="block px-4 py-2 hover:bg-gray-100 transition"
+                                  >
+                                    {mc.name?.en || "Untitled"}
+                                  </Link>
+                                ))
+                              ) : (
+                                <span className="block px-4 py-2 text-gray-400">
+                                  No Categories
+                                </span>
+                              )}
+                            </motion.div>
                           )}
-                        </div>
+                        </AnimatePresence>
                       </div>
                     </div>
                   );
@@ -176,7 +208,7 @@ const Navbar = () => {
                   return (
                     <Link
                       style={{
-                        padding:"15px 10px"
+                        padding: "15px 10px",
                       }}
                       key={label}
                       to={href}
@@ -201,18 +233,14 @@ const Navbar = () => {
 
           {/* ---------- MOBILE: LANG + MENU TOGGLE ---------- */}
           <div className="flex items-center gap-4 md:hidden">
-            {/* 🔹 Language Toggle */}
-            <div className="translate-toggle-mobile">
-              <TranslateToggle />
-            </div>
+            <TranslateToggle />
 
-            {/* 🔹 Hamburger Button */}
             <button
               style={{
                 color: "#fff",
                 fontSize: "28px",
               }}
-              className="text-3xl cursor-pointer z-[60] text-white"
+              className="cursor-pointer z-[60]"
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >
@@ -220,11 +248,6 @@ const Navbar = () => {
             </button>
           </div>
         </div>
-
-        {/* ✅ Google Translate widget */}
-        {/* <GoogleTranslate
-          defaultLang={localStorage.getItem("preferred_lang") || "en"}
-        /> */}
       </nav>
 
       {/* ---------- MOBILE MENU ---------- */}
@@ -238,9 +261,8 @@ const Navbar = () => {
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
             <button
-              className="absolute top-6 right-6 text-[#0A1C2E] text-3xl focus:outline-none"
+              className="absolute top-6 right-6 text-[#0A1C2E] text-3xl"
               onClick={toggleMenu}
-              aria-label="Close menu"
             >
               <FaTimes />
             </button>

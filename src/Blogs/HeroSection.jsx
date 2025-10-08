@@ -77,7 +77,7 @@ const HeroSection = () => {
       }`}
     >
       <h3
-        className="text-4xl z-20 absolute bottom-24 left-24 text-[#fff] md:text-6xl font-bold tracking-wider uppercase"
+        className=" !text-[100px] max-md:!text-6xl z-20 absolute bottom-24 left-24 text-[#fff]  !font-[700] tracking-wider uppercase"
         style={{ y: yTitle }}
       >
         {pick(mainCategory?.name) || "Resources"}

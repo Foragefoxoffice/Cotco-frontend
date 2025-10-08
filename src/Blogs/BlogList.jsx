@@ -3,19 +3,44 @@ import { getBlogs, getCategories, getMainBlogCategories } from "../Api/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FiChevronRight } from "react-icons/fi";
+import { useLocation } from "react-router-dom"; // ✅ Add this import at top
+
 
 export default function BlogLists() {
   const navigate = useNavigate();
   const { mainCategorySlug } = useParams();
 
-  const [language, setLanguage] = useState("en"); // ✅ inline language state
+  const [language, setLanguage] = useState("en");
   const [blogs, setBlogs] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
   const [activeCategoryName, setActiveCategoryName] = useState("All");
+  const [recentBlogs, setRecentBlogs] = useState([]);
 
-  // ✅ detect language mode directly from body
+    const location = useLocation(); // ✅ Get current URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categorySlug = params.get("category");
+
+    if (categorySlug && categories.length > 0) {
+      const matched = categories.find(
+        (c) =>
+          c.slug === categorySlug ||
+          c.name?.en?.toLowerCase().replace(/\s+/g, "-") === categorySlug
+      );
+
+      if (matched) {
+        setSelectedCategory(String(matched._id));
+        setActiveCategoryName(
+          matched.name?.[language] || matched.name?.en || matched.name
+        );
+      }
+    }
+  }, [location.search, categories, language]);
+
+
+  // ✅ Detect language mode
   useEffect(() => {
     const detectLanguage = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
@@ -25,10 +50,15 @@ export default function BlogLists() {
       setLanguage(detectLanguage());
     });
 
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
     return () => observer.disconnect();
   }, []);
 
+  // ✅ Fetch blogs for current main category
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -39,38 +69,56 @@ export default function BlogLists() {
         if (!mainCategory) return setLoading(false);
 
         const catRes = await getCategories();
-        const matchedCategories = catRes.data.data.filter(
-          (cat) => cat.mainCategory?._id === mainCategory._id
-        );
-
         const blogRes = await getBlogs();
-        const formatted = blogRes.data.data
-          .filter((b) => b.status === "published")
-          .map((b) => ({
-            id: b._id,
-            title: b.title?.[language] || b.title?.en || b.title?.vi || "Untitled Blog",
-            desc:
-              (b.excerpt?.[language] ||
-                b.excerpt?.en ||
-                b.description?.[language] ||
-                b.description?.en ||
-                "").slice(0, 250) + "...",
-            img: b.coverImage?.url || "/img/blog/blog-img.png",
-            slug: b.slug,
-            publishedAt: b.publishedAt || b.createdAt,
-            categoryId: b.category?._id || b.category,
-            categoryName:
-              b.category?.name?.[language] ||
-              b.category?.name?.en ||
-              b.category?.name?.vi ||
-              "General",
-          }));
+        const allBlogs = blogRes.data.data || [];
 
-        const sorted = formatted.sort(
-          (a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)
+        // ✅ Filter blogs only for this main category
+        const filteredBlogs = allBlogs.filter(
+          (b) =>
+            b.status === "published" &&
+            b.mainCategory?._id === mainCategory._id
         );
 
-        setBlogs(sorted);
+        // ✅ Collect category IDs that have blogs
+        const blogCategoryIds = new Set(
+          filteredBlogs.map((b) => String(b.category?._id || b.category))
+        );
+
+        // ✅ Match categories belonging to this main category
+        const matchedCategories = catRes.data.data.filter(
+          (cat) =>
+            cat.mainCategory?._id === mainCategory._id &&
+            blogCategoryIds.has(String(cat._id))
+        );
+
+        // ✅ Format blogs for UI
+        const formatted = filteredBlogs.map((b) => ({
+          id: b._id,
+          title:
+            b.title?.[language] ||
+            b.title?.en ||
+            b.title?.vi ||
+            "Untitled Blog",
+          desc:
+            (
+              b.excerpt?.[language] ||
+              b.excerpt?.en ||
+              b.description?.[language] ||
+              b.description?.en ||
+              ""
+            ).slice(0, 250) + "...",
+          img: b.coverImage?.url || "/img/blog/blog-img.png",
+          slug: b.slug,
+          publishedAt: b.publishedAt || b.createdAt,
+          categoryId: String(b.category?._id || b.category),
+          categoryName:
+            b.category?.name?.[language] ||
+            b.category?.name?.en ||
+            b.category?.name?.vi ||
+            "General",
+        }));
+
+        setBlogs(formatted);
         setCategories(matchedCategories);
       } catch (err) {
         console.error("Error loading blogs:", err);
@@ -80,7 +128,40 @@ export default function BlogLists() {
     };
 
     fetchData();
-  }, [mainCategorySlug, language]); // ✅ reload when language changes
+  }, [mainCategorySlug, language]);
+
+  // ✅ Fetch recent blogs from ALL main categories
+  useEffect(() => {
+    const fetchRecent = async () => {
+      try {
+        const res = await getBlogs();
+        const allBlogs = res.data.data || [];
+        const published = allBlogs
+          .filter((b) => b.status === "published")
+          .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
+          .slice(0, 6);
+
+        const formattedRecent = published.map((b) => ({
+          id: b._id,
+          title:
+            b.title?.[language] ||
+            b.title?.en ||
+            b.title?.vi ||
+            "Untitled Blog",
+          img: b.coverImage?.url || "/img/blog/blog-img.png",
+          slug: b.slug,
+          mainCategorySlug: b.mainCategory?.slug || "blog",
+          publishedAt: b.publishedAt || b.createdAt,
+        }));
+
+        setRecentBlogs(formattedRecent);
+      } catch (err) {
+        console.error("Error fetching recent blogs:", err);
+      }
+    };
+
+    fetchRecent();
+  }, [language]);
 
   const handleCategoryChange = (catId, name) => {
     setSelectedCategory(catId);
@@ -94,16 +175,16 @@ export default function BlogLists() {
       </p>
     );
 
-  const sortedBlogs = [...blogs].sort(
-    (a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)
-  );
+  // ✅ Ensure IDs are compared as strings
   const filteredBlogs =
     selectedCategory === "all"
-      ? sortedBlogs
-      : sortedBlogs.filter((b) => b.categoryId === selectedCategory);
+      ? blogs
+      : blogs.filter(
+          (b) => String(b.categoryId) === String(selectedCategory)
+        );
 
-  const featuredBlog = sortedBlogs[0];
-  const remainingBlogs = filteredBlogs.filter((b) => b.id !== featuredBlog.id);
+  const featuredBlog = filteredBlogs[0];
+  const remainingBlogs = filteredBlogs.slice(1);
   const nextThree = remainingBlogs.slice(0, 3);
   const remaining = remainingBlogs.slice(3);
 
@@ -132,12 +213,12 @@ export default function BlogLists() {
               key={cat._id}
               onClick={() =>
                 handleCategoryChange(
-                  cat._id,
+                  String(cat._id),
                   cat.name?.[language] || cat.name?.en || cat.name
                 )
               }
               className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                selectedCategory === cat._id
+                selectedCategory === String(cat._id)
                   ? "!bg-[#164B8B] !text-white shadow"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
@@ -168,16 +249,13 @@ export default function BlogLists() {
               </div>
 
               <div className="flex-1">
-                <h2
-                  style={{ fontSize: "18px" }}
-                  className="text-lg font-bold mb-2 hover:text-[#164B8B] transition"
-                >
+                <h2 style={{fontSize:"20px"}} className="text-sm font-bold mb-2 hover:text-[#164B8B] transition">
                   {featuredBlog.title}
                 </h2>
                 <p className="text-gray-500 text-sm mb-3">
                   {new Date(featuredBlog.publishedAt).toLocaleDateString()}
                 </p>
-                <p className="text-gray-700 text-sm md:text-[15px] leading-6 mb-4">
+                <p className="text-gray-700 text-sm leading-6 mb-4">
                   {featuredBlog.desc}
                 </p>
                 <button
@@ -192,6 +270,7 @@ export default function BlogLists() {
             </div>
           )}
 
+          {/* ---------- Next Three ---------- */}
           {nextThree.length > 0 && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10 pb-8 border-b border-[#cecece]">
               {nextThree.map((b) => (
@@ -219,6 +298,7 @@ export default function BlogLists() {
             </div>
           )}
 
+          {/* ---------- Remaining Blogs ---------- */}
           {remaining.length > 0 && (
             <div className="space-y-8">
               {remaining.map((b) => (
@@ -251,13 +331,14 @@ export default function BlogLists() {
 
         {/* ---------- RIGHT SIDEBAR ---------- */}
         <aside className="hidden lg:block space-y-6">
+          {/* ✅ Category Buttons */}
           <div className="bg-[#F9FAFB] rounded-lg border border-black/5 p-4">
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => handleCategoryChange("all", "All")}
                 className={`relative text-left px-4 py-2 rounded-md border font-medium transition-all duration-200 ${
                   selectedCategory === "all"
-                    ? "bg-[#164B8B] !text-white border-[#164B8B] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-[#164B8B] before:rounded-l-md"
+                    ? "bg-[#164B8B] !text-white border-[#164B8B]"
                     : "text-gray-800 hover:bg-gray-100 border-gray-200"
                 }`}
               >
@@ -269,13 +350,13 @@ export default function BlogLists() {
                   key={cat._id}
                   onClick={() =>
                     handleCategoryChange(
-                      cat._id,
+                      String(cat._id),
                       cat.name?.[language] || cat.name?.en || cat.name
                     )
                   }
                   className={`relative text-left px-4 py-2 rounded-md border font-medium transition-all duration-200 ${
-                    selectedCategory === cat._id
-                      ? "bg-[#164B8B] !text-white border-[#164B8B] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-[#164B8B] before:rounded-l-md"
+                    selectedCategory === String(cat._id)
+                      ? "bg-[#164B8B] !text-white border-[#164B8B]"
                       : "text-gray-800 hover:bg-gray-100 border-gray-200"
                   }`}
                 >
@@ -285,16 +366,17 @@ export default function BlogLists() {
             </div>
           </div>
 
+          {/* ✅ Recent Blogs from ALL main categories */}
           <div>
             <h4 className="text-[#164B8B] font-bold uppercase text-lg mb-3">
               Recent
             </h4>
             <div className="space-y-3">
-              {blogs.slice(0, 3).map((b) => (
+              {recentBlogs.map((b) => (
                 <div
                   key={b.id}
                   className="flex gap-3 cursor-pointer border-b border-black/10 pb-3"
-                  onClick={() => navigate(`/${mainCategorySlug}/${b.slug}`)}
+                  onClick={() => navigate(`/${b.mainCategorySlug}/${b.slug}`)}
                 >
                   <img
                     src={b.img}

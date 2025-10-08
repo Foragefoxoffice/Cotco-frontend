@@ -1,14 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, Upload, PlusCircle, Trash2 } from "lucide-react";
 import TranslationTabs from "../TranslationTabs";
-import RichTextEditor from "../RichTextEditor"; // ✅ TipTap editor
+import RichTextEditor from "../RichTextEditor";
 import { slugify } from "../../utils/helpers";
-import { getCategories, getMainBlogCategories } from "../../Api/api"; // ✅ fetch real categories + main categories
+import { getCategories, getMainBlogCategories } from "../../Api/api";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import toast from "react-hot-toast";
+import { CommonToaster } from "../../Common/CommonToaster";
 
 const labels = {
   en: {
-    edit: "Edit Blog",
-    create: "Create Resources",
+    edit: "Edit Content",
+    create: "Create Content",
     title: "Title",
     slug: "Slug",
     coverImage: "Cover Image",
@@ -26,8 +30,8 @@ const labels = {
     metaTitle: "Meta Title",
     metaDescription: "Meta Description",
     cancel: "Cancel",
-    update: "Update Resources",
-    save: "Create Resources",
+    update: "Update Content",
+    save: "Create Content",
     blockTypes: {
       richtext: "Description",
       image: "Image",
@@ -36,7 +40,7 @@ const labels = {
       code: "Code Snippet (For Developers)",
     },
   },
-  vn: {
+  vi: {
     edit: "Chỉnh sửa Bài viết",
     create: "Tạo Tin tức & Sự kiện",
     title: "Tiêu đề",
@@ -70,61 +74,99 @@ const labels = {
 
 const NewsArticleForm = ({ article, onClose, onSave }) => {
   const [activeLanguage, setActiveLanguage] = useState("en");
-  const fileInputRef = useRef(null);
-  const [tagInput, setTagInput] = useState("");
-  const [formErrors, setFormErrors] = useState([]);
-  const isCreating = !article;
-
-  // ✅ Categories state
-  const [categories, setCategories] = useState([]);
   const [mainCategories, setMainCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [formErrors, setFormErrors] = useState([]);
+  const [showMainDropdown, setShowMainDropdown] = useState(false);
+  const [showSubDropdown, setShowSubDropdown] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [tagInput, setTagInput] = useState("");
+  const fileInputRef = useRef(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [showImage2Modal, setShowImage2Modal] = useState(null);
+  const [keywordInput, setKeywordInput] = useState("");
+
 
   const [formData, setFormData] = useState({
-    title: { en: "", vn: "" },
+    title: { en: "", vi: "" },
     slug: "",
-    excerpt: { en: "", vn: "" },
+    excerpt: { en: "", vi: "" },
     coverImage: { url: "" },
-    blocks: [],
-    publishedAt: new Date().toISOString().split("T")[0],
-    author: "Admin User",
     mainCategory: "",
     category: "",
     tags: [],
     status: "draft",
     seo: {
-      title: { en: "", vn: "" },
-      description: { en: "", vn: "" },
+      title: { en: "", vi: "" },
+      description: { en: "", vi: "" },
+      keywords: { en: "", vi: "" },
     },
+    blocks: [],
   });
 
-  // ✅ Fetch categories & main categories
+  const handleKeywordKeyDown = (e) => {
+  if (e.key === "Enter" && keywordInput.trim()) {
+    e.preventDefault();
+    const newKeyword = keywordInput.trim();
+
+    setFormData((prev) => {
+      const existing = prev.seo.keywords?.[activeLanguage]
+        ? prev.seo.keywords[activeLanguage].split(",").map((k) => k.trim())
+        : [];
+
+      if (!existing.includes(newKeyword)) {
+        const updated = [...existing, newKeyword];
+        return {
+          ...prev,
+          seo: {
+            ...prev.seo,
+            keywords: {
+              ...prev.seo.keywords,
+              [activeLanguage]: updated.join(", "),
+            },
+          },
+        };
+      }
+      return prev;
+    });
+
+    setKeywordInput("");
+  }
+};
+
+  // ✅ Auto-fill author from logged-in user
+useEffect(() => {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    try {
+      const user = JSON.parse(storedUser);
+      const name = user?.name || user?.username || user?.email || "";
+      if (name) {
+        setFormData((prev) => ({ ...prev, author: name }));
+      }
+    } catch (err) {
+      console.error("Error parsing user data:", err);
+    }
+  }
+}, []);
+
+  const isCreating = !article;
+
   useEffect(() => {
     Promise.all([getMainBlogCategories(), getCategories()])
       .then(([mainRes, catRes]) => {
         const mains = mainRes.data.data || mainRes.data;
         const cats = catRes.data.data || catRes.data;
-
         setMainCategories(mains);
         setCategories(cats);
-
-        setFormData((prev) => ({
-          ...prev,
-          mainCategory:
-            prev.mainCategory || (mains.length > 0 ? mains[0]._id : ""),
-          category: prev.category || (cats.length > 0 ? cats[0]._id : ""),
-        }));
       })
-      .catch((err) => console.error("Failed to fetch categories:", err));
+      .catch((err) => console.error("Category fetch failed", err));
   }, []);
 
-  // ✅ Load article if editing
   useEffect(() => {
-    if (article) {
-      setFormData(article);
-    }
+    if (article) setFormData(article);
   }, [article]);
 
-  // ✅ Auto-slug
   useEffect(() => {
     if (isCreating && formData.title.en) {
       setFormData((prev) => ({ ...prev, slug: slugify(prev.title.en) }));
@@ -132,46 +174,44 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
   }, [formData.title.en, isCreating]);
 
   const inputClasses =
-    "mt-1 block w-full border border-[#2E2F2F] rounded-lg shadow-sm py-2 px-3 bg-[#1F1F1F] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0085C8] focus:border-[#0085C8] transition-all duration-200";
+    "mt-1 block w-full border border-[#2E2F2F] rounded-lg shadow-sm py-2 px-3 bg-[#1F1F1F] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0085C8] transition-all duration-200 scrollbar-hide";
+  const labelClasses = "block text-sm font-medium text-gray-300 mb-1 ";
 
-  const labelClasses = "block text-sm font-medium text-gray-300 mb-1";
-
-  // ✅ Change handlers
-  const handleChange = (field, value, isTranslatable = false) => {
-    if (isTranslatable) {
+  const handleChange = (field, value, translatable = false) => {
+    if (translatable) {
       setFormData((prev) => ({
         ...prev,
         [field]: { ...prev[field], [activeLanguage]: value },
       }));
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    }
-  };
-
-  const handleSEOChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      seo: {
-        ...prev.seo,
-        [field]: { ...prev.seo[field], [activeLanguage]: value },
-      },
-    }));
+    } else setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+
+      // ✅ Limit to 2 MB
+      if (file.size > 2 * 1024 * 1024) {
+        CommonToaster(
+          activeLanguage === "vi"
+            ? "Kích thước ảnh vượt quá giới hạn 2 MB. Vui lòng chọn ảnh nhỏ hơn."
+            : "Image size exceeds 2 MB limit. Please choose a smaller file.",
+          "error"
+        );
+        e.target.value = "";
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = () =>
         setFormData((prev) => ({
           ...prev,
           coverImage: { url: reader.result },
         }));
-      };
-      reader.readAsDataURL(e.target.files[0]);
+      reader.readAsDataURL(file);
     }
   };
 
-  // ✅ Tags
   const handleTagKeyDown = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
       e.preventDefault();
@@ -183,18 +223,17 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     }
   };
 
-  const handleRemoveTag = (tagToRemove) => {
+  const handleRemoveTag = (tag) => {
     setFormData((prev) => ({
       ...prev,
-      tags: prev.tags.filter((t) => t !== tagToRemove),
+      tags: prev.tags.filter((t) => t !== tag),
     }));
   };
 
-  // ✅ Blocks
   const addBlock = (type) => {
     const newBlock = {
       type,
-      content: type === "image" ? { url: "" } : { en: "", vn: "" },
+      content: type === "image" ? { url: "" } : { en: "", vi: "" },
       position: formData.blocks.length,
     };
     setFormData((prev) => ({
@@ -225,77 +264,134 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
     }));
   };
 
-  // ✅ Submit with validation
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const errors = [];
+    if (!formData.title.en || !formData.title.vi)
+      errors.push("Title required in both languages.");
+    if (!formData.slug.trim()) errors.push("Slug is required.");
+    if (!formData.mainCategory) errors.push("Main category required.");
+    if (!formData.coverImage.url) errors.push("Cover image required.");
 
-    if (!formData.title.en.trim() || !formData.title.vn.trim()) {
-      errors.push("Both EN and VN Title are required.");
+    setFormErrors(errors);
+    if (errors.length) return;
+
+    let finalCategory = formData.category;
+
+    // ✅ Auto-assign "Default" if no category chosen
+    if (!finalCategory) {
+      // Find "Default" or "Mặc định"
+      const defaultCat = categories.find(
+        (c) =>
+          c.name?.en?.trim().toLowerCase() === "default" ||
+          c.name?.vi?.trim().toLowerCase() === "mặc định"
+      );
+
+      if (defaultCat) {
+        finalCategory = defaultCat._id;
+      } else {
+        // If Default doesn't exist, just send empty — backend will auto-create & assign
+        console.warn("⚠️ Default category not found — backend will create it.");
+        finalCategory = ""; // backend handles creation now
+      }
     }
 
-    if (!formData.excerpt.en.trim() || !formData.excerpt.vn.trim()) {
-      errors.push("Both EN and VN Description are required.");
-    }
-
-    if (!formData.seo.title.en.trim() || !formData.seo.title.vn.trim()) {
-      errors.push("Both EN and VN SEO Title are required.");
-    }
-
-    if (
-      !formData.seo.description.en.trim() ||
-      !formData.seo.description.vn.trim()
-    ) {
-      errors.push("Both EN and VN SEO Description are required.");
-    }
-
-    if (!formData.coverImage.url) {
-      errors.push("Cover image is required.");
-    }
-
-    if (!formData.mainCategory) {
-      errors.push("Main category is required.");
-    }
-
-    if (!formData.category) {
-      errors.push("Category is required.");
-    }
-
-    if (errors.length > 0) {
-      setFormErrors(errors);
-      return;
-    }
-
-    setFormErrors([]);
-    onSave(formData);
+    const dataToSave = { ...formData, category: finalCategory };
+    console.log("Submitting blog:", dataToSave);
+    onSave(dataToSave);
   };
 
   return (
-    <div className="p-6 bg-[#0A0A0A] text-white rounded-xl">
+    <div className="p-6 bg-[#0A0A0A] text-white rounded-xl relative ">
       <style>
         {`
-          .richtext-editor {
-            border: 1px solid #2E2F2F;
-            background: transparent;
-            bord
+          @keyframes fadeIn {
+            from {opacity:0;transform:translateY(-4px);}
+            to {opacity:1;transform:translateY(0);}
           }
+          .animate-fadeIn {animation: fadeIn 0.15s ease-in-out;}
+          .toolbar{
+          background-color:#fff;
+          border:none;
+          outline:none;
+          }
+          .richtext-editor{
+            color:#000;
+            background:transparent;
+            border:1px solid #2E2F2F;
+            outline:none;
+            border:16px 16px 0 0;
+          }
+            .ProseMirror{
+            border:none;
+            outline:none;
+            padding:10px 20px;
+            color:#fff;}
+            .react-datepicker {
+    background-color: #1a1a1a;
+    border: 1px solid #2E2F2F;
+    color: #fff;
+    font-family: inherit;
+    border-radius: 8px;
+  }
 
-          .richtext-editor:focus {
-            outline: none;
+  .react-datepicker__header {
+    background-color: #171717;
+    border-bottom: 1px solid #2E2F2F;
+  }
+
+  .react-datepicker__day {
+    color: #e5e5e5;
+  }
+
+  .react-datepicker__day-name{
+          color:#959797;
+  }
+          .react-datepicker__day:hover{
+          background-color:#2E2F2F !important;
           }
-            .richtext-editor .toolbar{
-              background:#2E2F2F;
-              border:none;
-              padding:5px 10px;
-            }
-              .richtext-editor .ProseMirror{
-              padding:20px;
-              }
-              .ant-modal .ant-modal-close-x{
-        color:#fff;
-        }
+  .react-datepicker__day--selected {
+    background-color: #0085C8;
+    color: white;
+  }
+
+  .react-datepicker__day--keyboard-selected {
+    background-color: #00A8FF;
+    color: white;
+  }
+
+  .react-datepicker__current-month,
+  .react-datepicker-time__header,
+  .react-datepicker-year-header {
+    color: #fff;
+  }
+
+  .react-datepicker__triangle {
+    display: none;
+  }
+
+  .react-datepicker__navigation-icon::before {
+    border-color: #ccc;
+  }
+
+  .react-datepicker__day:hover {
+    background-color: #2A2A2A;
+  }
+    .react-datepicker-wrapper{
+    width:100%;
+    }
+
+    .ant-message-notice-content {
+  background-color: #1a1a1a !important;
+  color: #fff !important;
+  border: 1px solid #333 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
         `}
       </style>
+
       {/* Header */}
       <div className="flex justify-between items-center mb-6 border-b border-[#2E2F2F] pb-3">
         <h2 className="text-xl font-bold text-white">
@@ -305,12 +401,13 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
         </h2>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-red-500 transition"
+          className="text-gray-400 !bg-red-600 transition rounded-full p-1 cursor-pointer"
         >
           <X size={24} />
         </button>
       </div>
 
+      {/* Language Tabs */}
       <TranslationTabs
         activeLanguage={activeLanguage}
         setActiveLanguage={setActiveLanguage}
@@ -319,109 +416,208 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         {/* Title */}
         <div>
-          <label className={labelClasses}>
-            {labels[activeLanguage].title}
-            <span className="text-red-500">*</span>
-          </label>
+          <label className={labelClasses}>{labels[activeLanguage].title}<span className="text-red-500 text-lg">*</span></label>
           <input
             type="text"
             className={inputClasses}
             value={formData.title[activeLanguage]}
             onChange={(e) => handleChange("title", e.target.value, true)}
-            required
           />
         </div>
 
         {/* Slug */}
         <div>
-          <label className={labelClasses}>
-            {labels[activeLanguage].slug}
-            <span className="text-red-500">*</span>
-          </label>
+          <label className={labelClasses}>{labels[activeLanguage].slug}</label>
           <input
             type="text"
             className={inputClasses}
             value={formData.slug}
             onChange={(e) =>
-              handleChange(
-                "slug",
-                e.target.value.toLowerCase().replace(/\s+/g, "-")
-              )
+              setFormData((prev) => ({
+                ...prev,
+                slug: e.target.value.toLowerCase().replace(/\s+/g, "-"),
+              }))
             }
-            required
           />
         </div>
 
-        {/* Cover Image */}
+        {/* Cover Image Upload with Preview Modal */}
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].coverImage}
-            <span className="text-red-500">*</span>
+            {labels[activeLanguage].coverImage}<span className="text-red-500 text-lg">*</span>
           </label>
-          <div className="flex items-center gap-5 mt-4">
-            {/* 🖼️ Preview Box */}
-            <div className="relative w-28 h-28 border border-[#2E2F2F] rounded-xl overflow-hidden bg-[#141414] flex items-center justify-center shadow-inner">
-              {formData.coverImage.url ? (
-                <img
-                  src={formData.coverImage.url}
-                  alt="cover"
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                />
-              ) : (
-                <span className="text-gray-500 text-xs tracking-wide">
-                  {labels[activeLanguage].preview}
-                </span>
-              )}
-            </div>
 
-            {/* Hidden Input */}
-            <input
-              type="file"
-              className="hidden"
-              ref={fileInputRef}
-              accept="image/*"
-              onChange={handleImageChange}
-            />
+          {/* Hidden File Input */}
+          <input
+            id="cover-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            style={{ display: "none" }}
+          />
 
-            {/* 💠 Upload Button (Styled Like “Save and Submit”) */}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center justify-center gap-2 px-8 py-3 
-               bg-[#0085C8] text-white text-base font-medium 
-               rounded-full transition-all duration-300 ease-in-out
-               hover:bg-[#0098E0] focus:outline-none 
-               focus:ring-2 focus:ring-[#33BFFF] focus:ring-offset-2 focus:ring-offset-[#171717]"
-            >
-              {/* SVG Upload Icon */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-                className="w-5 h-5"
+          <div className="flex flex-wrap gap-4 mt-2">
+            {/* Upload Placeholder */}
+            {!formData.coverImage?.url && (
+              <label
+                htmlFor="cover-upload"
+                className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                  className="w-6 h-6 text-gray-400"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                <span className="mt-2 text-sm text-gray-400">
+                  {labels[activeLanguage].upload}
+                </span>
+              </label>
+            )}
+
+            {/* Image Preview (for both existing or newly uploaded images) */}
+            {formData.coverImage?.url && (
+              <div className="relative w-32 h-32 group">
+                <img
+                  src={
+                    formData.coverImage.url.startsWith("data:image")
+                      ? formData.coverImage.url
+                      : formData.coverImage.url // handles both base64 and actual URLs
+                  }
+                  alt="Cover Preview"
+                  className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
                 />
-              </svg>
-              {labels[activeLanguage].upload}
-            </button>
+
+                {/* View (Eye) Icon */}
+                <button
+                  type="button"
+                  onClick={() => setShowImageModal(true)}
+                  className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition"
+                  title={
+                    activeLanguage === "vi"
+                      ? "Xem hình ảnh đầy đủ"
+                      : "View full image"
+                  }
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-4 h-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+
+                {/* Replace (Upload Again) Icon */}
+                <label
+                  htmlFor="cover-upload"
+                  className="absolute bottom-1 right-1 bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                  title={
+                    activeLanguage === "vi" ? "Tải ảnh khác" : "Replace image"
+                  }
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-4 h-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9M4 20v-5h.581m15.357-2a8.003 8.003 0 01-15.357 2"
+                    />
+                  </svg>
+                </label>
+
+                {/* Delete (X) Icon */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      coverImage: { url: "" },
+                    }))
+                  }
+                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white p-1 rounded-full transition"
+                  title={activeLanguage === "vi" ? "Xóa ảnh" : "Remove image"}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-4 h-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
 
-          <p className="text-gray-400 text-xs mt-1">
-            (2MB maximum upload size)
-          </p>
+          {/* Preview Modal */}
+          {showImageModal && (
+            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+              <div className="relative max-w-3xl max-h-[90vh] w-auto">
+                <img
+                  src={formData.coverImage.url}
+                  alt="Full Preview"
+                  className="max-h-[85vh] w-auto rounded-lg shadow-lg"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowImageModal(false)}
+                  className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg transition"
+                  title={activeLanguage === "vi" ? "Đóng" : "Close"}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Excerpt */}
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].description}
-            <span className="text-red-500">*</span>
+            {labels[activeLanguage].description}<span className="text-red-500 text-lg">*</span>
           </label>
           <textarea
             className={inputClasses}
@@ -431,16 +627,46 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           />
         </div>
 
+        {/* Tags */}
+        {/* <div>
+          <label className={labelClasses}>{labels[activeLanguage].tags}</label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {formData.tags.map((tag, i) => (
+              <span
+                key={i}
+                className="px-3 py-1 rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-sm flex items-center gap-2"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTag(tag)}
+                  className="text-gray-400 hover:text-red-400"
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+          <input
+            type="text"
+            className={inputClasses}
+            placeholder={labels[activeLanguage].addTag}
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleTagKeyDown}
+          />
+        </div> */}
+
+        {/* Author and Publish Date */}
+
         {/* Content Blocks */}
         <div>
           <label className={labelClasses}>Content Blocks</label>
-
-          {/* 🧱 Block Items */}
           <div className="space-y-4 mt-2">
             {formData.blocks.map((block, i) => (
               <div
                 key={i}
-                className="p-4 border border-[#2E2F2F] rounded-xl bg-[#141414] shadow-inner transition-all hover:border-[#3b3b3b]"
+                className="p-4 border border-[#2E2F2F] rounded-xl bg-[#141414]"
               >
                 <div className="flex justify-between items-center mb-3">
                   <span className="font-medium text-gray-200 capitalize">
@@ -449,99 +675,182 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                   <button
                     type="button"
                     onClick={() => removeBlock(i)}
-                    className="flex items-center justify-center px-4 py-1.5 
-                       bg-[#1E1E1E] text-white text-sm font-medium rounded-full
-                       border border-[#2E2E2E] hover:bg-[#2A2A2A] 
-                       transition-all duration-300"
+                    className="flex items-center gap-2 px-4 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white transition-all duration-200 shadow-md cursor-pointer"
                   >
-                    <Trash2 size={14} className="mr-1 text-red-400" />
+                    <Trash2 size={14} className="text-white" />
                     Remove
                   </button>
                 </div>
-
-                {/* 🧩 Conditional Block Types */}
                 {block.type === "richtext" && (
                   <RichTextEditor
                     key={`${i}-${activeLanguage}`}
-                    value={block.content[activeLanguage] || ""}
-                    onChange={(content) => updateBlock(i, content)}
+                    value={block.content[activeLanguage]}
+                    onChange={(val) => updateBlock(i, val)}
                   />
                 )}
 
                 {block.type === "image" && (
                   <div className="flex items-center gap-4 mt-2">
-                    <div className="w-32 h-32 border border-[#2E2F2F] rounded-lg overflow-hidden bg-[#1F1F1F] flex items-center justify-center">
-                      {block.content.url ? (
-                        <img
-                          src={block.content.url}
-                          alt={`block-${i}`}
-                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                        />
+                    <div className="relative w-40 h-40 group border border-[#2E2F2F] rounded-lg overflow-hidden bg-[#1F1F1F] flex items-center justify-center">
+                      {block.content?.url ? (
+                        <>
+                          {/* Image Preview */}
+                          <img
+                            src={block.content.url}
+                            alt={`block-${i}`}
+                            className="w-full h-full object-cover"
+                          />
+
+                          {/* Eye (Preview) Button */}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowImage2Modal({
+                                index: i,
+                                url: block.content.url,
+                              })
+                            }
+                            className="absolute bottom-2 left-2 bg-black/60 hover:bg-black/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition"
+                            title={
+                              activeLanguage === "vi"
+                                ? "Xem hình ảnh đầy đủ"
+                                : "View full image"
+                            }
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={2}
+                              stroke="currentColor"
+                              className="w-4 h-4"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          </button>
+
+                          {/* Replace (Upload Again) Button */}
+                          <label
+                            htmlFor={`block-img-${i}`}
+                            className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                            title={
+                              activeLanguage === "vi"
+                                ? "Tải ảnh khác"
+                                : "Replace image"
+                            }
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={2}
+                              stroke="currentColor"
+                              className="w-4 h-4"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9M4 20v-5h.581m15.357-2a8.003 8.003 0 01-15.357 2"
+                              />
+                            </svg>
+                          </label>
+
+                          {/* Delete (X) Button */}
+                          <button
+                            type="button"
+                            onClick={() => updateBlock(i, { url: "" })}
+                            className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                            title={
+                              activeLanguage === "vi"
+                                ? "Xóa ảnh"
+                                : "Remove image"
+                            }
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={2}
+                              stroke="currentColor"
+                              className="w-4 h-4"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </>
                       ) : (
-                        <span className="text-gray-500 text-xs">
-                          {labels[activeLanguage].preview}
-                        </span>
+                        // Upload placeholder
+                        <label
+                          htmlFor={`block-img-${i}`}
+                          className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-[#2A2A2A] transition"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="2"
+                            stroke="currentColor"
+                            className="w-6 h-6 text-gray-400"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                          <span className="mt-1 text-xs text-gray-400">
+                            {labels[activeLanguage].upload}
+                          </span>
+                        </label>
                       )}
                     </div>
 
+                    {/* Hidden File Input */}
                     <input
                       type="file"
-                      id={`block-image-${i}`}
+                      id={`block-img-${i}`}
                       className="hidden"
                       accept="image/*"
                       onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (file.size > 2 * 1024 * 1024) {
+                            CommonToaster(
+                              activeLanguage === "vi"
+                                ? "Kích thước ảnh vượt quá giới hạn 2 MB. Vui lòng chọn ảnh nhỏ hơn."
+                                : "Image size exceeds 2 MB limit. Please choose a smaller file.",
+                              "error"
+                            );
+                            e.target.value = "";
+                            return;
+                          }
+
                           const reader = new FileReader();
-                          reader.onloadend = () => {
+                          reader.onloadend = () =>
                             updateBlock(i, { url: reader.result });
-                          };
-                          reader.readAsDataURL(e.target.files[0]);
+                          reader.readAsDataURL(file);
                         }
                       }}
                     />
-
-                    {/* 🔵 Upload Button (Dark-Pill Style) */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        document.getElementById(`block-image-${i}`).click()
-                      }
-                      className="flex items-center gap-2 px-6 py-4
-                         bg-[#0085C8] text-white font-medium 
-                         rounded-full shadow-md
-                         hover:bg-[#0098E0] transition-all duration-300"
-                    >
-                      <Upload size={16} className="text-white" />
-                      {labels[activeLanguage].upload}
-                    </button>
                   </div>
                 )}
 
-                {block.type === "list" && (
+                {["list", "quote", "code"].includes(block.type) && (
                   <textarea
-                    className={inputClasses}
-                    rows={3}
-                    placeholder="Enter list items separated by new lines"
-                    value={block.content[activeLanguage] || ""}
-                    onChange={(e) => updateBlock(i, e.target.value)}
-                  />
-                )}
-
-                {block.type === "quote" && (
-                  <textarea
-                    className={inputClasses}
-                    rows={2}
-                    placeholder="Quote"
-                    value={block.content[activeLanguage] || ""}
-                    onChange={(e) => updateBlock(i, e.target.value)}
-                  />
-                )}
-
-                {block.type === "code" && (
-                  <textarea
-                    className={`${inputClasses} font-mono`}
-                    rows={4}
-                    placeholder="Code snippet"
+                    className={`${inputClasses} ${
+                      block.type === "code" ? "font-mono" : ""
+                    }`}
+                    rows={block.type === "quote" ? 2 : 4}
+                    placeholder={`Enter ${block.type}`}
                     value={block.content[activeLanguage] || ""}
                     onChange={(e) => updateBlock(i, e.target.value)}
                   />
@@ -550,20 +859,16 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             ))}
           </div>
 
-          {/* ➕ Add Block Buttons */}
           <div className="flex flex-wrap gap-2 mt-4">
             {Object.entries(labels[activeLanguage].blockTypes).map(
-              ([value, label]) => (
+              ([type, label]) => (
                 <button
-                  key={value}
+                  key={type}
                   type="button"
-                  onClick={() => addBlock(value)}
-                  className="flex items-center gap-2 px-5 py-4 
-                   bg-[#1E1E1E] text-white text-sm font-medium rounded-full
-                   border border-[#2E2E2E] hover:bg-[#2A2A2A]
-                   transition-all duration-300"
+                  onClick={() => addBlock(type)}
+                  className="flex items-center gap-2 px-5 py-3 bg-[#1E1E1E] text-white rounded-full border border-[#2E2E2E] hover:bg-[#2A2A2A]"
                 >
-                  <PlusCircle size={14} className="text-[#00A8FF]" />
+                  <PlusCircle size={16} className="text-[#00A8FF]" />
                   {label}
                 </button>
               )
@@ -571,123 +876,385 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           </div>
         </div>
 
-        {/* Category Selectors */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Author Input */}
+          {/* ✅ Author Input (auto-filled, not editable) */}
+          <div>
+            <label className={labelClasses}>
+              {activeLanguage === "vi" ? "Tác giả" : "Author"}
+            </label>
+            <input
+              type="text"
+              className={`${inputClasses} opacity-70 cursor-not-allowed`}
+              value={formData.author || ""}
+              readOnly
+              placeholder={
+                activeLanguage === "vi"
+                  ? "Tên tác giả (tự động)"
+                  : "Author name (auto-filled)"
+              }
+            />
+          </div>
+
+          {/* Publish Date Input */}
+          <div>
+            <div className="relative">
+              <label className={labelClasses}>
+                {activeLanguage === "vi" ? "Ngày xuất bản" : "Publish Date"}<span className="text-red-500 text-lg">*</span>
+              </label>
+              <DatePicker
+                selected={
+                  formData.publishedAt ? new Date(formData.publishedAt) : null
+                }
+                onChange={(date) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    publishedAt: date || null,
+                  }))
+                }
+                placeholderText="Select a date"
+                dateFormat="yyyy-MM-dd"
+                className={`${inputClasses} bg-[#1F1F1F] text-white border-[#2E2F2F] focus:ring-[#0085C8]`}
+                calendarClassName="bg-[#111] text-white border border-[#2E2F2F] rounded-lg shadow-lg"
+                popperPlacement="bottom-start"
+                showPopperArrow={false}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Category */}
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].mainCategory}
+            {labels[activeLanguage].mainCategory}<span className="text-red-500 text-lg">*</span>
           </label>
-          <select
-            className={inputClasses}
-            value={formData.mainCategory}
-            onChange={(e) => handleChange("mainCategory", e.target.value)}
-            required
-          >
-            {mainCategories.map((mc) => (
-              <option key={mc._id} value={mc._id}>
-                {mc.name[activeLanguage] || mc.name.en}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowMainDropdown((p) => !p)}
+              className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-[#171717] border border-[#3A3A3A] text-gray-200 hover:border-gray-500 transition-all"
+            >
+              {(() => {
+                const mainCatId =
+                  typeof formData.mainCategory === "object"
+                    ? formData.mainCategory._id || formData.mainCategory.$oid
+                    : formData.mainCategory;
+                const selected = mainCategories.find(
+                  (m) => m._id === mainCatId
+                );
+                return selected
+                  ? selected.name[activeLanguage] || selected.name.en
+                  : labels[activeLanguage].mainCategory;
+              })()}
+              <svg
+                className={`ml-2 w-4 h-4 transform transition-transform ${
+                  showMainDropdown ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showMainDropdown && (
+              <div className="absolute w-full mt-2 bg-[#1F1F1F] border border-[#2E2F2F] rounded-xl z-20 animate-fadeIn shadow-lg">
+                {mainCategories.map((m) => (
+                  <button
+                    key={m._id}
+                    onClick={() => {
+                      setFormData((p) => ({
+                        ...p,
+                        mainCategory: m._id,
+                        category: "", // reset subcategory
+                      }));
+                      setShowMainDropdown(false);
+                    }}
+                    className={`block w-full text-left px-4 py-2 rounded-md transition ${
+                      (typeof formData.mainCategory === "object"
+                        ? formData.mainCategory._id ||
+                          formData.mainCategory.$oid
+                        : formData.mainCategory) === m._id
+                        ? "bg-[#2E2F2F] text-white"
+                        : "text-gray-300 hover:bg-[#2A2A2A]"
+                    }`}
+                  >
+                    {m.name[activeLanguage] || m.name.en}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Category */}
 
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].category}
+            {labels[activeLanguage].category}<span className="text-red-500 text-lg">*</span>
           </label>
-          <select
-            className={inputClasses}
-            value={formData.category}
-            onChange={(e) => handleChange("category", e.target.value)}
-          >
-            {categories
-              .filter((c) => c.mainCategory?._id === formData.mainCategory)
-              .map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name[activeLanguage] || c.name.en}
-                </option>
-              ))}
-          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            {activeLanguage === "vi"
+              ? "Nếu không chọn, danh mục phụ đầu tiên (Mặc định) sẽ được áp dụng tự động."
+              : "If not selected, the first subcategory will be assigned automatically Default."}
+          </p>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowSubDropdown((p) => !p)}
+              disabled={!formData.mainCategory}
+              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg border transition-all ${
+                formData.mainCategory
+                  ? "bg-[#171717] border-[#3A3A3A] text-gray-200 hover:border-gray-500"
+                  : "bg-[#111] border-[#2E2F2F] text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              {(() => {
+                const catId =
+                  typeof formData.category === "object"
+                    ? formData.category._id || formData.category.$oid
+                    : formData.category;
+                const selected = categories.find((c) => c._id === catId);
+                return selected
+                  ? selected.name[activeLanguage] || selected.name.en
+                  : labels[activeLanguage].category;
+              })()}
+              <svg
+                className={`ml-2 w-4 h-4 transform transition-transform ${
+                  showSubDropdown ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showSubDropdown && (
+              <div className="absolute w-full mt-2 bg-[#1F1F1F] border border-[#2E2F2F] rounded-xl z-20 animate-fadeIn shadow-lg">
+                {categories
+                  .filter((c) => {
+                    const mainCatId =
+                      typeof formData.mainCategory === "object"
+                        ? formData.mainCategory._id ||
+                          formData.mainCategory.$oid
+                        : formData.mainCategory;
+                    return c.mainCategory?._id === mainCatId;
+                  })
+                  .map((c) => (
+                    <button
+                      key={c._id}
+                      onClick={() => {
+                        setFormData((p) => ({ ...p, category: c._id }));
+                        setShowSubDropdown(false);
+                      }}
+                      className={`block w-full text-left px-4 py-2 rounded-md transition ${
+                        (typeof formData.category === "object"
+                          ? formData.category._id || formData.category.$oid
+                          : formData.category) === c._id
+                          ? "bg-[#2E2F2F] text-white"
+                          : "text-gray-300 hover:bg-[#2A2A2A]"
+                      }`}
+                    >
+                      {c.name[activeLanguage] || c.name.en}
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Status */}
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].status}
+            {labels[activeLanguage].status}<span className="text-red-500 text-lg">*</span>
           </label>
-          <select
-            className={inputClasses}
-            value={formData.status}
-            onChange={(e) => handleChange("status", e.target.value)}
-          >
-            <option value="draft">{labels[activeLanguage].draft}</option>
-            <option value="published">
-              {labels[activeLanguage].published}
-            </option>
-          </select>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowStatusDropdown((p) => !p)}
+              className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-[#171717] border border-[#3A3A3A] text-gray-200 hover:border-gray-500 transition-all"
+            >
+              {formData.status === "draft"
+                ? labels[activeLanguage].draft
+                : labels[activeLanguage].published}
+              <svg
+                className={`ml-2 w-4 h-4 transform transition-transform ${
+                  showStatusDropdown ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showStatusDropdown && (
+              <div className="absolute w-full mt-2 bg-[#1F1F1F] border border-[#2E2F2F] rounded-xl z-20 animate-fadeIn shadow-lg">
+                {["draft", "published"].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => {
+                      setFormData((p) => ({ ...p, status: s }));
+                      setShowStatusDropdown(false);
+                    }}
+                    className={`block w-full text-left px-4 py-2 rounded-md transition ${
+                      formData.status === s
+                        ? "bg-[#2E2F2F] text-white"
+                        : "text-gray-300 hover:bg-[#2A2A2A]"
+                    }`}
+                  >
+                    {labels[activeLanguage][s]}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* SEO */}
-        <div className="space-y-3 border-t border-[#2E2F2F] pt-4">
-          <h3 className="font-semibold text-gray-200 text-lg">
+        <div className="border-t border-[#2E2F2F] pt-6">
+          <h3 className="font-semibold text-gray-200 mb-2">
             {labels[activeLanguage].seo}
           </h3>
+
+          {/* Meta Title */}
           <div>
-            <label className={labelClasses}>
-              {labels[activeLanguage].metaTitle}
+            <label className={`${labelClasses} mt-8 mb-3`}>
+              {labels[activeLanguage].metaTitle}<span className="text-red-500 text-lg">*</span>
             </label>
             <input
               type="text"
               className={inputClasses}
               value={formData.seo.title[activeLanguage]}
-              onChange={(e) => handleSEOChange("title", e.target.value)}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  seo: {
+                    ...prev.seo,
+                    title: {
+                      ...prev.seo.title,
+                      [activeLanguage]: e.target.value,
+                    },
+                  },
+                }))
+              }
             />
           </div>
+
+          {/* Meta Description */}
           <div>
-            <label className={labelClasses}>
-              {labels[activeLanguage].metaDescription}
+            <label className={`${labelClasses} mt-8 mb-3`}>
+              {labels[activeLanguage].metaDescription}<span className="text-red-500 text-lg">*</span>
             </label>
             <textarea
               rows={2}
               className={inputClasses}
               value={formData.seo.description[activeLanguage]}
-              onChange={(e) => handleSEOChange("description", e.target.value)}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  seo: {
+                    ...prev.seo,
+                    description: {
+                      ...prev.seo.description,
+                      [activeLanguage]: e.target.value,
+                    },
+                  },
+                }))
+              }
             />
           </div>
+
+          {/* ✅ Meta Keywords as Tag Input */}
+<div>
+  <label className={`${labelClasses} mt-8 mb-3`}>
+    {activeLanguage === "vi" ? "Từ khóa SEO" : "Meta Keywords"}<span className="text-red-500 text-lg">*</span>
+  </label>
+
+  {/* Display Added Keywords */}
+  <div className="flex flex-wrap gap-2 mb-2">
+    {formData.seo.keywords?.[activeLanguage]
+      ?.split(",")
+      .map((kw) => kw.trim())
+      .filter((kw) => kw)
+      .map((kw, i) => (
+        <span
+          key={i}
+          className="px-3 py-1 rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-sm flex items-center gap-2"
+        >
+          {kw}
+          <button
+            type="button"
+            onClick={() => {
+              setFormData((prev) => {
+                const existing =
+                  prev.seo.keywords?.[activeLanguage]?.split(",").map((k) => k.trim()) || [];
+                const updated = existing.filter((k) => k !== kw);
+                return {
+                  ...prev,
+                  seo: {
+                    ...prev.seo,
+                    keywords: {
+                      ...prev.seo.keywords,
+                      [activeLanguage]: updated.join(", "),
+                    },
+                  },
+                };
+              });
+            }}
+            className="text-gray-400 hover:text-red-400"
+          >
+            <X size={12} />
+          </button>
+        </span>
+      ))}
+  </div>
+
+  {/* Input field for new keyword */}
+  <input
+    type="text"
+    className={inputClasses}
+    placeholder={
+      activeLanguage === "vi"
+        ? "Nhập từ khóa và nhấn Enter"
+        : "Type keyword and press Enter"
+    }
+    value={keywordInput}
+    onChange={(e) => setKeywordInput(e.target.value)}
+    onKeyDown={handleKeywordKeyDown}
+  />
+</div>
+
         </div>
 
-        {/* Error Messages */}
+        {/* Errors */}
         {formErrors.length > 0 && (
-          <div className="p-3 bg-red-500/20 text-red-300 rounded-md">
-            <ul className="list-disc pl-5 space-y-1">
-              {formErrors.map((err, i) => (
-                <li key={i}>{err}</li>
-              ))}
-            </ul>
+          <div className="p-3 bg-red-900/40 border border-red-800 text-red-300 rounded-md">
+            {formErrors.map((e, i) => (
+              <p key={i}>• {e}</p>
+            ))}
           </div>
         )}
 
-        {/* Actions */}
+        {/* Buttons */}
         <div className="flex justify-end gap-4 pt-6 border-t border-[#2E2F2F]">
-          {/* Cancel Button (Dark Gray Pill) */}
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-4 rounded-full 
-               bg-[#1F1F1F] text-white font-medium
-               border border-[#2E2F2F]
-               hover:bg-[#2A2A2A] hover:border-[#3A3A3A]
-               transition-all duration-300"
+            className="px-8 py-3 rounded-full bg-[#1F1F1F] border border-[#2E2F2F] hover:bg-[#2A2A2A] transition-all cursor-pointer"
           >
             {labels[activeLanguage].cancel}
           </button>
-
-          {/* Save / Update Button (Bright Blue Pill) */}
           <button
             type="submit"
-            className="px-8 py-4 rounded-full 
-               bg-[#0085C8] text-white font-medium 
-               hover:bg-[#009FE3]
-               transition-all duration-300"
+            className="px-8 py-3 rounded-full bg-[#0085C8] hover:bg-[#009FE3] text-white transition-all cursor-pointer"
           >
             {article
               ? labels[activeLanguage].update
@@ -695,6 +1262,39 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           </button>
         </div>
       </form>
+      {/* Global Image Modal for Block Previews */}
+      {showImage2Modal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="relative max-w-3xl max-h-[90vh] w-auto">
+            <img
+              src={showImage2Modal.url}
+              alt="Block Preview"
+              className="max-h-[85vh] w-auto rounded-lg shadow-lg"
+            />
+            <button
+              type="button"
+              onClick={() => setShowImage2Modal(null)}
+              className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg transition"
+              title={activeLanguage === "vi" ? "Đóng" : "Close"}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

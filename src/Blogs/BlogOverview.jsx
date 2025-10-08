@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { getBlogBySlug, getBlogs } from "../Api/api";
 import { motion } from "framer-motion";
 import { FiChevronRight } from "react-icons/fi";
-import BlogOverviewSkeleton from "../pages/BlogOverviewSkeleton";
 import Header from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 
@@ -14,16 +13,14 @@ export default function BlogOverview() {
   const [blog, setBlog] = useState(null);
   const [recentBlogs, setRecentBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
+  const [activeLang, setActiveLang] = useState("en");
 
-  // ✅ Detect current language mode (en / vi) by body class
+  // ✅ Detect language mode
   useEffect(() => {
     const detectLanguage = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
-
     setActiveLang(detectLanguage());
 
-    // watch for body class changes (for dynamic language toggle)
     const observer = new MutationObserver(() => {
       setActiveLang(detectLanguage());
     });
@@ -36,7 +33,7 @@ export default function BlogOverview() {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Fetch blog data + recent blogs
+  // ✅ Fetch blog + recent blogs
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -58,17 +55,36 @@ export default function BlogOverview() {
     return () => (mounted = false);
   }, [slug]);
 
-  if (loading) return <BlogOverviewSkeleton />;
+  // ✅ Custom Loader with logo + spinning ring
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen bg-white relative">
+        <div className="relative w-40 h-40 flex items-center justify-center">
+          {/* Logo in center */}
+          <img
+            src="/logo/loader-Logo.png" // ✅ change to your actual logo path
+            alt="Loading..."
+            className="w-20 h-20 object-contain z-10"
+          />
+
+          {/* Spinning ring */}
+          <div className="absolute inset-0 border-[6px] border-[#e5e7eb] border-t-[#164B8B] rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+
   if (!blog)
     return <p className="text-center text-red-500 py-20">Blog not found.</p>;
 
-  // ✅ Safe helper for localized text
   const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
 
   const title = pick(blog.title, activeLang);
   const coverImage = blog.coverImage?.url || "/img/blog/blog-img.png";
-  const publishedAt = new Date(blog.publishedAt || blog.createdAt).toLocaleDateString();
-  const category = pick(blog.category?.name, activeLang) || "General";
+  const publishedAt = new Date(
+    blog.publishedAt || blog.createdAt
+  ).toLocaleDateString();
+  const mainCategory = blog.mainCategory;
+  const category = blog.category;
 
   return (
     <>
@@ -82,29 +98,69 @@ export default function BlogOverview() {
       <Header />
 
       <section className="max-w-6xl mx-auto px-4 md:px-6 py-10 mt-24">
-        {/* ---------- Breadcrumb ---------- */}
+        {/* ---------- ✅ BREADCRUMB ---------- */}
         <div className="text-sm text-gray-500 mb-6 flex flex-wrap items-center gap-1">
           <Link to="/" className="hover:text-[#1276BD]">
             Home
           </Link>
           <span>/</span>
-          <span className="capitalize">{category}</span>
-          <span>/</span>
+
+          {mainCategory && (
+            <>
+              <Link
+                to={`/${encodeURIComponent(
+                  mainCategory.slug ||
+                    mainCategory?.name?.en?.toLowerCase().replace(/\s+/g, "-")
+                )}`}
+                className="hover:text-[#1276BD] capitalize"
+              >
+                {mainCategory.name?.[activeLang] ||
+                  mainCategory.name?.en ||
+                  mainCategory.name?.vi ||
+                  "Main Category"}
+              </Link>
+              <span>/</span>
+            </>
+          )}
+
+          {category && (
+            <>
+              <Link
+                to={`/${encodeURIComponent(
+                  mainCategory?.slug ||
+                    mainCategory?.name?.en?.toLowerCase().replace(/\s+/g, "-")
+                )}?category=${encodeURIComponent(
+                  category.slug ||
+                    category?.name?.en?.toLowerCase().replace(/\s+/g, "-")
+                )}`}
+                className="hover:text-[#1276BD] capitalize"
+              >
+                {category.name?.[activeLang] ||
+                  category.name?.en ||
+                  category.name?.vi ||
+                  "Category"}
+              </Link>
+              <span>/</span>
+            </>
+          )}
+
           <span className="text-gray-700 font-medium truncate max-w-[240px]">
             {title}
           </span>
         </div>
 
+        {/* ---------- GRID ---------- */}
         <div className="grid lg:grid-cols-[2fr_1fr] gap-10">
-          {/* ---------- LEFT: MAIN ARTICLE ---------- */}
+          {/* LEFT: ARTICLE */}
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-[#0A1C2E] mb-3 leading-tight">
               {title}
             </h1>
-
-            <p className="text-gray-500 mb-6 text-sm">
-              {publishedAt} • <span className="capitalize">{category}</span>
-            </p>
+            {blog.excerpt?.[activeLang] && (
+              <p className="text-gray-700 mb-4 text-base leading-relaxed">
+                {blog.excerpt[activeLang]}
+              </p>
+            )}
 
             <img
               src={coverImage}
@@ -121,7 +177,9 @@ export default function BlogOverview() {
               {blog.blocks?.map((block, idx) => {
                 if (block.type === "richtext") {
                   const html = pick(block.content, activeLang);
-                  return <div key={idx} dangerouslySetInnerHTML={{ __html: html }} />;
+                  return (
+                    <div key={idx} dangerouslySetInnerHTML={{ __html: html }} />
+                  );
                 }
                 if (block.type === "image") {
                   return (
@@ -198,7 +256,14 @@ export default function BlogOverview() {
             </div>
           </aside>
         </div>
+        <p className="text-gray-500 mb-6 text-sm">
+              {publishedAt} •{" "}
+              <span className="capitalize">
+                {pick(category?.name, activeLang) || "General"}
+              </span>
+            </p>
       </section>
+      
 
       <Footer />
     </>

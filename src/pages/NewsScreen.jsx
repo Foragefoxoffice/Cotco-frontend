@@ -1,3 +1,4 @@
+// src/pages/NewsScreen.jsx
 import React, { useState, useEffect } from "react";
 import {
   Plus,
@@ -8,11 +9,13 @@ import {
   Trash2,
   Eye,
   Search,
+  Pencil,
 } from "lucide-react";
 import NewsArticleForm from "../components/forms/NewsArticleForm";
 import { getBlogs, createBlog, updateBlog, deleteBlog } from "../Api/api";
 import { CommonToaster } from "../Common/CommonToaster";
 import BlogCardSkeleton from "./BlogCardSkeleton";
+
 // ThemeContext removed on purpose — using dark styles everywhere
 
 const NewsScreen = () => {
@@ -23,11 +26,19 @@ const NewsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [isVietnamese, setIsVietnamese] = useState(false);
 
+  // 🔹 Delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
   // 🔹 Pagination & sorting
   const [currentPage, setCurrentPage] = useState(1);
   const [articlesPerPage] = useState(6);
   const [sortOption, setSortOption] = useState("newest");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showMainCatDropdown, setShowMainCatDropdown] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   // 🔹 Filters
   const [mainCategoryFilter, setMainCategoryFilter] = useState("all");
@@ -57,7 +68,7 @@ const NewsScreen = () => {
     subtitle: isVietnamese
       ? "Quản lý tất cả bài đăng tin tức và sự kiện"
       : "Manage all news and events posts",
-    create: isVietnamese ? "Tạo tin tức" : "Create Resources",
+    create: isVietnamese ? "Tạo tin tức" : "Create Content",
     search: isVietnamese ? "Tìm kiếm..." : "Search...",
     sortBy: isVietnamese ? "Sắp xếp theo" : "Sort by",
     newest: isVietnamese ? "Mới nhất" : "Newest",
@@ -87,19 +98,54 @@ const NewsScreen = () => {
     all: isVietnamese ? "Tất cả" : "All",
   };
 
+  // Normalize API blog object safely so UI never tries to render raw objects directly
+  const normalizeBlog = (b) => {
+    // Title: ensure en/vi keys
+    const title = {
+      en: b.title?.en || (typeof b.title === "string" ? b.title : "") || "",
+      vi: b.title?.vi || (b.title && b.title.vi) || "",
+    };
+
+    // category/mainCategory names (could be object or string)
+    const mainCategoryName = {
+      en:
+        b.mainCategory?.name?.en ||
+        (typeof b.mainCategory?.name === "string" ? b.mainCategory.name : "") ||
+        "",
+      vi:
+        b.mainCategory?.name?.vi ||
+        (typeof b.mainCategory?.name === "string" ? b.mainCategory.name : "") ||
+        "",
+    };
+
+    const categoryName = {
+      en:
+        b.category?.name?.en ||
+        (typeof b.category?.name === "string" ? b.category.name : "") ||
+        "",
+      vi:
+        b.category?.name?.vi ||
+        (typeof b.category?.name === "string" ? b.category.name : "") ||
+        "",
+    };
+
+    return {
+      ...b,
+      title,
+      mainCategoryName,
+      categoryName,
+      mainCategoryId: b.mainCategory?._id || b.mainCategory || "",
+      categoryId: b.category?._id || b.category || "",
+      publishedAt: b.publishedAt || b.createdAt || new Date().toISOString(),
+    };
+  };
+
   // ✅ Fetch blogs
   const fetchBlogs = async () => {
     try {
       const res = await getBlogs();
-      const blogs = (res.data?.data || []).map((b) => ({
-        ...b,
-        mainCategoryId: b.mainCategory?._id || "",
-        categoryId: b.category?._id || "",
-        mainCategoryName: b.mainCategory?.name || {},
-        categoryName: b.category?.name || {},
-        // normalize publishedAt fallback
-        publishedAt: b.publishedAt || b.createdAt || new Date().toISOString(),
-      }));
+      const raw = res.data?.data || res.data || [];
+      const blogs = raw.map((b) => normalizeBlog(b));
 
       // Ensure newest first
       const sorted = blogs.sort(
@@ -126,21 +172,30 @@ const NewsScreen = () => {
   };
 
   const handleEdit = (article) => {
+    // article might be normalized already; pass as-is
     setEditingArticle(article);
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm(t.deleteConfirm)) {
-      try {
-        await deleteBlog(id);
-        CommonToaster(t.deleteSuccess, "success");
-        // remove locally for instant feedback
-        setNewsArticles((prev) => prev.filter((a) => a._id !== id));
-      } catch (err) {
-        console.error("Delete error:", err);
-        CommonToaster(t.deleteFail, "error");
-      }
+  // 🔹 Open confirmation modal instead of window.confirm
+  const handleDelete = (article) => {
+    setDeleteTarget(article);
+    setShowDeleteModal(true);
+  };
+
+  // 🔹 Confirm delete action
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteBlog(deleteTarget._id);
+      setNewsArticles((prev) => prev.filter((a) => a._id !== deleteTarget._id));
+      CommonToaster(t.deleteSuccess, "success");
+    } catch (err) {
+      console.error("Delete error:", err);
+      CommonToaster(t.deleteFail, "error");
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -150,7 +205,15 @@ const NewsScreen = () => {
   };
 
   const handleView = (slug) => {
-    window.open(`/${slug}`, "_blank");
+    window.open(`/blogs/${slug}`, "_blank");
+  };
+  const safeText = (val) => {
+    if (!val) return "";
+    if (typeof val === "string") return val;
+    if (typeof val === "object") {
+      return val.en || val.vi || JSON.stringify(val);
+    }
+    return String(val);
   };
 
   /**
@@ -163,7 +226,8 @@ const NewsScreen = () => {
       if (editingArticle) {
         // Update on server, then update local list
         const res = await updateBlog(editingArticle._id, articleData);
-        const updated = res.data?.data || res.data;
+        const updatedRaw = res.data?.data || res.data;
+        const updated = normalizeBlog(updatedRaw);
 
         setNewsArticles((prev) =>
           prev
@@ -183,7 +247,8 @@ const NewsScreen = () => {
       } else {
         // Create new blog
         const res = await createBlog(articleData);
-        const newBlog = res.data?.data || res.data;
+        const newRaw = res.data?.data || res.data;
+        const newBlog = normalizeBlog(newRaw);
 
         // Provide robust fallback timestamps
         const publishedAt =
@@ -200,7 +265,12 @@ const NewsScreen = () => {
       }
     } catch (err) {
       console.error("Save error:", err);
-      CommonToaster(t.saveFail, "error");
+      // If server returned a message, you may show it
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        t.saveFail;
+      CommonToaster(msg, "error");
     } finally {
       handleCloseForm();
     }
@@ -213,7 +283,10 @@ const NewsScreen = () => {
         .filter((a) => a.mainCategoryId)
         .map((a) => [
           a.mainCategoryId,
-          { id: a.mainCategoryId, name: a.mainCategoryName },
+          {
+            id: a.mainCategoryId,
+            name: a.mainCategoryName || { en: "", vi: "" },
+          },
         ])
     ).values()
   );
@@ -226,7 +299,7 @@ const NewsScreen = () => {
           a.categoryId,
           {
             id: a.categoryId,
-            name: a.categoryName,
+            name: a.categoryName || { en: "", vi: "" },
             main: a.mainCategoryId,
           },
         ])
@@ -247,11 +320,11 @@ const NewsScreen = () => {
   // 🔹 Filter by search, main category, category and status
   const filteredArticles = sortedArticles.filter((article) => {
     const title = isVietnamese
-      ? article.title?.vn || article.title?.en
+      ? article.title?.vi || article.title?.en
       : article.title?.en;
-    const matchesSearch = title
-      ?.toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const matchesSearch = (title || "")
+      .toLowerCase()
+      .includes((searchQuery || "").toLowerCase());
 
     const matchesMain =
       mainCategoryFilter === "all" ||
@@ -273,7 +346,7 @@ const NewsScreen = () => {
   // Loading state (dark style)
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-900">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-[#171717]">
         {Array.from({ length: 6 }).map((_, idx) => (
           <BlogCardSkeleton key={idx} />
         ))}
@@ -299,11 +372,9 @@ const NewsScreen = () => {
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto px-6">
-        {/* Search */}
+      <div className="px-6 mb-4">
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          <Search className="absolute left-3 top-3.5 text-gray-400" size={18} />
           <input
             type="text"
             value={searchQuery}
@@ -324,115 +395,296 @@ const NewsScreen = () => {
             }}
           />
         </div>
+      </div>
 
-        {/* Sort */}
-        <select
-          value={sortOption}
-          onChange={(e) => {
-            setSortOption(e.target.value);
-            setCurrentPage(1);
-          }}
-          style={{
-            backgroundColor: "#262626",
-            border: "1px solid #2E2F2F",
-            borderRadius: "2rem",
-            color: "#fff",
-            padding: "15px",
-            fontSize: "14px",
-            transition: "all 0.3s ease",
-            cursor: "pointer",
-          }}
-        >
-          <option value="newest">{t.newest}</option>
-          <option value="oldest">{t.oldest}</option>
-          <option value="title">{t.titleSort}</option>
-        </select>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto px-6">
+        {/* Sort Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowSortDropdown((prev) => !prev)}
+            className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 focus:border-[#3A3A3A] transition-all cursor-pointer"
+          >
+            {sortOption === "oldest"
+              ? t.oldest
+              : sortOption === "newest"
+              ? t.newest
+              : t.titleSort}
+            <svg
+              className={`ml-2 w-4 h-4 transform transition-transform ${
+                showSortDropdown ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          {showSortDropdown && (
+            <div
+              className="absolute right-0 mt-2 w-48 rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-20 animate-fadeIn"
+              style={{ animation: "fadeIn 0.15s ease-in-out" }}
+            >
+              <p className="px-4 pt-2 text-gray-400 text-xs">{t.sortBy}</p>
+              {[
+                { value: "newest", label: t.newest },
+                { value: "oldest", label: t.oldest },
+                { value: "title", label: t.titleSort },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    setSortOption(option.value);
+                    setShowSortDropdown(false);
+                    setCurrentPage(1);
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
+                    sortOption === option.value
+                      ? "bg-[#2E2F2F] text-white rounded-lg"
+                      : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+              <div className="pb-2" />
+            </div>
+          )}
+        </div>
 
         {/* Status Filter */}
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setCurrentPage(1);
-          }}
-          style={{
-            backgroundColor: "#262626",
-            border: "1px solid #2E2F2F",
-            borderRadius: "2rem",
-            color: "#fff",
-            padding: "15px",
-            fontSize: "14px",
-            transition: "all 0.3s ease",
-            cursor: "pointer",
-          }}
-        >
-          <option value="all">{t.all} Status</option>
-          <option value="published">{t.published}</option>
-          <option value="draft">{t.draft}</option>
-        </select>
+        <div className="relative">
+          <button
+            onClick={() => setShowStatusDropdown((prev) => !prev)}
+            className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 focus:border-[#3A3A3A] transition-all cursor-pointer"
+          >
+            {statusFilter === "published"
+              ? t.published
+              : statusFilter === "draft"
+              ? t.draft
+              : `${t.all} Status`}
+            <svg
+              className={`ml-2 w-4 h-4 transform transition-transform ${
+                showStatusDropdown ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          {showStatusDropdown && (
+            <div
+              className="absolute right-0 mt-2 w-48 rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-20 animate-fadeIn"
+              style={{ animation: "fadeIn 0.15s ease-in-out" }}
+            >
+              <p className="px-4 pt-2 text-gray-400 text-xs">{t.sortBy}</p>
+              {[
+                { value: "all", label: `${t.all} Status` },
+                { value: "published", label: t.published },
+                { value: "draft", label: t.draft },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    setStatusFilter(option.value);
+                    setShowStatusDropdown(false);
+                    setCurrentPage(1);
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
+                    statusFilter === option.value
+                      ? "bg-[#2E2F2F] text-white rounded-lg"
+                      : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+              <div className="pb-2" />
+            </div>
+          )}
+        </div>
 
         {/* Main Category Filter */}
-        <select
-          value={mainCategoryFilter}
-          onChange={(e) => {
-            setMainCategoryFilter(e.target.value);
-            setCategoryFilter("all");
-            setCurrentPage(1);
-          }}
-          style={{
-            backgroundColor: "#262626",
-            border: "1px solid #2E2F2F",
-            borderRadius: "2rem",
-            color: "#fff",
-            padding: "15px",
-            fontSize: "14px",
-            transition: "all 0.3s ease",
-            cursor: "pointer",
-          }}
-        >
-          <option value="all">
-            {t.all} {t.filterMain}
-          </option>
-          {uniqueMainCategories.map((mc) => (
-            <option key={mc.id} value={mc.id}>
-              {mc.name[isVietnamese ? "vn" : "en"] || mc.name.en || mc.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <button
+            onClick={() => setShowMainCatDropdown((prev) => !prev)}
+            className="flex items-center justify-between w-56 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 focus:border-[#3A3A3A] transition-all cursor-pointer"
+          >
+            {mainCategoryFilter === "all"
+              ? `${t.all} ${t.filterMain}`
+              : uniqueMainCategories.find((mc) => mc.id === mainCategoryFilter)
+                  ?.name[isVietnamese ? "vi" : "en"] ||
+                uniqueMainCategories.find((mc) => mc.id === mainCategoryFilter)
+                  ?.name.en ||
+                uniqueMainCategories.find((mc) => mc.id === mainCategoryFilter)
+                  ?.name ||
+                `${t.all} ${t.filterMain}`}
+
+            <svg
+              className={`ml-2 w-4 h-4 transform transition-transform ${
+                showMainCatDropdown ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          {showMainCatDropdown && (
+            <div
+              className="absolute right-0 mt-2 w-56 rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-20 animate-fadeIn"
+              style={{ animation: "fadeIn 0.15s ease-in-out" }}
+            >
+              <p className="px-4 pt-2 text-gray-400 text-xs">{t.filterMain}</p>
+
+              <button
+                onClick={() => {
+                  setMainCategoryFilter("all");
+                  setCategoryFilter("all");
+                  setCurrentPage(1);
+                  setShowMainCatDropdown(false);
+                }}
+                className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
+                  mainCategoryFilter === "all"
+                    ? "bg-[#2E2F2F] text-white rounded-lg"
+                    : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                }`}
+              >
+                {`${t.all} ${t.filterMain}`}
+              </button>
+
+              {uniqueMainCategories.map((mc) => (
+                <button
+                  key={mc.id}
+                  onClick={() => {
+                    setMainCategoryFilter(mc.id);
+                    setCategoryFilter("all");
+                    setCurrentPage(1);
+                    setShowMainCatDropdown(false);
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
+                    mainCategoryFilter === mc.id
+                      ? "bg-[#2E2F2F] text-white rounded-lg"
+                      : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                  }`}
+                >
+                  {mc.name[isVietnamese ? "vi" : "en"] || mc.name.en || mc.name}
+                </button>
+              ))}
+              <div className="pb-2" />
+            </div>
+          )}
+        </div>
 
         {/* Category Filter */}
-        <select
-          value={categoryFilter}
-          onChange={(e) => {
-            setCategoryFilter(e.target.value);
-            setCurrentPage(1);
-          }}
-          style={{
-            backgroundColor: "#262626",
-            border: "1px solid #2E2F2F",
-            borderRadius: "2rem",
-            color: "#fff",
-            padding: "15px",
-            fontSize: "14px",
-            transition: "all 0.3s ease",
-            cursor: "pointer",
-          }}
-        >
-          <option value="all">
-            {t.all} {t.filterCategory}
-          </option>
-          {uniqueCategories
-            .filter((c) =>
-              mainCategoryFilter === "all"
-                ? true
-                : c.main === mainCategoryFilter
-            )
-            .map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name[isVietnamese ? "vn" : "en"] || c.name.en || c.name}
-              </option>
-            ))}
-        </select>
+        <div className="relative">
+          <button
+            onClick={() => setShowCategoryDropdown((prev) => !prev)}
+            className="flex items-center justify-between w-56 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 focus:border-[#3A3A3A] transition-all cursor-pointer"
+          >
+            {categoryFilter === "all"
+              ? `${t.all} ${t.filterCategory}`
+              : uniqueCategories.find((c) => c.id === categoryFilter)?.name[
+                  isVietnamese ? "vi" : "en"
+                ] ||
+                uniqueCategories.find((c) => c.id === categoryFilter)?.name
+                  .en ||
+                uniqueCategories.find((c) => c.id === categoryFilter)?.name ||
+                `${t.all} ${t.filterCategory}`}
+
+            <svg
+              className={`ml-2 w-4 h-4 transform transition-transform ${
+                showCategoryDropdown ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          {showCategoryDropdown && (
+            <div
+              className="absolute right-0 mt-2 w-56 rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-20 animate-fadeIn"
+              style={{ animation: "fadeIn 0.15s ease-in-out" }}
+            >
+              <p className="px-4 pt-2 text-gray-400 text-xs">
+                {t.filterCategory}
+              </p>
+
+              {/* "All" Option */}
+              <button
+                onClick={() => {
+                  setCategoryFilter("all");
+                  setCurrentPage(1);
+                  setShowCategoryDropdown(false);
+                }}
+                className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
+                  categoryFilter === "all"
+                    ? "bg-[#2E2F2F] text-white rounded-lg"
+                    : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                }`}
+              >
+                {`${t.all} ${t.filterCategory}`}
+              </button>
+
+              {/* Filtered Categories */}
+              {uniqueCategories
+                .filter((c) =>
+                  mainCategoryFilter === "all"
+                    ? true
+                    : c.main === mainCategoryFilter
+                )
+                .map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => {
+                      setCategoryFilter(c.id);
+                      setCurrentPage(1);
+                      setShowCategoryDropdown(false);
+                    }}
+                    className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
+                      categoryFilter === c.id
+                        ? "bg-[#2E2F2F] text-white rounded-lg"
+                        : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                    }`}
+                  >
+                    {c.name[isVietnamese ? "vi" : "en"] || c.name.en || c.name}
+                  </button>
+                ))}
+
+              <div className="pb-2" />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Blog Cards */}
@@ -446,14 +698,18 @@ const NewsScreen = () => {
               <div className="h-48 overflow-hidden">
                 <img
                   src={article.coverImage?.url || article.thumbnail}
-                  alt={isVietnamese ? article.title?.vn : article.title?.en}
+                  alt={
+                    isVietnamese
+                      ? article.title?.vi || article.title?.en
+                      : article.title?.en
+                  }
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="p-5 flex flex-col flex-grow">
                 <h3 className="text-lg font-medium mb-2">
                   {isVietnamese
-                    ? article.title?.vn || article.title?.en
+                    ? article.title?.vi || article.title?.en
                     : article.title?.en}
                 </h3>
                 <div className="flex items-center text-sm text-gray-400 mb-4 flex-wrap gap-x-3">
@@ -483,9 +739,13 @@ const NewsScreen = () => {
                 <div className="mt-auto flex justify-between items-center">
                   <span className="flex items-center text-sm bg-gray-700 text-gray-200 px-2 py-1 rounded">
                     <Tag size={14} className="mr-1" />
-                    {article.categoryName?.[isVietnamese ? "vn" : "en"] ||
-                      article.category?.en ||
-                      article.category}
+                    {safeText(
+                      article.categoryName?.[isVietnamese ? "vi" : "en"] ||
+                        article.category?.name?.[isVietnamese ? "vi" : "en"] ||
+                        article.category?.name ||
+                        article.categoryName?.en ||
+                        article.category
+                    )}
                   </span>
 
                   <div className="flex items-center space-x-2">
@@ -499,10 +759,13 @@ const NewsScreen = () => {
                       onClick={() => handleEdit(article)}
                       className="text-indigo-400 hover:opacity-80 p-1 cursor-pointer"
                     >
-                      <Edit size={16} />
+                      <Pencil size={16} />
                     </button>
                     <button
-                      onClick={() => handleDelete(article._id)}
+                      style={{
+                        color: "red",
+                      }}
+                      onClick={() => handleDelete(article)}
                       className="text-red-400 hover:opacity-80 p-1 cursor-pointer"
                     >
                       <Trash2 size={16} />
@@ -525,34 +788,103 @@ const NewsScreen = () => {
 
       {/* Pagination */}
       <div className="flex justify-center items-center gap-2 my-6">
+        {/* Previous Button */}
         <button
           disabled={currentPage === 1}
           onClick={() => setCurrentPage((p) => p - 1)}
-          className="px-3 py-1 rounded border disabled:opacity-50 text-gray-200"
+          className={`px-4 py-2 rounded-full border text-sm transition-all duration-200
+      ${
+        currentPage === 1
+          ? "opacity-40 cursor-not-allowed"
+          : "hover:bg-[#2A2A2A] cursor-pointer"
+      } text-gray-200`}
         >
-          Prev
+          {isVietnamese ? "Trước" : "Prev"}
         </button>
-        <span className="text-gray-200">
-          {currentPage} / {totalPages || 1}
+
+        {/* Page Counter */}
+        <span className="text-gray-200 font-medium">
+          {isVietnamese ? "Trang" : "Page"} {currentPage} / {totalPages || 1}
         </span>
+
+        {/* Next Button */}
         <button
           disabled={currentPage === totalPages || totalPages === 0}
           onClick={() => setCurrentPage((p) => p + 1)}
-          className="px-3 py-1 rounded-full border disabled:opacity-50 text-gray-200"
+          className={`px-4 py-2 rounded-full border text-sm transition-all duration-200
+      ${
+        currentPage === totalPages || totalPages === 0
+          ? "opacity-40 cursor-not-allowed"
+          : "hover:bg-[#2A2A2A] cursor-pointer"
+      } text-gray-200`}
         >
-          Next
+          {isVietnamese ? "Tiếp" : "Next"}
         </button>
       </div>
 
       {/* Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/80 bg-opacity-60 flex items-center justify-center z-50">
-          <div className="rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-800">
+          <div className="rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-800 scrollbar-hide">
             <NewsArticleForm
               article={editingArticle}
               onClose={handleCloseForm}
               onSave={handleSaveArticle}
             />
+          </div>
+        </div>
+      )}
+
+      {/* 🗑️ Custom Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999] animate-fadeIn">
+          <div className="bg-[#1F1F1F] border border-[#333] rounded-2xl shadow-2xl p-6 w-[90%] max-w-md text-white relative">
+            <h3 className="text-xl font-semibold mb-2 text-white flex items-center gap-2">
+              {isVietnamese ? "Xóa tài nguyên?" : "Delete Content?"}
+            </h3>
+
+            <p className="text-gray-400 text-sm mb-6">
+              {isVietnamese
+                ? `Bạn có chắc muốn xóa “${
+                    deleteTarget?.title?.vi ||
+                    deleteTarget?.title?.en ||
+                    "bài viết này"
+                  }”? Hành động này không thể hoàn tác.`
+                : `Are you sure you want to delete “${
+                    deleteTarget?.title?.en || "this blog"
+                  }”? This action cannot be undone.`}
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteTarget(null);
+                }}
+                className="px-5 py-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition"
+              >
+                {isVietnamese ? "Hủy" : "Cancel"}
+              </button>
+
+              <button
+                onClick={confirmDelete}
+                className="px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white transition shadow-md"
+              >
+                {isVietnamese ? "Xóa" : "Delete"}
+              </button>
+            </div>
+
+            {/* ✖ Close button */}
+            <button
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeleteTarget(null);
+              }}
+              className="absolute top-3 right-3 text-gray-400 !bg-red-600  rounded-full h-8 w-8 cursor-pointer transition"
+              title={isVietnamese ? "Đóng" : "Close"}
+            >
+              ✖
+            </button>
           </div>
         </div>
       )}
