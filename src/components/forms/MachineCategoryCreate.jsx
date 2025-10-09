@@ -34,13 +34,13 @@ const MachineCategoryCreate = ({ onSuccess }) => {
       const formData = new FormData();
       formData.append(
         "name",
-        JSON.stringify({ en: values.name_en || "", vn: values.name_vn || "" })
+        JSON.stringify({ en: values.name_en || "", vi: values.name_vi || "" })
       );
       formData.append(
         "description",
         JSON.stringify({
           en: values.description_en || "",
-          vn: values.description_vn || "",
+          vi: values.description_vi || "",
         })
       );
       formData.append("slug", values.slug);
@@ -111,23 +111,23 @@ const MachineCategoryCreate = ({ onSuccess }) => {
 
         {/* Vietnamese Fields */}
         <Form.Item
-          name="name_vn"
+          name="name_vi"
           label={<span style={labelStyle}>Name (Vietnamese)</span>}
-          style={{ display: activeLanguage === "vn" ? "block" : "none" }}
+          style={{ display: activeLanguage === "vi" ? "block" : "none" }}
         >
           <Input
-            placeholder="Enter category name (VN)"
+            placeholder="Enter category name (vi)"
             style={darkInputStyle}
           />
         </Form.Item>
 
         <Form.Item
-          name="description_vn"
+          name="description_vi"
           label={<span style={labelStyle}>Description (Vietnamese)</span>}
-          style={{ display: activeLanguage === "vn" ? "block" : "none" }}
+          style={{ display: activeLanguage === "vi" ? "block" : "none" }}
         >
           <Input.TextArea
-            placeholder="Enter description (VN)"
+            placeholder="Enter description (vi)"
             rows={3}
             style={darkInputStyle}
           />

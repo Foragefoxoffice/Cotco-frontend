@@ -5,10 +5,10 @@ import { Plus, Edit, Trash2, Search } from 'lucide-react';
 
 // Mock data now simplified for list view
 const pagesData = [
-    { id: 1, title: { en: 'About Us', vn: 'Giới thiệu' }, slug: 'about-us', updatedAt: '2023-05-15' },
-    { id: 2, title: { en: 'Contact Us', vn: 'Liên hệ' }, slug: 'contact-us', updatedAt: '2023-05-10' },
-    { id: 3, title: { en: 'Privacy Policy', vn: 'Chính sách bảo mật' }, slug: 'privacy-policy', updatedAt: '2023-04-20' },
-    { id: 4, title: { en: 'Terms and Conditions', vn: 'Điều khoản và điều kiện' }, slug: 'terms-and-conditions', updatedAt: '2023-04-15' },
+    { id: 1, title: { en: 'About Us', vi: 'Giới thiệu' }, slug: 'about-us', updatedAt: '2023-05-15' },
+    { id: 2, title: { en: 'Contact Us', vi: 'Liên hệ' }, slug: 'contact-us', updatedAt: '2023-05-10' },
+    { id: 3, title: { en: 'Privacy Policy', vi: 'Chính sách bảo mật' }, slug: 'privacy-policy', updatedAt: '2023-04-20' },
+    { id: 4, title: { en: 'Terms and Conditions', vi: 'Điều khoản và điều kiện' }, slug: 'terms-and-conditions', updatedAt: '2023-04-15' },
   ];
 
 const PagesScreen = () => {
@@ -17,7 +17,7 @@ const PagesScreen = () => {
   const filteredPages = pagesData.filter(
     (page) =>
       page.title.en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      page.title.vn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      page.title.vi.toLowerCase().includes(searchTerm.toLowerCase()) ||
       page.slug.toLowerCase().includes(searchTerm.toLowerCase())
   );
 

@@ -16,9 +16,9 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
     if (category) {
       form.setFieldsValue({
         name_en: category.name?.en || "",
-        name_vn: category.name?.vn || "",
+        name_vi: category.name?.vi || "",
         description_en: category.description?.en || "",
-        description_vn: category.description?.vn || "",
+        description_vi: category.description?.vi || "",
         slug: category.slug || "",
       });
 
@@ -42,13 +42,13 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
       const formData = new FormData();
       formData.append(
         "name",
-        JSON.stringify({ en: values.name_en || "", vn: values.name_vn || "" })
+        JSON.stringify({ en: values.name_en || "", vi: values.name_vi || "" })
       );
       formData.append(
         "description",
         JSON.stringify({
           en: values.description_en || "",
-          vn: values.description_vn || "",
+          vi: values.description_vi || "",
         })
       );
       formData.append("slug", values.slug);
@@ -133,23 +133,23 @@ const MachineCategoryEdit = ({ category, onSuccess }) => {
 
         {/* Vietnamese */}
         <Form.Item
-          name="name_vn"
+          name="name_vi"
           label={<span style={labelStyle}>Name (Vietnamese)</span>}
-          style={{ display: activeLanguage === "vn" ? "block" : "none" }}
+          style={{ display: activeLanguage === "vi" ? "block" : "none" }}
         >
           <Input
-            placeholder="Enter category name (VN)"
+            placeholder="Enter category name (vi)"
             style={darkInputStyle}
           />
         </Form.Item>
 
         <Form.Item
-          name="description_vn"
+          name="description_vi"
           label={<span style={labelStyle}>Description (Vietnamese)</span>}
-          style={{ display: activeLanguage === "vn" ? "block" : "none" }}
+          style={{ display: activeLanguage === "vi" ? "block" : "none" }}
         >
           <Input.TextArea
-            placeholder="Enter description (VN)"
+            placeholder="Enter description (vi)"
             rows={3}
             style={{ ...darkInputStyle, resize: "none" }}
           />

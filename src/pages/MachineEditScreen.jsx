@@ -48,7 +48,7 @@ const { Step } = Steps;
 
 /* ---------- Translation Inputs ---------- */
 const TranslationInput = ({
-  value = { en: "", vn: "" },
+  value = { en: "", vi: "" },
   onChange,
   placeholder,
 }) => (
@@ -75,7 +75,7 @@ const TranslationInput = ({
     </Col>
     <Col span={12}>
       <h3 className="text-white mt-5 text-md">
-        VN <span className="text-xs">(vietnamese)</span>
+        vi <span className="text-xs">(vietnamese)</span>
       </h3>
       <Input
         className="custom-dark-input"
@@ -89,15 +89,15 @@ const TranslationInput = ({
           transition: "all 0.3s ease",
         }}
         placeholder={placeholder}
-        value={value?.vn}
-        onChange={(e) => onChange({ ...value, vn: e.target.value })}
+        value={value?.vi}
+        onChange={(e) => onChange({ ...value, vi: e.target.value })}
       />
     </Col>
   </Row>
 );
 
 const TranslationTextArea = ({
-  value = { en: "", vn: "" },
+  value = { en: "", vi: "" },
   onChange,
   placeholder,
 }) => (
@@ -125,7 +125,7 @@ const TranslationTextArea = ({
     </Col>
     <Col span={12}>
       <h3 className="text-white mt-5">
-        VN <span className="text-xs">(vietnamese)</span>
+        vi <span className="text-xs">(vietnamese)</span>
       </h3>
       <TextArea
         className="custom-dark-input"
@@ -139,9 +139,9 @@ const TranslationTextArea = ({
           transition: "all 0.3s ease",
         }}
         placeholder={placeholder}
-        value={value?.vn}
+        value={value?.vi}
         rows={3}
-        onChange={(e) => onChange({ ...value, vn: e.target.value })}
+        onChange={(e) => onChange({ ...value, vi: e.target.value })}
       />
     </Col>
   </Row>
@@ -314,15 +314,15 @@ const SectionToolbar = ({ onAdd }) => (
 /* ---------- Helpers ---------- */
 const newBlankSection = (type) => ({
   type,
-  title: { en: "", vn: "" },
-  description: { en: "", vn: "" },
-  richtext: { en: "", vn: "" },
+  title: { en: "", vi: "" },
+  description: { en: "", vi: "" },
+  richtext: { en: "", vi: "" },
   listItems: [],
   blocks: [],
   tabs: [],
   table: { header: "", rows: [] },
   image: "",
-  button: { name: { en: "", vn: "" }, link: "" },
+  button: { name: { en: "", vi: "" }, link: "" },
 });
 
 /* ---------- Section Editor ---------- */
@@ -359,9 +359,9 @@ const SectionEditor = ({ basePath, section, control }) => {
               <RichTextEditor value={field.value} onChange={field.onChange} />
             )}
           />
-          <p className="font-medium mt-3 mb-1 text-white">Rich Text VN</p>
+          <p className="font-medium mt-3 mb-1 text-white">Rich Text vi</p>
           <Controller
-            name={`${basePath}.richtext.vn`}
+            name={`${basePath}.richtext.vi`}
             control={control}
             render={({ field }) => (
               <RichTextEditor value={field.value} onChange={field.onChange} />
@@ -373,14 +373,14 @@ const SectionEditor = ({ basePath, section, control }) => {
     case "list":
       return (
         <>
-          {/* List Title (EN + VN) */}
+          {/* List Title (EN + vi) */}
           <Controller
             name={`${basePath}.listTitle`}
             control={control}
             render={({ field }) => (
               <Card size="small" className=" text-white">
                 <TranslationInput
-                  value={field.value || { en: "", vn: "" }}
+                  value={field.value || { en: "", vi: "" }}
                   placeholder="List Title"
                   onChange={field.onChange}
                 />
@@ -396,7 +396,7 @@ const SectionEditor = ({ basePath, section, control }) => {
               <>
                 <Button
                   onClick={() =>
-                    field.onChange([...(field.value || []), { en: "", vn: "" }])
+                    field.onChange([...(field.value || []), { en: "", vi: "" }])
                   }
                   style={{
                     display: "inline-flex",
@@ -448,8 +448,8 @@ const SectionEditor = ({ basePath, section, control }) => {
                   field.onChange([
                     ...(field.value || []),
                     {
-                      title: { en: "", vn: "" },
-                      description: { en: "", vn: "" },
+                      title: { en: "", vi: "" },
+                      description: { en: "", vi: "" },
                       image: "",
                     },
                   ])
@@ -545,13 +545,13 @@ const SectionEditor = ({ basePath, section, control }) => {
     case "image":
       return (
         <div className="space-y-4">
-          {/* ✅ Title (EN + VN) */}
+          {/* ✅ Title (EN + vi) */}
           <Controller
             name={`${basePath}.title`}
             control={control}
             render={({ field }) => (
               <TranslationInput
-                value={field.value || { en: "", vn: "" }}
+                value={field.value || { en: "", vi: "" }}
                 placeholder="Image Title"
                 onChange={field.onChange}
               />
@@ -570,12 +570,12 @@ const SectionEditor = ({ basePath, section, control }) => {
           />
 
           <Controller
-            name={`${basePath}.description.vn`}
+            name={`${basePath}.description.vi`}
             control={control}
             render={({ field }) => (
               <>
                 <p className="font-medium mt-3 mb-1 text-white">
-                  Description (VN)
+                  Description (vi)
                 </p>
                 <RichTextEditor value={field.value} onChange={field.onChange} />
               </>
@@ -640,7 +640,7 @@ const SectionEditor = ({ basePath, section, control }) => {
           <Button
             icon={<PlusOutlined />}
             onClick={() =>
-              appendTab({ tabTitle: { en: "", vn: "" }, sections: [] })
+              appendTab({ tabTitle: { en: "", vi: "" }, sections: [] })
             }
             style={{
               borderRadius: "999px",
@@ -708,7 +708,7 @@ const SectionEditor = ({ basePath, section, control }) => {
     case "table":
       return (
         <>
-          {/* ✅ Table Header with EN/VN */}
+          {/* ✅ Table Header with EN/vi */}
           <Controller
             name={`${basePath}.table.header`}
             control={control}
@@ -720,7 +720,7 @@ const SectionEditor = ({ basePath, section, control }) => {
             )}
           />
 
-          {/* ✅ Table Rows with EN/VN per cell */}
+          {/* ✅ Table Rows with EN/vi per cell */}
           <Controller
             name={`${basePath}.table.rows`}
             control={control}
@@ -782,7 +782,7 @@ const SectionEditor = ({ basePath, section, control }) => {
                           }}
                           onClick={() => {
                             const rows = [...field.value];
-                            rows[ri].push({ en: "", vn: "" }); // add new EN+VN cell
+                            rows[ri].push({ en: "", vi: "" }); // add new EN+vi cell
                             field.onChange(rows);
                           }}
                         >
@@ -832,7 +832,7 @@ const SectionEditor = ({ basePath, section, control }) => {
                   onClick={() =>
                     field.onChange([
                       ...(field.value || []),
-                      [{ en: "", vn: "" }],
+                      [{ en: "", vi: "" }],
                     ])
                   }
                 >
@@ -847,13 +847,13 @@ const SectionEditor = ({ basePath, section, control }) => {
     case "button":
       return (
         <div className="space-y-4">
-          {/* ✅ Button Label (EN + VN) */}
+          {/* ✅ Button Label (EN + vi) */}
           <Controller
             name={`${basePath}.button.name`}
             control={control}
             render={({ field }) => (
               <TranslationInput
-                value={field.value || { en: "", vn: "" }}
+                value={field.value || { en: "", vi: "" }}
                 placeholder="Button Label"
                 onChange={field.onChange}
               />
@@ -959,8 +959,8 @@ const MachinePageCreate = ({
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       categoryId: "",
-      title: { en: "", vn: "" },
-      description: { en: "", vn: "" },
+      title: { en: "", vi: "" },
+      description: { en: "", vi: "" },
       slug: "",
       metaTitle: "",
       metaDescription: "",
@@ -995,8 +995,8 @@ const MachinePageCreate = ({
     if (initialData) {
       reset({
         categoryId: initialData.categoryId || "",
-        title: initialData.title || { en: "", vn: "" },
-        description: initialData.description || { en: "", vn: "" },
+        title: initialData.title || { en: "", vi: "" },
+        description: initialData.description || { en: "", vi: "" },
         slug: initialData.slug || "",
         metaTitle: initialData.metaTitle || "",
         metaDescription: initialData.metaDescription || "",

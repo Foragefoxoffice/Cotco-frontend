@@ -7,18 +7,18 @@ import ProductForm from '../components/forms/ProductForm';
 // Mock Data - In a real app, this would come from an API
 const allProducts = [
     // Cotton
-    { id: 1, categoryId: 1, title: { en: 'Organic Cotton', vn: 'Bông hữu cơ' }, description: { en: '100% certified organic cotton.', vn: '100% bông hữu cơ được chứng nhận.' }, specifications: { en: '| Grade | Staple Length |\n|---|---|\n| Premium | 35mm |', vn: '| Hạng | Chiều dài xơ |\n|---|---|\n| Cao cấp | 35mm |' }, image: 'https://picsum.photos/seed/p1/400' },
-    { id: 2, categoryId: 1, title: { en: 'Pima Cotton', vn: 'Bông Pima' }, description: { en: 'Extra-long staple cotton.', vn: 'Bông xơ siêu dài.' }, specifications: { en: '| Grade | Staple Length |\n|---|---|\n| Superior | 40mm |', vn: '| Thượng hạng | 40mm |' }, image: 'https://picsum.photos/seed/p2/400' },
+    { id: 1, categoryId: 1, title: { en: 'Organic Cotton', vi: 'Bông hữu cơ' }, description: { en: '100% certified organic cotton.', vi: '100% bông hữu cơ được chứng nhận.' }, specifications: { en: '| Grade | Staple Length |\n|---|---|\n| Premium | 35mm |', vi: '| Hạng | Chiều dài xơ |\n|---|---|\n| Cao cấp | 35mm |' }, image: 'https://picsum.photos/seed/p1/400' },
+    { id: 2, categoryId: 1, title: { en: 'Pima Cotton', vi: 'Bông Pima' }, description: { en: 'Extra-long staple cotton.', vi: 'Bông xơ siêu dài.' }, specifications: { en: '| Grade | Staple Length |\n|---|---|\n| Superior | 40mm |', vi: '| Thượng hạng | 40mm |' }, image: 'https://picsum.photos/seed/p2/400' },
     // Fiber
-    { id: 3, categoryId: 2, title: { en: 'Recycled Polyester', vn: 'Polyester tái chế' }, description: { en: 'Made from recycled materials.', vn: 'Làm từ vật liệu tái chế.' }, specifications: { en: '| Denier | Tenacity |\n|---|---|\n| 1.4 | 6.5 gpd |', vn: '| Denier | Độ bền |\n|---|---|\n| 1.4 | 6.5 gpd |' }, image: 'https://picsum.photos/seed/p3/400' },
+    { id: 3, categoryId: 2, title: { en: 'Recycled Polyester', vi: 'Polyester tái chế' }, description: { en: 'Made from recycled materials.', vi: 'Làm từ vật liệu tái chế.' }, specifications: { en: '| Denier | Tenacity |\n|---|---|\n| 1.4 | 6.5 gpd |', vi: '| Denier | Độ bền |\n|---|---|\n| 1.4 | 6.5 gpd |' }, image: 'https://picsum.photos/seed/p3/400' },
     // Machines
-    { id: 4, categoryId: 3, title: { en: 'Spinning Machine', vn: 'Máy kéo sợi' }, description: { en: 'High-speed ring spinning frame.', vn: 'Khung kéo sợi vòng tốc độ cao.' }, specifications: { en: '| Speed | Spindles |\n|---|---|\n| 25,000 rpm | 1200 |', vn: '| Tốc độ | Cọc sợi |\n|---|---|\n| 25,000 vòng/phút | 1200 |' }, image: 'https://picsum.photos/seed/p4/400' },
+    { id: 4, categoryId: 3, title: { en: 'Spinning Machine', vi: 'Máy kéo sợi' }, description: { en: 'High-speed ring spinning frame.', vi: 'Khung kéo sợi vòng tốc độ cao.' }, specifications: { en: '| Speed | Spindles |\n|---|---|\n| 25,000 rpm | 1200 |', vi: '| Tốc độ | Cọc sợi |\n|---|---|\n| 25,000 vòng/phút | 1200 |' }, image: 'https://picsum.photos/seed/p4/400' },
 ];
 
 const allCategories = [
-    { id: 1, name: { en: 'Cotton', vn: 'Bông' }, slug: 'cotton', description: { en: 'Global cotton sourcing to power your production', vn: 'Nguồn cung ứng bông toàn cầu để cung cấp năng lượng cho sản xuất của bạn' }, image: 'https://picsum.photos/seed/cotton/800/600' },
-    { id: 2, name: { en: 'Fiber', vn: 'Sợi' }, slug: 'fiber', description: { en: 'Eco-friendly fibers for sustainable textiles', vn: 'Sợi thân thiện với môi trường cho ngành dệt may bền vững' }, image: 'https://picsum.photos/seed/fiber/800/600' },
-    { id: 3, name: { en: 'Machines', vn: 'Máy móc' }, slug: 'machines', description: { en: 'Advanced textile machinery for modern manufacturing', vn: 'Máy móc dệt may tiên tiến cho sản xuất hiện đại' }, image: 'https://picsum.photos/seed/machines/800/600' },
+    { id: 1, name: { en: 'Cotton', vi: 'Bông' }, slug: 'cotton', description: { en: 'Global cotton sourcing to power your production', vi: 'Nguồn cung ứng bông toàn cầu để cung cấp năng lượng cho sản xuất của bạn' }, image: 'https://picsum.photos/seed/cotton/800/600' },
+    { id: 2, name: { en: 'Fiber', vi: 'Sợi' }, slug: 'fiber', description: { en: 'Eco-friendly fibers for sustainable textiles', vi: 'Sợi thân thiện với môi trường cho ngành dệt may bền vững' }, image: 'https://picsum.photos/seed/fiber/800/600' },
+    { id: 3, name: { en: 'Machines', vi: 'Máy móc' }, slug: 'machines', description: { en: 'Advanced textile machinery for modern manufacturing', vi: 'Máy móc dệt may tiên tiến cho sản xuất hiện đại' }, image: 'https://picsum.photos/seed/machines/800/600' },
 ];
 
 const ProductListScreen = () => {
@@ -111,7 +111,7 @@ const ProductListScreen = () => {
                                             </div>
                                             <div className="ml-4">
                                                 <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{product.title.en}</div>
-                                                <div className="text-sm text-gray-500 dark:text-gray-400">{product.title.vn}</div>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">{product.title.vi}</div>
                                             </div>
                                         </div>
                                     </td>

@@ -6,7 +6,7 @@ import { getHomepage } from "../../Api/api"; // adjust path if needed
 const WhoWeAreSection = () => {
   const [data, setData] = useState(null);
   const [activeLang, setActiveLang] = useState("en");
-  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const BASE_URL = import.meta.env.VITE_API_URL || "https://mitoslearning.co.in";
 
   // ✅ Detect and react to language changes (vi-mode)
   useEffect(() => {
@@ -39,7 +39,7 @@ const WhoWeAreSection = () => {
   if (!data) return null;
 
   // ✅ Helper to safely pick multilingual content
-  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vn ?? "";
+  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
 
   return (
     <section className="w-full bg-white page-width md:pt-20 pt-6">

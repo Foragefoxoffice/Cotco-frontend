@@ -11,9 +11,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
 
 
   const [formData, setFormData] = useState({
-    title: product?.title || { en: '', vn: '' },
-    description: product?.description || { en: '', vn: '' },
-    specifications: product?.specifications || { en: '', vn: '' },
+    title: product?.title || { en: '', vi: '' },
+    description: product?.description || { en: '', vi: '' },
+    specifications: product?.specifications || { en: '', vi: '' },
     image: product?.image || '',
   });
 

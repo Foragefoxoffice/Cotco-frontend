@@ -23,8 +23,8 @@ const EditMachinePage = () => {
         // ✅ Transform backend data into form structure
         const formattedData = {
           categoryId: page.category?._id || "",
-          title: page.title || { en: "", vn: "" },
-          description: page.description || { en: "", vn: "" },
+          title: page.title || { en: "", vi: "" },
+          description: page.description || { en: "", vi: "" },
           slug: page.slug || "",
           metaTitle: page.seo?.metaTitle || "",
           metaDescription: page.seo?.metaDescription || "",

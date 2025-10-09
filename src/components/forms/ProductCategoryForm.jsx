@@ -11,9 +11,9 @@ const ProductCategoryForm = ({ category, onClose, onSave }) => {
   const isCreating = !category;
 
   const [formData, setFormData] = useState({
-    name: category?.name || { en: '', vn: '' },
+    name: category?.name || { en: '', vi: '' },
     slug: category?.slug || '',
-    description: category?.description || { en: '', vn: '' },
+    description: category?.description || { en: '', vi: '' },
     image: category?.image || '',
   });
 

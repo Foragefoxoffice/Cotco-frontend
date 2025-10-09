@@ -5,9 +5,9 @@ import { Link } from 'react-router-dom';
 import ProductCategoryForm from '../components/forms/ProductCategoryForm';
 
 const initialProductCategories = [
-    { id: 1, name: { en: 'Cotton', vn: 'Bông' }, slug: 'cotton', description: { en: 'Global cotton sourcing to power your production', vn: 'Nguồn cung ứng bông toàn cầu để cung cấp năng lượng cho sản xuất của bạn' }, products: 8, image: 'https://picsum.photos/seed/cotton/800/600' },
-    { id: 2, name: { en: 'Fiber', vn: 'Sợi' }, slug: 'fiber', description: { en: 'Eco-friendly fibers for sustainable textiles', vn: 'Sợi thân thiện với môi trường cho ngành dệt may bền vững' }, products: 12, image: 'https://picsum.photos/seed/fiber/800/600' },
-    { id: 3, name: { en: 'Machines', vn: 'Máy móc' }, slug: 'machines', description: { en: 'Advanced textile machinery for modern manufacturing', vn: 'Máy móc dệt may tiên tiến cho sản xuất hiện đại' }, products: 15, image: 'https://picsum.photos/seed/machines/800/600' },
+    { id: 1, name: { en: 'Cotton', vi: 'Bông' }, slug: 'cotton', description: { en: 'Global cotton sourcing to power your production', vi: 'Nguồn cung ứng bông toàn cầu để cung cấp năng lượng cho sản xuất của bạn' }, products: 8, image: 'https://picsum.photos/seed/cotton/800/600' },
+    { id: 2, name: { en: 'Fiber', vi: 'Sợi' }, slug: 'fiber', description: { en: 'Eco-friendly fibers for sustainable textiles', vi: 'Sợi thân thiện với môi trường cho ngành dệt may bền vững' }, products: 12, image: 'https://picsum.photos/seed/fiber/800/600' },
+    { id: 3, name: { en: 'Machines', vi: 'Máy móc' }, slug: 'machines', description: { en: 'Advanced textile machinery for modern manufacturing', vi: 'Máy móc dệt may tiên tiến cho sản xuất hiện đại' }, products: 15, image: 'https://picsum.photos/seed/machines/800/600' },
 ];
 
 const ProductsScreen = () => {

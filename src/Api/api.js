@@ -2,7 +2,7 @@ import axios from "axios";
 
 // ✅ Setup axios instance
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/v1", // change to your backend URL
+  baseURL: "https://mitoslearning.co.in/api/v1", // change to your backend URL
   withCredentials: true, // if you use cookies
 });
 

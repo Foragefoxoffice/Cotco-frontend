@@ -35,9 +35,9 @@ const ContactScreen = () => {
   const labelClasses = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
   
   const contactPageContent = {
-    main_title: { en: 'Contact Us Today', vn: 'Liên hệ với chúng tôi ngay hôm nay' },
-    introduction_text: { en: 'We are here to answer any questions you may have.', vn: 'Chúng tôi ở đây để trả lời bất kỳ câu hỏi nào bạn có.' },
-    address: { en: '123 Textile Street, HCMC, Vietnam', vn: '123 Đường Dệt May, TP.HCM, Việt Nam' },
+    main_title: { en: 'Contact Us Today', vi: 'Liên hệ với chúng tôi ngay hôm nay' },
+    introduction_text: { en: 'We are here to answer any questions you may have.', vi: 'Chúng tôi ở đây để trả lời bất kỳ câu hỏi nào bạn có.' },
+    address: { en: '123 Textile Street, HCMC, Vietnam', vi: '123 Đường Dệt May, TP.HCM, Việt Nam' },
     phone_number: '+84 28 1234 5678',
     email_address: 'info@cotco.com',
   };

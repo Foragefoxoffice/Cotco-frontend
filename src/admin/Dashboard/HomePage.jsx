@@ -418,7 +418,7 @@ const HomePage = () => {
           >
             {["en", "vi"].map((lang) => (
               <TabPane
-                tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
+                tab={lang === "en" ? "English (EN)" : "Vietnamese (vi)"}
                 key={lang}
               >
                 <label className="block font-medium mt-5 mb-3">
@@ -702,7 +702,7 @@ const HomePage = () => {
           >
             {["en", "vi"].map((lang) => (
               <TabPane
-                tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
+                tab={lang === "en" ? "English (EN)" : "Vietnamese (vi)"}
                 key={lang}
               >
                 <label className="block font-medium mt-5 mb-3">
@@ -968,7 +968,7 @@ const HomePage = () => {
           >
             {["en", "vi"].map((lang) => (
               <TabPane
-                tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
+                tab={lang === "en" ? "English (EN)" : "Vietnamese (vi)"}
                 key={lang}
               >
                 <label className="block font-medium mt-5 mb-3">
@@ -1334,7 +1334,7 @@ const HomePage = () => {
           >
             {["en", "vi"].map((lang) => (
               <TabPane
-                tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
+                tab={lang === "en" ? "English (EN)" : "Vietnamese (vi)"}
                 key={lang}
               >
                 <label className="block font-medium mt-5 mb-3">
@@ -1608,7 +1608,7 @@ const HomePage = () => {
           >
             {["en", "vi"].map((lang) => (
               <TabPane
-                tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
+                tab={lang === "en" ? "English (EN)" : "Vietnamese (vi)"}
                 key={lang}
               >
                 <label className="block font-medium mt-5 mb-3">
@@ -1783,7 +1783,7 @@ const HomePage = () => {
           >
             {["en", "vi"].map((lang) => (
               <TabPane
-                tab={lang === "en" ? "English (EN)" : "Vietnamese (VN)"}
+                tab={lang === "en" ? "English (EN)" : "Vietnamese (vi)"}
                 key={lang}
               >
                 <label className="block font-medium mt-5 mb-3">

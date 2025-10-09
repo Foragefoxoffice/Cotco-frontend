@@ -8,7 +8,7 @@ import { slugify } from "../utils/helpers";
 const pagesDatabase = [
   {
     id: 1,
-    title: { en: "About Us", vn: "Giới thiệu" },
+    title: { en: "About Us", vi: "Giới thiệu" },
     slug: "about-us",
     updatedAt: "2023-05-15",
     sections: [
@@ -19,14 +19,14 @@ const pagesDatabase = [
           {
             name: "heading",
             type: "text",
-            value: { en: "Who We Are", vn: "Chúng tôi là ai" },
+            value: { en: "Who We Are", vi: "Chúng tôi là ai" },
           },
           {
             name: "subheading",
             type: "textarea",
             value: {
               en: "Your trusted partner in textiles.",
-              vn: "Đối tác tin cậy của bạn trong ngành dệt may.",
+              vi: "Đối tác tin cậy của bạn trong ngành dệt may.",
             },
           },
           {
@@ -45,7 +45,7 @@ const pagesDatabase = [
             type: "markdown",
             value: {
               en: "Detailed content about the company history...",
-              vn: "Nội dung chi tiết về lịch sử công ty...",
+              vi: "Nội dung chi tiết về lịch sử công ty...",
             },
           },
         ],
@@ -57,14 +57,14 @@ const pagesDatabase = [
           {
             name: "meta_title",
             type: "text",
-            value: { en: "About COTCO", vn: "Về COTCO" },
+            value: { en: "About COTCO", vi: "Về COTCO" },
           },
           {
             name: "meta_description",
             type: "textarea",
             value: {
               en: "Learn about our mission in the textile industry.",
-              vn: "Tìm hiểu về sứ mệnh của chúng tôi trong ngành dệt may.",
+              vi: "Tìm hiểu về sứ mệnh của chúng tôi trong ngành dệt may.",
             },
           },
         ],
@@ -73,7 +73,7 @@ const pagesDatabase = [
   },
   {
     id: 10,
-    title: { en: "Homepage", vn: "Trang chủ" },
+    title: { en: "Homepage", vi: "Trang chủ" },
     slug: "homepage",
     updatedAt: "2023-06-01",
     sections: [
@@ -86,7 +86,7 @@ const pagesDatabase = [
             type: "text",
             value: {
               en: "Excellence in Every Thread",
-              vn: "Sự xuất sắc trong từng sợi chỉ",
+              vi: "Sự xuất sắc trong từng sợi chỉ",
             },
           },
           {
@@ -94,13 +94,13 @@ const pagesDatabase = [
             type: "textarea",
             value: {
               en: "Global sourcing for quality textiles.",
-              vn: "Nguồn cung ứng toàn cầu cho hàng dệt may chất lượng.",
+              vi: "Nguồn cung ứng toàn cầu cho hàng dệt may chất lượng.",
             },
           },
           {
             name: "cta_button_text",
             type: "text",
-            value: { en: "Our Products", vn: "Sản phẩm" },
+            value: { en: "Our Products", vi: "Sản phẩm" },
           },
         ],
       },
@@ -113,7 +113,7 @@ const pagesDatabase = [
             type: "text",
             value: {
               en: "Pioneering the Future of Textiles",
-              vn: "Tiên phong tương lai ngành dệt",
+              vi: "Tiên phong tương lai ngành dệt",
             },
           },
           {
@@ -121,7 +121,7 @@ const pagesDatabase = [
             type: "textarea",
             value: {
               en: "For decades, we have been a cornerstone of the global textile market...",
-              vn: "Trong nhiều thập kỷ, chúng tôi đã là nền tảng của thị trường dệt may toàn cầu...",
+              vi: "Trong nhiều thập kỷ, chúng tôi đã là nền tảng của thị trường dệt may toàn cầu...",
             },
           },
         ],
@@ -135,7 +135,7 @@ const pagesDatabase = [
             type: "text",
             value: {
               en: "Our Trusted Partners",
-              vn: "Các đối tác tin cậy của chúng tôi",
+              vi: "Các đối tác tin cậy của chúng tôi",
             },
           },
           {
@@ -154,7 +154,7 @@ const pagesDatabase = [
             type: "text",
             value: {
               en: "COTCO Vietnam - Global Textile Sourcing",
-              vn: "COTCO Việt Nam - Nguồn cung ứng dệt may toàn cầu",
+              vi: "COTCO Việt Nam - Nguồn cung ứng dệt may toàn cầu",
             },
           },
           {
@@ -162,7 +162,7 @@ const pagesDatabase = [
             type: "textarea",
             value: {
               en: "High-quality cotton, fiber, and textile machinery from COTCO Vietnam.",
-              vn: "Bông, sợi và máy móc dệt may chất lượng cao từ COTCO Việt Nam.",
+              vi: "Bông, sợi và máy móc dệt may chất lượng cao từ COTCO Việt Nam.",
             },
           },
         ],
@@ -174,7 +174,7 @@ const pagesDatabase = [
 // --- Blank Page Template ---
 const blankPage = {
   id: 0,
-  title: { en: "", vn: "" },
+  title: { en: "", vi: "" },
   slug: "",
   updatedAt: new Date().toISOString().split("T")[0],
   sections: [
@@ -182,19 +182,19 @@ const blankPage = {
       id: "new_content",
       title: "Main Content",
       fields: [
-        { name: "heading", type: "text", value: { en: "", vn: "" } },
-        { name: "content_body", type: "markdown", value: { en: "", vn: "" } },
+        { name: "heading", type: "text", value: { en: "", vi: "" } },
+        { name: "content_body", type: "markdown", value: { en: "", vi: "" } },
       ],
     },
     {
       id: "new_seo",
       title: "SEO Settings",
       fields: [
-        { name: "meta_title", type: "text", value: { en: "", vn: "" } },
+        { name: "meta_title", type: "text", value: { en: "", vi: "" } },
         {
           name: "meta_description",
           type: "textarea",
-          value: { en: "", vn: "" },
+          value: { en: "", vi: "" },
         },
       ],
     },
@@ -308,12 +308,12 @@ const PageEditScreen = () => {
             />
           </div>
           <div>
-            <label className={`${labelClasses} mb-2`}>Page Title (VN)</label>
+            <label className={`${labelClasses} mb-2`}>Page Title (vi)</label>
             <input
               type="text"
               className={inputClasses}
-              value={page.title.vn}
-              onChange={(e) => handleTitleChange("vn", e.target.value)}
+              value={page.title.vi}
+              onChange={(e) => handleTitleChange("vi", e.target.value)}
             />
           </div>
         </div>

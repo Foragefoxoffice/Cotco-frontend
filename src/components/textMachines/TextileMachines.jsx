@@ -102,7 +102,7 @@ export default function TextileMachines({ category }) {
             <motion.img
               src={
                 category?.image
-                  ? `http://localhost:5000${category.image}`
+                  ? `https://mitoslearning.co.in${category.image}`
                   : "/img/textiles/textiles-bg.jpg"
               }
               alt={category?.name?.en || "Machines"}
@@ -137,7 +137,7 @@ export default function TextileMachines({ category }) {
             <img
               src={
                 category?.image2
-                  ? `http://localhost:5000${category.image2}`
+                  ? `https://mitoslearning.co.in${category.image2}`
                   : "/img/textiles/category.png" // ✅ fallback default
               }
               alt={`${category?.name?.en || "Machine"} image`}

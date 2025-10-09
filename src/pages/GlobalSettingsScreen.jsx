@@ -7,13 +7,13 @@ const GlobalSettingsScreen = () => {
 
   const [settings, setSettings] = useState({
     site_logo: 'https://picsum.photos/seed/logo/200/80',
-    company_name: { en: 'COTCO Vietnam', vn: 'COTCO Việt Nam' },
-    address_footer: { en: '123 Textile Street, Ho Chi Minh City, Vietnam', vn: '123 Đường Dệt May, Thành phố Hồ Chí Minh, Việt Nam' },
+    company_name: { en: 'COTCO Vietnam', vi: 'COTCO Việt Nam' },
+    address_footer: { en: '123 Textile Street, Ho Chi Minh City, Vietnam', vi: '123 Đường Dệt May, Thành phố Hồ Chí Minh, Việt Nam' },
     phone_footer: '+84 28 1234 5678',
     email_footer: 'info@cotco.com',
     facebook_link: 'https://facebook.com/cotco',
     linkedin_link: 'https://linkedin.com/company/cotco',
-    copyright_text: { en: '© 2023 COTCO Vietnam. All rights reserved.', vn: '© 2023 COTCO Việt Nam. Bảo lưu mọi quyền.' },
+    copyright_text: { en: '© 2023 COTCO Vietnam. All rights reserved.', vi: '© 2023 COTCO Việt Nam. Bảo lưu mọi quyền.' },
   });
 
   const handleChange = (field, value) => {

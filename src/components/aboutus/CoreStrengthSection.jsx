@@ -37,7 +37,7 @@ export default function CoreStrengthSection() {
   const getImageUrl = (path) => {
     if (!path) return "";
     if (path.startsWith("data:") || path.startsWith("http")) return path;
-    return `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${path}`;
+    return `${import.meta.env.VITE_API_URL || "https://mitoslearning.co.in"}${path}`;
   };
 
   const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";

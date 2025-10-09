@@ -143,7 +143,7 @@ function ContactForm({ heading }) {
     const okTypes = [
       "application/pdf",
       "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vid.openxmlformats-officedocument.wordprocessingml.document",
       "image/png",
       "image/jpeg",
     ];

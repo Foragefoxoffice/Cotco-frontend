@@ -6,8 +6,8 @@ import { CommonToaster } from "../../Common/CommonToaster";
 export default function CategoryEdit() {
   const { id } = useParams();
   const [formData, setFormData] = useState({
-    name: { en: "", vn: "" },
-    description: { en: "", vn: "" },
+    name: { en: "", vi: "" },
+    description: { en: "", vi: "" },
   });
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
@@ -68,13 +68,13 @@ export default function CategoryEdit() {
           />
         </div>
 
-        {/* Name (VN) */}
+        {/* Name (vi) */}
         <div>
           <label className="block font-medium mb-2">Category Name (Vietnamese)</label>
           <input
             type="text"
-            value={formData.name.vn}
-            onChange={(e) => handleChange(e, "vn", "name")}
+            value={formData.name.vi}
+            onChange={(e) => handleChange(e, "vi", "name")}
             className="w-full px-4 py-2 border rounded-lg border-gray-300"
           />
         </div>
@@ -90,12 +90,12 @@ export default function CategoryEdit() {
           />
         </div>
 
-        {/* Description (VN) */}
+        {/* Description (vi) */}
         <div>
           <label className="block font-medium mb-2">Description (Vietnamese)</label>
           <textarea
-            value={formData.description.vn}
-            onChange={(e) => handleChange(e, "vn", "description")}
+            value={formData.description.vi}
+            onChange={(e) => handleChange(e, "vi", "description")}
             className="w-full px-4 py-2 border rounded-lg border-gray-300"
             rows="3"
           />

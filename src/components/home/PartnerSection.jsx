@@ -9,7 +9,7 @@ export default function PartnerSection() {
   const [logos, setLogos] = useState([]);
   const [heading, setHeading] = useState("PROUD PARTNERS OF GLOBAL LEADERS");
   const [activeLang, setActiveLang] = useState("en");
-  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const BASE_URL = import.meta.env.VITE_API_URL || "https://mitoslearning.co.in";
 
   // ✅ Detect language dynamically from <body class="vi-mode">
   useEffect(() => {

@@ -44,7 +44,7 @@ const MachinePageDetail = () => {
     return <div className="p-10 text-center">Machine not found</div>;
 
   // ✅ Banner
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API_URL = import.meta.env.VITE_API_URL || "https://mitoslearning.co.in";
   const bannerUrl =
     machine.banner && machine.banner.startsWith("/uploads")
       ? `${API_URL}${machine.banner}`
@@ -119,7 +119,7 @@ const MachinePageDetail = () => {
           <div key={index} className="overflow-x-auto my-10 page-width">
             {section.table?.header && (
               <h3 className="text-2xl font-bold mb-4">
-                {section.table.header?.en || section.table.header?.vn || ""}
+                {section.table.header?.en || section.table.header?.vi || ""}
               </h3>
             )}
             <table className="table-auto border-collapse w-full text-sm">
@@ -130,7 +130,7 @@ const MachinePageDetail = () => {
                       key={ci}
                       className="border border-gray-300 px-4 py-2 text-left font-semibold"
                     >
-                      {cell?.en || cell?.vn || ""}
+                      {cell?.en || cell?.vi || ""}
                     </th>
                   ))}
                 </tr>
@@ -143,7 +143,7 @@ const MachinePageDetail = () => {
                         key={ci}
                         className="border border-gray-300 px-4 py-2 text-gray-800"
                       >
-                        {cell?.en || cell?.vn || ""}
+                        {cell?.en || cell?.vi || ""}
                       </td>
                     ))}
                   </tr>

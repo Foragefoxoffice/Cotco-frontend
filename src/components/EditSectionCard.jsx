@@ -43,7 +43,7 @@ const EditSectionCard = ({ section: initialSection, index, totalSections, onMove
     const newField = {
       name: snakeCaseName,
       type: newFieldType,
-      value: newFieldType === 'image' ? '' : { en: '', vn: '' }
+      value: newFieldType === 'image' ? '' : { en: '', vi: '' }
     };
 
     setSection({ ...section, fields: [...section.fields, newField] });

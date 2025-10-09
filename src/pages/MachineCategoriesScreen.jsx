@@ -88,7 +88,7 @@ const MachineCategoriesScreen = () => {
             >
               <div className="h-48 overflow-hidden">
                 <img
-                  src={`http://localhost:5000${category.image}`}
+                  src={`https://mitoslearning.co.in${category.image}`}
                   alt={category.name?.[activeLanguage] || ""}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />

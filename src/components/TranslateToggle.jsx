@@ -22,12 +22,12 @@ const FlagGB = ({ size = 20 }) => (
   </svg>
 );
 
-const FlagVN = ({ size = 20 }) => (
+const Flagvi = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
     <defs>
-      <clipPath id="vn_clip"><circle cx="12" cy="12" r="12" /></clipPath>
+      <clipPath id="vi_clip"><circle cx="12" cy="12" r="12" /></clipPath>
     </defs>
-    <g clipPath="url(#vn_clip)">
+    <g clipPath="url(#vi_clip)">
       <rect width="24" height="24" fill="#DA251D" />
       {/* 5-point star */}
       <polygon
@@ -82,7 +82,7 @@ export default function TranslateToggle() {
 
   const LANGS = [
     { id: "en", label: "English", Icon: FlagGB }, // swap to US: make a FlagUS and use here
-    { id: "vi", label: "Tiếng Việt", Icon: FlagVN },
+    { id: "vi", label: "Tiếng Việt", Icon: Flagvi },
   ];
 
   return (

@@ -135,13 +135,13 @@ const NewsMainCategoriesScreen = () => {
 
   // 🔹 Filter + Sort
   const filteredCategories = mainCategories.filter((cat) => {
-    const name = isVietnamese ? cat.name?.vn || cat.name?.en : cat.name?.en;
+    const name = isVietnamese ? cat.name?.vi || cat.name?.en : cat.name?.en;
     return name?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const sortedCategories = [...filteredCategories].sort((a, b) => {
-    const nameA = isVietnamese ? a.name?.vn || a.name?.en : a.name?.en;
-    const nameB = isVietnamese ? b.name?.vn || b.name?.en : b.name?.en;
+    const nameA = isVietnamese ? a.name?.vi || a.name?.en : a.name?.en;
+    const nameB = isVietnamese ? b.name?.vi || b.name?.en : b.name?.en;
     if (sortOption === "az") return nameA.localeCompare(nameB);
     if (sortOption === "za") return nameB.localeCompare(nameA);
     if (sortOption === "newest")
@@ -295,7 +295,7 @@ const NewsMainCategoriesScreen = () => {
               </td>
 
               <td className="px-6 py-4 text-sm font-medium text-white">
-                {/* ✅ Corrected language switch (uses .vi not .vn) */}
+                {/* ✅ Corrected language switch (uses .vi not .vi) */}
                 {isVietnamese
                   ? category.name?.vi || category.name?.en
                   : category.name?.en}

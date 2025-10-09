@@ -17,7 +17,7 @@ const NewsCategoriesScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // ✅ Detect language (EN/VN)
+  // ✅ Detect language (EN/vi)
   useEffect(() => {
     const checkLang = () => {
       setIsVietnamese(document.body.classList.contains("vi-mode"));

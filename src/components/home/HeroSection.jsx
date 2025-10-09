@@ -9,7 +9,7 @@ export default function HeroSection() {
   const [activeLang, setActiveLang] = useState("en"); // ✅ language state
   const videoRef = useRef(null);
 
-  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const BASE_URL = import.meta.env.VITE_API_URL || "https://mitoslearning.co.in";
 
   // Detect scroll for animation
   useEffect(() => {
@@ -106,15 +106,7 @@ export default function HeroSection() {
       {/* ---------- Dark Overlay ---------- */}
       <div className="absolute inset-0 bg-black/40" />
 
-      {/* ---------- Language Switcher ---------- */}
-      <div className="absolute top-6 right-6 z-20">
-        <button
-          onClick={toggleLanguage}
-          className="px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-sm font-medium text-white backdrop-blur-md transition"
-        >
-          {activeLang === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}
-        </button>
-      </div>
+     
 
       {/* ---------- Text Content ---------- */}
       <div className="absolute md:bottom-0 bottom-10 md:px-12 p-6 pb-20 text-white max-w-4xl">

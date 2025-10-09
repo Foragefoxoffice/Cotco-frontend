@@ -7,7 +7,7 @@ const LanguageSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
   const languages = [
     { code: 'en', label: 'English' },
-    { code: 'vn', label: 'Vietnamese' },
+    { code: 'vi', label: 'Vietnamese' },
   ];
 
   const toggleDropdown = () => setIsOpen(!isOpen);

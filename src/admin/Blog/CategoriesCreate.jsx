@@ -5,8 +5,8 @@ import { CommonToaster } from "../../Common/CommonToaster";
 
 export default function CategoriesCreate() {
   const [formData, setFormData] = useState({
-    name: { en: "", vn: "" },
-    description: { en: "", vn: "" },
+    name: { en: "", vi: "" },
+    description: { en: "", vi: "" },
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -29,11 +29,11 @@ export default function CategoriesCreate() {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.en) newErrors["name-en"] = "English name is required";
-    if (!formData.name.vn) newErrors["name-vn"] = "Vietnamese name is required";
+    if (!formData.name.vi) newErrors["name-vi"] = "Vietnamese name is required";
     if (!formData.description.en)
       newErrors["description-en"] = "English description is required";
-    if (!formData.description.vn)
-      newErrors["description-vn"] = "Vietnamese description is required";
+    if (!formData.description.vi)
+      newErrors["description-vi"] = "Vietnamese description is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -92,15 +92,15 @@ export default function CategoriesCreate() {
           </label>
           <input
             type="text"
-            value={formData.name.vn}
-            onChange={(e) => handleChange(e, "vn", "name")}
+            value={formData.name.vi}
+            onChange={(e) => handleChange(e, "vi", "name")}
             className={`w-full px-4 py-2 border rounded-lg ${
-              errors["name-vn"] ? "border-red-500" : "border-gray-300"
+              errors["name-vi"] ? "border-red-500" : "border-gray-300"
             }`}
             placeholder="Nhập tên danh mục bằng tiếng Việt"
           />
-          {errors["name-vn"] && (
-            <p className="text-red-500 text-sm mt-1">{errors["name-vn"]}</p>
+          {errors["name-vi"] && (
+            <p className="text-red-500 text-sm mt-1">{errors["name-vi"]}</p>
           )}
         </div>
 
@@ -130,17 +130,17 @@ export default function CategoriesCreate() {
             Description (Vietnamese)
           </label>
           <textarea
-            value={formData.description.vn}
-            onChange={(e) => handleChange(e, "vn", "description")}
+            value={formData.description.vi}
+            onChange={(e) => handleChange(e, "vi", "description")}
             className={`w-full px-4 py-2 border rounded-lg ${
-              errors["description-vn"] ? "border-red-500" : "border-gray-300"
+              errors["description-vi"] ? "border-red-500" : "border-gray-300"
             }`}
             rows="3"
             placeholder="Nhập mô tả bằng tiếng Việt"
           />
-          {errors["description-vn"] && (
+          {errors["description-vi"] && (
             <p className="text-red-500 text-sm mt-1">
-              {errors["description-vn"]}
+              {errors["description-vi"]}
             </p>
           )}
         </div>

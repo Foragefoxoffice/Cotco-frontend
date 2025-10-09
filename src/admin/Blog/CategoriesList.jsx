@@ -58,7 +58,7 @@ export default function CategoriesList() {
             <tr className="bg-gray-100 text-left">
               <th className="p-3 border">#</th>
               <th className="p-3 border">Name (EN)</th>
-              <th className="p-3 border">Name (VN)</th>
+              <th className="p-3 border">Name (vi)</th>
               <th className="p-3 border">Actions</th>
             </tr>
           </thead>
@@ -67,7 +67,7 @@ export default function CategoriesList() {
               <tr key={cat._id} className="hover:bg-gray-50">
                 <td className="p-3 border">{i + 1}</td>
                 <td className="p-3 border">{cat.name.en}</td>
-                <td className="p-3 border">{cat.name.vn}</td>
+                <td className="p-3 border">{cat.name.vi}</td>
                 <td className="p-3 border space-x-3">
                   <Link
                     to={`/admin/blogs/categories/edit/${cat._id}`}

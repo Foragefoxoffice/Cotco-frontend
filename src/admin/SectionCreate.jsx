@@ -71,7 +71,7 @@ export default function SectionCreate() {
               onChange={(e) => setNewField({ ...newField, type: e.target.value })}
               className="px-3 py-2 border rounded-lg border-gray-300"
             >
-              <option value="multilang">Multilang (EN/VN)</option>
+              <option value="multilang">Multilang (EN/VI)</option>
               <option value="image">Image</option>
               <option value="string">String</option>
               <option value="array">Array</option>

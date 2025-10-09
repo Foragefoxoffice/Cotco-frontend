@@ -114,7 +114,7 @@ export default function PartnerSection() {
                 src={
                   partner.image?.startsWith("http")
                     ? partner.image
-                    : `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${partner.image}`
+                    : `${import.meta.env.VITE_API_URL || "https://mitoslearning.co.in"}${partner.image}`
                 }
                 alt={partner.name}
                 className="h-16 md:h-20 object-contain"

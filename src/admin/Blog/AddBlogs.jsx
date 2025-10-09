@@ -8,7 +8,7 @@ export default function BlogCreate() {
   const [sections, setSections] = useState([]);
   const [formData, setFormData] = useState({
     category: "",
-    title: { en: "", vn: "" },
+    title: { en: "", vi: "" },
     slug: "",
     blocks: [],
   });
@@ -55,7 +55,7 @@ export default function BlogCreate() {
     const values = {};
     sectionDef.fields.forEach((field) => {
       if (field.type === "multilang") {
-        values[field.key] = { en: "", vn: "" };
+        values[field.key] = { en: "", vi: "" };
       } else if (field.type === "image") {
         values[field.key] = "";
       } else {
@@ -121,13 +121,13 @@ export default function BlogCreate() {
             <option value="">-- Select Category --</option>
             {categories.map((cat) => (
               <option key={cat._id} value={cat._id}>
-                {cat.name.en} / {cat.name.vn}
+                {cat.name.en} / {cat.name.vi}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Title EN/VN */}
+        {/* Title EN/vi */}
         <div>
           <label className="block font-medium mb-2">Title (English)</label>
           <input
@@ -141,8 +141,8 @@ export default function BlogCreate() {
           <label className="block font-medium mb-2">Title (Vietnamese)</label>
           <input
             type="text"
-            value={formData.title.vn}
-            onChange={(e) => handleChange("title", "vn", e.target.value)}
+            value={formData.title.vi}
+            onChange={(e) => handleChange("title", "vi", e.target.value)}
             className="w-full border px-4 py-2 rounded-lg"
           />
         </div>
@@ -208,13 +208,13 @@ export default function BlogCreate() {
                         className="w-full border px-3 py-2 rounded-lg mb-2"
                       />
                       <label className="block text-sm font-medium text-gray-700">
-                        {field.key} (VN)
+                        {field.key} (vi)
                       </label>
                       <input
                         type="text"
-                        value={block.values[field.key].vn}
+                        value={block.values[field.key].vi}
                         onChange={(e) =>
-                          handleBlockChange(index, field.key, e.target.value, "vn")
+                          handleBlockChange(index, field.key, e.target.value, "vi")
                         }
                         className="w-full border px-3 py-2 rounded-lg"
                       />
