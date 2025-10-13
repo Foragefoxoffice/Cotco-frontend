@@ -21,7 +21,40 @@ const Sidebar = () => {
     const userData = localStorage.getItem("user");
     if (userData) {
       const parsed = JSON.parse(userData);
-      setPermissions(parsed?.role?.permissions || {});
+      // setPermissions(parsed?.role?.permissions || {});
+      const role = parsed?.role;
+const roleName =
+  typeof role?.name === "object" ? role.name.en || role.name.vi : role?.name;
+
+if (roleName === "Super Admin") {
+  // ✅ full access for legacy Super Admins
+  setPermissions({
+    dashboard: true,
+    resources: true,
+    machines: true,
+    cms: true,
+    users: true,
+    roles: true,
+    staff: true,
+    enquiry: true,
+    maincategories: true,
+    categories: true,
+    machineCategories: true,
+    machineList: true,
+    header: true,
+    footer: true,
+    home: true,
+    about: true,
+    cotton: true,
+    fiber: true,
+    contact: true,
+    privacy: true,
+    terms: true,
+  });
+} else {
+  setPermissions(role?.permissions || {});
+}
+
     }
   }, []);
 
@@ -66,76 +99,85 @@ const Sidebar = () => {
   };
 
   /* ✅ Menu items with permission keys */
-  const menuItems = [
-    {
-      path: "/admin",
-      key: "dashboard",
-      label: t.dashboard,
-      icon: <LayoutDashboard size={18} />,
-    },
-    {
-      label: t.newsEvents,
-      key: "resources",
-      icon: <Newspaper size={18} />,
-      subItems: [
-        {
-          path: "/admin/resources/main-categories",
-          label: t.maincategories,
-          key: "resources",
-        },
-        {
-          path: "/admin/resources/categories",
-          label: t.categories,
-          key: "resources",
-        },
-        { path: "/admin/resources", label: t.allNews, key: "resources" },
-      ],
-    },
-    {
-      label: t.machines,
-      key: "machines",
-      icon: <Cog size={18} />,
-      subItems: [
-        {
-          path: "/admin/machines/categories",
-          label: t.machineCategories,
-          key: "machines",
-        },
-        { path: "/admin/machines/list", label: t.machineList, key: "machines" },
-      ],
-    },
-    {
-      label: t.cms,
-      key: "cms",
-      icon: <Settings size={18} />,
-      subItems: [
-        { path: "/admin/header", label: t.header, key: "header" },
-        { path: "/admin/footer", label: t.footer, key: "footer" },
-        { path: "/admin/home", label: t.home, key: "home" },
-        { path: "/admin/about", label: t.about, key: "about" },
-        { path: "/admin/cotton", label: t.cotton, key: "cotton" },
-        { path: "/admin/fiber", label: t.fiber, key: "fiber" },
-        { path: "/admin/contact", label: t.contact, key: "contact" },
-        { path: "/admin/privacy-policy", label: t.privacy, key: "privacy" },
-        { path: "/admin/terms-conditions", label: t.terms, key: "terms" },
-      ],
-    },
-    {
-      label: t.roleManagement,
-      key: "users",
-      icon: <UsersRound size={18} />,
-      subItems: [
-        { path: "/admin/roles", label: t.roles, key: "roles" },
-        { path: "/admin/staffmanagement", label: t.users, key: "staff" },
-      ],
-    },
-    {
-      path: "/admin/contacts",
-      key: "enquiry",
-      label: t.allContacts,
-      icon: <NotepadTextDashed size={18} />,
-    },
-  ];
+ const menuItems = [
+  {
+    path: "/admin",
+    key: "dashboard",
+    label: t.dashboard,
+    icon: <LayoutDashboard size={18} />,
+  },
+  {
+    label: t.newsEvents,
+    key: "resources",
+    icon: <Newspaper size={18} />,
+    subItems: [
+      {
+        path: "/admin/resources/main-categories",
+        label: t.maincategories,
+        key: "maincategories", // ✅ unique key
+      },
+      {
+        path: "/admin/resources/categories",
+        label: t.categories,
+        key: "categories", // ✅ unique key
+      },
+      {
+        path: "/admin/resources",
+        label: t.allNews,
+        key: "resources", // ✅ unique key
+      },
+    ],
+  },
+  {
+    label: t.machines,
+    key: "machines",
+    icon: <Cog size={18} />,
+    subItems: [
+      {
+        path: "/admin/machines/categories",
+        label: t.machineCategories,
+        key: "machineCategories", // ✅ unique
+      },
+      {
+        path: "/admin/machines/list",
+        label: t.machineList,
+        key: "machineList", // ✅ unique
+      },
+    ],
+  },
+  {
+    label: t.cms,
+    key: "cms",
+    icon: <Settings size={18} />,
+    subItems: [
+      { path: "/admin/header", label: t.header, key: "header" },
+      { path: "/admin/footer", label: t.footer, key: "footer" },
+      { path: "/admin/home", label: t.home, key: "home" },
+      { path: "/admin/about", label: t.about, key: "about" },
+      { path: "/admin/cotton", label: t.cotton, key: "cotton" },
+      { path: "/admin/fiber", label: t.fiber, key: "fiber" },
+      { path: "/admin/contact", label: t.contact, key: "contact" },
+      { path: "/admin/privacy-policy", label: t.privacy, key: "privacy" },
+      { path: "/admin/terms-conditions", label: t.terms, key: "terms" },
+    ],
+  },
+  {
+    label: t.roleManagement,
+    key: "users",
+    icon: <UsersRound size={18} />,
+    subItems: [
+      { path: "/admin/roles", label: t.roles, key: "roles" },
+      { path: "/admin/staffmanagement", label: t.users, key: "staff" },
+    ],
+  },
+  {
+    path: "/admin/contacts",
+    key: "enquiry",
+    label: t.allContacts,
+    icon: <NotepadTextDashed size={18} />,
+  },
+];
+
 
   /* ✅ Filter menu based on permissions */
   const filteredMenu = menuItems

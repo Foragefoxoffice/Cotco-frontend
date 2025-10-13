@@ -8,7 +8,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import toast from "react-hot-toast";
 import { CommonToaster } from "../../Common/CommonToaster";
-
+import ReactQuill from "react-quill-new";
 const labels = {
   en: {
     edit: "Edit Content",
@@ -86,7 +86,6 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
   const [showImage2Modal, setShowImage2Modal] = useState(null);
   const [keywordInput, setKeywordInput] = useState("");
 
-
   const [formData, setFormData] = useState({
     title: { en: "", vi: "" },
     slug: "",
@@ -105,50 +104,50 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
   });
 
   const handleKeywordKeyDown = (e) => {
-  if (e.key === "Enter" && keywordInput.trim()) {
-    e.preventDefault();
-    const newKeyword = keywordInput.trim();
+    if (e.key === "Enter" && keywordInput.trim()) {
+      e.preventDefault();
+      const newKeyword = keywordInput.trim();
 
-    setFormData((prev) => {
-      const existing = prev.seo.keywords?.[activeLanguage]
-        ? prev.seo.keywords[activeLanguage].split(",").map((k) => k.trim())
-        : [];
+      setFormData((prev) => {
+        const existing = prev.seo.keywords?.[activeLanguage]
+          ? prev.seo.keywords[activeLanguage].split(",").map((k) => k.trim())
+          : [];
 
-      if (!existing.includes(newKeyword)) {
-        const updated = [...existing, newKeyword];
-        return {
-          ...prev,
-          seo: {
-            ...prev.seo,
-            keywords: {
-              ...prev.seo.keywords,
-              [activeLanguage]: updated.join(", "),
+        if (!existing.includes(newKeyword)) {
+          const updated = [...existing, newKeyword];
+          return {
+            ...prev,
+            seo: {
+              ...prev.seo,
+              keywords: {
+                ...prev.seo.keywords,
+                [activeLanguage]: updated.join(", "),
+              },
             },
-          },
-        };
-      }
-      return prev;
-    });
+          };
+        }
+        return prev;
+      });
 
-    setKeywordInput("");
-  }
-};
+      setKeywordInput("");
+    }
+  };
 
   // ✅ Auto-fill author from logged-in user
-useEffect(() => {
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    try {
-      const user = JSON.parse(storedUser);
-      const name = user?.name || user?.username || user?.email || "";
-      if (name) {
-        setFormData((prev) => ({ ...prev, author: name }));
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        const name = user?.name || user?.username || user?.email || "";
+        if (name) {
+          setFormData((prev) => ({ ...prev, author: name }));
+        }
+      } catch (err) {
+        console.error("Error parsing user data:", err);
       }
-    } catch (err) {
-      console.error("Error parsing user data:", err);
     }
-  }
-}, []);
+  }, []);
 
   const isCreating = !article;
 
@@ -389,6 +388,21 @@ useEffect(() => {
   border-radius: 8px !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
+
+ /* ✅ Sticky Quill toolbar */
+  .ql-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
+    border-radius: 0.5rem 0.5rem 0 0;
+    border-bottom: 1px solid #333;
+  }
+
+  .ql-container {
+    max-height: 350px;
+    overflow-y: auto;
+  }
         `}
       </style>
 
@@ -416,7 +430,10 @@ useEffect(() => {
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         {/* Title */}
         <div>
-          <label className={labelClasses}>{labels[activeLanguage].title}<span className="text-red-500 text-lg">*</span></label>
+          <label className={labelClasses}>
+            {labels[activeLanguage].title}
+            <span className="text-red-500 text-lg">*</span>
+          </label>
           <input
             type="text"
             className={inputClasses}
@@ -444,7 +461,8 @@ useEffect(() => {
         {/* Cover Image Upload with Preview Modal */}
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].coverImage}<span className="text-red-500 text-lg">*</span>
+            {labels[activeLanguage].coverImage}
+            <span className="text-red-500 text-lg">*</span>
           </label>
 
           {/* Hidden File Input */}
@@ -617,7 +635,8 @@ useEffect(() => {
         {/* Excerpt */}
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].description}<span className="text-red-500 text-lg">*</span>
+            {labels[activeLanguage].description}
+            <span className="text-red-500 text-lg">*</span>
           </label>
           <textarea
             className={inputClasses}
@@ -661,7 +680,9 @@ useEffect(() => {
 
         {/* Content Blocks */}
         <div>
-          <label className={labelClasses}>Content Blocks</label>
+          <label className={labelClasses}>
+            {activeLanguage === "vi" ? "Khối nội dung" : "Content Blocks"}
+          </label>
           <div className="space-y-4 mt-2">
             {formData.blocks.map((block, i) => (
               <div
@@ -682,10 +703,13 @@ useEffect(() => {
                   </button>
                 </div>
                 {block.type === "richtext" && (
-                  <RichTextEditor
+                  <ReactQuill
                     key={`${i}-${activeLanguage}`}
-                    value={block.content[activeLanguage]}
-                    onChange={(val) => updateBlock(i, val)}
+                    value={block.content?.[activeLanguage] || ""}
+                    onChange={(value) => {
+                      updateBlock(i, value, activeLanguage);
+                    }}
+                    theme="snow"
                   />
                 )}
 
@@ -900,7 +924,8 @@ useEffect(() => {
           <div>
             <div className="relative">
               <label className={labelClasses}>
-                {activeLanguage === "vi" ? "Ngày xuất bản" : "Publish Date"}<span className="text-red-500 text-lg">*</span>
+                {activeLanguage === "vi" ? "Ngày xuất bản" : "Publish Date"}
+                <span className="text-red-500 text-lg">*</span>
               </label>
               <DatePicker
                 selected={
@@ -926,7 +951,8 @@ useEffect(() => {
         {/* Main Category */}
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].mainCategory}<span className="text-red-500 text-lg">*</span>
+            {labels[activeLanguage].mainCategory}
+            <span className="text-red-500 text-lg">*</span>
           </label>
           <div className="relative">
             <button
@@ -993,7 +1019,8 @@ useEffect(() => {
 
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].category}<span className="text-red-500 text-lg">*</span>
+            {labels[activeLanguage].category}
+            <span className="text-red-500 text-lg">*</span>
           </label>
           <p className="text-xs text-gray-500 mt-1">
             {activeLanguage === "vi"
@@ -1071,7 +1098,8 @@ useEffect(() => {
         {/* Status */}
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].status}<span className="text-red-500 text-lg">*</span>
+            {labels[activeLanguage].status}
+            <span className="text-red-500 text-lg">*</span>
           </label>
           <div className="relative">
             <button
@@ -1127,7 +1155,8 @@ useEffect(() => {
           {/* Meta Title */}
           <div>
             <label className={`${labelClasses} mt-8 mb-3`}>
-              {labels[activeLanguage].metaTitle}<span className="text-red-500 text-lg">*</span>
+              {labels[activeLanguage].metaTitle}
+              <span className="text-red-500 text-lg">*</span>
             </label>
             <input
               type="text"
@@ -1151,7 +1180,8 @@ useEffect(() => {
           {/* Meta Description */}
           <div>
             <label className={`${labelClasses} mt-8 mb-3`}>
-              {labels[activeLanguage].metaDescription}<span className="text-red-500 text-lg">*</span>
+              {labels[activeLanguage].metaDescription}
+              <span className="text-red-500 text-lg">*</span>
             </label>
             <textarea
               rows={2}
@@ -1173,65 +1203,67 @@ useEffect(() => {
           </div>
 
           {/* ✅ Meta Keywords as Tag Input */}
-<div>
-  <label className={`${labelClasses} mt-8 mb-3`}>
-    {activeLanguage === "vi" ? "Từ khóa SEO" : "Meta Keywords"}<span className="text-red-500 text-lg">*</span>
-  </label>
+          <div>
+            <label className={`${labelClasses} mt-8 mb-3`}>
+              {activeLanguage === "vi" ? "Từ khóa SEO" : "Meta Keywords"}
+              <span className="text-red-500 text-lg">*</span>
+            </label>
 
-  {/* Display Added Keywords */}
-  <div className="flex flex-wrap gap-2 mb-2">
-    {formData.seo.keywords?.[activeLanguage]
-      ?.split(",")
-      .map((kw) => kw.trim())
-      .filter((kw) => kw)
-      .map((kw, i) => (
-        <span
-          key={i}
-          className="px-3 py-1 rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-sm flex items-center gap-2"
-        >
-          {kw}
-          <button
-            type="button"
-            onClick={() => {
-              setFormData((prev) => {
-                const existing =
-                  prev.seo.keywords?.[activeLanguage]?.split(",").map((k) => k.trim()) || [];
-                const updated = existing.filter((k) => k !== kw);
-                return {
-                  ...prev,
-                  seo: {
-                    ...prev.seo,
-                    keywords: {
-                      ...prev.seo.keywords,
-                      [activeLanguage]: updated.join(", "),
-                    },
-                  },
-                };
-              });
-            }}
-            className="text-gray-400 hover:text-red-400"
-          >
-            <X size={12} />
-          </button>
-        </span>
-      ))}
-  </div>
+            {/* Display Added Keywords */}
+            <div className="flex flex-wrap gap-2 mb-2">
+              {formData.seo.keywords?.[activeLanguage]
+                ?.split(",")
+                .map((kw) => kw.trim())
+                .filter((kw) => kw)
+                .map((kw, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1 rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-sm flex items-center gap-2"
+                  >
+                    {kw}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => {
+                          const existing =
+                            prev.seo.keywords?.[activeLanguage]
+                              ?.split(",")
+                              .map((k) => k.trim()) || [];
+                          const updated = existing.filter((k) => k !== kw);
+                          return {
+                            ...prev,
+                            seo: {
+                              ...prev.seo,
+                              keywords: {
+                                ...prev.seo.keywords,
+                                [activeLanguage]: updated.join(", "),
+                              },
+                            },
+                          };
+                        });
+                      }}
+                      className="text-gray-400 hover:text-red-400"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+            </div>
 
-  {/* Input field for new keyword */}
-  <input
-    type="text"
-    className={inputClasses}
-    placeholder={
-      activeLanguage === "vi"
-        ? "Nhập từ khóa và nhấn Enter"
-        : "Type keyword and press Enter"
-    }
-    value={keywordInput}
-    onChange={(e) => setKeywordInput(e.target.value)}
-    onKeyDown={handleKeywordKeyDown}
-  />
-</div>
-
+            {/* Input field for new keyword */}
+            <input
+              type="text"
+              className={inputClasses}
+              placeholder={
+                activeLanguage === "vi"
+                  ? "Nhập từ khóa và nhấn Enter"
+                  : "Type keyword and press Enter"
+              }
+              value={keywordInput}
+              onChange={(e) => setKeywordInput(e.target.value)}
+              onKeyDown={handleKeywordKeyDown}
+            />
+          </div>
         </div>
 
         {/* Errors */}

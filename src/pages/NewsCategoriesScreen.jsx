@@ -323,7 +323,7 @@ const NewsCategoriesScreen = () => {
 
                     {/* ✅ Actions */}
                     <td className="px-6 py-4 text-sm font-medium text-right">
-                      <div className="flex justify-end space-x-2">
+                      <div className="flex justify-end gap-4">
                         <button
                           onClick={() => handleEdit(category)}
                           className="text-blue-500 hover:opacity-80 p-1 transition cursor-pointer"
@@ -339,29 +339,28 @@ const NewsCategoriesScreen = () => {
                           <Trash2 size={18} />
                         </button>
                         {showConfirm && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-[#1f1f1f85] border border-[#2E2F2F] rounded-2xl p-6 w-full max-w-sm text-left shadow-xl animate-fadeIn">
-      <h3 className="text-lg font-semibold text-white mb-3">
-        {t.deleteConfirm}
-      </h3>
-      <div className="flex justify-end gap-4 mt-4">
-        <button
-          onClick={handleDeleteConfirmed}
-          className="px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white transition cursor-pointer"
-        >
-          {isVietnamese ? "Xóa" : "Delete"}
-        </button>
-        <button
-          onClick={() => setShowConfirm(false)}
-          className="px-5 py-2 rounded-full bg-gray-600 hover:bg-gray-700 text-white transition cursor-pointer"
-        >
-          {isVietnamese ? "Hủy" : "Cancel"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+                          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                            <div className="bg-[#1f1f1f85] border border-[#2E2F2F] rounded-2xl p-6 w-full max-w-sm text-left shadow-xl animate-fadeIn">
+                              <h3 className="text-lg font-semibold text-white mb-3">
+                                {t.deleteConfirm}
+                              </h3>
+                              <div className="flex justify-end gap-4 mt-4">
+                                <button
+                                  onClick={handleDeleteConfirmed}
+                                  className="px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white transition cursor-pointer"
+                                >
+                                  {isVietnamese ? "Xóa" : "Delete"}
+                                </button>
+                                <button
+                                  onClick={() => setShowConfirm(false)}
+                                  className="px-5 py-2 rounded-full bg-gray-600 hover:bg-gray-700 text-white transition cursor-pointer"
+                                >
+                                  {isVietnamese ? "Hủy" : "Cancel"}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>

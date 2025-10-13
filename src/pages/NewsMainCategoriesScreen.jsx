@@ -302,7 +302,7 @@ const NewsMainCategoriesScreen = () => {
               </td>
 
               <td className="px-6 py-4 text-sm font-medium text-right">
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-end gap-4">
                   <button
                     onClick={() => handleEdit(category)}
                     className="text-blue-500 hover:opacity-80 p-1 transition cursor-pointer"

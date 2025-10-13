@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Modal, Button } from "antd";
-import { DeleteOutlined } from "@ant-design/icons";
+import { Trash2 } from "lucide-react";
 
 const DeleteConfirm = ({ onConfirm }) => {
   const [open, setOpen] = useState(false);
@@ -8,8 +8,8 @@ const DeleteConfirm = ({ onConfirm }) => {
   return (
     <>
       {/* Delete Icon */}
-      <DeleteOutlined
-      
+      <Trash2
+        size={16}
         style={{ color: "red", cursor: "pointer" }}
         onClick={(e) => {
           e.stopPropagation(); // prevent collapse toggle

@@ -1128,11 +1128,12 @@ const MachinePageCreate = ({
           icon={<LeftOutlined />}
           onClick={() => window.history.back()} // or use navigate(-1) if using react-router
           style={{
-            borderRadius: 8,
+            borderRadius: "2rem",
             fontWeight: 500,
             background: "#171717",
             color: "#fff",
             border: "1px solid #2d2d2d",
+
           }}
         >
           Back

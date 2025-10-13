@@ -1,71 +1,81 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { createRole, getRoles, updateRole, deleteRole } from "../Api/api";
 import { CommonToaster } from "../Common/CommonToaster";
-import { Edit2, Trash2, Plus } from "lucide-react";
+import { Edit2, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Switch } from "antd";
 
 const RoleManagement = () => {
   const [roles, setRoles] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState("newest");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rolesPerPage] = useState(5);
+
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isVietnamese, setIsVietnamese] = useState(false);
+  const [modalLang, setModalLang] = useState("en");
 
-  // ✅ Sidebar structure matching Sidebar.jsx
+  // 🌐 Translation helper
+  const t = {
+    az: isVietnamese ? "A → Z" : "A → Z",
+    za: isVietnamese ? "Z → A" : "Z → A",
+    newest: isVietnamese ? "Mới nhất" : "Newest",
+    oldest: isVietnamese ? "Cũ nhất" : "Oldest",
+    sortBy: isVietnamese ? "Sắp xếp theo" : "Sort by",
+  };
+
+  // ✅ Detect Language
+  useEffect(() => {
+    const checkLang = () =>
+      setIsVietnamese(document.body.classList.contains("vi-mode"));
+    checkLang();
+    const observer = new MutationObserver(checkLang);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Sidebar Menu (unchanged)
   const sidebarMenu = [
-    { key: "dashboard", label: "Dashboard" },
+    { key: "dashboard", label: { en: "Dashboard", vi: "Bảng điều khiển" } },
     {
       key: "resources",
-      label: "Resources",
+      label: { en: "Resources", vi: "Tài nguyên" },
       subItems: [
-        { key: "maincategories", label: "Main Categories" },
-        { key: "categories", label: "Categories" },
-        { key: "resources", label: "All Resources" },
-      ],
-    },
-    {
-      key: "machines",
-      label: "Machines",
-      subItems: [
-        { key: "machineCategories", label: "Categories" },
-        { key: "machineList", label: "List" },
+        {
+          key: "maincategories",
+          label: { en: "Main Categories", vi: "Danh mục chính" },
+        },
+        { key: "categories", label: { en: "Categories", vi: "Danh mục" } },
+        {
+          key: "resources",
+          label: { en: "All Resources", vi: "Tất cả tài nguyên" },
+        },
       ],
     },
     {
       key: "cms",
-      label: "CMS Settings",
+      label: { en: "CMS Settings", vi: "Cài đặt CMS" },
       subItems: [
-        { key: "header", label: "Header" },
-        { key: "footer", label: "Footer" },
-        { key: "home", label: "Home" },
-        { key: "about", label: "About" },
-        { key: "cotton", label: "Cotton" },
-        { key: "fiber", label: "Fiber" },
-        { key: "contact", label: "Contact" },
-        { key: "privacy", label: "Privacy Policy" },
-        { key: "terms", label: "Terms & Conditions" },
+        { key: "header", label: { en: "Header", vi: "Đầu trang" } },
+        { key: "footer", label: { en: "Footer", vi: "Chân trang" } },
+        { key: "home", label: { en: "Home", vi: "Trang chủ" } },
+        { key: "about", label: { en: "About", vi: "Giới thiệu" } },
       ],
     },
-    {
-      key: "users",
-      label: "Manage Staffs",
-      subItems: [
-        { key: "roles", label: "Roles" },
-        { key: "staff", label: "Users" },
-      ],
-    },
-    { key: "enquiry", label: "Enquiry Details" },
   ];
 
   const generateDefaultPermissions = () => {
     const perms = {};
     sidebarMenu.forEach((item) => {
-      if (item.subItems) {
-        item.subItems.forEach((sub) => {
-          perms[sub.key] = false;
-        });
-      } else {
-        perms[item.key] = false;
-      }
+      if (item.subItems)
+        item.subItems.forEach((sub) => (perms[sub.key] = false));
+      else perms[item.key] = false;
     });
     return perms;
   };
@@ -76,11 +86,12 @@ const RoleManagement = () => {
     permissions: generateDefaultPermissions(),
   });
 
+  // ✅ Fetch Roles
   const fetchRoles = async () => {
     try {
       const res = await getRoles();
       setRoles(res.data.data);
-    } catch (err) {
+    } catch {
       CommonToaster("Failed to load roles ❌", "error");
     }
   };
@@ -97,18 +108,49 @@ const RoleManagement = () => {
     fetchRoles();
   }, []);
 
+  // ✅ Search, Sort, Paginate
+  const filteredRoles = useMemo(() => {
+    let filtered = roles.filter((r) => {
+      const name =
+        typeof r.name === "object"
+          ? (isVietnamese ? r.name.vi : r.name.en) || ""
+          : r.name || "";
+      return name.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+
+    filtered.sort((a, b) => {
+      const getName = (r) =>
+        typeof r.name === "object"
+          ? (isVietnamese ? r.name.vi : r.name.en) || ""
+          : r.name || "";
+      const nameA = getName(a).toLowerCase();
+      const nameB = getName(b).toLowerCase();
+
+      if (sortOption === "az") return nameA.localeCompare(nameB);
+      if (sortOption === "za") return nameB.localeCompare(nameA);
+      if (sortOption === "newest")
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortOption === "oldest")
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      return 0;
+    });
+
+    return filtered;
+  }, [roles, searchQuery, sortOption, isVietnamese]);
+
+  const totalPages = Math.ceil(filteredRoles.length / rolesPerPage);
+  const startIdx = (currentPage - 1) * rolesPerPage;
+  const paginatedRoles = filteredRoles.slice(startIdx, startIdx + rolesPerPage);
+
+  // ✅ Handlers
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const togglePermission = (key) => {
+  const togglePermission = (key) =>
     setFormData((prev) => ({
       ...prev,
-      permissions: {
-        ...prev.permissions,
-        [key]: !prev.permissions[key],
-      },
+      permissions: { ...prev.permissions, [key]: !prev.permissions[key] },
     }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -139,7 +181,11 @@ const RoleManagement = () => {
   };
 
   const handleEdit = (role) => {
-    if (role.name === "Super Admin") {
+    if (
+      role.name === "Super Admin" ||
+      role.name?.en === "Super Admin" ||
+      role.name?.vi === "Quản trị viên cao cấp"
+    ) {
       CommonToaster("You cannot edit the Super Admin role ❌", "error");
       return;
     }
@@ -155,7 +201,11 @@ const RoleManagement = () => {
   };
 
   const handleDelete = async (id, name) => {
-    if (name === "Super Admin") {
+    if (
+      name === "Super Admin" ||
+      name?.en === "Super Admin" ||
+      name?.vi === "Quản trị viên cao cấp"
+    ) {
       CommonToaster("Super Admin cannot be deleted ❌", "error");
       return;
     }
@@ -169,38 +219,104 @@ const RoleManagement = () => {
     }
   };
 
-  const inputStyle = {
-    backgroundColor: "#262626",
-    border: "1px solid #2E2F2F",
-    borderRadius: "8px",
-    color: "#fff",
-    padding: "10px 14px",
-    fontSize: "14px",
-    width: "100%",
-  };
-
+  // ✅ UI
   return (
-    <div className="p-6 bg-[#171717] text-white min-h-screen">
+    <div className="p-6 bg-[#171717] text-white min-h-screen relative">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Role Management</h2>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 className="text-2xl font-bold">
+          {isVietnamese ? "Quản lý vai trò" : "Role Management"}
+        </h2>
 
-        {isSuperAdmin && (
-          <button
-            className="flex items-center gap-2 px-4 py-2 bg-[#0085C8] hover:bg-[#009FE3] transition text-white rounded-md"
-            onClick={() => {
-              setShowModal(true);
-              setEditId(null);
-              setFormData({
-                name: "",
-                status: "Active",
-                permissions: generateDefaultPermissions(),
-              });
-            }}
-          >
-            <Plus size={16} /> Add Role
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-3 relative">
+          {/* 🔍 Search */}
+          <input
+            type="text"
+            placeholder={
+              isVietnamese ? "Tìm kiếm vai trò..." : "Search roles..."
+            }
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-[#262626] border border-[#2E2F2F] rounded-full px-4 py-2 text-sm text-white w-56"
+          />
+
+          {/* 🧭 Sort Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowDropdown((prev) => !prev)}
+              className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 transition-all cursor-pointer"
+            >
+              {sortOption === "oldest"
+                ? t.oldest
+                : sortOption === "newest"
+                ? t.newest
+                : sortOption === "az"
+                ? t.az
+                : t.za}
+              <svg
+                className={`ml-2 w-4 h-4 transform transition-transform ${
+                  showDropdown ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-48 rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-10 animate-fadeIn">
+                <p className="px-4 text-gray-400 text-xs mt-2">{t.sortBy}</p>
+                {[
+                  { value: "newest", label: t.newest },
+                  { value: "oldest", label: t.oldest },
+                  { value: "az", label: t.az },
+                  { value: "za", label: t.za },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setSortOption(option.value);
+                      setShowDropdown(false);
+                      setCurrentPage(1);
+                    }}
+                    className={`block w-full text-left px-4 py-2 text-sm cursor-pointer ${
+                      sortOption === option.value
+                        ? "bg-[#2E2F2F] text-white rounded-xl"
+                        : "text-gray-300 hover:bg-[#2E2F2F] hover:text-white rounded-xl"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ➕ Add Role */}
+          {isSuperAdmin && (
+            <button
+              className="flex items-center gap-2 px-6 py-3 bg-[#0085C8] hover:bg-[#009FE3] transition text-white rounded-full"
+              onClick={() => {
+                setShowModal(true);
+                setEditId(null);
+                setFormData({
+                  name: "",
+                  status: "Active",
+                  permissions: generateDefaultPermissions(),
+                });
+              }}
+            >
+              <Plus size={16} /> {isVietnamese ? "Thêm vai trò" : "Add Role"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Table */}
@@ -212,85 +328,193 @@ const RoleManagement = () => {
                 #
               </th>
               <th className="p-3 text-left text-sm font-semibold text-gray-300">
-                Name
+                {isVietnamese ? "Tên vai trò" : "Name"}
               </th>
               <th className="p-3 text-left text-sm font-semibold text-gray-300">
-                Status
+                {isVietnamese ? "Trạng thái" : "Status"}
               </th>
-              <th className="p-3 text-center text-sm font-semibold text-gray-300">
-                Action
+              <th className="p-3 text-left text-sm font-semibold text-gray-300">
+                {isVietnamese ? "Hành động" : "Action"}
               </th>
             </tr>
           </thead>
           <tbody>
-            {roles.map((role, i) => (
-              <tr
-                key={role._id}
-                className="hover:bg-[#2A2A2A] transition-colors border-b border-[#2E2F2F]"
-              >
-                <td className="p-3">{i + 1}</td>
-                <td className="p-3">{role.name}</td>
-                <td className="p-3">
-                  <span
-                    className={`px-2 py-1 rounded text-sm ${
-                      role.status === "Active"
-                        ? "bg-green-700/30 text-green-400"
-                        : "bg-red-700/30 text-red-400"
-                    }`}
-                  >
-                    {role.status}
-                  </span>
-                </td>
-                <td className="p-3 flex justify-center gap-3">
-                  <button
-                    onClick={() => handleEdit(role)}
-                    disabled={role.name === "Super Admin" || !isSuperAdmin}
-                    className={`px-3 py-1 text-sm rounded-md ${
-                      role.name === "Super Admin" || !isSuperAdmin
-                        ? "bg-gray-600 cursor-not-allowed opacity-60"
-                        : "bg-[#0085C8] hover:bg-[#009FE3]"
-                    }`}
-                  >
-                    <Edit2 size={14} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(role._id, role.name)}
-                    disabled={role.name === "Super Admin" || !isSuperAdmin}
-                    className={`px-3 py-1 text-sm rounded-md ${
-                      role.name === "Super Admin" || !isSuperAdmin
-                        ? "bg-gray-600 cursor-not-allowed opacity-60"
-                        : "bg-[#E74C3C] hover:bg-[#FF6B5C]"
-                    }`}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+            {paginatedRoles.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="text-center p-6 text-gray-400">
+                  {isVietnamese ? "Không có vai trò nào" : "No roles found."}
                 </td>
               </tr>
-            ))}
+            ) : (
+              paginatedRoles.map((role, i) => (
+                <tr
+                  key={role._id}
+                  className="hover:bg-[#2A2A2A] transition-colors border-b border-[#2E2F2F]"
+                >
+                  <td className="p-3">{startIdx + i + 1}</td>
+                  <td className="p-3">
+                    {typeof role.name === "object"
+                      ? isVietnamese
+                        ? role.name?.vi || "—"
+                        : role.name?.en || "—"
+                      : role.name || "—"}
+                  </td>
+                  <td className="p-3">
+                    <span
+                      className={`px-2 py-1 rounded text-sm ${
+                        role.status === "Active"
+                          ? "bg-green-700/30 text-green-400"
+                          : "bg-red-700/30 text-red-400"
+                      }`}
+                    >
+                      {role.status}
+                    </span>
+                  </td>
+                  <td className="p-3 flex gap-3">
+                    {/* ✏️ Edit Button */}
+                    <button
+                      onClick={() => handleEdit(role)}
+                      disabled={
+                        !isSuperAdmin ||
+                        role.name === "Super Admin" ||
+                        role.name?.en === "Super Admin" ||
+                        role.name?.vi === "Quản trị viên cao cấp"
+                      }
+                      className={`px-3 py-1 text-sm rounded-md ${
+                        !isSuperAdmin ||
+                        role.name === "Super Admin" ||
+                        role.name?.en === "Super Admin" ||
+                        role.name?.vi === "Quản trị viên cao cấp"
+                          ? "bg-gray-600 cursor-not-allowed opacity-60"
+                          : "bg-[#0085C8] hover:bg-[#009FE3]"
+                      }`}
+                    >
+                      <Edit2 size={14} />
+                    </button>
+
+                    {/* 🗑 Delete Button */}
+                    <button
+                      onClick={() =>
+                        handleDelete(
+                          role._id,
+                          typeof role.name === "object"
+                            ? role.name?.en || role.name?.vi
+                            : role.name
+                        )
+                      }
+                      disabled={
+                        !isSuperAdmin ||
+                        role.name === "Super Admin" ||
+                        role.name?.en === "Super Admin" ||
+                        role.name?.vi === "Quản trị viên cao cấp"
+                      }
+                      className={`px-3 py-1 text-sm rounded-md ${
+                        !isSuperAdmin ||
+                        role.name === "Super Admin" ||
+                        role.name?.en === "Super Admin" ||
+                        role.name?.vi === "Quản trị viên cao cấp"
+                          ? "bg-gray-600 cursor-not-allowed opacity-60"
+                          : "bg-[#E74C3C] hover:bg-[#FF6B5C]"
+                      }`}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* ✅ Modal */}
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center mt-6 gap-3">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="p-2 rounded-full bg-[#2E2F2F] disabled:opacity-40"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <span className="text-sm text-gray-400">
+            {isVietnamese ? "Trang" : "Page"} {currentPage} / {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="p-2 rounded-full bg-[#2E2F2F] disabled:opacity-40"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* Modal (your existing one here) */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-start justify-center z-50 overflow-auto">
           <div className="bg-[#171717] border border-[#2E2F2F] rounded-lg shadow-xl w-full max-w-3xl p-6 my-10 h-fit">
-            <h3 className="text-xl font-semibold mb-4 text-white">
-              {editId ? "Edit Role" : "Add Role"}
+            {/* 🌐 Language Toggle (for Role Name only) */}
+            <div className="flex justify-center items-center bg-[#2E2F2F] rounded-full p-1 w-fit mx-auto mb-5">
+              {[
+                { code: "en", label: "English (EN)" },
+                { code: "vi", label: "Tiếng Việt (VN)" },
+              ].map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => setModalLang(lang.code)}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                    modalLang === lang.code
+                      ? "bg-white !text-black shadow-md"
+                      : "bg-transparent text-gray-300 hover:text-white"
+                  }`}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+
+            <h3 className="text-xl font-semibold mb-4 text-white text-center">
+              {editId
+                ? modalLang === "vi"
+                  ? "Chỉnh sửa vai trò"
+                  : "Edit Role"
+                : modalLang === "vi"
+                ? "Thêm vai trò"
+                : "Add Role"}
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Name */}
+              {/* Role Name (Switches by Language) */}
               <div>
                 <label className="block text-sm mb-1 text-gray-300">
-                  Name *
+                  {modalLang === "vi" ? "Tên vai trò" : "Role Name"} *
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  style={inputStyle}
+                  name={`name_${modalLang}`}
+                  value={formData.name?.[modalLang] || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      name: { ...prev.name, [modalLang]: e.target.value },
+                    }))
+                  }
+                  style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    width: "100%",
+                  }}
+                  placeholder={
+                    modalLang === "vi"
+                      ? "Nhập tên vai trò bằng tiếng Việt"
+                      : "Enter role name in English"
+                  }
                   required
                 />
               </div>
@@ -298,29 +522,37 @@ const RoleManagement = () => {
               {/* Status */}
               <div>
                 <label className="block text-sm mb-1 text-gray-300">
-                  Status *
+                  {modalLang === "vi" ? "Trạng thái" : "Status"} *
                 </label>
                 <select
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  style={inputStyle}
+                  className="w-full bg-[#262626] border border-[#2E2F2F] rounded-lg text-white p-2"
                 >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
+                  <option value="Active">
+                    {modalLang === "vi" ? "Hoạt động" : "Active"}
+                  </option>
+                  <option value="Inactive">
+                    {modalLang === "vi" ? "Không hoạt động" : "Inactive"}
+                  </option>
                 </select>
               </div>
 
               {/* Sidebar Access */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-300">
-                  Sidebar Access
+                  {modalLang === "vi"
+                    ? "Quyền truy cập Sidebar"
+                    : "Sidebar Access"}
                 </label>
                 <div className="space-y-4 max-h-[400px] overflow-y-auto border border-[#2E2F2F] p-3 rounded-lg">
                   {sidebarMenu.map((item) => (
                     <div key={item.key}>
                       <div className="flex items-center justify-between bg-[#1F1F1F] px-3 py-2 rounded-md mb-2">
-                        <span className="font-medium">{item.label}</span>
+                        <span className="font-medium">
+                          {modalLang === "vi" ? item.label.vi : item.label.en}
+                        </span>
                       </div>
 
                       {item.subItems ? (
@@ -331,7 +563,9 @@ const RoleManagement = () => {
                               className="flex items-center justify-between bg-[#1F1F1F] px-3 py-2 rounded-md"
                             >
                               <span className="text-sm text-gray-300">
-                                {sub.label}
+                                {modalLang === "vi"
+                                  ? sub.label.vi
+                                  : sub.label.en}
                               </span>
                               <Switch
                                 checked={formData.permissions[sub.key] || false}
@@ -343,7 +577,7 @@ const RoleManagement = () => {
                       ) : (
                         <div className="ml-4 flex items-center justify-between bg-[#1F1F1F] px-3 py-2 rounded-md">
                           <span className="text-sm text-gray-300">
-                            {item.label}
+                            {modalLang === "vi" ? item.label.vi : item.label.en}
                           </span>
                           <Switch
                             checked={formData.permissions[item.key] || false}
@@ -356,19 +590,26 @@ const RoleManagement = () => {
                 </div>
               </div>
 
+              {/* Buttons */}
               <div className="flex justify-end gap-3 pt-3 border-t border-[#2E2F2F]">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-[#2E2F2F] text-gray-300 rounded-md hover:bg-[#2E2F2F]"
+                  className="px-6 py-3 border border-[#2E2F2F] text-gray-300 rounded-full hover:bg-[#2E2F2F]"
                 >
-                  Cancel
+                  {modalLang === "vi" ? "Hủy" : "Cancel"}
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#0085C8] text-white rounded-md hover:bg-[#009FE3]"
+                  className="px-6 py-3 bg-[#0085C8] text-white rounded-full hover:bg-[#009FE3]"
                 >
-                  {editId ? "Update Role" : "Create Role"}
+                  {editId
+                    ? modalLang === "vi"
+                      ? "Cập nhật vai trò"
+                      : "Update Role"
+                    : modalLang === "vi"
+                    ? "Tạo vai trò"
+                    : "Create Role"}
                 </button>
               </div>
             </form>

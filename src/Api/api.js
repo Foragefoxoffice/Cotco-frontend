@@ -157,6 +157,28 @@ export const updateHomepage = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+  // ✅ Get Homepage Blog Section
+export const getHomepageBlogSection = async () => {
+  try {
+    const res = await API.get("/homepage");
+    // Adjust depending on backend response structure
+    return res.data?.homepage?.blogSection || res.data?.blogSection || {};
+  } catch (error) {
+    console.error("❌ Error fetching homepage blog section:", error);
+    return {};
+  }
+};
+
+export const getHomepageBannerSection = async () => {
+  try {
+    const res = await API.get("/homepage");
+    return res.data?.homepage?.bannerSection || res.data?.bannerSection || {};
+  } catch (error) {
+    console.error("❌ Error fetching homepage banner section:", error);
+    return {};
+  }
+};
+
 /* =========================================================
    ABOUT PAGE
    (Backend route: /aboutpage)

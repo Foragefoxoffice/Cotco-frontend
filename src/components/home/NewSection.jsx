@@ -6,9 +6,13 @@ import { RxArrowTopRight } from "react-icons/rx";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getBlogs, getBlogBySlug } from "../../Api/api";
+import { getBlogs, getBlogBySlug, getHomepageBlogSection } from "../../Api/api";
+
+
 
 export default function BlogsSection() {
+
+  
   const { slug } = useParams();
   const navigate = useNavigate();
 
@@ -31,6 +35,15 @@ export default function BlogsSection() {
   const [loading, setLoading] = useState(true);
   const [activeLang, setActiveLang] = useState("en");
 
+  // 🆕 Blog info (from homepage.blogSection)
+  const [blogInfo, setBlogInfo] = useState({
+    blogTitle: { en: "BLOGS", vi: "BLOG" },
+    blogDescription: {
+      en: "Discover the latest insights, stories, and updates from our team.",
+      vi: "Khám phá những câu chuyện, thông tin và cập nhật mới nhất từ đội ngũ của chúng tôi.",
+    },
+  });
+
   // ✅ Detect and track current language (en / vi)
   useEffect(() => {
     const detectLanguage = () => {
@@ -40,7 +53,6 @@ export default function BlogsSection() {
 
     setActiveLang(detectLanguage());
 
-    // Watch for class changes dynamically
     const observer = new MutationObserver(() => {
       setActiveLang(detectLanguage());
     });
@@ -97,6 +109,13 @@ export default function BlogsSection() {
     }
   }, [slug]);
 
+  // ✅ Fetch homepage blogSection info
+  useEffect(() => {
+    getHomepageBlogSection().then((data) => {
+      if (data) setBlogInfo(data);
+    });
+  }, []);
+
   // ✅ Single Blog View
   if (slug) {
     if (loading) return <p className="text-center py-20">Loading...</p>;
@@ -112,7 +131,7 @@ export default function BlogsSection() {
           {/* ---------- Left column ---------- */}
           <div className="col-span-12 md:col-span-3 h-full grid place-content-center">
             <TitleAnimation
-              text={"BLOG"}
+              text={pick(blogInfo.blogTitle, activeLang)}
               className="heading"
               align="heading text-center md:text-left"
               delay={0.05}
@@ -120,10 +139,7 @@ export default function BlogsSection() {
               once={true}
             />
             <p className="mt-4 text-slate-600 text-center md:text-left leading-relaxed max-w-sm">
-              {pick(
-                blog.excerpt,
-                activeLang
-              ) || "Insights, stories, and updates from our team and community."}
+              {pick(blogInfo.blogDescription, activeLang)}
             </p>
           </div>
 
@@ -207,7 +223,7 @@ export default function BlogsSection() {
         {/* ---------- Left column ---------- */}
         <div className="col-span-12 md:col-span-3 h-full grid place-content-center">
           <TitleAnimation
-            text={activeLang === "vi" ? "BLOG" : "BLOGS"}
+            text={pick(blogInfo.blogTitle, activeLang) || "BLOGS"}
             className="heading"
             align="heading text-center md:text-left"
             delay={0.05}
@@ -215,9 +231,7 @@ export default function BlogsSection() {
             once={true}
           />
           <p className="mt-4 text-slate-600 text-center md:text-left leading-relaxed max-w-sm">
-            {activeLang === "vi"
-              ? "Khám phá những câu chuyện, thông tin và cập nhật mới nhất từ đội ngũ của chúng tôi."
-              : "Discover the latest insights, stories, and updates from our team."}
+            {pick(blogInfo.blogDescription, activeLang)}
           </p>
         </div>
 

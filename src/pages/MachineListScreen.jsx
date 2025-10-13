@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Trash2Icon } from "lucide-react";
 import { message } from "antd";
 import { getMachinePages, deleteMachinePage } from "../Api/api";
 import DeleteConfirm from "../components/DeleteConfirm";
@@ -84,7 +84,7 @@ const MachinePagesList = () => {
 
         <button
           onClick={handleCreate}
-          className="flex items-center gap-2 px-5 py-4 rounded-full font-semibold shadow-md transition-all duration-300 bg-[#0085C8] hover:bg-[#009FE3] text-white"
+          className="flex items-center gap-2 px-5 py-4 rounded-full font-semibold shadow-md transition-all duration-300 bg-[#0085C8] hover:bg-[#009FE3] text-white cursor-pointer"
         >
           <Plus size={18} />
           Create Page
@@ -109,19 +109,33 @@ const MachinePagesList = () => {
         </div>
 
         {/* Sort Dropdown */}
-        <select
-          value={sortOption}
-          onChange={(e) => {
-            setSortOption(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="px-4 py-3 text-sm border border-[#2E2F2F] bg-[#1F1F1F] text-white rounded-full focus:ring-2 focus:ring-[#0085C8] outline-none cursor-pointer"
-        >
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="az">A → Z</option>
-          <option value="za">Z → A</option>
-        </select>
+         <div className="relative">
+  <select
+    value={sortOption}
+    onChange={(e) => {
+      setSortOption(e.target.value);
+      setCurrentPage(1);
+    }}
+    className="appearance-none px-5 py-3 text-sm bg-[#1F1F1F] text-white border border-[#2E2F2F] rounded-full w-52 focus:ring-2 focus:ring-[#0085C8] focus:border-[#0085C8] transition-all duration-200 outline-none cursor-pointer hover:border-gray-500"
+  >
+    <option value="newest">Newest</option>
+    <option value="oldest">Oldest</option>
+    <option value="az">A → Z</option>
+    <option value="za">Z → A</option>
+  </select>
+
+  {/* Custom dropdown icon */}
+  <svg
+    className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+  </svg>
+</div>
+
       </div>
 
       {/* ---------- TABLE ---------- */}
@@ -188,7 +202,7 @@ const MachinePagesList = () => {
                       {/* Delete */}
                       <DeleteConfirm onConfirm={() => handleDelete(page._id)}>
                         <div className="flex items-center justify-center p-2 bg-red-500/20 hover:bg-red-500/40 rounded-md cursor-pointer transition">
-                          <Trash2 size={16} className="text-red-400" />
+                          {/* <Trash2Icon size={16} className="text-red-400" /> */}
                         </div>
                       </DeleteConfirm>
                     </div>
@@ -205,7 +219,7 @@ const MachinePagesList = () => {
         <button
           disabled={currentPage === 1}
           onClick={handlePrev}
-          className="px-4 py-1.5 rounded-lg border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-50"
+          className="px-4 py-1.5 rounded-full border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-50 cursor-pointer"
         >
           Prev
         </button>
@@ -215,7 +229,7 @@ const MachinePagesList = () => {
         <button
           disabled={currentPage === totalPages || totalPages === 0}
           onClick={handleNext}
-          className="px-4 py-1.5 rounded-lg border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-50"
+          className="px-4 py-1.5 rounded-full border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-50 cursor-pointer"
         >
           Next
         </button>

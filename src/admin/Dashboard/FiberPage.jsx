@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Collapse, Input, Button, Tabs, Divider } from "antd";
-import {
-  FiImage,
-  FiUsers,
-  FiLayers,
-  FiShield,
-  FiStar,
-  FiAward,
-} from "react-icons/fi";
+import { Collapse, Input, Button, Tabs, Divider, Modal } from "antd";
+import { Plus, Minus, RotateCw, X, Trash2 } from "lucide-react";
 // import { useTheme } from "../../contexts/ThemeContext";
 import { CommonToaster } from "../../Common/CommonToaster";
 import usePersistedState from "../../hooks/usePersistedState";
@@ -42,7 +35,28 @@ const getFullUrl = (path) => {
 
 export default function FiberPage() {
   // const { theme } = useTheme();
+  // 🔹 Navbar toggle language – used for titles and panel headers only
+  const [isVietnamese, setIsVietnamese] = useState(false);
   const [currentLang, setCurrentLang] = useState("en");
+
+  // 🔹 Editor tab language – used for all form fields, buttons, inputs, etc.
+  const [activeTabLang, setActiveTabLang] = useState("en");
+
+  // Watch the <body> class for .vi-mode like HomePage does
+  useEffect(() => {
+    const checkLang = () => {
+      const viMode = document.body.classList.contains("vi-mode");
+      setIsVietnamese(viMode);
+      setCurrentLang(viMode ? "vi" : "en");
+    };
+    checkLang();
+    const observer = new MutationObserver(checkLang);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   // ✅ Validate file size (Image ≤ 2MB, Video ≤ 10MB)
   const validateFileSize = (file) => {
@@ -93,6 +107,7 @@ export default function FiberPage() {
       subTitleLabel: "Subtitle",
       subDescriptionLabel: "Sub Description",
       saveSustainability: "Save Sustainability",
+      sustainabilityContent: "Sustainability Content",
 
       // Choose Us
       chooseUs: "Choose Us",
@@ -162,6 +177,7 @@ export default function FiberPage() {
       subTitleLabel: "Tiêu đề phụ",
       subDescriptionLabel: "Mô tả phụ",
       saveSustainability: "Lưu Bền vững",
+      sustainabilityContent: "Nội dung Bền vững",
 
       // Choose Us
       chooseUs: "Vì sao chọn chúng tôi",
@@ -255,17 +271,48 @@ export default function FiberPage() {
     }
   );
 
+  const [seoMeta, setSeoMeta] = useState({
+    metaTitle: { en: "", vi: "" },
+    metaDescription: { en: "", vi: "" },
+    metaKeywords: { en: "", vi: "" },
+  });
+
   // ---------------- FETCH ---------------- //
   useEffect(() => {
     getFiberPage().then((res) => {
-      if (res.data?.fiberBanner) setFiberBanner(res.data.fiberBanner);
-      if (res.data?.fiberSustainability)
+      if (!res.data) return;
+
+      // 🔹 Banner
+      if (res.data.fiberBanner) setFiberBanner(res.data.fiberBanner);
+
+      // 🔹 Sustainability
+      if (res.data.fiberSustainability)
         setFiberSustainability(res.data.fiberSustainability);
-      if (res.data?.fiberChooseUs) setFiberChooseUs(res.data.fiberChooseUs);
-      if (res.data?.fiberSupplier) setFiberSupplier(res.data.fiberSupplier);
-      if (res.data?.fiberProducts) setFiberProducts(res.data.fiberProducts);
-      if (res.data?.fiberCertification)
+
+      // 🔹 Choose Us
+      if (res.data.fiberChooseUs) setFiberChooseUs(res.data.fiberChooseUs);
+
+      // 🔹 Supplier
+      if (res.data.fiberSupplier) setFiberSupplier(res.data.fiberSupplier);
+
+      // 🔹 Products
+      if (res.data.fiberProducts) setFiberProducts(res.data.fiberProducts);
+
+      // 🔹 Certification
+      if (res.data.fiberCertification)
         setFiberCertification(res.data.fiberCertification);
+
+      // 🔹 ✅ SEO META
+      if (res.data.seoMeta) {
+        setSeoMeta({
+          metaTitle: res.data.seoMeta.metaTitle || { en: "", vi: "" },
+          metaDescription: res.data.seoMeta.metaDescription || {
+            en: "",
+            vi: "",
+          },
+          metaKeywords: res.data.seoMeta.metaKeywords || { en: "", vi: "" },
+        });
+      }
     });
   }, []);
 
@@ -360,7 +407,7 @@ export default function FiberPage() {
 
       const res = await updateFiberPage(formData);
 
-      if (res.data?.fiber?.[sectionName]) {
+      if (res.data?.fiber) {
         localStorage.removeItem(sectionName);
         CommonToaster(`${sectionName} saved successfully!`, "success");
       } else {
@@ -371,6 +418,45 @@ export default function FiberPage() {
     }
   };
 
+  const [showFiberBannerModal, setShowFiberBannerModal] = useState(false);
+  const [showFiberImageModal, setShowFiberImageModal] = useState(false);
+  const [showSustainabilityModal, setShowSustainabilityModal] = useState(false);
+  const [showChooseUsBgModal, setShowChooseUsBgModal] = useState(null);
+  const [showSupplierModal, setShowSupplierModal] = useState(null);
+  const [showCertModal, setShowCertModal] = useState(null);
+  // ✅ Dynamic translations for UI texts based on currentLang
+  const currentText = translations[currentLang];
+
+  // ✅ Example: If you need dynamic UI labels like page title, buttons, etc.
+  const [uiText, setUiText] = useState({
+    pageTitle: currentText.pageTitle,
+    cancel: currentText.cancel,
+    save: currentText.save,
+    banner: currentText.banner,
+    bannerMedia: currentText.bannerMedia,
+    sustainability: currentText.sustainability,
+    chooseUs: currentText.chooseUs,
+    supplier: currentText.supplier,
+    products: currentText.products,
+    certification: currentText.certification,
+  });
+
+  // ✅ When language changes, auto-update visible UI text
+  useEffect(() => {
+    setUiText({
+      pageTitle: currentText.pageTitle,
+      cancel: currentText.cancel,
+      save: currentText.save,
+      banner: currentText.banner,
+      bannerMedia: currentText.bannerMedia,
+      sustainability: currentText.sustainability,
+      chooseUs: currentText.chooseUs,
+      supplier: currentText.supplier,
+      products: currentText.products,
+      certification: currentText.certification,
+    });
+  }, [currentLang]);
+
   // ---------------- UI ---------------- //
   return (
     <div className="max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-[#171717] text-white">
@@ -378,33 +464,70 @@ export default function FiberPage() {
         label {
           color: #fff !important;
         }
-        .ant-divider-inner-text {
+        .ant-tabs-nav::before{
+          border-bottom:1px solid #2E2F2F !important;
+        }
+        .ant-collapse-header{
+          padding:20px 0 !important;
+        }
+        .ant-modal-close{
+          background-color:red !important;
+          border-radius:50% !important;
+          color:white !important;
+        }
+          .ant-divider-inner-text {
           color: #314158 !important;
         }
       `}</style>
       <h2 className="text-4xl font-extrabold mb-10 text-center">
-        Fiber Page Management
+        {uiText.pageTitle}
       </h2>
 
-      <Collapse accordion bordered={false}>
+      <Collapse
+        accordion
+        bordered={false}
+        className="text-white"
+        defaultActiveKey={["1"]}
+        expandIconPosition="end"
+        expandIcon={({ isActive }) => (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "28px",
+              height: "28px",
+              backgroundColor: isActive ? "#0284C7" : "#2E2F2F",
+              borderRadius: "50%",
+              transition: "all 0.3s ease",
+              color: "#fff",
+            }}
+          >
+            {isActive ? <Minus size={18} /> : <Plus size={18} />}
+          </span>
+        )}
+      >
         {/* 1. Banner */}
         <Panel
           header={
             <span className="flex items-center gap-2 text-white text-lg">
-              <FiImage /> Banner
+              {isVietnamese ? "Biểu ngữ" : "Banner"}
             </span>
           }
           key="1"
         >
           <Tabs
-            activeKey={currentLang}
-            onChange={setCurrentLang}
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
             className="pill-tabs"
           >
             {["en", "vi"].map((lang) => (
-              <TabPane tab={lang.toUpperCase()} key={lang}>
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
+              >
                 <label className="block font-bold mt-5 mb-1">
-                  {translations[currentLang].title}
+                  {translations[activeTabLang].title}
                 </label>
                 <Input
                   style={{
@@ -427,8 +550,9 @@ export default function FiberPage() {
                     })
                   }
                 />
+
                 <label className="block font-bold mt-5 mb-1">
-                  {translations[currentLang].description}
+                  {translations[activeTabLang].description}
                 </label>
                 <Input
                   style={{
@@ -451,8 +575,9 @@ export default function FiberPage() {
                     })
                   }
                 />
+
                 <label className="block font-bold mt-5 mb-1">
-                  {translations[currentLang].content}
+                  {translations[activeTabLang].content}
                 </label>
                 <Input
                   style={{
@@ -475,8 +600,9 @@ export default function FiberPage() {
                     })
                   }
                 />
+
                 <label className="block font-bold mt-5 mb-1">
-                  {translations[currentLang].subTitle}
+                  {translations[activeTabLang].subTitle}
                 </label>
                 <Input
                   style={{
@@ -502,214 +628,229 @@ export default function FiberPage() {
               </TabPane>
             ))}
           </Tabs>
+
           <Divider />
 
           {/* Banner Media (image/video) */}
-          <div style={{ marginBottom: "15px" }}>
-            <label className="block font-bold mt-5 mb-1">
-              {translations[currentLang].bannerMedia}
+          <div style={{ marginBottom: "20px" }}>
+            <label className="block text-white text-lg font-semibold mb-2">
+              {translations[activeTabLang].bannerMedia}
             </label>
-            <p className="text-sm text-slate-500 mb-2">
-              {translations[currentLang].recommendedHero}
+            <p className="text-sm text-slate-500 mb-3">
+              {translations[activeTabLang].recommendedHero}
             </p>
-            <div className="mb-3">
-              {/* Hidden Input */}
-              <input
-                id="fiberBannerMediaUpload"
-                type="file"
-                accept="image/*,.mp4,.webm,.ogg,.mov,.avi,.mkv"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  if (!validateFileSize(file)) return; // ✅ validation added
 
-                  setFiberBanner({
-                    ...fiberBanner,
-                    fiberBannerMedia: file,
-                    fiberBannerMediaPreview: URL.createObjectURL(file),
-                  });
-                }}
-              />
-
-              {/* Styled Label as Button */}
-              <label
-                htmlFor="fiberBannerMediaUpload"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  backgroundColor: "#0284C7", // blue
-                  color: "#fff",
-                  padding: "10px 20px",
-                  borderRadius: "9999px", // pill shape
-                  fontWeight: "500",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                {/* Upload Icon */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  style={{ width: "18px", height: "18px" }}
+            <div className="flex flex-wrap gap-4 mt-2">
+              {!fiberBanner.fiberBannerMedia &&
+              !fiberBanner.fiberBannerMediaPreview ? (
+                // 📁 Upload Placeholder
+                <label
+                  htmlFor="fiberBannerMediaUpload"
+                  className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    stroke="currentColor"
+                    className="w-8 h-8 text-gray-400"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  <span className="mt-2 text-sm text-gray-400 text-center px-2">
+                    {translations[activeTabLang].uploadMedia ??
+                      (activeTabLang === "vi"
+                        ? "Tải lên hình ảnh hoặc video"
+                        : "Upload Image or Video")}
+                  </span>
+                  <input
+                    id="fiberBannerMediaUpload"
+                    type="file"
+                    accept="image/*,.mp4,.webm,.ogg,.mov,.avi,.mkv"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      if (!validateFileSize(file)) return;
+                      const previewUrl = URL.createObjectURL(file);
+                      setFiberBanner((prev) => ({
+                        ...prev,
+                        fiberBannerMedia: file,
+                        fiberBannerMediaPreview: previewUrl,
+                      }));
+                    }}
+                    style={{ display: "none" }}
                   />
-                </svg>
-                Upload Banner Media
-              </label>
+                </label>
+              ) : (
+                // ✅ Uploaded Media Preview
+                <div className="relative group w-40 h-40 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
+                  {fiberBanner.fiberBannerMediaPreview ? (
+                    fiberBanner.fiberBannerMedia?.type?.startsWith("video") ? (
+                      <video
+                        src={fiberBanner.fiberBannerMediaPreview}
+                        className="w-full h-full object-cover"
+                        muted
+                      />
+                    ) : (
+                      <img
+                        src={fiberBanner.fiberBannerMediaPreview}
+                        alt="Banner Media"
+                        className="w-full h-full object-cover"
+                      />
+                    )
+                  ) : fiberBanner.fiberBannerMedia?.endsWith?.(".mp4") ||
+                    fiberBanner.fiberBannerMedia?.endsWith?.(".webm") ||
+                    fiberBanner.fiberBannerMedia?.endsWith?.(".ogg") ? (
+                    <video
+                      src={getFullUrl(fiberBanner.fiberBannerMedia)}
+                      className="w-full h-full object-cover"
+                      muted
+                    />
+                  ) : (
+                    <img
+                      src={getFullUrl(fiberBanner.fiberBannerMedia)}
+                      alt="Banner Media"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+
+                  {/* 👁 View Full */}
+                  <button
+                    type="button"
+                    onClick={() => setShowFiberBannerModal(true)}
+                    className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                    title={
+                      activeTabLang === "vi" ? "Xem toàn màn hình" : "View Full"
+                    }
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+
+                  {/* 🔁 Change */}
+                  <label
+                    htmlFor="fiberBannerMediaUploadChange"
+                    className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
+                    title={activeTabLang === "vi" ? "Thay đổi" : "Change File"}
+                  >
+                    <input
+                      id="fiberBannerMediaUploadChange"
+                      type="file"
+                      accept="image/*,.mp4,.webm,.ogg,.mov,.avi,.mkv"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        if (!validateFileSize(file)) return;
+                        const previewUrl = URL.createObjectURL(file);
+                        setFiberBanner((prev) => ({
+                          ...prev,
+                          fiberBannerMedia: file,
+                          fiberBannerMediaPreview: previewUrl,
+                        }));
+                      }}
+                      style={{ display: "none" }}
+                    />
+                    <RotateCw size={14} />
+                  </label>
+
+                  {/* ❌ Remove */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFiberBanner({
+                        ...fiberBanner,
+                        fiberBannerMedia: "",
+                        fiberBannerMediaPreview: "",
+                      })
+                    }
+                    className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full transition cursor-pointer"
+                    title={activeTabLang === "vi" ? "Xóa" : "Remove"}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* ✅ Show Preview (newly uploaded) */}
-            {fiberBanner.fiberBannerMediaPreview ? (
-              fiberBanner.fiberBannerMedia?.type?.startsWith("video") ? (
-                <video
-                  src={fiberBanner.fiberBannerMediaPreview}
-                  controls
-                  style={{
-                    width: "250px",
-                    marginTop: "10px",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                  }}
-                />
-              ) : (
-                <img
-                  src={fiberBanner.fiberBannerMediaPreview}
-                  alt="Media Preview"
-                  style={{
-                    width: "250px",
-                    marginTop: "10px",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                  }}
-                />
-              )
-            ) : fiberBanner.fiberBannerMedia ? (
-              /* ✅ Show Saved File (from DB) */
-              fiberBanner.fiberBannerMedia.endsWith(".mp4") ||
-              fiberBanner.fiberBannerMedia.endsWith(".webm") ||
-              fiberBanner.fiberBannerMedia.endsWith(".ogg") ? (
-                <video
-                  src={getFullUrl(fiberBanner.fiberBannerMedia)}
-                  controls
-                  style={{
-                    width: "250px",
-                    marginTop: "10px",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                  }}
-                />
-              ) : (
-                <img
-                  src={fiberBanner.fiberBannerMedia}
-                  alt="Saved Media"
-                  style={{
-                    width: "250px",
-                    marginTop: "10px",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                  }}
-                />
-              )
-            ) : null}
-          </div>
+            {/* 🪟 Modal Preview */}
+            {showFiberBannerModal && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+                <div className="relative w-[90vw] max-w-4xl">
+                  <button
+                    type="button"
+                    onClick={() => setShowFiberBannerModal(false)}
+                    className="absolute z-50 -top-2 -right-2 bg-red-600 !text-white p-2 rounded-full cursor-pointer"
+                  >
+                    <X size={20} />
+                  </button>
 
-          {/* Banner Image */}
-          <div style={{ marginBottom: "15px" }}>
-            <label className="block font-bold mt-5 mb-1">
-              {translations[currentLang].bannerImage}
-            </label>
-            <p className="text-sm text-slate-500 mb-2">
-              {translations[currentLang].recommendedSize} 560×670px
-            </p>
-            <div className="mb-3">
-              {/* Hidden Input */}
-              <input
-                id="fiberBannerUpload"
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  if (!validateFileSize(file)) return; // ✅ validation added
-
-                  setFiberBanner({
-                    ...fiberBanner,
-                    fiberBannerImg: file,
-                    fiberBannerImgPreview: URL.createObjectURL(file),
-                  });
-                }}
-              />
-
-              {/* Styled Label as Button */}
-              <label
-                htmlFor="fiberBannerUpload"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  backgroundColor: "#0284C7", // blue
-                  color: "#fff",
-                  padding: "10px 20px",
-                  borderRadius: "9999px", // pill shape
-                  fontWeight: "500",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                {/* Upload Icon */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  style={{ width: "18px", height: "18px" }}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
-                  />
-                </svg>
-                Upload Banner Image
-              </label>
-            </div>
-
-            {fiberBanner.fiberBannerImgPreview ? (
-              <img
-                src={fiberBanner.fiberBannerImgPreview}
-                alt="Banner Preview"
-                style={{
-                  width: "200px",
-                  marginTop: "10px",
-                  borderRadius: "8px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                }}
-              />
-            ) : fiberBanner.fiberBannerImg ? (
-              <img
-                src={getFullUrl(fiberBanner.fiberBannerImg)}
-                alt="Banner Preview"
-                style={{
-                  width: "200px",
-                  marginTop: "10px",
-                  borderRadius: "8px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                }}
-              /> // show existing saved img
-            ) : null}
+                  {fiberBanner.fiberBannerMediaPreview ? (
+                    fiberBanner.fiberBannerMedia?.type?.startsWith("video") ? (
+                      <video
+                        src={fiberBanner.fiberBannerMediaPreview}
+                        controls
+                        autoPlay
+                        className="w-full rounded-lg"
+                      />
+                    ) : (
+                      <img
+                        src={fiberBanner.fiberBannerMediaPreview}
+                        alt="Full Banner"
+                        className="w-full rounded-lg"
+                      />
+                    )
+                  ) : fiberBanner.fiberBannerMedia ? (
+                    fiberBanner.fiberBannerMedia.endsWith(".mp4") ||
+                    fiberBanner.fiberBannerMedia.endsWith(".webm") ||
+                    fiberBanner.fiberBannerMedia.endsWith(".ogg") ? (
+                      <video
+                        src={getFullUrl(fiberBanner.fiberBannerMedia)}
+                        controls
+                        autoPlay
+                        className="w-full rounded-lg"
+                      />
+                    ) : (
+                      <img
+                        src={getFullUrl(fiberBanner.fiberBannerMedia)}
+                        alt="Full Banner"
+                        className="w-full rounded-lg"
+                      />
+                    )
+                  ) : null}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-4 mt-8">
@@ -719,33 +860,17 @@ export default function FiberPage() {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                backgroundColor: "#0284C7", // blue
+                backgroundColor: "#0284C7",
                 color: "#fff",
                 border: "none",
-                padding: "22px",
-                borderRadius: "9999px", // pill shape
+                padding: "22px 30px",
+                borderRadius: "9999px",
                 fontWeight: "500",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
               }}
             >
-              {/* Save Icon */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: "18px", height: "18px" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
-                />
-              </svg>
-
-              {translations[currentLang].saveBanner}
+              {translations[activeTabLang].saveBanner}
             </Button>
           </div>
         </Panel>
@@ -754,21 +879,23 @@ export default function FiberPage() {
         <Panel
           header={
             <span className="flex items-center gap-2 text-white text-lg">
-              <FiLayers /> Sustainability
+              {isVietnamese ? "Bền vững" : "Sustainability"}
             </span>
           }
           key="2"
         >
           <Tabs
-            activeKey={currentLang}
-            onChange={setCurrentLang}
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
             className="pill-tabs"
           >
             {["en", "vi"].map((lang) => (
-              <TabPane tab={lang.toUpperCase()} key={lang}>
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
+              >
                 <label className="block font-bold mt-5 mb-1">
-                  {" "}
-                  {translations[currentLang].title}
+                  {translations[activeTabLang].title}
                 </label>
                 <Input
                   style={{
@@ -791,9 +918,9 @@ export default function FiberPage() {
                     })
                   }
                 />
+
                 <label className="block font-bold mt-5 mb-1">
-                  {" "}
-                  {translations[currentLang].subText}
+                  {translations[activeTabLang].subText}
                 </label>
                 <Input
                   style={{
@@ -816,9 +943,9 @@ export default function FiberPage() {
                     })
                   }
                 />
+
                 <label className="block font-bold mt-5 mb-1">
-                  {" "}
-                  {translations[currentLang].description}
+                  {translations[activeTabLang].description}
                 </label>
                 <Input
                   style={{
@@ -844,171 +971,261 @@ export default function FiberPage() {
               </TabPane>
             ))}
           </Tabs>
-          <div style={{ marginBottom: "15px" }}>
-            <label className="block font-bold mt-5 mb-1">
-              {" "}
-              {translations[currentLang].sustainabilityImage}
+
+          {/* 🌿 Sustainability Image Upload */}
+          <div style={{ marginBottom: "20px" }}>
+            <label className="block text-white text-lg font-semibold mb-2">
+              {translations[activeTabLang].sustainabilityImage}
             </label>
-            <p className="text-sm text-slate-500 mb-2">
-              {translations[currentLang].recommendedSize} 900×500px
+            <p className="text-sm text-slate-500 mb-3">
+              {translations[activeTabLang].recommendedSize} 900×500px
             </p>
-            <div className="mb-3">
-              {/* Hidden Input */}
-              <input
-                id="fiberSustainabilityUpload"
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  if (!validateFileSize(file)) return; // ✅ validation added
 
-                  setFiberSustainability({
-                    ...fiberSustainability,
-                    fiberSustainabilityImg: file,
-                    fiberSustainabilityImgPreview: URL.createObjectURL(file),
-                  });
-                }}
-              />
-
-              {/* Styled Label as Button */}
-              <label
-                htmlFor="fiberSustainabilityUpload"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  backgroundColor: "#0284C7", // blue
-                  color: "#fff",
-                  padding: "10px 20px",
-                  borderRadius: "9999px", // pill shape
-                  fontWeight: "500",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                {/* Upload Icon */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  style={{ width: "18px", height: "18px" }}
+            <div className="flex flex-wrap gap-4 mt-2">
+              {!fiberSustainability.fiberSustainabilityImg &&
+              !fiberSustainability.fiberSustainabilityImgPreview ? (
+                <label
+                  htmlFor="fiberSustainabilityUpload"
+                  className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    stroke="currentColor"
+                    className="w-8 h-8 text-gray-400"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  <span className="mt-2 text-sm text-gray-400 text-center px-2">
+                    {activeTabLang === "vi"
+                      ? "Tải lên hình ảnh"
+                      : "Upload Sustainability Image"}
+                  </span>
+                </label>
+              ) : (
+                <div className="relative group w-40 h-40 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
+                  <img
+                    src={
+                      fiberSustainability.fiberSustainabilityImgPreview
+                        ? fiberSustainability.fiberSustainabilityImgPreview
+                        : getFullUrl(fiberSustainability.fiberSustainabilityImg)
+                    }
+                    alt="Sustainability Preview"
+                    className="w-full h-full object-cover"
                   />
-                </svg>
-                Upload Sustainability Image
-              </label>
+
+                  {/* 👁 View Full */}
+                  <button
+                    type="button"
+                    onClick={() => setShowSustainabilityModal(true)}
+                    className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                    title={
+                      activeTabLang === "vi" ? "Xem toàn màn hình" : "View Full"
+                    }
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+
+                  {/* 🔁 Change */}
+                  <label
+                    htmlFor="fiberSustainabilityUploadChange"
+                    className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 !text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
+                    title={activeTabLang === "vi" ? "Thay đổi" : "Change Image"}
+                  >
+                    <input
+                      id="fiberSustainabilityUploadChange"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        if (!validateFileSize(file)) return;
+                        setFiberSustainability({
+                          ...fiberSustainability,
+                          fiberSustainabilityImg: file,
+                          fiberSustainabilityImgPreview:
+                            URL.createObjectURL(file),
+                        });
+                      }}
+                      style={{ display: "none" }}
+                    />
+                    <RotateCw size={14} />
+                  </label>
+
+                  {/* ❌ Remove */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFiberSustainability({
+                        ...fiberSustainability,
+                        fiberSustainabilityImg: "",
+                        fiberSustainabilityImgPreview: "",
+                      })
+                    }
+                    className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full cursor-pointer transition"
+                    title={activeTabLang === "vi" ? "Xóa" : "Remove"}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Show preview (new or saved) */}
-            {fiberSustainability.fiberSustainabilityImgPreview ? (
-              <img
-                src={fiberSustainability.fiberSustainabilityImgPreview}
-                alt="Sustainability Preview"
-                style={{
-                  width: "200px",
-                  marginTop: "10px",
-                  borderRadius: "8px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                }}
-              />
-            ) : fiberSustainability.fiberSustainabilityImg ? (
-              <img
-                src={getFullUrl(fiberSustainability.fiberSustainabilityImg)} // saved path from backend
-                alt="Sustainability"
-                style={{
-                  width: "200px",
-                  marginTop: "10px",
-                  borderRadius: "8px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                }}
-              />
-            ) : null}
+            {/* Hidden Input for Upload */}
+            <input
+              id="fiberSustainabilityUpload"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!validateFileSize(file)) return;
+                setFiberSustainability({
+                  ...fiberSustainability,
+                  fiberSustainabilityImg: file,
+                  fiberSustainabilityImgPreview: URL.createObjectURL(file),
+                });
+              }}
+            />
+
+            {/* 🖼 Full Preview Modal */}
+            <Modal
+              open={showSustainabilityModal}
+              footer={null}
+              onCancel={() => setShowSustainabilityModal(false)}
+              centered
+              width={700}
+              bodyStyle={{ background: "#000", padding: "0" }}
+            >
+              {fiberSustainability.fiberSustainabilityImgPreview ? (
+                <img
+                  src={fiberSustainability.fiberSustainabilityImgPreview}
+                  alt="Full Preview"
+                  className="w-full h-auto rounded-lg"
+                />
+              ) : fiberSustainability.fiberSustainabilityImg ? (
+                <img
+                  src={getFullUrl(fiberSustainability.fiberSustainabilityImg)}
+                  alt="Full Preview"
+                  className="w-full h-auto rounded-lg"
+                />
+              ) : (
+                <div className="text-center text-gray-400 py-10 text-base">
+                  No image available
+                </div>
+              )}
+            </Modal>
           </div>
 
+          {/* 🌿 Sustainability Content Blocks */}
           {[1, 2, 3].map((i) => (
-            <div key={i}>
-              <Tabs
-                activeKey={currentLang}
-                onChange={setCurrentLang}
-                className="pill-tabs"
-              >
-                {["en", "vi"].map((lang) => (
-                  <TabPane
-                    tab={`SubTitle${i} ${lang}`}
-                    key={lang}
-                    className="mt-4"
-                  >
-                    <Input
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                        fontSize: "14px",
-                        transition: "all 0.3s ease",
-                        marginBottom: "10px",
-                      }}
-                      placeholder={`Subtitle ${i}`}
-                      value={
-                        fiberSustainability[`fiberSustainabilitySubTitle${i}`][
-                          lang
-                        ]
-                      }
-                      onChange={(e) =>
-                        setFiberSustainability({
-                          ...fiberSustainability,
-                          [`fiberSustainabilitySubTitle${i}`]: {
-                            ...fiberSustainability[
-                              `fiberSustainabilitySubTitle${i}`
-                            ],
-                            [lang]: e.target.value,
-                          },
-                        })
-                      }
-                    />
-                    <Input
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                        fontSize: "14px",
-                        transition: "all 0.3s ease",
-                      }}
-                      placeholder={`SubDesc ${i}`}
-                      value={
-                        fiberSustainability[`fiberSustainabilitySubDes${i}`][
-                          lang
-                        ]
-                      }
-                      onChange={(e) =>
-                        setFiberSustainability({
-                          ...fiberSustainability,
-                          [`fiberSustainabilitySubDes${i}`]: {
-                            ...fiberSustainability[
-                              `fiberSustainabilitySubDes${i}`
-                            ],
-                            [lang]: e.target.value,
-                          },
-                        })
-                      }
-                    />
-                  </TabPane>
-                ))}
-              </Tabs>
+            <div
+              key={i}
+              style={{
+                backgroundColor: "#1F1F1F",
+                border: "1px solid #2E2F2F",
+                borderRadius: "8px",
+                padding: "16px",
+                marginBottom: "20px",
+              }}
+            >
+              <h3 className="text-white font-semibold text-base mb-3">
+                {translations[activeTabLang].sustainabilityContent}
+              </h3>
+
+              {/* Subtitle Input */}
+              <Input
+                style={{
+                  backgroundColor: "#262626",
+                  border: "1px solid #2E2F2F",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                  transition: "all 0.3s ease",
+                  marginBottom: "10px",
+                }}
+                placeholder={`Subtitle ${i}`}
+                value={
+                  fiberSustainability[`fiberSustainabilitySubTitle${i}`]?.[
+                    activeTabLang
+                  ] || ""
+                }
+                onChange={(e) =>
+                  setFiberSustainability({
+                    ...fiberSustainability,
+                    [`fiberSustainabilitySubTitle${i}`]: {
+                      ...fiberSustainability[`fiberSustainabilitySubTitle${i}`],
+                      [activeTabLang]: e.target.value,
+                    },
+                  })
+                }
+              />
+
+              {/* Sub Description Input */}
+              <Input
+                style={{
+                  backgroundColor: "#262626",
+                  border: "1px solid #2E2F2F",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                  transition: "all 0.3s ease",
+                }}
+                placeholder={`SubDesc ${i}`}
+                value={
+                  fiberSustainability[`fiberSustainabilitySubDes${i}`]?.[
+                    activeTabLang
+                  ] || ""
+                }
+                onChange={(e) =>
+                  setFiberSustainability({
+                    ...fiberSustainability,
+                    [`fiberSustainabilitySubDes${i}`]: {
+                      ...fiberSustainability[`fiberSustainabilitySubDes${i}`],
+                      [activeTabLang]: e.target.value,
+                    },
+                  })
+                }
+              />
             </div>
           ))}
+
           <div className="flex justify-end gap-4 mt-8">
             <Button
               onClick={() =>
@@ -1018,33 +1235,17 @@ export default function FiberPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                backgroundColor: "#0284C7", // blue button
+                backgroundColor: "#0284C7",
                 color: "#fff",
                 border: "none",
-                padding: "22px",
-                borderRadius: "9999px", // pill shape
+                padding: "22px 30px",
+                borderRadius: "9999px",
                 fontWeight: "500",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
               }}
             >
-              {/* Save Icon */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: "18px", height: "18px" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
-                />
-              </svg>
-
-              {translations[currentLang].saveSustainability}
+              {translations[activeTabLang].saveSustainability}
             </Button>
           </div>
         </Panel>
@@ -1053,21 +1254,23 @@ export default function FiberPage() {
         <Panel
           header={
             <span className="flex items-center gap-2 text-white text-lg">
-              <FiStar /> Choose Us
+              {isVietnamese ? "Chọn Chúng Tôi" : "Choose Us"}
             </span>
           }
           key="3"
         >
           <Tabs
-            activeKey={currentLang}
-            onChange={setCurrentLang}
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
             className="pill-tabs"
           >
             {["en", "vi"].map((lang) => (
-              <TabPane tab={lang.toUpperCase()} key={lang}>
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
+              >
                 <label className="block font-bold mt-5 mb-1">
-                  {" "}
-                  {translations[currentLang].title}
+                  {translations[activeTabLang].title}
                 </label>
                 <Input
                   style={{
@@ -1091,8 +1294,7 @@ export default function FiberPage() {
                   }
                 />
                 <label className="block font-bold mt-5 mb-1">
-                  {" "}
-                  {translations[currentLang].description}
+                  {translations[activeTabLang].description}
                 </label>
                 <Input
                   style={{
@@ -1118,96 +1320,204 @@ export default function FiberPage() {
               </TabPane>
             ))}
           </Tabs>
-          {fiberChooseUs.fiberChooseUsBox.map((box, idx) => (
-            <div key={idx} className=" p-2 mb-2">
-              {/* Local Image Upload */}
-              <div style={{ marginBottom: "10px" }}>
-                <label className="block font-bold mt-5 mb-1">
-                  {" "}
-                  {translations[currentLang].boxBackgroundImage}
-                </label>
-                <p className="text-sm text-slate-500 mb-2">
-                  {translations[currentLang].recommendedSize} 900×500px
-                </p>
-                <div className="mb-3">
-                  {/* Hidden Input */}
-                  <input
-                    id={`fiberChooseUsBgUpload-${idx}`}
-                    type="file"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        const arr = [...fiberChooseUs.fiberChooseUsBox];
-                        arr[idx].fiberChooseUsBoxBg = {
-                          file,
-                          preview: URL.createObjectURL(file),
-                        };
-                        setFiberChooseUs({
-                          ...fiberChooseUs,
-                          fiberChooseUsBox: arr,
-                        });
-                      }
-                    }}
-                  />
 
-                  {/* Styled Label as Button */}
-                  <label
-                    htmlFor={`fiberChooseUsBgUpload-${idx}`}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      backgroundColor: "#0284C7", // blue button
-                      color: "#fff",
-                      padding: "10px 20px",
-                      borderRadius: "9999px", // pill shape
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      cursor: "pointer",
-                      transition: "all 0.3s ease",
-                    }}
-                  >
-                    {/* Upload Icon */}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      style={{ width: "18px", height: "18px" }}
+          {fiberChooseUs.fiberChooseUsBox.map((box, idx) => (
+            <div key={idx} className="p-2 mb-2">
+              {/* 🖼 Box Background Image Upload */}
+              <div style={{ marginBottom: "20px" }}>
+                <label className="block text-white text-lg font-semibold mb-2">
+                  {translations[activeTabLang].boxBackgroundImage}
+                </label>
+                <p className="text-sm text-slate-500 mb-3">
+                  {translations[activeTabLang].recommendedSize} 900×500px
+                </p>
+
+                <div className="flex flex-wrap gap-4 mt-2">
+                  {!box.fiberChooseUsBoxBg &&
+                  !box.fiberChooseUsBoxBg?.preview ? (
+                    <label
+                      htmlFor={`fiberChooseUsBgUpload-${idx}`}
+                      className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2"
+                        stroke="currentColor"
+                        className="w-8 h-8 text-gray-400"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                      <span className="mt-2 text-sm text-gray-400 text-center px-2">
+                        {activeTabLang === "vi"
+                          ? "Tải lên hình nền"
+                          : "Upload Background Image"}
+                      </span>
+                    </label>
+                  ) : (
+                    <div className="relative group w-40 h-40 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
+                      <img
+                        src={
+                          box.fiberChooseUsBoxBg?.preview
+                            ? box.fiberChooseUsBoxBg.preview
+                            : getFullUrl(box.fiberChooseUsBoxBg)
+                        }
+                        alt="Background Preview"
+                        className="w-full h-full object-cover"
                       />
-                    </svg>
-                    Upload Background Image
-                  </label>
+
+                      {/* 👁 View Full */}
+                      <button
+                        type="button"
+                        onClick={() => setShowChooseUsBgModal(idx)}
+                        className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                        title={
+                          activeTabLang === "vi"
+                            ? "Xem toàn màn hình"
+                            : "View Full"
+                        }
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                          stroke="currentColor"
+                          className="w-4 h-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </button>
+
+                      {/* 🔁 Change */}
+                      <label
+                        htmlFor={`fiberChooseUsBgUploadChange-${idx}`}
+                        className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
+                        title={
+                          activeTabLang === "vi" ? "Thay đổi" : "Change Image"
+                        }
+                      >
+                        <input
+                          id={`fiberChooseUsBgUploadChange-${idx}`}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            if (!validateFileSize(file)) return;
+                            const arr = [...fiberChooseUs.fiberChooseUsBox];
+                            arr[idx].fiberChooseUsBoxBg = {
+                              file,
+                              preview: URL.createObjectURL(file),
+                            };
+                            setFiberChooseUs({
+                              ...fiberChooseUs,
+                              fiberChooseUsBox: arr,
+                            });
+                          }}
+                          style={{ display: "none" }}
+                        />
+                        <RotateCw size={14} />
+                      </label>
+
+                      {/* ❌ Remove */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const arr = [...fiberChooseUs.fiberChooseUsBox];
+                          arr[idx].fiberChooseUsBoxBg = null;
+                          setFiberChooseUs({
+                            ...fiberChooseUs,
+                            fiberChooseUsBox: arr,
+                          });
+                        }}
+                        className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full cursor-pointer transition"
+                        title={activeTabLang === "vi" ? "Xóa" : "Remove"}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          className="w-4 h-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                {box.fiberChooseUsBoxBg?.preview ? (
-                  <img
-                    src={box.fiberChooseUsBoxBg.preview}
-                    alt="Preview"
-                    width="120"
-                  />
-                ) : box.fiberChooseUsBoxBg ? (
-                  <img
-                    src={getFullUrl(box.fiberChooseUsBoxBg)}
-                    alt="Saved"
-                    width="120"
-                  />
-                ) : null}
+                {/* Hidden Input for Upload */}
+                <input
+                  id={`fiberChooseUsBgUpload-${idx}`}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const arr = [...fiberChooseUs.fiberChooseUsBox];
+                      arr[idx].fiberChooseUsBoxBg = {
+                        file,
+                        preview: URL.createObjectURL(file),
+                      };
+                      setFiberChooseUs({
+                        ...fiberChooseUs,
+                        fiberChooseUsBox: arr,
+                      });
+                    }
+                  }}
+                />
+
+                {/* 🖼 Full Preview Modal */}
+                <Modal
+                  open={showChooseUsBgModal === idx}
+                  footer={null}
+                  onCancel={() => setShowChooseUsBgModal(null)}
+                  centered
+                  width={700}
+                  bodyStyle={{ background: "#000", padding: "0" }}
+                >
+                  {box.fiberChooseUsBoxBg?.preview ? (
+                    <img
+                      src={box.fiberChooseUsBoxBg.preview}
+                      alt="Full Preview"
+                      className="w-full h-auto rounded-lg"
+                    />
+                  ) : box.fiberChooseUsBoxBg ? (
+                    <img
+                      src={getFullUrl(box.fiberChooseUsBoxBg)}
+                      alt="Full Preview"
+                      className="w-full h-auto rounded-lg"
+                    />
+                  ) : (
+                    <div className="text-center text-gray-400 py-10 text-base">
+                      No image available
+                    </div>
+                  )}
+                </Modal>
               </div>
 
               {/* Icon Selector */}
-              <div style={{ marginBottom: "10px", }}>
+              <div style={{ marginBottom: "10px" }}>
                 <label className="block font-bold mt-5 mb-1">
-                  {" "}
-                  {translations[currentLang].chooseIcon}
+                  {translations[activeTabLang].chooseIcon}
                 </label>
                 <select
                   value={box.fiberChooseUsIcon}
@@ -1221,23 +1531,13 @@ export default function FiberPage() {
                   }}
                   style={{
                     padding: "10px 14px",
-                    borderRadius: "9999px", // pill shape
-                    border: "1px solid #ddd",
-                    backgroundColor: "#fff",
-                    color: "#111",
+                    borderRadius: "9999px",
+                    border: "1px solid #2e2f2f",
+                    backgroundColor: "#262626",
+                    color: "#fff",
                     fontSize: "14px",
                     fontWeight: "500",
-                    appearance: "none", // remove default arrow
-                    WebkitAppearance: "none",
-                    MozAppearance: "none",
                     cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    backgroundImage:
-                      'url(\'data:image/svg+xml;utf8,<svg fill="%23111" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>\')', // custom arrow
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 12px center",
-                    backgroundSize: "16px",
-                    outline: "none",
                   }}
                 >
                   <option value="">-- Select Icon --</option>
@@ -1248,88 +1548,53 @@ export default function FiberPage() {
                   ))}
                 </select>
 
-                {/* Show the actual icon */}
                 {box.fiberChooseUsIcon && (
-                  <h3 style={{ marginLeft: "50px",marginTop:"20px", fontSize: "40px", color:"#fff" }}>
+                  <h3
+                    style={{
+                      marginLeft: "50px",
+                      marginTop: "20px",
+                      fontSize: "40px",
+                      color: "#fff",
+                    }}
+                  >
                     {React.createElement(FiIcons[box.fiberChooseUsIcon])}
                   </h3>
                 )}
               </div>
 
-              {/* Multilingual Title & Description */}
-              <Tabs
-                activeKey={currentLang}
-                onChange={setCurrentLang}
-                className="pill-tabs"
-              >
-                {["en", "vi"].map((lang) => (
-                  <TabPane tab={lang.toUpperCase()} key={lang}>
-                    <label className="block font-bold mt-5 mb-1">
-                      {" "}
-                      {translations[currentLang].boxTitle}
-                    </label>
-                    <Input
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                        fontSize: "14px",
-                        transition: "all 0.3s ease",
-                      }}
-                      placeholder="Box Title"
-                      value={box.fiberChooseUsBoxTitle[lang]}
-                      onChange={(e) => {
-                        const arr = [...fiberChooseUs.fiberChooseUsBox];
-                        arr[idx].fiberChooseUsBoxTitle = {
-                          ...arr[idx].fiberChooseUsBoxTitle,
-                          [lang]: e.target.value,
-                        };
-                        setFiberChooseUs({
-                          ...fiberChooseUs,
-                          fiberChooseUsBox: arr,
-                        });
-                      }}
-                    />
-                    <label className="block font-bold mt-5 mb-1">
-                      {" "}
-                      {translations[currentLang].boxDescription}
-                    </label>
-                    <Input
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                        fontSize: "14px",
-                        transition: "all 0.3s ease",
-                      }}
-                      placeholder="Box Description"
-                      value={box.fiberChooseUsDes[lang]}
-                      onChange={(e) => {
-                        const arr = [...fiberChooseUs.fiberChooseUsBox];
-                        arr[idx].fiberChooseUsDes = {
-                          ...arr[idx].fiberChooseUsDes,
-                          [lang]: e.target.value,
-                        };
-                        setFiberChooseUs({
-                          ...fiberChooseUs,
-                          fiberChooseUsBox: arr,
-                        });
-                      }}
-                    />
-                  </TabPane>
-                ))}
-              </Tabs>
+              {/* Multilingual Box Description */}
+              <label className="block font-bold mt-5 mb-1">
+                {translations[activeTabLang].boxDescription}
+              </label>
+              <Input
+                style={{
+                  backgroundColor: "#262626",
+                  border: "1px solid #2E2F2F",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                  transition: "all 0.3s ease",
+                }}
+                value={box.fiberChooseUsDes?.[activeTabLang] || ""}
+                onChange={(e) => {
+                  const arr = [...fiberChooseUs.fiberChooseUsBox];
+                  arr[idx].fiberChooseUsDes = {
+                    ...arr[idx].fiberChooseUsDes,
+                    [activeTabLang]: e.target.value,
+                  };
+                  setFiberChooseUs({
+                    ...fiberChooseUs,
+                    fiberChooseUsBox: arr,
+                  });
+                }}
+              />
+
               <Button
                 onClick={async () => {
                   const arr = [...fiberChooseUs.fiberChooseUsBox];
                   arr.splice(idx, 1);
                   setFiberChooseUs({ ...fiberChooseUs, fiberChooseUsBox: arr });
-
-                  // Immediate backend update
                   await handleSave("fiberChooseUs", {
                     ...fiberChooseUs,
                     fiberChooseUsBox: arr,
@@ -1339,11 +1604,11 @@ export default function FiberPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "8px",
-                  backgroundColor: "#E50000", // black button
+                  backgroundColor: "#fb2c36",
                   border: "1px solid #E50000",
                   color: "#fff",
                   padding: "22px",
-                  borderRadius: "9999px", // pill shape
+                  borderRadius: "9999px",
                   fontWeight: "500",
                   fontSize: "13px",
                   cursor: "pointer",
@@ -1351,28 +1616,13 @@ export default function FiberPage() {
                   marginTop: "10px",
                 }}
               >
-                {/* Trash Icon */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  style={{ width: "16px", height: "16px" }}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
-                  />
-                </svg>
-
-                {translations[currentLang].removeBox}
+                <Trash2 size={16} />
+                {translations[activeTabLang].removeBox}
               </Button>
             </div>
           ))}
+
           <div className="flex justify-end gap-4 mt-8">
-            {/* Add Box Button (White) */}
             <Button
               onClick={() =>
                 setFiberChooseUs({
@@ -1396,13 +1646,11 @@ export default function FiberPage() {
                 color: "#fff",
                 border: "1px solid #2E2F2F",
                 padding: "22px",
-                borderRadius: "9999px", // pill shape
+                borderRadius: "9999px",
                 fontWeight: "500",
                 cursor: "pointer",
-                transition: "all 0.3s ease",
               }}
             >
-              {/* Plus Icon */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -1417,42 +1665,25 @@ export default function FiberPage() {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              {translations[currentLang].addBox}
+              {translations[activeTabLang].addBox}
             </Button>
 
-            {/* Save Button (Blue) */}
             <Button
               onClick={() => handleSave("fiberChooseUs", fiberChooseUs)}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                backgroundColor: "#0284C7", // blue
+                backgroundColor: "#0284C7",
                 color: "#fff",
                 border: "none",
-                padding: "22px",
-                borderRadius: "9999px", // pill shape
+                padding: "22px 30px",
+                borderRadius: "9999px",
                 fontWeight: "500",
                 cursor: "pointer",
-                transition: "all 0.3s ease",
               }}
             >
-              {/* Save Icon */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: "18px", height: "18px" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
-                />
-              </svg>
-              {translations[currentLang].saveChooseUs}
+              {translations[activeTabLang].saveChooseUs}
             </Button>
           </div>
         </Panel>
@@ -1461,21 +1692,23 @@ export default function FiberPage() {
         <Panel
           header={
             <span className="flex items-center gap-2 text-white text-lg">
-              <FiUsers /> Supplier
+              {isVietnamese ? "Nhà Cung Cấp" : "Supplier"}
             </span>
           }
           key="4"
         >
           <Tabs
-            activeKey={currentLang}
-            onChange={setCurrentLang}
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
             className="pill-tabs"
           >
             {["en", "vi"].map((lang) => (
-              <TabPane tab={lang.toUpperCase()} key={lang}>
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
+              >
                 <label className="block font-bold mt-5 mb-1">
-                  {" "}
-                  {translations[currentLang].title}
+                  {translations[activeTabLang].title}
                 </label>
                 <Input
                   style={{
@@ -1504,45 +1737,48 @@ export default function FiberPage() {
           </Tabs>
 
           <label className="block font-bold mt-5 mb-1">
-            {" "}
-            {translations[currentLang].description} (list)
+            {translations[activeTabLang].description} (list)
           </label>
+
+          {/* 📝 Description Fields */}
           {fiberSupplier.fiberSupplierDes.map((d, idx) => (
-            <Tabs
-              activeKey={currentLang}
-              onChange={setCurrentLang}
-              key={idx}
-              className="pill-tabs"
-            >
-              {["en", "vi"].map((lang) => (
-                <TabPane tab={lang.toUpperCase()} key={lang}>
-                  <Input
-                    style={{
-                      backgroundColor: "#262626",
-                      border: "1px solid #2E2F2F",
-                      borderRadius: "8px",
-                      color: "#fff",
-                      padding: "10px 14px",
-                      fontSize: "14px",
-                      transition: "all 0.3s ease",
-                      marginTop: "10px",
-                      marginBottom: "10px",
-                    }}
-                    value={d[lang]}
-                    onChange={(e) => {
-                      const arr = [...fiberSupplier.fiberSupplierDes];
-                      arr[idx] = { ...arr[idx], [lang]: e.target.value };
-                      setFiberSupplier({
-                        ...fiberSupplier,
-                        fiberSupplierDes: arr,
-                      });
-                    }}
-                  />
-                </TabPane>
-              ))}
-            </Tabs>
+            <div key={idx} className="mb-4">
+              <label className="block text-white font-semibold mb-2">
+                {isVietnamese === "vi"
+                  ? `Nội dung nhà cung cấp ${idx + 1}`
+                  : `Supplier Description ${idx + 1}`}
+              </label>
+              <Input
+                style={{
+                  backgroundColor: "#262626",
+                  border: "1px solid #2E2F2F",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                  transition: "all 0.3s ease",
+                  marginTop: "10px",
+                  marginBottom: "10px",
+                }}
+                placeholder={
+                  activeTabLang === "vi"
+                    ? `Nhập nội dung mô tả ${idx + 1}`
+                    : `Enter description ${idx + 1}`
+                }
+                value={d[activeTabLang] || ""}
+                onChange={(e) => {
+                  const arr = [...fiberSupplier.fiberSupplierDes];
+                  arr[idx] = { ...arr[idx], [activeTabLang]: e.target.value };
+                  setFiberSupplier({
+                    ...fiberSupplier,
+                    fiberSupplierDes: arr,
+                  });
+                }}
+              />
+            </div>
           ))}
-          <div className="flex justify-end gap-4 mt-4">
+
+          <div className="flex justify-start gap-4 mt-4">
             <Button
               onClick={() =>
                 setFiberSupplier({
@@ -1557,11 +1793,11 @@ export default function FiberPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                backgroundColor: "#262626",
+                backgroundColor: "#0284C7",
                 color: "#fff",
                 border: "1px solid #2E2F2F",
                 padding: "22px",
-                borderRadius: "9999px", // pill shape
+                borderRadius: "9999px",
                 fontWeight: "500",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
@@ -1583,175 +1819,188 @@ export default function FiberPage() {
                 />
               </svg>
 
-              {translations[currentLang].addDescription}
+              {translations[activeTabLang].addDescription}
             </Button>
           </div>
 
-          <label className="block font-bold mt-5 mb-1">
-            {" "}
-            {translations[currentLang].image}
-          </label>
-          <p className="text-sm text-slate-500 mb-2">
-            {translations[currentLang].recommendedSize} 200×200px
-          </p>
-          {fiberSupplier.fiberSupplierImg.map((img, idx) => (
-            <div key={idx} style={{ marginBottom: "10px" }}>
-              <div className="mb-3">
-                {/* Hidden Input */}
-                <input
-                  id={`fiberSupplierUpload-${idx}`}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
+          {/* 🖼 Supplier Images Section */}
+          <div style={{ marginBottom: "25px" }}>
+            <label className="block text-white text-lg font-semibold mb-2">
+              {translations[activeTabLang].image}
+            </label>
+            <p className="text-sm text-slate-500 mb-3">
+              {translations[activeTabLang].recommendedSize} 200×200px
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-3">
+              {/* --- Existing or Preview Images --- */}
+              {fiberSupplier.fiberSupplierImg.map((img, idx) => (
+                <div
+                  key={`supplier-img-${idx}`}
+                  className="relative group w-32 h-32 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center"
+                >
+                  <img
+                    src={
+                      img?.preview
+                        ? img.preview
+                        : typeof img === "string"
+                        ? getFullUrl(img)
+                        : ""
+                    }
+                    alt={`supplier-${idx}`}
+                    className="w-full h-full object-cover"
+                  />
+
+                  {/* 👁 View Full */}
+                  <button
+                    type="button"
+                    onClick={() => setShowSupplierModal(idx)}
+                    className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                    title={activeTabLang === "vi" ? "Xem hình" : "View Full"}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+
+                  {/* 🔁 Change */}
+                  <label
+                    htmlFor={`fiberSupplierUpload-${idx}`}
+                    className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
+                    title={activeTabLang === "vi" ? "Thay đổi" : "Change Image"}
+                  >
+                    <input
+                      id={`fiberSupplierUpload-${idx}`}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        if (!validateFileSize(file)) return;
+                        const arr = [...fiberSupplier.fiberSupplierImg];
+                        arr[idx] = { file, preview: URL.createObjectURL(file) };
+                        setFiberSupplier({
+                          ...fiberSupplier,
+                          fiberSupplierImg: arr,
+                        });
+                      }}
+                    />
+                    <RotateCw size={14} />
+                  </label>
+
+                  {/* ❌ Remove */}
+                  <button
+                    type="button"
+                    onClick={async () => {
                       const arr = [...fiberSupplier.fiberSupplierImg];
-                      if (!validateFileSize(file)) return;
-                      arr[idx] = { file, preview: URL.createObjectURL(file) };
+                      arr.splice(idx, 1);
                       setFiberSupplier({
                         ...fiberSupplier,
                         fiberSupplierImg: arr,
                       });
-                    }
-                  }}
-                />
 
-                {/* Styled Label as Button */}
-                <label
-                  htmlFor={`fiberSupplierUpload-${idx}`}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    backgroundColor: "#0284C7", // blue
-                    color: "#fff",
-                    padding: "10px 20px",
-                    borderRadius: "9999px", // pill shape
-                    fontWeight: "500",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  {/* Upload Icon */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    style={{ width: "18px", height: "18px" }}
+                      await handleSave("fiberSupplier", {
+                        ...fiberSupplier,
+                        fiberSupplierImg: arr,
+                      });
+                    }}
+                    className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full cursor-pointer transition"
+                    title={activeTabLang === "vi" ? "Xóa" : "Remove"}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
-                    />
-                  </svg>
-                  Upload Supplier Image
-                </label>
-              </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ))}
 
-              {img?.preview ? (
-                <img src={img.preview} alt={`supplier-${idx}`} width="120" />
-              ) : typeof img === "string" && img !== "" ? (
-                <img
-                  src={getFullUrl(img)}
-                  alt={`supplier-${idx}`}
-                  width="120"
-                />
-              ) : null}
-              <Button
-                onClick={async () => {
-                  const arr = [...fiberSupplier.fiberSupplierImg];
-                  arr.splice(idx, 1);
-                  setFiberSupplier({ ...fiberSupplier, fiberSupplierImg: arr });
-
-                  // Immediate backend update
-                  await handleSave("fiberSupplier", {
+              {/* --- Upload New Box --- */}
+              <label
+                onClick={() =>
+                  setFiberSupplier({
                     ...fiberSupplier,
-                    fiberSupplierImg: arr,
-                  });
-                }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  backgroundColor: "#E50000", // black
-                  border: "1px solid #E50000",
-                  color: "#fff",
-                  padding: "22px",
-                  borderRadius: "9999px", // pill shape
-                  fontWeight: "500",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  marginTop: "10px",
-                }}
+                    fiberSupplierImg: [
+                      ...fiberSupplier.fiberSupplierImg,
+                      { file: null, preview: null },
+                    ],
+                  })
+                }
+                className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
               >
-                {/* Trash Icon */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
+                  strokeWidth="2"
                   stroke="currentColor"
-                  strokeWidth={2}
-                  style={{ width: "16px", height: "16px" }}
+                  className="w-8 h-8 text-gray-400"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
+                    d="M12 4v16m8-8H4"
                   />
                 </svg>
-
-                {translations[currentLang].removeImage}
-              </Button>
+                <span className="mt-2 text-sm text-gray-400 text-center px-2">
+                  {activeTabLang === "vi" ? "Thêm hình" : "Add Image"}
+                </span>
+              </label>
             </div>
-          ))}
-          <Button
-            onClick={() =>
-              setFiberSupplier({
-                ...fiberSupplier,
-                fiberSupplierImg: [
-                  ...fiberSupplier.fiberSupplierImg,
-                  { file: null, preview: null },
-                ],
-              })
-            }
-            style={{
-              display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                backgroundColor: "#262626",
-                color: "#fff",
-                border: "1px solid #2E2F2F",
-                padding: "22px",
-                borderRadius: "9999px", // pill shape
-                fontWeight: "500",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-            }}
-          >
-            {/* Plus Icon */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              style={{ width: "18px", height: "18px" }}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
 
-            {translations[currentLang].addImage}
-          </Button>
+            {/* 🖼 Full Preview Modal */}
+            <Modal
+              open={showSupplierModal !== null}
+              footer={null}
+              onCancel={() => setShowSupplierModal(null)}
+              centered
+              width={500}
+              bodyStyle={{ background: "#000", padding: "0" }}
+            >
+              {showSupplierModal !== null &&
+              fiberSupplier.fiberSupplierImg[showSupplierModal] ? (
+                <img
+                  src={
+                    fiberSupplier.fiberSupplierImg[showSupplierModal]?.preview
+                      ? fiberSupplier.fiberSupplierImg[showSupplierModal]
+                          .preview
+                      : getFullUrl(
+                          fiberSupplier.fiberSupplierImg[showSupplierModal]
+                        )
+                  }
+                  alt="Supplier Full Preview"
+                  className="w-full h-auto rounded-lg"
+                />
+              ) : (
+                <div className="text-center text-gray-400 py-10 text-base">
+                  No image available
+                </div>
+              )}
+            </Modal>
+          </div>
 
           {/* ✅ Save Supplier */}
           <div className="flex justify-end gap-4 mt-8">
@@ -1761,34 +2010,18 @@ export default function FiberPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                backgroundColor: "#0284C7", // blue
+                backgroundColor: "#0284C7",
                 color: "#fff",
                 border: "none",
-                padding: "22px",
-                borderRadius: "9999px", // pill shape
+                padding: "22px 30px",
+                borderRadius: "9999px",
                 fontWeight: "500",
                 marginTop: "15px",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
               }}
             >
-              {/* Save Icon */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: "18px", height: "18px" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
-                />
-              </svg>
-
-              {translations[currentLang].saveSupplier}
+              {translations[activeTabLang].saveSupplier}
             </Button>
           </div>
         </Panel>
@@ -1796,14 +2029,14 @@ export default function FiberPage() {
         {/* 5. Products */}
         <Panel
           header={
-            <span className="flex items-center gap-2 text-white text-lg">
-              <FiImage /> Products
+            <span className="flex jus items-center gap-2 text-white text-lg">
+              {isVietnamese ? "Sản Phẩm" : "Products"}
             </span>
           }
           key="5"
         >
           {fiberProducts.fiberProduct.map((p, idx) => (
-            <div key={idx} className=" p-2 mb-2 relative rounded-md">
+            <div key={idx} className="p-2 mb-2 relative rounded-md">
               {/* ❌ Delete whole product */}
               <Button
                 onClick={async () => {
@@ -1811,7 +2044,6 @@ export default function FiberPage() {
                   arr.splice(idx, 1);
                   setFiberProducts({ ...fiberProducts, fiberProduct: arr });
 
-                  // Immediate backend update
                   await handleSave("fiberProducts", {
                     ...fiberProducts,
                     fiberProduct: arr,
@@ -1821,18 +2053,17 @@ export default function FiberPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
-                  backgroundColor: "#000", // black button
+                  backgroundColor: "#000",
                   border: "1px solid #333",
                   color: "#fff",
                   padding: "8px 14px",
-                  borderRadius: "9999px", // pill shape
+                  borderRadius: "9999px",
                   fontWeight: "500",
                   fontSize: "13px",
                   cursor: "pointer",
                   transition: "all 0.3s ease",
                 }}
               >
-                {/* Trash Icon */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -1847,17 +2078,19 @@ export default function FiberPage() {
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
                   />
                 </svg>
-
-                {translations[currentLang].deleteProduct}
+                {translations[activeTabLang].deleteProduct}
               </Button>
 
               <Tabs
-                activeKey={currentLang}
-                onChange={setCurrentLang}
+                activeKey={activeTabLang}
+                onChange={setActiveTabLang}
                 className="pill-tabs"
               >
                 {["en", "vi"].map((lang) => (
-                  <TabPane tab={lang.toUpperCase()} key={lang}>
+                  <TabPane
+                    tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                    key={lang}
+                  >
                     <Input
                       style={{
                         backgroundColor: "#262626",
@@ -1888,18 +2121,21 @@ export default function FiberPage() {
               </Tabs>
 
               <label className="block font-bold mt-5 mb-1">
-                {" "}
-                {translations[currentLang].description} (list)
+                {translations[activeTabLang].description} (list)
               </label>
+
               {p.fiberProductDes.map((d, dIdx) => (
                 <Tabs
-                  activeKey={currentLang}
-                  onChange={setCurrentLang}
+                  activeKey={activeTabLang}
+                  onChange={setActiveTabLang}
                   key={dIdx}
                   className="pill-tabs"
                 >
                   {["en", "vi"].map((lang) => (
-                    <TabPane tab={lang.toUpperCase()} key={lang}>
+                    <TabPane
+                      tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                      key={lang}
+                    >
                       <Input
                         style={{
                           backgroundColor: "#262626",
@@ -1929,6 +2165,7 @@ export default function FiberPage() {
                   ))}
                 </Tabs>
               ))}
+
               <Button
                 type="dashed"
                 onClick={() => {
@@ -1937,16 +2174,15 @@ export default function FiberPage() {
                   setFiberProducts({ ...fiberProducts, fiberProduct: arr });
                 }}
               >
-                {translations[currentLang].addDescription}
+                {translations[activeTabLang].addDescription}
               </Button>
 
               {/* Product Image Upload */}
               <div style={{ marginTop: "10px" }}>
                 <p className="text-sm text-slate-500 mb-2">
-                  {translations[currentLang].recommendedSize} 200×200px
+                  {translations[activeTabLang].recommendedSize} 200×200px
                 </p>
                 <div className="mb-3">
-                  {/* Hidden Input */}
                   <input
                     id={`fiberProductUpload-${idx}`}
                     type="file"
@@ -1955,8 +2191,7 @@ export default function FiberPage() {
                     onChange={(e) => {
                       const file = e.target.files[0];
                       if (!file) return;
-                      if (!validateFileSize(file)) return; // ✅ Validation added
-
+                      if (!validateFileSize(file)) return;
                       const arr = [...fiberProducts.fiberProduct];
                       arr[idx].fiberProductImg = {
                         file,
@@ -1965,25 +2200,22 @@ export default function FiberPage() {
                       setFiberProducts({ ...fiberProducts, fiberProduct: arr });
                     }}
                   />
-
-                  {/* Styled Label as Button */}
                   <label
                     htmlFor={`fiberProductUpload-${idx}`}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "8px",
-                      backgroundColor: "#0284C7", // blue
+                      backgroundColor: "#0284C7",
                       color: "#fff",
                       padding: "10px 20px",
-                      borderRadius: "9999px", // pill shape
+                      borderRadius: "9999px",
                       fontWeight: "500",
                       fontSize: "14px",
                       cursor: "pointer",
                       transition: "all 0.3s ease",
                     }}
                   >
-                    {/* Upload Icon */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
@@ -1998,7 +2230,9 @@ export default function FiberPage() {
                         d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
                       />
                     </svg>
-                    Upload Product Image
+                    {activeTabLang === "vi"
+                      ? "Tải lên hình sản phẩm"
+                      : "Upload Product Image"}
                   </label>
                 </div>
 
@@ -2020,65 +2254,75 @@ export default function FiberPage() {
           ))}
 
           <Button
-  type="dashed"
-  onClick={() =>
-    setFiberProducts({
-      ...fiberProducts,
-      fiberProduct: [
-        ...fiberProducts.fiberProduct,
-        {
-          fiberProductTitle: { en: "", vi: "" },
-          fiberProductDes: [],
-          fiberProductImg: "",
-        },
-      ],
-    })
-  }
-  style={{
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "8px",
-    backgroundColor: "#0284C7", // blue
-    border: "none",
-    color: "#fff",
-    padding: "22px",
-    borderRadius: "9999px", // pill shape
-    fontWeight: "600",
-    fontSize: "14px",
-    cursor: "pointer",
-    transition: "all 0.3s ease",
-    boxShadow: "0 2px 6px rgba(2, 132, 199, 0.4)",
-  }}
-  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0369A1")}
-  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0284C7")}
->
-  {/* Plus SVG Icon */}
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth="2"
-    stroke="currentColor"
-    style={{ width: "18px", height: "18px" }}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M12 4v16m8-8H4"
-    />
-  </svg>
-
-  {translations[currentLang].addProduct}
-</Button>
+            type="dashed"
+            onClick={() =>
+              setFiberProducts({
+                ...fiberProducts,
+                fiberProduct: [
+                  ...fiberProducts.fiberProduct,
+                  {
+                    fiberProductTitle: { en: "", vi: "" },
+                    fiberProductDes: [],
+                    fiberProductImg: "",
+                  },
+                ],
+              })
+            }
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              backgroundColor: "#0284C7",
+              border: "none",
+              color: "#fff",
+              padding: "22px",
+              borderRadius: "9999px",
+              fontWeight: "600",
+              fontSize: "14px",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              boxShadow: "0 2px 6px rgba(2, 132, 199, 0.4)",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#0369A1")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#0284C7")
+            }
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="2"
+              stroke="currentColor"
+              style={{ width: "18px", height: "18px" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            {translations[activeTabLang].addProduct}
+          </Button>
 
           <Divider />
+
+          {/* 🌐 Single Language Tabs */}
           <Tabs
-            activeKey={currentLang}
-            onChange={setCurrentLang}
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
             className="pill-tabs"
           >
             {["en", "vi"].map((lang) => (
-              <TabPane tab={`BottomCon ${lang}`} key={lang}>
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
+              >
+                <label className="block text-white font-semibold mb-2 mt-3">
+                  {isVietnamese ? "Nội dung dưới cùng" : "Bottom Content"}
+                </label>
                 <Input
                   style={{
                     backgroundColor: "#262626",
@@ -2101,16 +2345,10 @@ export default function FiberPage() {
                     })
                   }
                 />
-              </TabPane>
-            ))}
-          </Tabs>
-          <Tabs
-            activeKey={currentLang}
-            onChange={setCurrentLang}
-            className="pill-tabs"
-          >
-            {["en", "vi"].map((lang) => (
-              <TabPane tab={`ButtonText ${lang}`} key={lang}>
+
+                <label className="block text-white font-semibold mb-2 mt-5">
+                  {isVietnamese ? "Văn bản nút" : "Button Text"}
+                </label>
                 <Input
                   style={{
                     backgroundColor: "#262626",
@@ -2136,6 +2374,11 @@ export default function FiberPage() {
               </TabPane>
             ))}
           </Tabs>
+
+          {/* 🌍 Static Button Link */}
+          <label className="block text-white font-semibold mb-2 mt-5">
+            {isVietnamese ? "Liên kết nút" : "Button Link"}
+          </label>
           <Input
             style={{
               backgroundColor: "#262626",
@@ -2145,7 +2388,7 @@ export default function FiberPage() {
               padding: "10px 14px",
               fontSize: "14px",
               transition: "all 0.3s ease",
-              marginTop: "15px",
+              marginTop: "10px",
               marginBottom: "20px",
             }}
             placeholder="Button Link"
@@ -2157,61 +2400,50 @@ export default function FiberPage() {
               })
             }
           />
-          <Button
-            onClick={() => handleSave("fiberProducts", fiberProducts)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              backgroundColor: "#0284C7", // blue
-              color: "#fff",
-              border: "none",
-              padding: "22px",
-              borderRadius: "9999px", // pill shape
-              fontWeight: "500",
-              cursor: "pointer",
-              transition: "all 0.3s ease",
-            }}
-          >
-            {/* Save Icon */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              style={{ width: "18px", height: "18px" }}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
-              />
-            </svg>
 
-            {translations[currentLang].saveProducts}
-          </Button>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => handleSave("fiberProducts", fiberProducts)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7",
+                color: "#fff",
+                border: "none",
+                padding: "22px 30px",
+                borderRadius: "9999px",
+                fontWeight: "500",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {translations[activeTabLang].saveProducts}
+            </Button>
+          </div>
         </Panel>
 
         {/* 6. Certification */}
         <Panel
           header={
             <span className="flex items-center gap-2 text-white text-lg">
-              <FiAward /> Certification
+              {isVietnamese ? "Chứng Nhận" : "Certification"}
             </span>
           }
           key="6"
         >
           <Tabs
-            activeKey={currentLang}
-            onChange={setCurrentLang}
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
             className="pill-tabs"
           >
             {["en", "vi"].map((lang) => (
-              <TabPane tab={lang.toUpperCase()} key={lang}>
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
+              >
                 <label className="block font-bold mt-5 mb-1">
-                  {" "}
-                  {translations[currentLang].title}
+                  {translations[activeTabLang].title}
                 </label>
                 <Input
                   style={{
@@ -2234,9 +2466,9 @@ export default function FiberPage() {
                     })
                   }
                 />
+
                 <label className="block font-bold mt-5 mb-1">
-                  {" "}
-                  {translations[currentLang].buttonText}
+                  {translations[activeTabLang].buttonText}
                 </label>
                 <Input
                   style={{
@@ -2262,198 +2494,208 @@ export default function FiberPage() {
               </TabPane>
             ))}
           </Tabs>
-          <label className="block font-bold mt-5 mb-1">
-            {" "}
-            {translations[currentLang].buttonLink}
-          </label>
-          <Input
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-              fontSize: "14px",
-              transition: "all 0.3s ease",
-            }}
-            placeholder="Button Link"
-            value={fiberCertification.fiberCertificationButtonLink}
-            onChange={(e) =>
-              setFiberCertification({
-                ...fiberCertification,
-                fiberCertificationButtonLink: e.target.value,
-              })
-            }
-          />
-          <label className="block font-bold mt-5 mb-1">
-            {translations[currentLang].image}
-          </label>
-          <p className="text-sm text-slate-500 mb-2">
-            {translations[currentLang].recommendedSize} 560×400px
-          </p>
-          {fiberCertification.fiberCertificationImg.map((img, idx) => (
-            <div key={idx} style={{ marginBottom: "10px" }}>
-              <div className="mb-3">
-                {/* Hidden Input */}
-                <input
-                  id={`fiberCertUpload-${idx}`}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
+
+          {/* 🧾 Fiber Certification Image Upload Section */}
+          <div style={{ marginBottom: "25px", marginTop: "25px" }}>
+            <label className="block text-white text-lg font-semibold mb-2">
+              {translations[activeTabLang].image}
+            </label>
+            <p className="text-sm text-slate-500 mb-3">
+              {translations[activeTabLang].recommendedSize} 560×400px
+            </p>
+
+            {/* Grid layout for certification images */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-3">
+              {fiberCertification.fiberCertificationImg.map((img, idx) => (
+                <div
+                  key={`cert-${idx}`}
+                  className="relative group w-40 h-40 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center"
+                >
+                  {/* Preview */}
+                  <img
+                    src={
+                      img?.preview
+                        ? img.preview
+                        : typeof img === "string"
+                        ? getFullUrl(img)
+                        : ""
+                    }
+                    alt={`cert-${idx}`}
+                    className="w-full h-full object-cover"
+                  />
+
+                  {/* 👁 View Full */}
+                  <button
+                    type="button"
+                    onClick={() => setShowCertModal(idx)}
+                    className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                    title={activeTabLang === "vi" ? "Xem hình" : "View Full"}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+
+                  {/* 🔁 Change */}
+                  <label
+                    htmlFor={`fiberCertUpload-${idx}`}
+                    className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 !text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
+                    title={activeTabLang === "vi" ? "Thay đổi" : "Change Image"}
+                  >
+                    <input
+                      id={`fiberCertUpload-${idx}`}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        if (!validateFileSize(file)) return;
+
+                        const arr = [
+                          ...fiberCertification.fiberCertificationImg,
+                        ];
+                        arr[idx] = { file, preview: URL.createObjectURL(file) };
+                        setFiberCertification({
+                          ...fiberCertification,
+                          fiberCertificationImg: arr,
+                        });
+                      }}
+                    />
+                    <RotateCw size={14} />
+                  </label>
+
+                  {/* ❌ Remove */}
+                  <button
+                    type="button"
+                    onClick={async () => {
                       const arr = [...fiberCertification.fiberCertificationImg];
-                      if (!validateFileSize(file)) return;
-                      arr[idx] = { file, preview: URL.createObjectURL(file) };
+                      arr.splice(idx, 1);
                       setFiberCertification({
                         ...fiberCertification,
                         fiberCertificationImg: arr,
                       });
-                    }
-                  }}
-                />
-
-                {/* Styled Label as Button */}
-                <label
-                  htmlFor={`fiberCertUpload-${idx}`}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    backgroundColor: "#0284C7", // blue
-                    color: "#fff",
-                    padding: "10px 20px",
-                    borderRadius: "9999px", // pill shape
-                    fontWeight: "500",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  {/* Upload Icon */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    style={{ width: "18px", height: "18px" }}
+                      await handleSave("fiberCertification", {
+                        ...fiberCertification,
+                        fiberCertificationImg: arr,
+                      });
+                    }}
+                    className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full transition cursor-pointer"
+                    title={activeTabLang === "vi" ? "Xóa" : "Remove"}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
-                    />
-                  </svg>
-                  Upload Certification Image
-                </label>
-              </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ))}
 
-              {/* Preview */}
-              {img?.preview ? (
-                <img src={img.preview} alt={`cert-${idx}`} width="120" />
-              ) : typeof img === "string" && img !== "" ? (
-                <img src={getFullUrl(img)} alt={`cert-${idx}`} width="120" />
-              ) : null}
-
-              {/* ✅ Remove button */}
-              <Button
-                onClick={async () => {
-                  const arr = [...fiberCertification.fiberCertificationImg];
-                  arr.splice(idx, 1);
-                  setFiberCertification({
-                    ...fiberCertification,
-                    fiberCertificationImg: arr,
-                  });
-
-                  await handleSave("fiberCertification", {
-                    ...fiberCertification,
-                    fiberCertificationImg: arr,
-                  });
-                }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  backgroundColor: "#E50000", 
-                  border: "1px solid #E50000",
-                  color: "#fff",
-                  padding: "22px",
-                  borderRadius: "9999px", // pill shape
-                  fontWeight: "500",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  marginTop: "10px",
-                }}
+              {/* ➕ Upload New Box */}
+              <label
+                className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
+                onClick={() =>
+                  document.getElementById("newFiberCertUpload").click()
+                }
               >
-                {/* Trash Icon */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
+                  strokeWidth="2"
                   stroke="currentColor"
-                  strokeWidth={2}
-                  style={{ width: "16px", height: "16px" }}
+                  className="w-8 h-8 text-gray-400"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"
+                    d="M12 4v16m8-8H4"
                   />
                 </svg>
+                <span className="mt-2 text-sm text-gray-400 text-center px-2">
+                  {activeTabLang === "vi" ? "Thêm hình" : "Add Image"}
+                </span>
+              </label>
 
-                {translations[currentLang].remove}
-              </Button>
+              {/* Hidden Input for Add Image */}
+              <input
+                id="newFiberCertUpload"
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  if (!validateFileSize(file)) return;
+
+                  setFiberCertification({
+                    ...fiberCertification,
+                    fiberCertificationImg: [
+                      ...fiberCertification.fiberCertificationImg,
+                      { file, preview: URL.createObjectURL(file) },
+                    ],
+                  });
+                }}
+              />
             </div>
-          ))}
+
+            {/* 🖼 Full Preview Modal */}
+            <Modal
+              open={showCertModal !== null}
+              footer={null}
+              onCancel={() => setShowCertModal(null)}
+              centered
+              width={500}
+              bodyStyle={{ background: "#000", padding: "0" }}
+            >
+              {showCertModal !== null &&
+              fiberCertification.fiberCertificationImg[showCertModal] ? (
+                <img
+                  src={
+                    fiberCertification.fiberCertificationImg[showCertModal]
+                      ?.preview
+                      ? fiberCertification.fiberCertificationImg[showCertModal]
+                          .preview
+                      : getFullUrl(
+                          fiberCertification.fiberCertificationImg[
+                            showCertModal
+                          ]
+                        )
+                  }
+                  alt="Certification Preview"
+                  className="w-full h-auto rounded-lg"
+                />
+              ) : (
+                <div className="text-center text-gray-400 py-10 text-base">
+                  No image available
+                </div>
+              )}
+            </Modal>
+          </div>
 
           <div className="flex justify-end gap-4 mt-8">
-            {/* Add Image Button (White) */}
-            <Button
-              onClick={() =>
-                setFiberCertification({
-                  ...fiberCertification,
-                  fiberCertificationImg: [
-                    ...fiberCertification.fiberCertificationImg,
-                    { file: null, preview: null }, // ✅ better placeholder
-                  ],
-                })
-              }
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                backgroundColor: "#262626",
-                color: "#fff",
-                border: "1px solid #2E2F2F",
-                padding: "22px",
-                borderRadius: "9999px", // pill shape
-                fontWeight: "500",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-              }}
-            >
-              {/* Plus Icon */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: "18px", height: "18px" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              {translations[currentLang].addImage}
-            </Button>
-
-            {/* Save Certification Button (Blue) */}
             <Button
               onClick={() =>
                 handleSave("fiberCertification", fiberCertification)
@@ -2462,32 +2704,219 @@ export default function FiberPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                backgroundColor: "#0284C7", // blue
+                backgroundColor: "#0284C7",
                 color: "#fff",
                 border: "none",
-                padding: "22px",
-                borderRadius: "9999px", // pill shape
+                padding: "22px 30px",
+                borderRadius: "9999px",
                 fontWeight: "500",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
               }}
             >
-              {/* Save Icon */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: "18px", height: "18px" }}
+              {translations[activeTabLang].saveCertification}
+            </Button>
+          </div>
+        </Panel>
+
+        {/* 7. SEO META SECTION */}
+        <Panel
+          header={
+            <span className="flex items-center gap-2 text-white text-lg">
+              {isVietnamese ? "Phần SEO Meta" : "SEO Meta Section"}
+            </span>
+          }
+          key="7"
+        >
+          <Tabs
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
+            className="pill-tabs"
+          >
+            {["en", "vi"].map((lang) => (
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 3v5h10V3M9 21v-6h6v6"
+                {/* Meta Title */}
+                <label className="block font-medium mt-5 mb-3 text-white">
+                  {lang === "vi" ? "Tiêu đề Meta" : "Meta Title"}
+                </label>
+                <Input
+                className="!placeholder-gray-400"
+                  placeholder={
+                    lang === "vi"
+                      ? "Nhập tiêu đề Meta..."
+                      : "Enter Meta Title..."
+                  }
+                  style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    marginBottom: "12px",
+                  }}
+                  value={seoMeta.metaTitle?.[lang] || ""}
+                  onChange={(e) =>
+                    setSeoMeta({
+                      ...seoMeta,
+                      metaTitle: {
+                        ...seoMeta.metaTitle,
+                        [lang]: e.target.value,
+                      },
+                    })
+                  }
                 />
-              </svg>
-              {translations[currentLang].saveCertification}
+
+                {/* Meta Description */}
+                <label className="block font-medium mt-5 mb-3 text-white">
+                  {lang === "vi" ? "Mô tả Meta" : "Meta Description"}
+                </label>
+                <Input.TextArea
+                className="!placeholder-gray-400"
+                  rows={3}
+                  placeholder={
+                    lang === "vi"
+                      ? "Nhập mô tả Meta (dưới 160 ký tự)..."
+                      : "Enter Meta Description (under 160 chars)..."
+                  }
+                  style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    marginBottom: "12px",
+                  }}
+                  value={seoMeta.metaDescription?.[lang] || ""}
+                  onChange={(e) =>
+                    setSeoMeta({
+                      ...seoMeta,
+                      metaDescription: {
+                        ...seoMeta.metaDescription,
+                        [lang]: e.target.value,
+                      },
+                    })
+                  }
+                />
+
+                {/* Meta Keywords */}
+                {/* ✅ Meta Keywords (Tag Input Style) */}
+                <div className="mt-6">
+                  <label className="block font-medium mb-3 text-white">
+                    {lang === "vi" ? "Từ khóa Meta" : "Meta Keywords"}
+                  </label>
+
+                  <div className="flex flex-wrap gap-2 mb-3 p-2 rounded-lg bg-[#1C1C1C] border border-[#2E2F2F] min-h-[48px] focus-within:ring-1 focus-within:ring-[#0284C7] transition-all">
+                    {/* Display each keyword as a tag */}
+                    {seoMeta.metaKeywords?.[lang]
+                      ?.split(",")
+                      .map((kw) => kw.trim())
+                      .filter(Boolean)
+                      .map((kw, i) => (
+                        <span
+                          key={i}
+                          className="px-3 py-1 rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-sm flex items-center gap-2 text-gray-200 shadow-sm"
+                        >
+                          {kw}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = seoMeta.metaKeywords?.[lang]
+                                ?.split(",")
+                                .map((k) => k.trim())
+                                .filter((k) => k && k !== kw);
+                              setSeoMeta({
+                                ...seoMeta,
+                                metaKeywords: {
+                                  ...seoMeta.metaKeywords,
+                                  [lang]: updated.join(", "),
+                                },
+                              });
+                            }}
+                            className="text-gray-400 hover:text-red-400 transition"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+
+                    {/* Input field to add new keyword */}
+                    <input
+                      type="text"
+                      placeholder={
+                        lang === "vi"
+                          ? "Nhập từ khóa và nhấn Enter"
+                          : "Type keyword and press Enter"
+                      }
+                      className="flex-1 min-w-[140px] bg-transparent outline-none border-none !text-gray-100 placeholder-gray-500 text-sm px-1"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && e.target.value.trim()) {
+                          e.preventDefault();
+                          const newKeyword = e.target.value.trim();
+                          const existing =
+                            seoMeta.metaKeywords?.[lang]
+                              ?.split(",")
+                              .map((k) => k.trim())
+                              .filter(Boolean) || [];
+                          const updated = [
+                            ...new Set([...existing, newKeyword]),
+                          ]; // avoid duplicates
+                          setSeoMeta({
+                            ...seoMeta,
+                            metaKeywords: {
+                              ...seoMeta.metaKeywords,
+                              [lang]: updated.join(", "),
+                            },
+                          });
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </TabPane>
+            ))}
+          </Tabs>
+
+          <div className="flex justify-end gap-4 mt-6">
+            {/* Cancel Button */}
+            <Button
+              onClick={() => window.location.reload()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "22px 30px",
+                borderRadius: "9999px",
+                fontWeight: "500",
+              }}
+            >
+              {translations[activeTabLang].cancel}
+            </Button>
+
+            {/* Save Button */}
+            <Button
+              onClick={() => handleSave("fiberSeoMeta", seoMeta)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#0284C7",
+                color: "#fff",
+                border: "none",
+                padding: "22px 30px",
+                borderRadius: "9999px",
+                fontWeight: "500",
+              }}
+            >
+              {activeTabLang === "vi" ? "Lưu SEO Meta" : "Save SEO Meta"}
             </Button>
           </div>
         </Panel>

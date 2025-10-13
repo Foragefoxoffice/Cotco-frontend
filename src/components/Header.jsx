@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Bell, User, X, Lock } from "lucide-react";
+import { Bell, User, X, Lock, Eye, EyeOff, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import TranslateToggle from "./TranslateToggle";
-import { getUserById, updatePassword } from "../Api/api";
+import { getMe, updatePassword } from "../Api/api";
 import { CommonToaster } from "../Common/CommonToaster";
 
 const Header = () => {
@@ -20,6 +20,9 @@ const Header = () => {
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
+    showCurrent: false,
+    showNew: false,
+    showConfirm: false,
   });
 
   // ✅ Watch body class for language toggle
@@ -53,22 +56,27 @@ const Header = () => {
   }, []);
 
   // ✅ Fetch user details (real API call)
+
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const storedUser = localStorage.getItem("user");
-        if (!storedUser) return;
-
-        const parsedUser = JSON.parse(storedUser);
-        const userId = parsedUser?._id || parsedUser?.id;
-        if (!userId) return;
-
-        const response = await getUserById(userId);
-        if (response?.data?.data) setUserDetails(response.data.data);
+        const response = await getMe(); // ✅ Uses /auth/me instead of /users/:id
+        if (response?.data?.data) {
+          setUserDetails(response.data.data);
+        } else {
+          console.warn("⚠️ No user data returned from /auth/me");
+        }
       } catch (error) {
         console.error("❌ Error fetching user details:", error);
+
+        // Optional: handle unauthorized (e.g., token expired)
+        if (error.response?.status === 401) {
+          localStorage.clear();
+          window.location.href = "/login";
+        }
       }
     };
+
     fetchUserDetails();
   }, []);
 
@@ -142,6 +150,15 @@ const Header = () => {
 
       {/* ---------- RIGHT: Controls ---------- */}
       <div className="flex items-center space-x-4">
+        <a
+          href="https://cotco-vn.com/"
+          target="_blank"
+          className="text-white bg-[#0284c7] px-5 py-6 rounded-full leading-0"
+        >
+          {document.body.classList.contains("vi-mode")
+            ? "Truy cập trang web"
+            : "Visit Site"}
+        </a>
         <TranslateToggle />
 
         {/* 🔔 Notifications */}
@@ -212,15 +229,16 @@ const Header = () => {
           </div>
 
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
-              <ul className="py-1">
+            <div className="absolute right-0 mt-3 w-48 bg-[#171717] rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
+              <ul className="pt-3">
                 <li
                   onClick={() => {
                     setShowProfileModal(true);
                     setShowUserMenu(false);
                   }}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 cursor-pointer"
+                  className="px-4 py-2 text-gray-300 cursor-pointer flex items-center gap-2"
                 >
+                  <Eye size={14}/>
                   {t.viewProfile}
                 </li>
                 <li
@@ -228,14 +246,15 @@ const Header = () => {
                     setShowChangePassword(true);
                     setShowUserMenu(false);
                   }}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 cursor-pointer flex items-center gap-2"
+                  className="px-4 py-2 text-gray-300 cursor-pointer flex items-center gap-2"
                 >
                   <Lock size={14} /> {t.changePassword}
                 </li>
                 <li
                   onClick={handleSignout}
-                  className="px-4 py-2 text-red-600 cursor-pointer"
+                  className="px-4 py-2 text-red-500 cursor-pointer flex items-center gap-2"
                 >
+                  <LogOut size={14} />
                   {t.signout}
                 </li>
               </ul>
@@ -250,45 +269,134 @@ const Header = () => {
           <div className="bg-[#1F1F1F] text-white rounded-xl shadow-lg w-full max-w-md p-6 relative border border-gray-700">
             <button
               onClick={() => setShowProfileModal(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-200"
+              className="absolute top-3 right-3 text-white bg-red-600 rounded-full p-1 cursor-pointer"
             >
               <X size={20} />
             </button>
-            <h2 className="text-xl font-semibold mb-4 border-b border-gray-600 pb-2">
-              👤 {t.profile}
-            </h2>
+
+            {/* 🌐 Language Toggle */}
+            <div className="flex justify-center items-center bg-[#2E2F2F] rounded-full p-1 w-fit mx-auto mb-5">
+              {[
+                { code: "en", label: "English (EN)" },
+                { code: "vi", label: "Tiếng Việt (VN)" },
+              ].map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => {
+                    if (lang.code === "vi") {
+                      document.body.classList.add("vi-mode");
+                    } else {
+                      document.body.classList.remove("vi-mode");
+                    }
+                  }}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                    document.body.classList.contains("vi-mode") ===
+                    (lang.code === "vi")
+                      ? "bg-white !text-black shadow-md"
+                      : "bg-transparent text-gray-300 hover:text-white"
+                  }`}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+
+            <h3 className="flex items-center justify-center gap-2 text-3xl font-semibold mb-4 border-b border-gray-600 pb-2 text-center">
+              <User size={24} className="text-[#0085C8]" />
+              {document.body.classList.contains("vi-mode")
+                ? "Hồ sơ nhân viên"
+                : "Staff Profile"}
+            </h3>
 
             <div className="space-y-3 text-sm">
               <p>
-                <span className="text-gray-400">Name:</span>{" "}
-                {userDetails.name || "—"}
+                <span className="text-gray-400">
+                  {document.body.classList.contains("vi-mode")
+                    ? "Họ và tên:"
+                    : "Name:"}
+                </span>{" "}
+                {document.body.classList.contains("vi-mode")
+                  ? `${userDetails.firstName?.vi || ""} ${
+                      userDetails.middleName?.vi || ""
+                    } ${userDetails.lastName?.vi || ""}`.trim() || "—"
+                  : `${userDetails.firstName?.en || ""} ${
+                      userDetails.middleName?.en || ""
+                    } ${userDetails.lastName?.en || ""}`.trim() || "—"}
               </p>
+
               <p>
-                <span className="text-gray-400">Email:</span>{" "}
+                <span className="text-gray-400">
+                  {document.body.classList.contains("vi-mode")
+                    ? "Email:"
+                    : "Email:"}
+                </span>{" "}
                 {userDetails.email || "—"}
               </p>
+
               <p>
-                <span className="text-gray-400">Phone:</span>{" "}
+                <span className="text-gray-400">
+                  {document.body.classList.contains("vi-mode")
+                    ? "Số điện thoại:"
+                    : "Phone:"}
+                </span>{" "}
                 {userDetails.phone || "—"}
               </p>
+
               <p>
-                <span className="text-gray-400">Gender:</span>{" "}
-                {userDetails.gender || "—"}
+                <span className="text-gray-400">
+                  {document.body.classList.contains("vi-mode")
+                    ? "Giới tính:"
+                    : "Gender:"}
+                </span>{" "}
+                {userDetails.gender
+                  ? document.body.classList.contains("vi-mode")
+                    ? userDetails.gender === "Male"
+                      ? "Nam"
+                      : userDetails.gender === "Female"
+                      ? "Nữ"
+                      : "Khác"
+                    : userDetails.gender
+                  : "—"}
               </p>
+
               <p>
-                <span className="text-gray-400">Employee ID:</span>{" "}
+                <span className="text-gray-400">
+                  {document.body.classList.contains("vi-mode")
+                    ? "Mã nhân viên:"
+                    : "Employee ID:"}
+                </span>{" "}
                 {userDetails.employeeId || "—"}
               </p>
+
               <p>
-                <span className="text-gray-400">Department:</span>{" "}
-                {userDetails.department || "—"}
+                <span className="text-gray-400">
+                  {document.body.classList.contains("vi-mode")
+                    ? "Phòng ban:"
+                    : "Department:"}
+                </span>{" "}
+                {document.body.classList.contains("vi-mode")
+                  ? userDetails.department?.vi || "—"
+                  : userDetails.department?.en || "—"}
               </p>
+
               <p>
-                <span className="text-gray-400">Designation:</span>{" "}
-                {userDetails.designation || "—"}
+                <span className="text-gray-400">
+                  {document.body.classList.contains("vi-mode")
+                    ? "Chức vụ:"
+                    : "Designation:"}
+                </span>{" "}
+                {document.body.classList.contains("vi-mode")
+                  ? userDetails.designation?.vi || "—"
+                  : userDetails.designation?.en || "—"}
               </p>
+
               <p>
-                <span className="text-gray-400">Date of Birth:</span>{" "}
+                <span className="text-gray-400">
+                  {document.body.classList.contains("vi-mode")
+                    ? "Ngày sinh:"
+                    : "Date of Birth:"}
+                </span>{" "}
                 {userDetails.dateOfBirth
                   ? new Date(userDetails.dateOfBirth).toLocaleDateString(
                       "en-GB"
@@ -297,7 +405,11 @@ const Header = () => {
               </p>
 
               <p>
-                <span className="text-gray-400">Date of Joining:</span>{" "}
+                <span className="text-gray-400">
+                  {document.body.classList.contains("vi-mode")
+                    ? "Ngày gia nhập:"
+                    : "Date of Joining:"}
+                </span>{" "}
                 {userDetails.dateOfJoining
                   ? new Date(userDetails.dateOfJoining).toLocaleDateString(
                       "en-GB"
@@ -309,9 +421,9 @@ const Header = () => {
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setShowProfileModal(false)}
-                className="px-4 py-2 bg-[#0085C8] rounded-md hover:bg-[#009FE3]"
+                className="px-6 py-3 bg-[#0085C8] rounded-full hover:bg-[#009FE3]"
               >
-                Close
+                {document.body.classList.contains("vi-mode") ? "Đóng" : "Close"}
               </button>
             </div>
           </div>
@@ -324,83 +436,141 @@ const Header = () => {
           <div className="bg-[#1F1F1F] text-white rounded-xl shadow-lg w-full max-w-md p-6 relative border border-gray-700">
             <button
               onClick={() => setShowChangePassword(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-200"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-200 bg-red-600 p-1 rounded-full cursor-pointer"
             >
               <X size={20} />
             </button>
             <h2 className="text-md font-semibold mb-4 border-b border-gray-600 pb-2">
-              🔒 Change Password
+              Change Password
             </h2>
 
+            {/* 👁️ Add show/hide logic */}
             <form onSubmit={handlePasswordChange} className="space-y-4">
+              {/* Current Password */}
               <div>
                 <label className="block text-sm text-gray-400 mb-1">
                   Current Password
                 </label>
-                <input
-                  type="password"
-                  name="currentPassword"
-                  value={passwordForm.currentPassword}
-                  onChange={(e) =>
-                    setPasswordForm({
-                      ...passwordForm,
-                      currentPassword: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 bg-[#2A2A2A] border border-gray-600 rounded-md text-white"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={passwordForm.showCurrent ? "text" : "password"}
+                    name="currentPassword"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        currentPassword: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-[#2A2A2A] border border-gray-600 rounded-md text-white pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        showCurrent: !passwordForm.showCurrent,
+                      })
+                    }
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    {passwordForm.showCurrent ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
               </div>
 
+              {/* New Password */}
               <div>
                 <label className="block text-sm text-gray-400 mb-1">
                   New Password
                 </label>
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={passwordForm.newPassword}
-                  onChange={(e) =>
-                    setPasswordForm({
-                      ...passwordForm,
-                      newPassword: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 bg-[#2A2A2A] border border-gray-600 rounded-md text-white"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={passwordForm.showNew ? "text" : "password"}
+                    name="newPassword"
+                    value={passwordForm.newPassword}
+                    onChange={(e) =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        newPassword: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-[#2A2A2A] border border-gray-600 rounded-md text-white pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        showNew: !passwordForm.showNew,
+                      })
+                    }
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    {passwordForm.showNew ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
               </div>
 
+              {/* Confirm New Password */}
               <div>
                 <label className="block text-sm text-gray-400 mb-1">
                   Confirm New Password
                 </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) =>
-                    setPasswordForm({
-                      ...passwordForm,
-                      confirmPassword: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 bg-[#2A2A2A] border border-gray-600 rounded-md text-white"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={passwordForm.showConfirm ? "text" : "password"}
+                    name="confirmPassword"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        confirmPassword: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-[#2A2A2A] border border-gray-600 rounded-md text-white pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        showConfirm: !passwordForm.showConfirm,
+                      })
+                    }
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    {passwordForm.showConfirm ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="flex justify-end mt-6 gap-3">
                 <button
                   type="button"
                   onClick={() => setShowChangePassword(false)}
-                  className="px-4 py-2 border border-gray-600 rounded-md hover:bg-[#2E2F2F]"
+                  className="px-6 py-3 border border-gray-600 rounded-full hover:bg-[#2E2F2F] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#0085C8] rounded-md hover:bg-[#009FE3]"
+                  className="px-6 py-3 bg-[#0085C8] rounded-full hover:bg-[#009FE3] cursor-pointer"
                 >
                   Update Password
                 </button>
