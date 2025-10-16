@@ -112,8 +112,6 @@ const CottonPage = () => {
     return () => observer.disconnect();
   }, []);
 
-  
-
   const [showHeroModal, setShowHeroModal] = useState(false);
   const [activeSlideModal, setActiveSlideModal] = useState(null);
   const [supplierBgModal, setSupplierBgModal] = useState(null);
@@ -121,8 +119,7 @@ const CottonPage = () => {
   const [trustLogoModal, setTrustLogoModal] = useState(null);
   const [memberImgModal, setMemberImgModal] = useState(null);
   const [addTeamModal, setAddTeamModal] = useState(false);
-const [tempTeamTitle, setTempTeamTitle] = useState({ en: "", vi: "" });
-
+  const [tempTeamTitle, setTempTeamTitle] = useState({ en: "", vi: "" });
 
   const translations = {
     en: {
@@ -243,16 +240,14 @@ const [tempTeamTitle, setTempTeamTitle] = useState({ en: "", vi: "" });
     cottonMemberImgFiles: [],
   });
 
-const [cottonTeam, setCottonTeam] = usePersistedState("cottonTeam", {
-  aboutTeamIntro: {
-    tag: { en: "", vi: "" },
-    heading: { en: "", vi: "" },
-    description: { en: "", vi: "" },
-  },
-  aboutTeam: {},
-});
-
-
+  const [cottonTeam, setCottonTeam] = usePersistedState("cottonTeam", {
+    aboutTeamIntro: {
+      tag: { en: "", vi: "" },
+      heading: { en: "", vi: "" },
+      description: { en: "", vi: "" },
+    },
+    aboutTeam: {},
+  });
 
   const [seoMeta, setSeoMeta] = useState({
     metaTitle: { en: "", vi: "" },
@@ -261,90 +256,104 @@ const [cottonTeam, setCottonTeam] = usePersistedState("cottonTeam", {
   });
 
   // ---------------------- FETCH ---------------------- //
-useEffect(() => {
-  getCottonPage()
-    .then((res) => {
-      const data = res.data || {};
+  useEffect(() => {
+    getCottonPage()
+      .then((res) => {
+        const data = res.data || {};
 
-      // ✅ SEO META
-      if (data.seoMeta) {
-        setSeoMeta(data.seoMeta);
-      }
+        // ✅ SEO META
+        if (data.seoMeta) {
+          setSeoMeta(data.seoMeta);
+        }
 
-      // ✅ BANNER SECTION
-      if (data.cottonBanner) {
-        const banner = data.cottonBanner;
+        // ✅ BANNER SECTION
+        if (data.cottonBanner) {
+          const banner = data.cottonBanner;
 
-        setCottonBanner((prev) => ({
-          ...prev,
+          setCottonBanner((prev) => ({
+            ...prev,
 
-          // 🔹 Merge text fields safely (avoid missing keys)
-          cottonBannerTitle: {
-            en: banner?.cottonBannerTitle?.en || "",
-            vi: banner?.cottonBannerTitle?.vi || "",
-          },
-          cottonBannerDes: {
-            en: banner?.cottonBannerDes?.en || "",
-            vi: banner?.cottonBannerDes?.vi || "",
-          },
-          cottonBannerOverview: {
-            en: banner?.cottonBannerOverview?.en || "",
-            vi: banner?.cottonBannerOverview?.vi || "",
-          },
+            cottonBannerTitle: {
+              en:
+                typeof banner?.cottonBannerTitle === "object"
+                  ? banner.cottonBannerTitle.en || ""
+                  : banner?.cottonBannerTitle || "",
+              vi:
+                typeof banner?.cottonBannerTitle === "object"
+                  ? banner.cottonBannerTitle.vi || ""
+                  : banner?.cottonBannerTitle || "",
+            },
 
-          // 🔹 Normalize image/video field
-          cottonBannerImg:
-            typeof banner?.cottonBannerImg === "string"
-              ? banner.cottonBannerImg
-              : banner?.cottonBannerImg?.url || "",
+            cottonBannerDes: {
+              en:
+                typeof banner?.cottonBannerDes === "object"
+                  ? banner.cottonBannerDes.en || ""
+                  : banner?.cottonBannerDes || "",
+              vi:
+                typeof banner?.cottonBannerDes === "object"
+                  ? banner.cottonBannerDes.vi || ""
+                  : banner?.cottonBannerDes || "",
+            },
 
-          // 🔹 Normalize slides (always an array)
-          cottonBannerSlideImg: Array.isArray(banner?.cottonBannerSlideImg)
-            ? banner.cottonBannerSlideImg
-            : banner?.cottonBannerSlideImg
-            ? [banner.cottonBannerSlideImg]
-            : [],
+            cottonBannerOverview: {
+              en:
+                typeof banner?.cottonBannerOverview === "object"
+                  ? banner.cottonBannerOverview.en || ""
+                  : banner?.cottonBannerOverview || "",
+              vi:
+                typeof banner?.cottonBannerOverview === "object"
+                  ? banner.cottonBannerOverview.vi || ""
+                  : banner?.cottonBannerOverview || "",
+            },
 
-          // 🔹 Keep any unsaved local files
-          cottonBannerImgFile: prev.cottonBannerImgFile || null,
-          cottonBannerSlideImgFiles: prev.cottonBannerSlideImgFiles || [],
-        }));
-      }
+            cottonBannerImg:
+              typeof banner?.cottonBannerImg === "string"
+                ? banner.cottonBannerImg
+                : banner?.cottonBannerImg?.url || "",
 
-      // ✅ SUPPLIER SECTION
-      if (data.cottonSupplier) {
-        setCottonSupplier(data.cottonSupplier || []);
-      }
+            cottonBannerSlideImg: Array.isArray(banner?.cottonBannerSlideImg)
+              ? banner.cottonBannerSlideImg
+              : banner?.cottonBannerSlideImg
+              ? [banner.cottonBannerSlideImg]
+              : [],
 
-      // ✅ TRUST SECTION
-      if (data.cottonTrust) {
-        const trust = data.cottonTrust;
-        setCottonTrust((prev) => ({
-          ...prev,
-          ...trust,
-          cottonTrustLogo: trust.cottonTrustLogo || [],
-          cottonTrustLogoFiles: prev.cottonTrustLogoFiles || [],
-          cottonTrustImgFile: prev.cottonTrustImgFile || null,
-        }));
-      }
+            cottonBannerImgFile: prev.cottonBannerImgFile || null,
+            cottonBannerSlideImgFiles: prev.cottonBannerSlideImgFiles || [],
+          }));
+        }
 
-      // ✅ MEMBER SECTION
-      if (data.cottonMember) {
-        const member = data.cottonMember;
-        setCottonMember((prev) => ({
-          ...prev,
-          ...member,
-          cottonMemberImg: member.cottonMemberImg || [],
-          cottonMemberImgFiles: prev.cottonMemberImgFiles || [],
-        }));
-      }
-    })
-    .catch((err) => {
-      console.error("❌ Failed to fetch cotton page:", err);
-    });
-}, []);
+        // ✅ SUPPLIER SECTION
+        if (data.cottonSupplier) {
+          setCottonSupplier(data.cottonSupplier || []);
+        }
 
+        // ✅ TRUST SECTION
+        if (data.cottonTrust) {
+          const trust = data.cottonTrust;
+          setCottonTrust((prev) => ({
+            ...prev,
+            ...trust,
+            cottonTrustLogo: trust.cottonTrustLogo || [],
+            cottonTrustLogoFiles: prev.cottonTrustLogoFiles || [],
+            cottonTrustImgFile: prev.cottonTrustImgFile || null,
+          }));
+        }
 
+        // ✅ MEMBER SECTION
+        if (data.cottonMember) {
+          const member = data.cottonMember;
+          setCottonMember((prev) => ({
+            ...prev,
+            ...member,
+            cottonMemberImg: member.cottonMemberImg || [],
+            cottonMemberImgFiles: prev.cottonMemberImgFiles || [],
+          }));
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Failed to fetch cotton page:", err);
+      });
+  }, []);
 
   // ---------------------- SAVE HANDLER ---------------------- //
   const handleSave = async (sectionName, formState, files = []) => {
@@ -1025,53 +1034,56 @@ useEffect(() => {
           </Modal>
 
           {/* 📝 Banner Overview (ReactQuill) */}
-<label className="block font-medium mt-8 mb-2">
-  {isVietnamese ? "Tổng quan Biểu ngữ" : "Banner Overview"}
-</label>
+          <label className="block font-medium mt-8 mb-2">
+            {isVietnamese ? "Tổng quan Biểu ngữ" : "Banner Overview"}
+          </label>
 
-{/* Language Tabs for Overview Editor */}
-<Tabs activeKey={activeTabLang} onChange={setActiveTabLang} className="pill-tabs">
-  {["en", "vi"].map((lang) => (
-    <TabPane
-      tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
-      key={lang}
-    >
-      <ReactQuill
-        theme="snow"
-        value={cottonBanner.cottonBannerOverview?.[lang] || ""}
-        onChange={(value) =>
-          setCottonBanner({
-            ...cottonBanner,
-            cottonBannerOverview: {
-              ...cottonBanner.cottonBannerOverview,
-              [lang]: value,
-            },
-          })
-        }
-        placeholder={
-          lang === "en"
-            ? "Write banner overview here..."
-            : "Viết mô tả tổng quan về biểu ngữ..."
-        }
-        style={{
-          backgroundColor: "#171717",
-          color: "#fff",
-          border: "1px solid #2d2d2d",
-          borderRadius: "8px",
-          fontSize: "14px",
-        }}
-        modules={{
-          toolbar: [
-            ["bold", "italic", "underline"],
-            [{ list: "ordered" }, { list: "bullet" }],
-            ["link", "clean"],
-          ],
-        }}
-      />
-    </TabPane>
-  ))}
-</Tabs>
-
+          {/* Language Tabs for Overview Editor */}
+          <Tabs
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
+            className="pill-tabs"
+          >
+            {["en", "vi"].map((lang) => (
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
+              >
+                <ReactQuill
+                  theme="snow"
+                  value={cottonBanner.cottonBannerOverview?.[lang] || ""}
+                  onChange={(value) =>
+                    setCottonBanner({
+                      ...cottonBanner,
+                      cottonBannerOverview: {
+                        ...cottonBanner.cottonBannerOverview,
+                        [lang]: value,
+                      },
+                    })
+                  }
+                  placeholder={
+                    lang === "en"
+                      ? "Write banner overview here..."
+                      : "Viết mô tả tổng quan về biểu ngữ..."
+                  }
+                  style={{
+                    backgroundColor: "#171717",
+                    color: "#fff",
+                    border: "1px solid #2d2d2d",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                  }}
+                  modules={{
+                    toolbar: [
+                      ["bold", "italic", "underline"],
+                      [{ list: "ordered" }, { list: "bullet" }],
+                      ["link", "clean"],
+                    ],
+                  }}
+                />
+              </TabPane>
+            ))}
+          </Tabs>
 
           <div className="flex justify-end mt-6 gap-4">
             {/* Cancel Button (Gray / Outline) */}
@@ -2584,509 +2596,572 @@ useEffect(() => {
           </div>
         </Panel>
 
+        {/* 🧑‍🤝‍🧑 TEAM */}
+        <Panel
+          header={
+            <span className="font-semibold text-lg flex items-center text-white gap-2">
+              {isVietnamese ? "Về Đội Ngũ" : "About Team"}
+            </span>
+          }
+          key="7"
+        >
+          {/* 🌐 Language Tabs */}
+          <Tabs
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
+            className="pill-tabs mb-6"
+          >
+            {["en", "vi"].map((lang) => (
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
+              >
+                {/* TEAM INTRO */}
+                <div className="mb-8">
+                  <h3 className="text-white text-lg font-semibold mb-4">
+                    {lang === "en"
+                      ? "Team Section Intro"
+                      : "Phần Giới Thiệu Đội Ngũ"}
+                  </h3>
 
-{/* 🧑‍🤝‍🧑 TEAM */}
-<Panel
-  header={
-    <span className="font-semibold text-lg flex items-center text-white gap-2">
-      {isVietnamese ? "Về Đội Ngũ" : "About Team"}
-    </span>
-  }
-  key="7"
->
-  {/* 🌐 Language Tabs */}
-  <Tabs
-    activeKey={activeTabLang}
-    onChange={setActiveTabLang}
-    className="pill-tabs mb-6"
-  >
-    {["en", "vi"].map((lang) => (
-      <TabPane
-        tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
-        key={lang}
-      >
-        {/* TEAM INTRO */}
-        <div className="mb-8">
-          <h3 className="text-white text-lg font-semibold mb-4">
-            {lang === "en" ? "Team Section Intro" : "Phần Giới Thiệu Đội Ngũ"}
-          </h3>
+                  {/* Tag */}
+                  <label className="block font-medium mb-2 text-white">
+                    {lang === "en" ? "Small Tag" : "Thẻ tiêu đề nhỏ"}
+                  </label>
+                  <Input
+                    value={cottonTeam.aboutTeamIntro?.tag?.[lang] || ""}
+                    onChange={(e) =>
+                      setCottonTeam((prev) => ({
+                        ...prev,
+                        aboutTeamIntro: {
+                          ...prev.aboutTeamIntro,
+                          tag: {
+                            ...prev.aboutTeamIntro?.tag,
+                            [lang]: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    placeholder={
+                      lang === "en" ? "Our People" : "Đội ngũ của chúng tôi"
+                    }
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                    className="!placeholder-gray-400"
+                  />
 
-          {/* Tag */}
-          <label className="block font-medium mb-2 text-white">
-            {lang === "en" ? "Small Tag" : "Thẻ tiêu đề nhỏ"}
-          </label>
-          <Input
-            value={cottonTeam.aboutTeamIntro?.tag?.[lang] || ""}
-            onChange={(e) =>
-              setCottonTeam((prev) => ({
-                ...prev,
-                aboutTeamIntro: {
-                  ...prev.aboutTeamIntro,
-                  tag: {
-                    ...prev.aboutTeamIntro?.tag,
-                    [lang]: e.target.value,
-                  },
-                },
-              }))
-            }
-            placeholder={
-              lang === "en" ? "Our People" : "Đội ngũ của chúng tôi"
-            }
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-            }}
-            className="!placeholder-gray-400"
-          />
+                  {/* Heading */}
+                  <label className="block font-medium mt-5 mb-2 text-white">
+                    {lang === "en" ? "Main Heading" : "Tiêu đề chính"}
+                  </label>
+                  <Input
+                    value={cottonTeam.aboutTeamIntro?.heading?.[lang] || ""}
+                    onChange={(e) =>
+                      setCottonTeam((prev) => ({
+                        ...prev,
+                        aboutTeamIntro: {
+                          ...prev.aboutTeamIntro,
+                          heading: {
+                            ...prev.aboutTeamIntro?.heading,
+                            [lang]: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    placeholder={
+                      lang === "en"
+                        ? "Meet Our Team"
+                        : "Gặp gỡ đội ngũ của chúng tôi"
+                    }
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                    className="!placeholder-gray-400"
+                  />
 
-          {/* Heading */}
-          <label className="block font-medium mt-5 mb-2 text-white">
-            {lang === "en" ? "Main Heading" : "Tiêu đề chính"}
-          </label>
-          <Input
-            value={cottonTeam.aboutTeamIntro?.heading?.[lang] || ""}
-            onChange={(e) =>
-              setCottonTeam((prev) => ({
-                ...prev,
-                aboutTeamIntro: {
-                  ...prev.aboutTeamIntro,
-                  heading: {
-                    ...prev.aboutTeamIntro?.heading,
-                    [lang]: e.target.value,
-                  },
-                },
-              }))
-            }
-            placeholder={
-              lang === "en"
-                ? "Meet Our Team"
-                : "Gặp gỡ đội ngũ của chúng tôi"
-            }
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-            }}
-            className="!placeholder-gray-400"
-          />
+                  {/* Description */}
+                  <label className="block font-medium mt-5 mb-2 text-white">
+                    {lang === "en" ? "Description" : "Mô tả"}
+                  </label>
+                  <Input.TextArea
+                    rows={4}
+                    value={cottonTeam.aboutTeamIntro?.description?.[lang] || ""}
+                    onChange={(e) =>
+                      setCottonTeam((prev) => ({
+                        ...prev,
+                        aboutTeamIntro: {
+                          ...prev.aboutTeamIntro,
+                          description: {
+                            ...prev.aboutTeamIntro?.description,
+                            [lang]: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    placeholder={
+                      lang === "en"
+                        ? "Our experienced professionals combine deep textile knowledge..."
+                        : "Các chuyên gia của chúng tôi kết hợp kiến thức sâu rộng..."
+                    }
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                    className="!placeholder-gray-400"
+                  />
+                </div>
 
-          {/* Description */}
-          <label className="block font-medium mt-5 mb-2 text-white">
-            {lang === "en" ? "Description" : "Mô tả"}
-          </label>
-          <Input.TextArea
-            rows={4}
-            value={cottonTeam.aboutTeamIntro?.description?.[lang] || ""}
-            onChange={(e) =>
-              setCottonTeam((prev) => ({
-                ...prev,
-                aboutTeamIntro: {
-                  ...prev.aboutTeamIntro,
-                  description: {
-                    ...prev.aboutTeamIntro?.description,
-                    [lang]: e.target.value,
-                  },
-                },
-              }))
-            }
-            placeholder={
-              lang === "en"
-                ? "Our experienced professionals combine deep textile knowledge..."
-                : "Các chuyên gia của chúng tôi kết hợp kiến thức sâu rộng..."
-            }
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-            }}
-            className="!placeholder-gray-400"
-          />
-        </div>
+                {/* TEAM LIST HEADER */}
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-white text-lg font-semibold">
+                    {lang === "en" ? "Team Groups" : "Nhóm Đội Ngũ"}
+                  </h3>
+                  <Button
+                    type="primary"
+                    onClick={() => setAddTeamModal(true)}
+                    style={{
+                      backgroundColor: "#0284C7",
+                      borderRadius: "6px",
+                      fontWeight: "500",
+                      padding: "22px",
+                      borderRadius: "999px",
+                    }}
+                  >
+                    {lang === "en" ? "Add Team" : "Thêm Nhóm"}
+                  </Button>
+                </div>
 
-        {/* TEAM LIST HEADER */}
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-white text-lg font-semibold">
-            {lang === "en" ? "Team Groups" : "Nhóm Đội Ngũ"}
-          </h3>
-          <Button
-            type="primary"
-            onClick={() => setAddTeamModal(true)}
-            style={{
-              backgroundColor: "#0284C7",
-              borderRadius: "6px",
-              fontWeight: "500",
-              padding:"22px",
-              borderRadius:"999px"
+                <Tabs
+                  className="mb-6 pill-tabs"
+                  defaultActiveKey={Object.keys(cottonTeam.aboutTeam || {})[0]}
+                >
+                  {Object.entries(cottonTeam.aboutTeam || {}).map(
+                    ([teamKey, teamData]) => (
+                      <TabPane
+                        key={teamKey}
+                        tab={
+                          <div className="flex items-center gap-2">
+                            <span>
+                              {teamData.teamLabel?.[lang] || "Untitled Team"}
+                            </span>
+                            <Trash2
+                              size={16}
+                              className="cursor-pointer text-red-500 hover:text-red-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const updatedTeams = {
+                                  ...cottonTeam.aboutTeam,
+                                };
+                                delete updatedTeams[teamKey];
+                                setCottonTeam({
+                                  ...cottonTeam,
+                                  aboutTeam: updatedTeams,
+                                });
+                              }}
+                            />
+                          </div>
+                        }
+                      >
+                        {(teamData.members || []).map((member, idx) => (
+                          <div
+                            key={idx}
+                            className="mb-6 text-white border-b pb-4"
+                          >
+                            <label className="block font-medium mt-5 mb-2">
+                              {lang === "en" ? "Name" : "Tên"}
+                            </label>
+                            <Input
+                              value={member.teamName?.[lang] || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamName: {
+                                    ...member.teamName,
+                                    [lang]: e.target.value,
+                                  },
+                                };
+                                setCottonTeam((prev) => ({
+                                  ...prev,
+                                  aboutTeam: {
+                                    ...prev.aboutTeam,
+                                    [teamKey]: {
+                                      ...teamData,
+                                      members: updated,
+                                    },
+                                  },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                              className="!placeholder-gray-400"
+                            />
+
+                            <label className="block font-medium mt-5 mb-2">
+                              {lang === "en" ? "Designation" : "Chức danh"}
+                            </label>
+                            <Input
+                              value={member.teamDesgn?.[lang] || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamDesgn: {
+                                    ...member.teamDesgn,
+                                    [lang]: e.target.value,
+                                  },
+                                };
+                                setCottonTeam((prev) => ({
+                                  ...prev,
+                                  aboutTeam: {
+                                    ...prev.aboutTeam,
+                                    [teamKey]: {
+                                      ...teamData,
+                                      members: updated,
+                                    },
+                                  },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                              className="!placeholder-gray-400"
+                            />
+
+                            <label className="block font-medium mt-5 mb-2">
+                              Email
+                            </label>
+                            <Input
+                              value={member.teamEmail || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamEmail: e.target.value,
+                                };
+                                setCottonTeam((prev) => ({
+                                  ...prev,
+                                  aboutTeam: {
+                                    ...prev.aboutTeam,
+                                    [teamKey]: {
+                                      ...teamData,
+                                      members: updated,
+                                    },
+                                  },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                              className="!placeholder-gray-400"
+                            />
+                            <label className="block font-medium mt-5 mb-2">
+                              {lang === "en" ? "Phone Number" : "Số điện thoại"}
+                            </label>
+                            <Input
+                              value={member.teamPhone || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamPhone: e.target.value,
+                                };
+                                setCottonTeam((prev) => ({
+                                  ...prev,
+                                  aboutTeam: {
+                                    ...prev.aboutTeam,
+                                    [teamKey]: {
+                                      ...teamData,
+                                      members: updated,
+                                    },
+                                  },
+                                }));
+                              }}
+                              placeholder={
+                                lang === "en"
+                                  ? "Enter phone number"
+                                  : "Nhập số điện thoại"
+                              }
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                              className="!placeholder-gray-400"
+                            />
+
+                            {/* 🗑 Remove Member */}
+                            <Button
+                              danger
+                              size="small"
+                              onClick={() => {
+                                const updated = teamData.members.filter(
+                                  (_, i) => i !== idx
+                                );
+                                setCottonTeam((prev) => ({
+                                  ...prev,
+                                  aboutTeam: {
+                                    ...prev.aboutTeam,
+                                    [teamKey]: {
+                                      ...teamData,
+                                      members: updated,
+                                    },
+                                  },
+                                }));
+                              }}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                backgroundColor: "#FB2C36", // black
+                                border: "1px solid #333",
+                                color: "#fff",
+                                padding: "22px 30px",
+                                borderRadius: "9999px", // pill shape
+                                fontWeight: "500",
+                                cursor: "pointer",
+                                transition: "all 0.3s ease",
+                                marginTop: "20px",
+                              }}
+                            >
+                              <Trash2 size={16} />
+                              {lang === "en"
+                                ? "Remove Member"
+                                : "Xóa thành viên"}
+                            </Button>
+                          </div>
+                        ))}
+
+                        {/* ➕ Add Member Button */}
+                        <Button
+                          type="dashed"
+                          onClick={() => {
+                            const newMember = {
+                              teamName: { en: "", vi: "" },
+                              teamDesgn: { en: "", vi: "" },
+                              teamEmail: "",
+                              teamPhone: "", // ✅ added
+                            };
+
+                            const updated = [
+                              ...(teamData.members || []),
+                              newMember,
+                            ];
+                            setCottonTeam((prev) => ({
+                              ...prev,
+                              aboutTeam: {
+                                ...prev.aboutTeam,
+                                [teamKey]: { ...teamData, members: updated },
+                              },
+                            }));
+                          }}
+                          block
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            backgroundColor: "#0284C7",
+                            border: "1px solid #333",
+                            color: "#fff",
+                            padding: "22px 30px",
+                            borderRadius: "9999px", // pill shape
+                            fontWeight: "500",
+                            cursor: "pointer",
+                            transition: "all 0.3s ease",
+                            marginTop: "20px",
+                            width: "fit-content",
+                          }}
+                        >
+                          <Plus />
+                          {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
+                        </Button>
+                      </TabPane>
+                    )
+                  )}
+                </Tabs>
+              </TabPane>
+            ))}
+          </Tabs>
+
+          {/* Footer Buttons */}
+          <div className="flex justify-end gap-4 mt-6">
+            <Button
+              onClick={() => window.location.reload()}
+              style={{
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "22px 30px",
+                borderRadius: "9999px",
+                fontWeight: "500",
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              onClick={async () => {
+                const formData = new FormData();
+                formData.append("cottonTeam", JSON.stringify(cottonTeam));
+                const res = await updateCottonPage(formData);
+                if (res.data?.cotton) {
+                  CommonToaster("Team saved successfully!", "success");
+                } else {
+                  CommonToaster("Failed to save team", "error");
+                }
+              }}
+              style={{
+                backgroundColor: "#0284C7",
+                color: "#fff",
+                border: "none",
+                padding: "22px 30px",
+                borderRadius: "9999px",
+                fontWeight: "500",
+              }}
+            >
+              Save Team
+            </Button>
+          </div>
+
+          {/* ➕ Popup Modal for Adding Team Title */}
+          <Modal
+            open={addTeamModal}
+            onCancel={() => setAddTeamModal(false)}
+            footer={null}
+            centered
+            width={450}
+            bodyStyle={{
+              background: "#1a1a1a",
+              borderRadius: "10px",
+              padding: "24px",
             }}
           >
-            {lang === "en" ? "Add Team" : "Thêm Nhóm"}
-          </Button>
-        </div>
+            <h3 className="text-white text-lg font-semibold mb-4">
+              {isVietnamese ? "Thêm Nhóm Mới" : "Add New Team"}
+            </h3>
 
-        <Tabs
-          className="mb-6 pill-tabs"
-          defaultActiveKey={Object.keys(cottonTeam.aboutTeam || {})[0]}
-        >
-          {Object.entries(cottonTeam.aboutTeam || {}).map(
-            ([teamKey, teamData]) => (
-              <TabPane
-                key={teamKey}
-                tab={
-                  <div className="flex items-center gap-2">
-                    <span>{teamData.teamLabel?.[lang] || "Untitled Team"}</span>
-                    <Trash2
-                      size={16}
-                      className="cursor-pointer text-red-500 hover:text-red-700"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const updatedTeams = { ...cottonTeam.aboutTeam };
-                        delete updatedTeams[teamKey];
-                        setCottonTeam({
-                          ...cottonTeam,
-                          aboutTeam: updatedTeams,
-                        });
-                      }}
-                    />
-                  </div>
-                }
-              >
-                {(teamData.members || []).map((member, idx) => (
-                  <div key={idx} className="mb-6 text-white border-b pb-4">
-                    <label className="block font-medium mt-5 mb-2">
-                      {lang === "en" ? "Name" : "Tên"}
-                    </label>
-                    <Input
-                      value={member.teamName?.[lang] || ""}
-                      onChange={(e) => {
-                        const updated = [...teamData.members];
-                        updated[idx] = {
-                          ...member,
-                          teamName: {
-                            ...member.teamName,
-                            [lang]: e.target.value,
-                          },
-                        };
-                        setCottonTeam((prev) => ({
-                          ...prev,
-                          aboutTeam: {
-                            ...prev.aboutTeam,
-                            [teamKey]: { ...teamData, members: updated },
-                          },
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                      }}
-                      className="!placeholder-gray-400"
-                    />
+            {/* English Input */}
+            <label className="block font-medium mb-2 text-white">
+              Team Title (EN)
+            </label>
+            <Input
+              value={tempTeamTitle?.en || ""}
+              onChange={(e) =>
+                setTempTeamTitle((prev) => ({
+                  ...prev,
+                  en: e.target.value,
+                }))
+              }
+              placeholder="Enter English team title"
+              style={{
+                backgroundColor: "#262626",
+                border: "1px solid #2E2F2F",
+                borderRadius: "8px",
+                color: "#fff",
+                padding: "10px 14px",
+                marginBottom: "16px",
+              }}
+              className="!placeholder-gray-400"
+            />
 
-                    <label className="block font-medium mt-5 mb-2">
-                      {lang === "en" ? "Designation" : "Chức danh"}
-                    </label>
-                    <Input
-                      value={member.teamDesgn?.[lang] || ""}
-                      onChange={(e) => {
-                        const updated = [...teamData.members];
-                        updated[idx] = {
-                          ...member,
-                          teamDesgn: {
-                            ...member.teamDesgn,
-                            [lang]: e.target.value,
-                          },
-                        };
-                        setCottonTeam((prev) => ({
-                          ...prev,
-                          aboutTeam: {
-                            ...prev.aboutTeam,
-                            [teamKey]: { ...teamData, members: updated },
-                          },
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                      }}
-                      className="!placeholder-gray-400"
-                    />
+            {/* Vietnamese Input */}
+            <label className="block font-medium mb-2 text-white">
+              Team Title (VI)
+            </label>
+            <Input
+              value={tempTeamTitle?.vi || ""}
+              onChange={(e) =>
+                setTempTeamTitle((prev) => ({
+                  ...prev,
+                  vi: e.target.value,
+                }))
+              }
+              placeholder="Nhập tên nhóm (Tiếng Việt)"
+              style={{
+                backgroundColor: "#262626",
+                border: "1px solid #2E2F2F",
+                borderRadius: "8px",
+                color: "#fff",
+                padding: "10px 14px",
+              }}
+              className="!placeholder-gray-400"
+            />
 
-                    <label className="block font-medium mt-5 mb-2">
-                      Email
-                    </label>
-                    <Input
-                      value={member.teamEmail || ""}
-                      onChange={(e) => {
-                        const updated = [...teamData.members];
-                        updated[idx] = {
-                          ...member,
-                          teamEmail: e.target.value,
-                        };
-                        setCottonTeam((prev) => ({
-                          ...prev,
-                          aboutTeam: {
-                            ...prev.aboutTeam,
-                            [teamKey]: { ...teamData, members: updated },
-                          },
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                      }}
-                      className="!placeholder-gray-400"
-                    />
-
-                    {/* 🗑 Remove Member */}
-                    <Button
-                      danger
-                      size="small"
-                      onClick={() => {
-                        const updated = teamData.members.filter(
-                          (_, i) => i !== idx
-                        );
-                        setCottonTeam((prev) => ({
-                          ...prev,
-                          aboutTeam: {
-                            ...prev.aboutTeam,
-                            [teamKey]: { ...teamData, members: updated },
-                          },
-                        }));
-                      }}
-                      style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  backgroundColor: "#FB2C36", // black
-                  border: "1px solid #333",
+            {/* Footer Buttons */}
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                onClick={() => setAddTeamModal(false)}
+                style={{
+                  backgroundColor: "transparent",
                   color: "#fff",
-                  padding: "22px 30px",
-                  borderRadius: "9999px", // pill shape
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  marginTop: "20px",
+                  border: "1px solid #333",
+                  padding: "22px",
+                  borderRadius: "999px",
                 }}
               >
-                <Trash2 size={16} />
-                      {lang === "en" ? "Remove Member" : "Xóa thành viên"}
-                    </Button>
-                  </div>
-                ))}
-
-                {/* ➕ Add Member Button */}
-                <Button
-                  type="dashed"
-                  onClick={() => {
-                    const newMember = {
-                      teamName: { en: "", vi: "" },
-                      teamDesgn: { en: "", vi: "" },
-                      teamEmail: "",
-                    };
-                    const updated = [...(teamData.members || []), newMember];
-                    setCottonTeam((prev) => ({
-                      ...prev,
-                      aboutTeam: {
-                        ...prev.aboutTeam,
-                        [teamKey]: { ...teamData, members: updated },
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                style={{
+                  backgroundColor: "#0284C7",
+                  border: "none",
+                  color: "#fff",
+                  padding: "22px",
+                  borderRadius: "999px",
+                }}
+                onClick={() => {
+                  if (!tempTeamTitle.en && !tempTeamTitle.vi) return;
+                  const newKey = `team_${Date.now()}`;
+                  setCottonTeam((prev) => ({
+                    ...prev,
+                    aboutTeam: {
+                      ...prev.aboutTeam,
+                      [newKey]: {
+                        teamLabel: {
+                          en: tempTeamTitle.en || "New Team",
+                          vi: tempTeamTitle.vi || "Nhóm Mới",
+                        },
+                        members: [],
                       },
-                    }));
-                  }}
-                  block
-                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  backgroundColor: "#0284C7", 
-                  border: "1px solid #333",
-                  color: "#fff",
-                  padding: "22px 30px",
-                  borderRadius: "9999px", // pill shape
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  marginTop: "20px",
-                  width:"fit-content"
+                    },
+                  }));
+                  setTempTeamTitle({ en: "", vi: "" });
+                  setAddTeamModal(false);
                 }}
               >
-                <Plus/>
-                  {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
-                </Button>
-              </TabPane>
-            )
-          )}
-        </Tabs>
-      </TabPane>
-    ))}
-  </Tabs>
-
-  {/* Footer Buttons */}
-  <div className="flex justify-end gap-4 mt-6">
-    <Button
-      onClick={() => window.location.reload()}
-      style={{
-        backgroundColor: "transparent",
-        color: "#fff",
-        border: "1px solid #333",
-        padding: "22px 30px",
-        borderRadius: "9999px",
-        fontWeight: "500",
-      }}
-    >
-      Cancel
-    </Button>
-
-    <Button
-      onClick={async () => {
-        const formData = new FormData();
-        formData.append("cottonTeam", JSON.stringify(cottonTeam));
-        const res = await updateCottonPage(formData);
-        if (res.data?.cotton) {
-          CommonToaster("Team saved successfully!", "success");
-        } else {
-          CommonToaster("Failed to save team", "error");
-        }
-      }}
-      style={{
-        backgroundColor: "#0284C7",
-        color: "#fff",
-        border: "none",
-        padding: "22px 30px",
-        borderRadius: "9999px",
-        fontWeight: "500",
-      }}
-    >
-      Save Team
-    </Button>
-  </div>
-
-  {/* ➕ Popup Modal for Adding Team Title */}
-<Modal
-  open={addTeamModal}
-  onCancel={() => setAddTeamModal(false)}
-  footer={null}
-  centered
-  width={450}
-  bodyStyle={{
-    background: "#1a1a1a",
-    borderRadius: "10px",
-    padding: "24px",
-  }}
->
-  <h3 className="text-white text-lg font-semibold mb-4">
-    {isVietnamese ? "Thêm Nhóm Mới" : "Add New Team"}
-  </h3>
-
-  {/* English Input */}
-  <label className="block font-medium mb-2 text-white">Team Title (EN)</label>
-  <Input
-    value={tempTeamTitle?.en || ""}
-    onChange={(e) =>
-      setTempTeamTitle((prev) => ({
-        ...prev,
-        en: e.target.value,
-      }))
-    }
-    placeholder="Enter English team title"
-    style={{
-      backgroundColor: "#262626",
-      border: "1px solid #2E2F2F",
-      borderRadius: "8px",
-      color: "#fff",
-      padding: "10px 14px",
-      marginBottom: "16px",
-    }}
-    className="!placeholder-gray-400"
-  />
-
-  {/* Vietnamese Input */}
-  <label className="block font-medium mb-2 text-white">Team Title (VI)</label>
-  <Input
-    value={tempTeamTitle?.vi || ""}
-    onChange={(e) =>
-      setTempTeamTitle((prev) => ({
-        ...prev,
-        vi: e.target.value,
-      }))
-    }
-    placeholder="Nhập tên nhóm (Tiếng Việt)"
-    style={{
-      backgroundColor: "#262626",
-      border: "1px solid #2E2F2F",
-      borderRadius: "8px",
-      color: "#fff",
-      padding: "10px 14px",
-    }}
-    className="!placeholder-gray-400"
-  />
-
-  {/* Footer Buttons */}
-  <div className="flex justify-end gap-3 mt-6">
-    <Button
-      onClick={() => setAddTeamModal(false)}
-      style={{
-        backgroundColor: "transparent",
-        color: "#fff",
-        border: "1px solid #333",
-        padding:"22px",
-        borderRadius:"999px"
-      }}
-    >
-      Cancel
-    </Button>
-    <Button
-      type="primary"
-      style={{
-        backgroundColor: "#0284C7",
-        border: "none",
-        color: "#fff",
-        padding:"22px",
-        borderRadius:"999px"
-      }}
-      onClick={() => {
-        if (!tempTeamTitle.en && !tempTeamTitle.vi) return;
-        const newKey = `team_${Date.now()}`;
-        setCottonTeam((prev) => ({
-          ...prev,
-          aboutTeam: {
-            ...prev.aboutTeam,
-            [newKey]: {
-              teamLabel: {
-                en: tempTeamTitle.en || "New Team",
-                vi: tempTeamTitle.vi || "Nhóm Mới",
-              },
-              members: [],
-            },
-          },
-        }));
-        setTempTeamTitle({ en: "", vi: "" });
-        setAddTeamModal(false);
-      }}
-    >
-      {isVietnamese ? "Thêm Nhóm" : "Add Team"}
-    </Button>
-  </div>
-</Modal>
-
-</Panel>
-
-
-
+                {isVietnamese ? "Thêm Nhóm" : "Add Team"}
+              </Button>
+            </div>
+          </Modal>
+        </Panel>
 
         {/* 6. SEO META SECTION */}
         <Panel
@@ -3286,9 +3361,6 @@ useEffect(() => {
             </Button>
           </div>
         </Panel>
-
-
-        
       </Collapse>
     </div>
   );

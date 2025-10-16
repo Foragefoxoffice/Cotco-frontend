@@ -1,21 +1,40 @@
 // src/pages/MachinesMain.jsx
 import React, { useEffect, useState } from "react";
-import { Row, Col, Spin } from "antd";
+import { Row, Col } from "antd";
 import { Link } from "react-router-dom";
 import { getMachineCategories } from "../Api/api";
 import MachineBenifie from "../components/machines/MachinesBenifite";
 import Machines from "../components/machines/Machines";
 import Navbar from "../components/layout/Navbar";
-import PartnerSection from "../components/coctoproducts/PartnerSection";
+import Partner from "../components/aboutus/Partners";
 import Footer from "../components/layout/Footer";
 import OurTeam from "../components/coctoproducts/OurTeam";
+
+// 💫 Stylish Loader
+const StylishLoader = () => {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0B0B0B] text-white">
+      <div className="relative">
+        {/* Spinner Ring */}
+        <div className="w-16 h-16 border-4 border-transparent border-t-[#00B0F0] rounded-full animate-spin" />
+        {/* Inner Pulse */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-5 h-5 bg-[#00B0F0] rounded-full animate-ping" />
+        </div>
+      </div>
+      <p className="mt-6 text-lg font-semibold tracking-wide animate-pulse">
+        Loading Machines Page...
+      </p>
+    </div>
+  );
+};
 
 const MachinesMain = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [activeLang, setActiveLang] = useState("en");
 
-  // ✅ Detect current language (from <body> class or localStorage)
+  // ✅ Detect language
   useEffect(() => {
     const detectLang = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
@@ -37,22 +56,24 @@ const MachinesMain = () => {
     return () => observer.disconnect();
   }, []);
 
+  // ✅ Fetch machine categories
   useEffect(() => {
     (async () => {
       try {
         const res = await getMachineCategories();
         setCategories(res.data.data || []);
       } catch (err) {
-        console.error(err);
+        console.error("❌ Error fetching machine categories:", err);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  if (loading) return <Spin />;
+  // ✅ Show loader until data fetched
+  if (loading) return <StylishLoader />;
 
-  // ✅ Helper for picking translation
+  // ✅ Translation helper
   const pick = (en, vi) => (activeLang === "vi" ? vi || en : en);
 
   return (
@@ -74,7 +95,7 @@ const MachinesMain = () => {
                     className="w-full h-[400px] object-cover transform group-hover:scale-105 transition-transform duration-500"
                   />
 
-                  {/* Dark overlay */}
+                  {/* Overlay */}
                   <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition duration-300" />
 
                   {/* Top-right icon */}
@@ -111,7 +132,7 @@ const MachinesMain = () => {
         </Row>
       </div>
 
-      <PartnerSection />
+      <Partner />
       <OurTeam />
       <Footer />
     </main>

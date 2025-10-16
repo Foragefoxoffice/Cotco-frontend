@@ -54,7 +54,10 @@ export default function CottonHero() {
     const observer = new MutationObserver(() => {
       setActiveLang(detectLanguage());
     });
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     return () => observer.disconnect();
   }, []);
@@ -104,7 +107,12 @@ export default function CottonHero() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { staggerChildren: 0.05, delayChildren: 0.3, duration: 0.8, ease: "easeOut" },
+      transition: {
+        staggerChildren: 0.05,
+        delayChildren: 0.3,
+        duration: 0.8,
+        ease: "easeOut",
+      },
     },
   };
 
@@ -137,7 +145,7 @@ export default function CottonHero() {
     bannerMedia?.endsWith(".webm") ||
     bannerMedia?.endsWith(".ogg");
 
-  const overviewParagraphs = overview.split("\n").filter((p) => p.trim() !== "");
+
 
   return (
     <section className="relative bg-white hero overflow-hidden">
@@ -154,7 +162,9 @@ export default function CottonHero() {
       {/* ---------- Media Section ---------- */}
       <motion.div
         initial={{ scale: 1, opacity: 1 }}
-        animate={scrolled ? { scale: 0.9, opacity: 0.9 } : { scale: 1, opacity: 1 }}
+        animate={
+          scrolled ? { scale: 0.9, opacity: 0.9 } : { scale: 1, opacity: 1 }
+        }
         transition={{ duration: 0.6, ease: "easeOut" }}
         className={`relative z-10 transition-all duration-500 ease-out ${
           scrolled ? "rounded-2xl shadow-2xl" : ""
@@ -252,14 +262,22 @@ export default function CottonHero() {
 
       {/* ✅ Overview Text Section */}
       <div className="page-width md:pt-20 md:pb-30 p-6">
-        <div ref={ref} className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto px-4 mt-10 items-center">
-          <motion.div initial="hidden" animate={textControls} variants={textVariants}>
-            {overviewParagraphs.map((p, idx) => (
-              <motion.p key={idx} className="text-[#4B4B4B] mb-6" variants={paragraphVariants}>
-                {p}
-              </motion.p>
-            ))}
-          </motion.div>
+        <div
+          ref={ref}
+          className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto px-4 mt-10 items-center"
+        >
+          <motion.div
+  initial="hidden"
+  animate={textControls}
+  variants={textVariants}
+  className="text-[#4B4B4B] leading-relaxed"
+>
+  <div
+    className="banner-overview"
+    dangerouslySetInnerHTML={{ __html: overview || "" }}
+  />
+</motion.div>
+
           <motion.div
             className="flex justify-center items-center md:h-[300px]"
             initial={{ opacity: 0, scale: 0.9 }}

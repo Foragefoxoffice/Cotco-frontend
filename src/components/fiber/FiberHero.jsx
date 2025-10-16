@@ -38,7 +38,10 @@ export default function FiberHero() {
     }
 
     const observer = new MutationObserver(() => setActiveLang(detectLang()));
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     return () => observer.disconnect();
   }, []);
@@ -115,22 +118,39 @@ export default function FiberHero() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { staggerChildren: 0.05, delayChildren: 0.3, duration: 0.8, ease: "easeOut" },
+      transition: {
+        staggerChildren: 0.05,
+        delayChildren: 0.3,
+        duration: 0.8,
+        ease: "easeOut",
+      },
     },
   };
-  const paragraphVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
+  const paragraphVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
   const heroVariants = {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 1, ease: [0.16, 1, 0.3, 1] } },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 1, ease: [0.16, 1, 0.3, 1] },
+    },
   };
   const titleVariants = {
     hidden: { opacity: 0, y: -20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut", delay: 0.2 } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut", delay: 0.2 },
+    },
   };
 
   // ✅ Background Media URL
   const mediaUrl = getFullUrl(fiberBanner?.fiberBannerMedia);
-  const posterUrl = getFullUrl(fiberBanner?.fiberBannerImg) || "/img/fallback/fiber.jpg";
+  const posterUrl =
+    getFullUrl(fiberBanner?.fiberBannerImg) || "/img/fallback/fiber.jpg";
 
   console.log("Resolved Media URL:", mediaUrl);
 
@@ -139,7 +159,9 @@ export default function FiberHero() {
       {/* Video / Media Section */}
       <motion.div
         initial={{ scale: 1, opacity: 1 }}
-        animate={scrolled ? { scale: 0.89, opacity: 0.9 } : { scale: 1, opacity: 1 }}
+        animate={
+          scrolled ? { scale: 0.89, opacity: 0.9 } : { scale: 1, opacity: 1 }
+        }
         transition={{ duration: 0.6, ease: "easeOut" }}
         className={`relative z-10 transition-all duration-500 ease-out ${
           scrolled ? "rounded-2xl shadow-2xl" : "rounded-none"
@@ -156,13 +178,20 @@ export default function FiberHero() {
             {pick(fiberBanner?.fiberBannerTitle) || "FIBER"}
           </motion.h1>
           <p className="text-white text-[14px] md:text-[20px] pt-3 cotton-section-subheading">
-            {pick(fiberBanner?.fiberBannerDes) || "Empowering Vietnam’s Textile Industry Since 2016"}
+            {pick(fiberBanner?.fiberBannerDes) ||
+              "Empowering Vietnam’s Textile Industry Since 2016"}
           </p>
         </div>
 
         {/* ✅ Media (video or image) */}
-        <motion.div className="w-full flex justify-center" initial="hidden" animate="visible" variants={heroVariants}>
-          {fiberBanner?.fiberBannerMedia && mediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+        <motion.div
+          className="w-full flex justify-center"
+          initial="hidden"
+          animate="visible"
+          variants={heroVariants}
+        >
+          {fiberBanner?.fiberBannerMedia &&
+          mediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
             <>
               {/* Desktop Video */}
               <motion.video
@@ -199,7 +228,11 @@ export default function FiberHero() {
               </div>
             </>
           ) : (
-            <img src={posterUrl} alt="Fiber Banner" className="w-full object-cover" />
+            <img
+              src={posterUrl}
+              alt="Fiber Banner"
+              className="w-full object-cover"
+            />
           )}
 
           {/* Bubble animation */}
@@ -233,23 +266,20 @@ export default function FiberHero() {
           ref={ref}
           className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto px-4 mt-10 items-center"
         >
-          <motion.div initial="hidden" animate={textControls} variants={textVariants}>
-            <motion.p
-              className="text-[#4B4B4B] mb-6 pr-30 md:pr-0"
+          <motion.div
+            initial="hidden"
+            animate={textControls}
+            variants={textVariants}
+          >
+            <motion.div
+              className="!text-[#4B4B4B] mb-6 pr-30 md:pr-0 leading-relaxed banner-overview"
               variants={paragraphVariants}
-            >
-              {pick(fiberBanner?.fiberBannerContent) ||
-                "To promote sustainability in Vietnam’s textile and nonwoven sectors, COTCO expanded into distributing viscose and specialty fibers for nonwovens through a partnership with Birla Cellulose."}
-            </motion.p>
-            <motion.h3
-              className="text-2xl md:text-md font-semibold mb-4 text-[#1C1C1C]"
-              initial="hidden"
-              animate="visible"
-              variants={titleVariants}
-            >
-              {pick(fiberBanner?.fiberBannerSubTitle) ||
-                "The role of viscose fiber in yarn and textile manufacturing"}
-            </motion.h3>
+              dangerouslySetInnerHTML={{
+                __html:
+                  pick(fiberBanner?.fiberBannerContent) ||
+                  "To promote sustainability in Vietnam’s textile and nonwoven sectors, COTCO expanded into distributing viscose and specialty fibers for nonwovens through a partnership with Birla Cellulose.",
+              }}
+            />
           </motion.div>
 
           <motion.div

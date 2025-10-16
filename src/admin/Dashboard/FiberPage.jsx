@@ -2057,7 +2057,7 @@ const handleSave = async (sectionName, formState) => {
                 fiberSupplierImg: arr,
               });
             }}
-            className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full cursor-pointer transition cursor-pointer"
+            className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full transition cursor-pointer"
             title={activeTabLang === "vi" ? "Xóa" : "Remove"}
           >
             <svg
@@ -3059,6 +3059,38 @@ const handleSave = async (sectionName, formState) => {
                       }}
                       className="!placeholder-gray-400"
                     />
+
+                    <label className="block font-medium mt-5 mb-2">
+  {lang === "en" ? "Phone Number" : "Số điện thoại"}
+</label>
+<Input
+  value={member.teamPhone || ""}
+  onChange={(e) => {
+    const value = e.target.value.replace(/[^0-9+]/g, "");
+    const updated = [...teamData.members];
+    updated[idx] = {
+      ...member,
+      teamPhone: e.target.value,
+    };
+    setFiberTeam((prev) => ({
+      ...prev,
+      aboutTeam: {
+        ...prev.aboutTeam,
+        [teamKey]: { ...teamData, members: updated },
+      },
+    }));
+  }}
+  placeholder={lang === "en" ? "Enter phone number" : "Nhập số điện thoại"}
+  style={{
+    backgroundColor: "#262626",
+    border: "1px solid #2E2F2F",
+    borderRadius: "8px",
+    color: "#fff",
+    padding: "10px 14px",
+  }}
+  className="!placeholder-gray-400"
+/>
+
 
                     {/* 🗑 Remove Member */}
                     <Button

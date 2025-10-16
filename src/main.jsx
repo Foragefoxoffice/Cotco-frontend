@@ -38,6 +38,7 @@ import FiberPage from "./admin/Dashboard/FiberPage";
 import HeaderPage from "./admin/Dashboard/HeaderPage";
 import FooterPage from "./admin/Dashboard/FooterPage";
 import ContactPage from "./admin/Dashboard/ContactPage";
+import MachineCMSPage from "./admin/Dashboard/MachineCMSPage";
 import PrivacyPage from "./admin/Dashboard/PrivacyPage";
 import TermsConditionsPage from "./admin/Dashboard/TermsConditionsPage";
 
@@ -140,6 +141,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="about" element={<AboutPage />} />
           <Route path="cotton" element={<CottonPage />} />
           <Route path="fiber" element={<FiberPage />} />
+          <Route path="machine" element={<MachineCMSPage/>}/>
           <Route path="contact" element={<ContactPage />} />
           <Route path="privacy-policy" element={<PrivacyPage />} />
           <Route path="terms-conditions" element={<TermsConditionsPage />} />

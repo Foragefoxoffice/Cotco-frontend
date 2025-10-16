@@ -311,7 +311,6 @@ const AboutPage = () => {
   });
   const [tempTeamTitle, setTempTeamTitle] = useState({ en: "", vi: "" });
 
-
   // const [aboutTeam, setAboutTeam] = usePersistedState("aboutTeam", {
   //   cottonTeam: [],
   //   machineTeam: [],
@@ -320,38 +319,37 @@ const AboutPage = () => {
   //   directorTeam: [],
   // });
 
-const handleAddMemberInline = async (teamKey) => {
-  if (!newMember.teamName.en && !newMember.teamName.vi) {
-    CommonToaster("Please enter member name!", "error");
+const handleAddMemberInline = (teamKey) => {
+  const lang = activeTabLang; // get the current tab language
+
+  // ✅ only require the current language field
+  if (!newMember.teamName?.[lang]?.trim()) {
+    CommonToaster(
+      isVietnamese ? "Vui lòng nhập tên thành viên!" : "Please enter member name!",
+      "error"
+    );
     return;
   }
 
-  const currentTeams = aboutTeam?.dynamicTeams || aboutTeam || {};
-  const teamData = currentTeams[teamKey];
-  const updatedMembers = [...(teamData.members || []), newMember];
+  setAboutTeam((prev) => {
+    const updatedTeam = {
+      ...prev[teamKey],
+      members: [...(prev[teamKey]?.members || []), newMember],
+    };
+    return { ...prev, [teamKey]: updatedTeam };
+  });
 
-  const updatedTeams = {
-    ...currentTeams,
-    [teamKey]: { ...teamData, members: updatedMembers },
-  };
-
-  const newAboutTeam = aboutTeam?.dynamicTeams
-    ? { dynamicTeams: updatedTeams }
-    : updatedTeams;
-
-  setAboutTeam(newAboutTeam);
+  // reset the new member form
   setNewMember({
     teamName: { en: "", vi: "" },
     teamDesgn: { en: "", vi: "" },
     teamEmail: "",
   });
 
-  const formData = new FormData();
-  formData.append("aboutTeam", JSON.stringify(newAboutTeam));
-  await updateAboutPage(formData);
-
   CommonToaster(
-    isVietnamese ? "Đã thêm thành viên!" : "Member added successfully!",
+    isVietnamese
+      ? "Thêm thành viên thành công!"
+      : "Member added successfully!",
     "success"
   );
 };
@@ -565,12 +563,16 @@ const handleAddMemberInline = async (teamKey) => {
         }
 
         // ✅ TEAM SECTION
-        if (data.aboutTeam && typeof data.aboutTeam === "object") {
-          setAboutTeam(data.aboutTeam);
-        } else {
-          // fallback — start empty if no teams exist yet
-          setAboutTeam({});
-        }
+       if (data.aboutTeam && typeof data.aboutTeam === "object") {
+  // check if it contains a nested dynamicTeams object
+  if (data.aboutTeam.dynamicTeams && typeof data.aboutTeam.dynamicTeams === "object") {
+    setAboutTeam(data.aboutTeam.dynamicTeams);
+  } else {
+    setAboutTeam(data.aboutTeam);
+  }
+} else {
+  setAboutTeam({});
+}
 
         // ✅ ALLIANCES SECTION
         if (data.aboutAlliances) {
@@ -1973,7 +1975,6 @@ const handleAddMemberInline = async (teamKey) => {
         </Panel>
 
         {/* CORE VALUES */}
-        {/* CORE VALUES */}
         <Panel
           header={
             <span className="font-semibold text-lg flex items-center text-white gap-2">
@@ -2602,7 +2603,6 @@ const handleAddMemberInline = async (teamKey) => {
               color: "#fff",
               padding: "10px 14px",
             }}
-            className="!placeholder-gray-400"
           />
 
           {/* Heading */}
@@ -2627,7 +2627,6 @@ const handleAddMemberInline = async (teamKey) => {
               color: "#fff",
               padding: "10px 14px",
             }}
-            className="!placeholder-gray-400"
           />
 
           {/* Description */}
@@ -2658,7 +2657,6 @@ const handleAddMemberInline = async (teamKey) => {
               color: "#fff",
               padding: "10px 14px",
             }}
-            className="!placeholder-gray-400"
           />
         </div>
 
@@ -2669,19 +2667,19 @@ const handleAddMemberInline = async (teamKey) => {
           </h3>
           <Button
             type="primary"
-            onClick={() => setIsAddTeamModalVisible(true)}
+            onClick={() => setIsAddTeamModalVisible(true)} // <<-- use the state name you declared
             style={{
               backgroundColor: "#0284C7",
               borderRadius: "999px",
               fontWeight: "500",
-              padding: "12px 24px",
+              padding: "22px",
             }}
           >
             {lang === "en" ? "Add Team" : "Thêm Nhóm"}
           </Button>
         </div>
 
-        {/* ✅ List of Teams */}
+        {/* TEAM LIST TABS */}
         <Tabs
           className="mb-6 pill-tabs"
           defaultActiveKey={Object.keys(aboutTeam || {})[0]}
@@ -2697,13 +2695,14 @@ const handleAddMemberInline = async (teamKey) => {
                     className="cursor-pointer text-red-500 hover:text-red-700"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleRemoveTeam(teamKey);
+                      const updatedTeams = { ...aboutTeam };
+                      delete updatedTeams[teamKey];
+                      setAboutTeam(updatedTeams);
                     }}
                   />
                 </div>
               }
             >
-              {/* Existing Members */}
               {(teamData.members || []).map((member, idx) => (
                 <div key={idx} className="mb-6 text-white border-b pb-4">
                   <label className="block font-medium mt-5 mb-2">
@@ -2761,6 +2760,32 @@ const handleAddMemberInline = async (teamKey) => {
                       padding: "10px 14px",
                     }}
                   />
+                  {/* Phone */}
+<label className="block font-medium mt-5 mb-2">
+  {lang === "en" ? "Phone Number" : "Số điện thoại"}
+</label>
+<Input
+  value={member.teamPhone || ""}
+  onChange={(e) => {
+    const updated = [...teamData.members];
+    updated[idx] = {
+      ...member,
+      teamPhone: e.target.value,
+    };
+    setAboutTeam((prev) => ({
+      ...prev,
+      [teamKey]: { ...teamData, members: updated },
+    }));
+  }}
+  placeholder={lang === "en" ? "Enter phone number" : "Nhập số điện thoại"}
+  style={{
+    backgroundColor: "#262626",
+    border: "1px solid #2E2F2F",
+    borderRadius: "8px",
+    color: "#fff",
+    padding: "10px 14px",
+  }}
+/>
 
                   <label className="block font-medium mt-5 mb-2">Email</label>
                   <Input
@@ -2785,25 +2810,28 @@ const handleAddMemberInline = async (teamKey) => {
                     }}
                   />
 
+                  {/* Remove Member */}
                   <Button
                     danger
+                    size="small"
                     onClick={() => {
-                      const updated = teamData.members.filter(
-                        (_, i) => i !== idx
-                      );
+                      const updated = teamData.members.filter((_, i) => i !== idx);
                       setAboutTeam((prev) => ({
                         ...prev,
                         [teamKey]: { ...teamData, members: updated },
                       }));
                     }}
                     style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
                       backgroundColor: "#FB2C36",
+                      border: "1px solid #333",
                       color: "#fff",
-                      border: "none",
+                      padding: "22px 30px",
                       borderRadius: "9999px",
-                      padding: "10px 24px",
-                      marginTop: "20px",
                       fontWeight: "500",
+                      marginTop: "20px",
                     }}
                   >
                     <Trash2 size={16} />
@@ -2812,23 +2840,39 @@ const handleAddMemberInline = async (teamKey) => {
                 </div>
               ))}
 
-              {/* ➕ Add Member Inline */}
+              {/* ➕ Add Member */}
               <Button
                 type="dashed"
-                onClick={() => handleAddMemberInline(teamKey)}
-                block
+                onClick={() => {
+                  const newMember = {
+  teamName: { en: "", vi: "" },
+  teamDesgn: { en: "", vi: "" },
+  teamEmail: "",
+  teamPhone: "",
+};
+
+                  const updated = [...(teamData.members || []), newMember];
+                  setAboutTeam((prev) => ({
+                    ...prev,
+                    [teamKey]: { ...teamData, members: updated },
+                  }));
+                }}
                 style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
                   backgroundColor: "#0284C7",
                   border: "1px solid #333",
                   color: "#fff",
-                  padding: "18px 24px",
+                  padding: "22px 30px",
                   borderRadius: "9999px",
                   fontWeight: "500",
                   marginTop: "20px",
                   width: "fit-content",
                 }}
               >
-                <Plus /> {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
+                <Plus />
+                {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
               </Button>
             </TabPane>
           ))}
@@ -2837,10 +2881,52 @@ const handleAddMemberInline = async (teamKey) => {
     ))}
   </Tabs>
 
-  {/* 🧩 Add Team Modal */}
+  {/* Footer Buttons */}
+  <div className="flex justify-end gap-4 mt-6">
+    <Button
+      onClick={() => window.location.reload()}
+      style={{
+        backgroundColor: "transparent",
+        color: "#fff",
+        border: "1px solid #333",
+        padding: "22px 30px",
+        borderRadius: "9999px",
+        fontWeight: "500",
+      }}
+    >
+      Cancel
+    </Button>
+
+    <Button
+      onClick={async () => {
+        const formData = new FormData();
+        formData.append("section", "aboutTeam");
+        formData.append("aboutTeamIntro", JSON.stringify(aboutTeamIntro));
+        formData.append("aboutTeam", JSON.stringify(aboutTeam));
+        const res = await updateAboutPage(formData);
+        if (res.data?.about) {
+          CommonToaster("Team saved successfully!", "success");
+        } else {
+          CommonToaster("Failed to save team", "error");
+        }
+      }}
+      style={{
+        backgroundColor: "#0284C7",
+        color: "#fff",
+        border: "none",
+        padding: "22px 30px",
+        borderRadius: "9999px",
+        fontWeight: "500",
+      }}
+    >
+      Save Team
+    </Button>
+  </div>
+
+  {/* ➕ Popup Modal for Adding Team Title */}
   <Modal
-    open={isAddTeamModalVisible}
-    onCancel={() => setIsAddTeamModalVisible(false)}
+    open={isAddTeamModalVisible}                    // <-- use isAddTeamModalVisible
+    onCancel={() => setIsAddTeamModalVisible(false)}// <-- use setIsAddTeamModalVisible
     footer={null}
     centered
     width={450}
@@ -2857,10 +2943,8 @@ const handleAddMemberInline = async (teamKey) => {
     {/* English Input */}
     <label className="block font-medium mb-2 text-white">Team Title (EN)</label>
     <Input
-      value={newTeamName.en}
-      onChange={(e) =>
-        setNewTeamName((prev) => ({ ...prev, en: e.target.value }))
-      }
+      value={tempTeamTitle?.en || ""}
+      onChange={(e) => setTempTeamTitle((prev) => ({ ...prev, en: e.target.value }))}
       placeholder="Enter English team title"
       style={{
         backgroundColor: "#262626",
@@ -2875,10 +2959,8 @@ const handleAddMemberInline = async (teamKey) => {
     {/* Vietnamese Input */}
     <label className="block font-medium mb-2 text-white">Team Title (VI)</label>
     <Input
-      value={newTeamName.vi}
-      onChange={(e) =>
-        setNewTeamName((prev) => ({ ...prev, vi: e.target.value }))
-      }
+      value={tempTeamTitle?.vi || ""}
+      onChange={(e) => setTempTeamTitle((prev) => ({ ...prev, vi: e.target.value }))}
       placeholder="Nhập tên nhóm (Tiếng Việt)"
       style={{
         backgroundColor: "#262626",
@@ -2897,8 +2979,8 @@ const handleAddMemberInline = async (teamKey) => {
           backgroundColor: "transparent",
           color: "#fff",
           border: "1px solid #333",
-          padding: "10px 24px",
-          borderRadius: "9999px",
+          padding: "22px",
+          borderRadius: "999px",
         }}
       >
         Cancel
@@ -2909,16 +2991,33 @@ const handleAddMemberInline = async (teamKey) => {
           backgroundColor: "#0284C7",
           border: "none",
           color: "#fff",
-          padding: "10px 24px",
-          borderRadius: "9999px",
+          padding: "22px",
+          borderRadius: "999px",
         }}
-        onClick={handleAddTeam}
+        onClick={() => {
+          if (!tempTeamTitle.en && !tempTeamTitle.vi) return;
+          const newKey = `team_${Date.now()}`;
+          setAboutTeam((prev) => ({
+            ...prev,
+            [newKey]: {
+              teamLabel: {
+                en: tempTeamTitle.en || "New Team",
+                vi: tempTeamTitle.vi || "Nhóm Mới",
+              },
+              members: [],
+            },
+          }));
+          setTempTeamTitle({ en: "", vi: "" });
+          setIsAddTeamModalVisible(false);
+        }}
       >
         {isVietnamese ? "Thêm Nhóm" : "Add Team"}
       </Button>
     </div>
   </Modal>
 </Panel>
+
+
 
 
         {/* ALLIANCES */}

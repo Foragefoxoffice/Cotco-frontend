@@ -1,31 +1,52 @@
-import HeroSection from "../components/home/HeroSection";
-import ProductShowcase from "../components/home/ProductShowcase";
-import Footer from "../components/layout/Footer";
+import { lazy, Suspense } from "react";
 import Navbar from "../components/layout/Navbar";
-import PartnerSection from "../components/home/PartnerSection";
-import ContactToday from "../components/home/ContactToday";
-import WhoWeAreSection from "../components/home/WhoWeAreSection";
-import WhatDefineUs from "../components/home/WhatDefineUs";
-import CoreValues from "../components/aboutus/CoreValues";
-import NewSection from "../components/home/NewSection";
+import Footer from "../components/layout/Footer";
+
+// Lazy imports for performance
+const HeroSection = lazy(() => import("../components/home/HeroSection"));
+const ProductShowcase = lazy(() => import("../components/home/ProductShowcase"));
+const PartnerSection = lazy(() => import("../components/home/PartnerSection"));
+const ContactToday = lazy(() => import("../components/home/ContactToday"));
+const WhoWeAreSection = lazy(() => import("../components/home/WhoWeAreSection"));
+const WhatDefineUs = lazy(() => import("../components/home/WhatDefineUs"));
+const CoreValues = lazy(() => import("../components/aboutus/CoreValues"));
+const NewSection = lazy(() => import("../components/home/NewSection"));
+
+// 💫 Stylish Loader
+const StylishLoader = () => {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0B0B0B] text-white">
+      <div className="relative">
+        {/* Spinner Ring */}
+        <div className="w-16 h-16 border-4 border-transparent border-t-[#00B0F0] rounded-full animate-spin" />
+        {/* Inner Pulse */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-5 h-5 bg-[#00B0F0] rounded-full animate-ping" />
+        </div>
+      </div>
+      <p className="mt-6 text-lg font-semibold tracking-wide animate-pulse">
+        Loading Home Page...
+      </p>
+    </div>
+  );
+};
 
 const Home = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-grow">
-        <HeroSection />
-        <WhoWeAreSection/>
-        <ProductShowcase />
-        {/* <VisionMissionSection /> */}
-        <PartnerSection />
-        {/* <CoreStrengthSection /> */}
-        {/* <NewsEventsSection /> */}
-        <WhatDefineUs />
-        <CoreValues />
-        <NewSection/>
-        <ContactToday />
-      </main>
+      <Suspense fallback={<StylishLoader />}>
+        <main className="flex-grow">
+          <HeroSection />
+          <WhoWeAreSection />
+          <ProductShowcase />
+          <PartnerSection />
+          <WhatDefineUs />
+          <CoreValues />
+          <NewSection />
+          <ContactToday />
+        </main>
+      </Suspense>
       <Footer />
     </div>
   );

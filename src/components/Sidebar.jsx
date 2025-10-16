@@ -50,6 +50,7 @@ if (roleName === "Super Admin") {
     contact: true,
     privacy: true,
     terms: true,
+    machine: true, 
   });
 } else {
   setPermissions(role?.permissions || {});
@@ -156,6 +157,7 @@ if (roleName === "Super Admin") {
       { path: "/admin/about", label: t.about, key: "about" },
       { path: "/admin/cotton", label: t.cotton, key: "cotton" },
       { path: "/admin/fiber", label: t.fiber, key: "fiber" },
+      { path: "/admin/machine", label: "Machine CMS", key: "machine" },
       { path: "/admin/contact", label: t.contact, key: "contact" },
       { path: "/admin/privacy-policy", label: t.privacy, key: "privacy" },
       { path: "/admin/terms-conditions", label: t.terms, key: "terms" },

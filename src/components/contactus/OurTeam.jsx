@@ -1,8 +1,7 @@
-// src/components/MeetOurTeam.jsx
 import { useState, useEffect } from "react";
 import { FiPlus } from "react-icons/fi";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getAboutPage } from "../../Api/api";
+import { getContactPage } from "../../Api/api";
 
 function PlusIcon({ open }) {
   return (
@@ -11,8 +10,9 @@ function PlusIcon({ open }) {
       aria-hidden="true"
     >
       <FiPlus
-        className={`transition-transform duration-300 ${open ? "rotate-45" : ""
-          }`}
+        className={`transition-transform duration-300 ${
+          open ? "rotate-45" : ""
+        }`}
       />
     </span>
   );
@@ -40,36 +40,66 @@ function MemberCard({ name, role, phone, email }) {
   );
 }
 
-export default function MeetOurTeam() {
+export default function ContactTeam() {
   const [openIndex, setOpenIndex] = useState(null);
-  const [teamData, setTeamData] = useState(null);
+  const [contactTeam, setContactTeam] = useState(null);
+  const [activeLang, setActiveLang] = useState("en");
 
+  /* 🌐 Detect active language (auto sync with header toggle) */
   useEffect(() => {
-    getAboutPage()
-      .then((res) => {
-        if (res.data?.aboutTeam) {
-          setTeamData(res.data.aboutTeam);
-        }
-      })
-      .catch((err) => console.error("Failed to load team:", err));
+    const detectLang = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const saved = localStorage.getItem("preferred_lang");
+    if (saved === "vi" || saved === "en") {
+      setActiveLang(saved);
+      document.body.classList.toggle("vi-mode", saved === "vi");
+    } else {
+      setActiveLang(detectLang());
+    }
+
+    // Observe changes to body class (for live language toggle)
+    const observer = new MutationObserver(() => setActiveLang(detectLang()));
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
   }, []);
 
-  if (!teamData) return null;
+  /* 🌍 Fetch contact page data */
+  useEffect(() => {
+    getContactPage()
+      .then((res) => {
+        if (res.data?.contactTeam) {
+          setContactTeam(res.data.contactTeam);
+        }
+      })
+      .catch((err) => console.error("❌ Failed to load Contact Team:", err));
+  }, []);
 
-  // Convert API data to sections
-  const TEAM_SECTIONS = [
-    { key: "cottonTeam", title: "Cotton" },
-    { key: "machineTeam", title: "Machine" },
-    { key: "fiberTeam", title: "Fiber" },
-    { key: "marketingTeam", title: "Marketing" },
-    { key: "directorTeam", title: "Director" },
-  ].map((section) => ({
-    title: section.title,
-    members: (teamData[section.key] || []).map((m) => ({
-      name: m.teamName?.en || "",
-      role: m.teamDesgn?.en || "",
-      phone: m.teamPhone || "",
-      email: m.teamEmail || "",
+  if (!contactTeam) return null;
+
+  const { teamIntro, teamList } = contactTeam;
+
+  // 🌐 Helper function to pick correct translation
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
+
+  const tag = pick(teamIntro?.tag) || "Our People";
+  const heading = pick(teamIntro?.heading) || "Meet Our Team";
+  const description =
+    pick(teamIntro?.description) ||
+    "Our dedicated team is always ready to assist you.";
+
+  // ✅ Fixed key mapping + language aware
+  const TEAM_SECTIONS = Object.entries(teamList || {}).map(([key, team]) => ({
+    title: pick(team.teamLabel) || "Unnamed Team",
+    members: (team.members || []).map((m) => ({
+      name: pick(m.name),
+      role: pick(m.role),
+      phone: m.phone || "",
+      email: m.email || "",
     })),
   }));
 
@@ -78,23 +108,26 @@ export default function MeetOurTeam() {
       <div className="mx-auto max-w-5xl px-4">
         {/* Header */}
         <div className="text-center">
-          <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[13px] font-medium text-slate-600">
-            Our people
-          </span>
+          {tag && (
+            <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[13px] font-medium text-slate-600">
+              {tag}
+            </span>
+          )}
 
           <TitleAnimation
-            text={"Meet our team"}
+            text={heading}
             className="heading uppercase"
             align="center"
             delay={0.05}
             stagger={0.05}
             once={true}
           />
-          <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
-            Our experienced professionals combine deep textile industry
-            knowledge with international trade expertise, ensuring seamless
-            transactions and technical support for our clients.
-          </p>
+
+          {description && (
+            <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
+              {description}
+            </p>
+          )}
         </div>
 
         {/* Accordions */}
@@ -115,17 +148,21 @@ export default function MeetOurTeam() {
                   <PlusIcon open={isOpen} />
                 </button>
 
-                {/* Collapsible content */}
                 <div
-                  className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-[1000px] py-3" : "max-h-0"
-                    }`}
+                  className={`overflow-hidden transition-all duration-300 ${
+                    isOpen ? "max-h-[1000px] py-3" : "max-h-0"
+                  }`}
                 >
-                  {section.members.length > 0 && (
+                  {section.members.length > 0 ? (
                     <ul className="space-y-3 rounded-xl bg-slate-50/50 p-1">
                       {section.members.map((m, i) => (
                         <MemberCard key={i} {...m} />
                       ))}
                     </ul>
+                  ) : (
+                    <p className="text-center text-slate-400 py-3">
+                      No members found
+                    </p>
                   )}
                 </div>
               </div>

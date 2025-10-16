@@ -1,21 +1,46 @@
-import React from "react";
-
+import React, { lazy, Suspense } from "react";
 import Navbar from "../components/layout/Navbar";
-import CottonHero from "../components/cotton/CottonHero";
 import Footer from "../components/layout/Footer";
-import MeetOurTeam from "../components/cotton/OurTeam";
-import SuppliersSection from "../components/cotton/SuppliersSection";
-import CottonTrustSection from "../components/cotton/CottonTrustSection";
-import CertificationSliderSection from "../components/cotton/CertificationSliderSection";
+
+// Lazy load each heavy section for performance
+const CottonHero = lazy(() => import("../components/cotton/CottonHero"));
+const SuppliersSection = lazy(() => import("../components/cotton/SuppliersSection"));
+const CottonTrustSection = lazy(() => import("../components/cotton/CottonTrustSection"));
+const CertificationSliderSection = lazy(() => import("../components/cotton/CertificationSliderSection"));
+const MeetOurTeam = lazy(() => import("../components/cotton/OurTeam"));
+
+// 💫 Stylish Loader
+const StylishLoader = () => {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0B0B0B] text-white">
+      <div className="relative">
+        {/* Spinner Ring */}
+        <div className="w-16 h-16 border-4 border-transparent border-t-[#00B0F0] rounded-full animate-spin" />
+        {/* Inner Pulse */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-5 h-5 bg-[#00B0F0] rounded-full animate-ping" />
+        </div>
+      </div>
+      <p className="mt-6 text-lg font-semibold tracking-wide animate-pulse">
+        Loading Cotton Page...
+      </p>
+    </div>
+  );
+};
+
 const Cotton = () => {
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <CottonHero />
-      <SuppliersSection />
-      <CottonTrustSection />
-      <CertificationSliderSection />
-      <MeetOurTeam />
+      <Suspense fallback={<StylishLoader />}>
+        <main className="flex-grow">
+          <CottonHero />
+          <SuppliersSection />
+          <CottonTrustSection />
+          <CertificationSliderSection />
+          <MeetOurTeam />
+        </main>
+      </Suspense>
       <Footer />
     </div>
   );

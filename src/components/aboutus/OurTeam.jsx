@@ -65,16 +65,46 @@ export default function MeetOurTeam() {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Fetch team data from API
-  useEffect(() => {
-    getAboutPage()
-      .then((res) => {
-        const data = res.data;
-        if (data?.aboutTeam) setAboutTeam(data.aboutTeam);
-        if (data?.aboutTeamIntro) setAboutTeamIntro(data.aboutTeamIntro);
-      })
-      .catch((err) => console.error("❌ Failed to load team:", err));
-  }, []);
+// ✅ Fetch team data from API
+useEffect(() => {
+  getAboutPage()
+    .then((res) => {
+      // Handle both wrapped and flat response styles
+      const data = res.data?.about || res.data || {};
+
+      console.log("✅ About Page Data:", data); // helpful debug
+
+      // ✅ Extract team data safely
+      let teamData = {};
+
+      if (data.aboutTeam) {
+        const teams = data.aboutTeam.dynamicTeams;
+
+        if (teams && typeof teams === "object" && !Array.isArray(teams)) {
+          teamData = teams;
+        } else if (typeof data.aboutTeam === "object") {
+          // fallback: aboutTeam itself might already be the map
+          teamData = data.aboutTeam;
+        }
+      }
+
+      setAboutTeam(teamData || {});
+
+      // ✅ Set intro section (safe fallback)
+      setAboutTeamIntro(
+        data.aboutTeamIntro || {
+          tag: { en: "", vi: "" },
+          heading: { en: "", vi: "" },
+          description: { en: "", vi: "" },
+        }
+      );
+    })
+    .catch((err) => {
+      console.error("❌ Failed to load team:", err);
+      setAboutTeam({});
+    });
+}, []);
+
 
   // ✅ Safe bilingual helper
   const pick = (obj) =>
@@ -87,14 +117,15 @@ export default function MeetOurTeam() {
   const sectionHeading = pick(aboutTeamIntro.heading);
   const sectionDescription = pick(aboutTeamIntro.description);
 
-  // ✅ Convert dynamicTeams map into array
-  const teamSections = Object.entries(aboutTeam.dynamicTeams || {}).map(([key, value]) => ({
+  // ✅ Convert team object into array
+  const teamSections = Object.entries(aboutTeam || {}).map(([key, value]) => ({
     key,
     title: pick(value.teamLabel),
     members: (value.members || []).map((m) => ({
       name: pick(m.teamName),
       role: pick(m.teamDesgn),
       email: m.teamEmail || "",
+      phone: m.teamPhone || "",
     })),
   }));
 

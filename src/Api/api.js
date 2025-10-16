@@ -272,6 +272,15 @@ export const submitContactForm = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+export const getMachineCMSPage = () => API.get("/machinescms");
+export const updateMachineCMSPage = (formData) =>
+  API.post("/machinescms", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+
+
+
 // Get all contact entries (admin)
 export const getAllContacts = () => API.get("/contactentries");
 
@@ -286,3 +295,6 @@ export const getRoles = () => API.get("/roles");
 export const getRoleById = (id) => API.get(`/roles/${id}`);
 export const updateRole = (id, data) => API.put(`/roles/${id}`, data);
 export const deleteRole = (id) => API.delete(`/roles/${id}`);
+
+
+
