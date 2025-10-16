@@ -330,7 +330,7 @@ const ContactEntriesScreen = () => {
                 <p className="mt-2">
                   File:{" "}
                   <a
-                    href={`http://localhost:5000${selectedContact.fileUrl}`}
+                    href={`${selectedContact.fileUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#0085C8] underline hover:text-blue-400"

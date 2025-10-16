@@ -21,7 +21,10 @@ export default function FounderSection() {
     const observer = new MutationObserver(() => {
       setActiveLang(detectLanguage());
     });
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -43,7 +46,7 @@ export default function FounderSection() {
   const getImageUrl = (path) => {
     if (!path) return "";
     if (path.startsWith("data:") || path.startsWith("http")) return path;
-    return `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${path}`;
+    return `${import.meta.env.VITE_API_URL || ""}${path}`;
   };
 
   const fadeLeft = {

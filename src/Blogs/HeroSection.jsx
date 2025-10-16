@@ -63,7 +63,7 @@ const HeroSection = () => {
       ref={containerRef}
       style={{
         background: mainCategory?.bgImage?.url
-          ? `url('http://localhost:5000${mainCategory.bgImage.url}') center/cover no-repeat`
+          ? `url('https://mitoslearning.co.in${mainCategory.bgImage.url}') center/cover no-repeat`
           : "url('/img/fallback-bg.jpg') center/cover no-repeat",
         y: yImage,
       }}

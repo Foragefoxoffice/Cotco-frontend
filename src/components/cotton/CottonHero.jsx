@@ -161,11 +161,11 @@ export default function CottonHero() {
         }`}
       >
         <motion.div className="w-full flex justify-center">
-          <div className="absolute z-10 bottom-[190px] left-6 md:left-15">
-            <h1 className="text-6xl md:text-8xl text-white font-bold cotton-section-heading">
+          <div className="absolute z-10 bottom-5 md:bottom-[200px] left-6 md:left-15">
+            <h1 className="text-6xl md:text-[100px] text-white font-[700] !mb-0 cotton-section-heading">
               {title}
             </h1>
-            <p className="text-white text-xl pl-1 pt-3 cotton-section-subheading">
+            <p className="text-white text-[14px] md:text-[20px] pl-1 cotton-section-subheading">
               {description}
             </p>
           </div>

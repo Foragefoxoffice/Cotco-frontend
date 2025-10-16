@@ -1,8 +1,7 @@
-// src/components/MeetOurTeam.jsx
 import { useState, useEffect } from "react";
 import { FiPlus } from "react-icons/fi";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getAboutPage } from "../../Api/api";
+import { getCottonPage } from "../../Api/api";
 
 function PlusIcon({ open }) {
   return (
@@ -44,9 +43,9 @@ function MemberCard({ name, role, phone, email }) {
 export default function MeetOurTeam() {
   const [openIndex, setOpenIndex] = useState(null);
   const [teamData, setTeamData] = useState(null);
-  const [activeLang, setActiveLang] = useState("en"); // ✅ bilingual state
+  const [activeLang, setActiveLang] = useState("en");
 
-  /* ---------- Detect and sync language ---------- */
+  // Detect & sync language
   useEffect(() => {
     const detectLanguage = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
@@ -59,81 +58,68 @@ export default function MeetOurTeam() {
       setActiveLang(detectLanguage());
     }
 
-    const observer = new MutationObserver(() => setActiveLang(detectLanguage()));
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    const observer = new MutationObserver(() =>
+      setActiveLang(detectLanguage())
+    );
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Helper to pick correct language field
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
-  /* ---------- Fetch Team Data ---------- */
+  // ✅ Fetch Team Data
   useEffect(() => {
-    getAboutPage()
+    getCottonPage()
       .then((res) => {
-        if (res.data?.aboutTeam) {
-          setTeamData(res.data.aboutTeam);
-        }
+        if (res.data?.cottonTeam) setTeamData(res.data.cottonTeam);
       })
-      .catch((err) => console.error("Failed to load team:", err));
+      .catch((err) => console.error("Failed to load cotton team:", err));
   }, []);
 
   if (!teamData) return null;
 
-  // ✅ Only Cotton team shown (can easily add others)
-  const TEAM_SECTIONS = [
-    {
-      title: pick({ en: "Cotton", vi: "Bông" }),
-      members: (teamData?.cottonTeam || []).map((m) => ({
+  // ✅ Convert object -> array for rendering
+  const TEAM_SECTIONS = Object.keys(teamData.aboutTeam || {}).map((key) => {
+    const team = teamData.aboutTeam[key];
+    return {
+      title: pick(team.teamLabel),
+      members: (team.members || []).map((m) => ({
         name: pick(m.teamName),
         role: pick(m.teamDesgn),
         phone: m.teamPhone || "",
         email: m.teamEmail || "",
       })),
-    },
-  ];
-
-  // ✅ Language toggle
-  const toggleLanguage = () => {
-    const newLang = activeLang === "en" ? "vi" : "en";
-    setActiveLang(newLang);
-    localStorage.setItem("preferred_lang", newLang);
-    document.body.classList.toggle("vi-mode", newLang === "vi");
-  };
+    };
+  });
 
   return (
     <section className="pt-6 mb-20 md:pt-10 relative">
-      {/* 🔘 Language Toggle */}
-      {/* <div className="absolute top-6 right-6 z-20">
-        <button
-          onClick={toggleLanguage}
-          className="px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-sm font-medium text-gray-800 backdrop-blur-md transition"
-        >
-          {activeLang === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}
-        </button>
-      </div> */}
-
       <div className="mx-auto max-w-5xl px-4">
         {/* Header */}
         <div className="text-center">
-          <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[13px] font-medium text-slate-600">
-            {pick({ en: "Our people", vi: "Đội ngũ của chúng tôi" })}
-          </span>
+          {teamData?.aboutTeamIntro?.tag?.[activeLang] && (
+            <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[13px] font-medium text-slate-600">
+              {pick(teamData.aboutTeamIntro.tag)}
+            </span>
+          )}
 
           <TitleAnimation
-            text={pick({ en: "Meet our team", vi: "Gặp gỡ đội ngũ" })}
+            text={pick(teamData.aboutTeamIntro.heading) || "Our Team"}
             className="heading uppercase"
             align="center"
             delay={0.05}
             stagger={0.05}
             once={true}
           />
-          <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
-            {pick({
-              en: "Our experienced professionals combine deep textile industry knowledge with international trade expertise, ensuring seamless transactions and technical support for our clients.",
-              vi: "Các chuyên gia giàu kinh nghiệm của chúng tôi kết hợp kiến thức sâu rộng trong ngành dệt may với chuyên môn thương mại quốc tế, đảm bảo các giao dịch suôn sẻ và hỗ trợ kỹ thuật tận tâm cho khách hàng.",
-            })}
-          </p>
+
+          {teamData?.aboutTeamIntro?.description?.[activeLang] && (
+            <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
+              {pick(teamData.aboutTeamIntro.description)}
+            </p>
+          )}
         </div>
 
         {/* Accordions */}

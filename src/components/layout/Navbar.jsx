@@ -6,6 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 import GoogleTranslate from "../GoogleTranslate";
 import TranslateToggle from "../TranslateToggle";
 import { getHeaderPage, getMainBlogCategories } from "../../Api/api";
+import {TextAlignJustify} from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -244,7 +245,7 @@ const Navbar = () => {
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >
-              {isOpen ? <FaTimes /> : <FaBars />}
+              {isOpen ? <FaTimes /> : <TextAlignJustify />}
             </button>
           </div>
         </div>

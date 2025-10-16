@@ -14,7 +14,6 @@ const RoleManagement = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isVietnamese, setIsVietnamese] = useState(false);
   const [modalLang, setModalLang] = useState("en");
 
@@ -40,35 +39,59 @@ const RoleManagement = () => {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Sidebar Menu (unchanged)
-  const sidebarMenu = [
-    { key: "dashboard", label: { en: "Dashboard", vi: "Bảng điều khiển" } },
-    {
-      key: "resources",
-      label: { en: "Resources", vi: "Tài nguyên" },
-      subItems: [
-        {
-          key: "maincategories",
-          label: { en: "Main Categories", vi: "Danh mục chính" },
-        },
-        { key: "categories", label: { en: "Categories", vi: "Danh mục" } },
-        {
-          key: "resources",
-          label: { en: "All Resources", vi: "Tất cả tài nguyên" },
-        },
-      ],
-    },
-    {
-      key: "cms",
-      label: { en: "CMS Settings", vi: "Cài đặt CMS" },
-      subItems: [
-        { key: "header", label: { en: "Header", vi: "Đầu trang" } },
-        { key: "footer", label: { en: "Footer", vi: "Chân trang" } },
-        { key: "home", label: { en: "Home", vi: "Trang chủ" } },
-        { key: "about", label: { en: "About", vi: "Giới thiệu" } },
-      ],
-    },
-  ];
+
+  // ✅ Sidebar Menu (matches actual Sidebar.jsx)
+const sidebarMenu = [
+  {
+    key: "dashboard",
+    label: { en: "Dashboard", vi: "Bảng điều khiển" },
+  },
+  {
+    key: "resources",
+    label: { en: "Resources", vi: "Tài nguyên" },
+    subItems: [
+      { key: "maincategories", label: { en: "Main Categories", vi: "Danh mục chính" } },
+      { key: "categories", label: { en: "Categories", vi: "Danh mục" } },
+      { key: "resources", label: { en: "All Resources", vi: "Tất cả tài nguyên" } },
+    ],
+  },
+  {
+    key: "machines",
+    label: { en: "Machines", vi: "Máy móc" },
+    subItems: [
+      { key: "machineCategories", label: { en: "Machine Categories", vi: "Danh mục máy móc" } },
+      { key: "machineList", label: { en: "Machine List", vi: "Danh sách máy móc" } },
+    ],
+  },
+  {
+    key: "cms",
+    label: { en: "CMS Settings", vi: "Cài đặt CMS" },
+    subItems: [
+      { key: "header", label: { en: "Header", vi: "Đầu trang" } },
+      { key: "footer", label: { en: "Footer", vi: "Chân trang" } },
+      { key: "home", label: { en: "Home", vi: "Trang chủ" } },
+      { key: "about", label: { en: "About", vi: "Giới thiệu" } },
+      { key: "cotton", label: { en: "Cotton", vi: "Bông" } },
+      { key: "fiber", label: { en: "Fiber", vi: "Sợi" } },
+      { key: "contact", label: { en: "Contact", vi: "Liên hệ" } },
+      { key: "privacy", label: { en: "Privacy Policy", vi: "Chính sách bảo mật" } },
+      { key: "terms", label: { en: "Terms & Conditions", vi: "Điều khoản sử dụng" } },
+    ],
+  },
+  {
+    key: "users",
+    label: { en: "User Management", vi: "Quản lý người dùng" },
+    subItems: [
+      { key: "roles", label: { en: "Roles", vi: "Vai trò" } },
+      { key: "staff", label: { en: "Staff", vi: "Nhân viên" } },
+    ],
+  },
+  {
+    key: "enquiry",
+    label: { en: "Enquiry Details", vi: "Chi tiết liên hệ" },
+  },
+];
+
 
   const generateDefaultPermissions = () => {
     const perms = {};
@@ -96,13 +119,13 @@ const RoleManagement = () => {
     }
   };
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      const parsed = JSON.parse(userData);
-      setIsSuperAdmin(parsed?.role?.name === "Super Admin");
-    }
-  }, []);
+  // useEffect(() => {
+  //   const userData = localStorage.getItem("user");
+  //   if (userData) {
+  //     const parsed = JSON.parse(userData);
+  //     setIsSuperAdmin(parsed?.role?.name === "Super Admin");
+  //   }
+  // }, []);
 
   useEffect(() => {
     fetchRoles();
@@ -154,11 +177,6 @@ const RoleManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isSuperAdmin) {
-      CommonToaster("Only Super Admin can create or update roles ❌", "error");
-      return;
-    }
-
     try {
       if (editId) {
         await updateRole(editId, formData);
@@ -181,14 +199,6 @@ const RoleManagement = () => {
   };
 
   const handleEdit = (role) => {
-    if (
-      role.name === "Super Admin" ||
-      role.name?.en === "Super Admin" ||
-      role.name?.vi === "Quản trị viên cao cấp"
-    ) {
-      CommonToaster("You cannot edit the Super Admin role ❌", "error");
-      return;
-    }
     const defaultPerms = generateDefaultPermissions();
     const mergedPerms = { ...defaultPerms, ...(role.permissions || {}) };
     setFormData({
@@ -201,14 +211,6 @@ const RoleManagement = () => {
   };
 
   const handleDelete = async (id, name) => {
-    if (
-      name === "Super Admin" ||
-      name?.en === "Super Admin" ||
-      name?.vi === "Quản trị viên cao cấp"
-    ) {
-      CommonToaster("Super Admin cannot be deleted ❌", "error");
-      return;
-    }
     if (!window.confirm("Are you sure you want to delete this role?")) return;
     try {
       await deleteRole(id);
@@ -299,23 +301,20 @@ const RoleManagement = () => {
             )}
           </div>
 
-          {/* ➕ Add Role */}
-          {isSuperAdmin && (
-            <button
-              className="flex items-center gap-2 px-6 py-3 bg-[#0085C8] hover:bg-[#009FE3] transition text-white rounded-full"
-              onClick={() => {
-                setShowModal(true);
-                setEditId(null);
-                setFormData({
-                  name: "",
-                  status: "Active",
-                  permissions: generateDefaultPermissions(),
-                });
-              }}
-            >
-              <Plus size={16} /> {isVietnamese ? "Thêm vai trò" : "Add Role"}
-            </button>
-          )}
+          <button
+            className="flex items-center gap-2 px-6 py-3 bg-[#0085C8] hover:bg-[#009FE3] transition text-white rounded-full"
+            onClick={() => {
+              setShowModal(true);
+              setEditId(null);
+              setFormData({
+                name: "",
+                status: "Active",
+                permissions: generateDefaultPermissions(),
+              });
+            }}
+          >
+            <Plus size={16} /> {isVietnamese ? "Thêm vai trò" : "Add Role"}
+          </button>
         </div>
       </div>
 
@@ -367,21 +366,24 @@ const RoleManagement = () => {
                           : "bg-red-700/30 text-red-400"
                       }`}
                     >
-                      {role.status}
+                      {document.body.classList.contains("vi-mode")
+                        ? role.status === "Active"
+                          ? "Hoạt động" // Vietnamese for Active
+                          : "Không hoạt động" // Vietnamese for Inactive
+                        : role.status}
                     </span>
                   </td>
+
                   <td className="p-3 flex gap-3">
                     {/* ✏️ Edit Button */}
                     <button
                       onClick={() => handleEdit(role)}
                       disabled={
-                        !isSuperAdmin ||
                         role.name === "Super Admin" ||
                         role.name?.en === "Super Admin" ||
                         role.name?.vi === "Quản trị viên cao cấp"
                       }
                       className={`px-3 py-1 text-sm rounded-md ${
-                        !isSuperAdmin ||
                         role.name === "Super Admin" ||
                         role.name?.en === "Super Admin" ||
                         role.name?.vi === "Quản trị viên cao cấp"
@@ -403,13 +405,11 @@ const RoleManagement = () => {
                         )
                       }
                       disabled={
-                        !isSuperAdmin ||
                         role.name === "Super Admin" ||
                         role.name?.en === "Super Admin" ||
                         role.name?.vi === "Quản trị viên cao cấp"
                       }
                       className={`px-3 py-1 text-sm rounded-md ${
-                        !isSuperAdmin ||
                         role.name === "Super Admin" ||
                         role.name?.en === "Super Admin" ||
                         role.name?.vi === "Quản trị viên cao cấp"
@@ -433,19 +433,21 @@ const RoleManagement = () => {
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="p-2 rounded-full bg-[#2E2F2F] disabled:opacity-40"
+            className="py-2 px-4 rounded-full bg-[#2E2F2F] disabled:opacity-40 cursor-pointer"
           >
-            <ChevronLeft size={18} />
+            {isVietnamese ? "Trước" : "Prev"}
           </button>
+
           <span className="text-sm text-gray-400">
             {isVietnamese ? "Trang" : "Page"} {currentPage} / {totalPages}
           </span>
+
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="p-2 rounded-full bg-[#2E2F2F] disabled:opacity-40"
+            className="py-2 px-4 rounded-full bg-[#2E2F2F] disabled:opacity-40 cursor-pointer"
           >
-            <ChevronRight size={18} />
+            {isVietnamese ? "Tiếp" : "Next"}
           </button>
         </div>
       )}

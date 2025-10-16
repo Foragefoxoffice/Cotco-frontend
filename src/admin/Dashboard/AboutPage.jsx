@@ -72,6 +72,7 @@ const AboutPage = () => {
   const [activeTabLang, setActiveTabLang] = useState("en"); // controls inputs
   const [isVietnamese, setIsVietnamese] = useState(false); // controls headers
   const [currentLang, setCurrentLang] = useState("en"); // header language
+  const [visibleAddMemberForTeam, setVisibleAddMemberForTeam] = useState(null);
 
   // ✅ Auto-sync with body .vi-mode (like FiberPage)
   useEffect(() => {
@@ -140,7 +141,7 @@ const AboutPage = () => {
       boxCount: "Box Count",
       boxDescription: "Box Description",
       saveMissionVision: "Save Mission & Vision",
-
+      addmore: "Add Title and Description",
       // Core Values
       coreImages: "Core Images",
       saveCore: "Save Core Values",
@@ -207,6 +208,7 @@ const AboutPage = () => {
       boxCount: "Số lượng",
       boxDescription: "Mô tả ô",
       saveMissionVision: "Lưu Sứ mệnh & Tầm nhìn",
+      addmore: "Thêm tiêu đề và mô tả",
 
       // Core Values
       coreImages: "Hình ảnh Giá trị cốt lõi",
@@ -255,18 +257,15 @@ const AboutPage = () => {
     "aboutMissionVission",
     {
       aboutMissionVissionTitle: { en: "", vi: "" },
-      aboutMissionVissionSubhead1: { en: "", vi: "" },
-      aboutMissionVissionDes1: { en: "", vi: "" },
-      aboutMissionVissionSubhead2: { en: "", vi: "" },
-      aboutMissionVissionDes2: { en: "", vi: "" },
-      aboutMissionVissionSubhead3: { en: "", vi: "" },
-      aboutMissionVissionDes3: { en: "", vi: "" },
+      headingBlocks: [{ title: { en: "", vi: "" }, desc: { en: "", vi: "" } }],
       aboutMissionVissionBoxCount1: 0,
       aboutMissionBoxDes1: { en: "", vi: "" },
       aboutMissionVissionBoxCount2: 0,
       aboutMissionBoxDes2: { en: "", vi: "" },
       aboutMissionVissionBoxCount3: 0,
       aboutMissionBoxDes3: { en: "", vi: "" },
+      aboutMissionVissionBoxCount4: 0,
+      aboutMissionBoxDes4: { en: "", vi: "" },
     }
   );
 
@@ -286,9 +285,31 @@ const AboutPage = () => {
   });
 
   const [aboutHistory, setAboutHistory] = usePersistedState("aboutHistory", []);
+  const [aboutHistoryTitle, setAboutHistoryTitle] = usePersistedState(
+    "aboutHistoryTitle",
+    { en: "", vi: "" }
+  );
+
   const [aboutTeam, setAboutTeam] = usePersistedState("aboutTeam", {});
+  const [pendingMembers, setPendingMembers] = useState({});
+
+  const [aboutTeamIntro, setAboutTeamIntro] = usePersistedState(
+    "aboutTeamIntro",
+    {
+      tag: { en: "", vi: "" },
+      heading: { en: "", vi: "" },
+      description: { en: "", vi: "" },
+    }
+  );
+
   const [isAddTeamModalVisible, setIsAddTeamModalVisible] = useState(false);
   const [newTeamName, setNewTeamName] = useState({ en: "", vi: "" });
+  const [newMember, setNewMember] = useState({
+    teamName: { en: "", vi: "" },
+    teamDesgn: { en: "", vi: "" },
+    teamEmail: "",
+  });
+  const [tempTeamTitle, setTempTeamTitle] = useState({ en: "", vi: "" });
 
 
   // const [aboutTeam, setAboutTeam] = usePersistedState("aboutTeam", {
@@ -299,33 +320,19 @@ const AboutPage = () => {
   //   directorTeam: [],
   // });
 
-const handleAddTeam = async () => {
-  const trimmedEN = newTeamName.en?.trim();
-  const trimmedVI = newTeamName.vi?.trim();
-
-  if (!trimmedEN || !trimmedVI) {
-    CommonToaster("Please fill both English and Vietnamese names!", "error");
+const handleAddMemberInline = async (teamKey) => {
+  if (!newMember.teamName.en && !newMember.teamName.vi) {
+    CommonToaster("Please enter member name!", "error");
     return;
   }
-
-  const safeKey = trimmedEN.replace(/\s+/g, "_").toLowerCase();
 
   const currentTeams = aboutTeam?.dynamicTeams || aboutTeam || {};
-
-  if (currentTeams[safeKey]) {
-    CommonToaster("This team already exists!", "error");
-    return;
-  }
-
-  // ✅ Add bilingual team name
-  const newTeam = {
-    teamLabel: { en: trimmedEN, vi: trimmedVI },
-    members: [], // each team will have its own member list
-  };
+  const teamData = currentTeams[teamKey];
+  const updatedMembers = [...(teamData.members || []), newMember];
 
   const updatedTeams = {
     ...currentTeams,
-    [safeKey]: newTeam,
+    [teamKey]: { ...teamData, members: updatedMembers },
   };
 
   const newAboutTeam = aboutTeam?.dynamicTeams
@@ -333,55 +340,104 @@ const handleAddTeam = async () => {
     : updatedTeams;
 
   setAboutTeam(newAboutTeam);
-  setIsAddTeamModalVisible(false);
-  setNewTeamName({ en: "", vi: "" });
+  setNewMember({
+    teamName: { en: "", vi: "" },
+    teamDesgn: { en: "", vi: "" },
+    teamEmail: "",
+  });
 
-  // ✅ Persist
-  try {
-    const formData = new FormData();
-    formData.append("aboutTeam", JSON.stringify(newAboutTeam));
-    await updateAboutPage(formData);
-    CommonToaster(
-      isVietnamese ? "Thêm nhóm thành công!" : "Team added successfully!",
-      "success"
-    );
-  } catch (err) {
-    console.error(err);
-  }
+  const formData = new FormData();
+  formData.append("aboutTeam", JSON.stringify(newAboutTeam));
+  await updateAboutPage(formData);
+
+  CommonToaster(
+    isVietnamese ? "Đã thêm thành viên!" : "Member added successfully!",
+    "success"
+  );
 };
 
 
-// Remove team completely (fixes your issue)
-const handleRemoveTeam = async (teamKey) => {
-  try {
+  const handleAddTeam = async () => {
+    const trimmedEN = newTeamName.en?.trim();
+    const trimmedVI = newTeamName.vi?.trim();
+
+    if (!trimmedEN || !trimmedVI) {
+      CommonToaster("Please fill both English and Vietnamese names!", "error");
+      return;
+    }
+
+    const safeKey = trimmedEN.replace(/\s+/g, "_").toLowerCase();
+
     const currentTeams = aboutTeam?.dynamicTeams || aboutTeam || {};
-    const updatedTeams = Object.fromEntries(
-      Object.entries(currentTeams).filter(([key]) => key !== teamKey)
-    );
+
+    if (currentTeams[safeKey]) {
+      CommonToaster("This team already exists!", "error");
+      return;
+    }
+
+    // ✅ Add bilingual team name
+    const newTeam = {
+      teamLabel: { en: trimmedEN, vi: trimmedVI },
+      members: [], // each team will have its own member list
+    };
+
+    const updatedTeams = {
+      ...currentTeams,
+      [safeKey]: newTeam,
+    };
 
     const newAboutTeam = aboutTeam?.dynamicTeams
       ? { dynamicTeams: updatedTeams }
       : updatedTeams;
 
     setAboutTeam(newAboutTeam);
+    setIsAddTeamModalVisible(false);
+    setNewTeamName({ en: "", vi: "" });
 
-    const formData = new FormData();
-    formData.append("aboutTeam", JSON.stringify(newAboutTeam));
+    // ✅ Persist
+    try {
+      const formData = new FormData();
+      formData.append("aboutTeam", JSON.stringify(newAboutTeam));
+      await updateAboutPage(formData);
+      CommonToaster(
+        isVietnamese ? "Thêm nhóm thành công!" : "Team added successfully!",
+        "success"
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    await updateAboutPage(formData);
+  // Remove team completely (fixes your issue)
+  const handleRemoveTeam = async (teamKey) => {
+    try {
+      const currentTeams = aboutTeam?.dynamicTeams || aboutTeam || {};
+      const updatedTeams = Object.fromEntries(
+        Object.entries(currentTeams).filter(([key]) => key !== teamKey)
+      );
 
-    CommonToaster(
-      isVietnamese ? "Xóa nhóm thành công!" : "Team removed successfully!",
-      "success"
-    );
-  } catch (err) {
-    CommonToaster(
-      "Error",
-      err.message || "Something went wrong while removing team!"
-    );
-  }
-};
+      const newAboutTeam = aboutTeam?.dynamicTeams
+        ? { dynamicTeams: updatedTeams }
+        : updatedTeams;
 
+      setAboutTeam(newAboutTeam);
+
+      const formData = new FormData();
+      formData.append("aboutTeam", JSON.stringify(newAboutTeam));
+
+      await updateAboutPage(formData);
+
+      CommonToaster(
+        isVietnamese ? "Xóa nhóm thành công!" : "Team removed successfully!",
+        "success"
+      );
+    } catch (err) {
+      CommonToaster(
+        "Error",
+        err.message || "Something went wrong while removing team!"
+      );
+    }
+  };
 
   const [aboutAlliances, setAboutAlliances] = usePersistedState(
     "aboutAlliances",
@@ -454,24 +510,25 @@ const handleRemoveTeam = async (teamKey) => {
           });
         }
 
-        // ✅ MISSION & VISION SECTION
         if (data.aboutMissionVission) {
-          setAboutMissionVission(data.aboutMissionVission);
+          setAboutMissionVission((prev) => ({
+            ...prev,
+            ...data.aboutMissionVission,
+          }));
         } else {
           setAboutMissionVission({
             aboutMissionVissionTitle: { en: "", vi: "" },
-            aboutMissionVissionSubhead1: { en: "", vi: "" },
-            aboutMissionVissionDes1: { en: "", vi: "" },
-            aboutMissionVissionSubhead2: { en: "", vi: "" },
-            aboutMissionVissionDes2: { en: "", vi: "" },
-            aboutMissionVissionSubhead3: { en: "", vi: "" },
-            aboutMissionVissionDes3: { en: "", vi: "" },
+            headingBlocks: [
+              { title: { en: "", vi: "" }, desc: { en: "", vi: "" } },
+            ],
             aboutMissionVissionBoxCount1: 0,
             aboutMissionBoxDes1: { en: "", vi: "" },
             aboutMissionVissionBoxCount2: 0,
             aboutMissionBoxDes2: { en: "", vi: "" },
             aboutMissionVissionBoxCount3: 0,
             aboutMissionBoxDes3: { en: "", vi: "" },
+            aboutMissionVissionBoxCount4: 0,
+            aboutMissionBoxDes4: { en: "", vi: "" },
           });
         }
 
@@ -509,11 +566,11 @@ const handleRemoveTeam = async (teamKey) => {
 
         // ✅ TEAM SECTION
         if (data.aboutTeam && typeof data.aboutTeam === "object") {
-        setAboutTeam(data.aboutTeam);
-      } else {
-        // fallback — start empty if no teams exist yet
-        setAboutTeam({});
-      }
+          setAboutTeam(data.aboutTeam);
+        } else {
+          // fallback — start empty if no teams exist yet
+          setAboutTeam({});
+        }
 
         // ✅ ALLIANCES SECTION
         if (data.aboutAlliances) {
@@ -588,6 +645,38 @@ const handleRemoveTeam = async (teamKey) => {
       console.error("Save error:", error);
       CommonToaster("error", error.message || "Something went wrong!");
     }
+  };
+
+  const handleSaveAllMembers = async (teamKey) => {
+    const newMembers = pendingMembers[teamKey] || [];
+    if (newMembers.length === 0) return;
+
+    const currentTeams = aboutTeam?.dynamicTeams || aboutTeam || {};
+    const teamData = currentTeams[teamKey];
+    const updatedMembers = [...(teamData.members || []), ...newMembers];
+
+    const updatedTeams = {
+      ...currentTeams,
+      [teamKey]: { ...teamData, members: updatedMembers },
+    };
+
+    const newAboutTeam = aboutTeam?.dynamicTeams
+      ? { dynamicTeams: updatedTeams }
+      : updatedTeams;
+
+    setAboutTeam(newAboutTeam);
+    setPendingMembers((prev) => ({ ...prev, [teamKey]: [] }));
+
+    const formData = new FormData();
+    formData.append("aboutTeam", JSON.stringify(newAboutTeam));
+    await updateAboutPage(formData);
+
+    CommonToaster(
+      isVietnamese
+        ? "Đã lưu tất cả thành viên mới!"
+        : "All new members saved successfully!",
+      "success"
+    );
   };
 
   // ---------------------- UI ---------------------- //
@@ -1620,29 +1709,23 @@ const handleRemoveTeam = async (teamKey) => {
           key="4"
         >
           <Tabs
+            className="pill-tabs"
             activeKey={activeTabLang}
             onChange={setActiveTabLang}
-            className="pill-tabs"
           >
             {["en", "vi"].map((lang) => (
               <TabPane
                 tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
                 key={lang}
               >
-                <label className="block font-medium mt-5 mb-3">
+                {/* 🌍 MAIN TITLE */}
+                <label className="block font-medium mt-5 mb-3 text-white">
                   {translations[activeTabLang].mainTitle}
                 </label>
                 <Input
-                  style={{
-                    backgroundColor: "#262626",
-                    border: "1px solid #2E2F2F",
-                    borderRadius: "8px",
-                    color: "#fff",
-                    padding: "10px 14px",
-                    fontSize: "14px",
-                    transition: "all 0.3s ease",
-                  }}
-                  value={aboutMissionVission.aboutMissionVissionTitle[lang]}
+                  value={
+                    aboutMissionVission.aboutMissionVissionTitle?.[lang] || ""
+                  }
                   onChange={(e) =>
                     setAboutMissionVission({
                       ...aboutMissionVission,
@@ -1652,168 +1735,236 @@ const handleRemoveTeam = async (teamKey) => {
                       },
                     })
                   }
+                  style={{
+                    backgroundColor: "#262626 !important",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                  }}
                 />
 
-                {/* 3 Sub-sections */}
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="mt-6 text-white">
-                    <h4 className="font-semibold mb-2 text-xl mt-12">
-                      {translations[activeTabLang].block} {i}
-                    </h4>
+                {/* ==============================
+            🧩 HEADING + DESCRIPTION (INFINITE)
+        =============================== */}
+                <div className="mt-10">
+                  <h3 className="text-xl font-semibold text-white mb-3">
+                    {isVietnamese
+                      ? "Tiêu đề & Mô tả"
+                      : "Heading & Description (Dynamic)"}
+                  </h3>
 
-                    <label className="block font-medium mt-5 mb-3">
-                      {translations[activeTabLang].subhead} {i}
-                    </label>
-                    <Input
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                        fontSize: "14px",
-                        transition: "all 0.3s ease",
-                      }}
-                      value={
-                        aboutMissionVission[`aboutMissionVissionSubhead${i}`][
-                          lang
-                        ]
-                      }
-                      onChange={(e) =>
-                        setAboutMissionVission({
-                          ...aboutMissionVission,
-                          [`aboutMissionVissionSubhead${i}`]: {
-                            ...aboutMissionVission[
-                              `aboutMissionVissionSubhead${i}`
-                            ],
-                            [lang]: e.target.value,
+                  {aboutMissionVission.headingBlocks?.map((block, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-[#1E1E1E] border border-[#2E2F2F] p-4 rounded-lg mb-5"
+                    >
+                      <label className="block font-medium mb-2 text-white">
+                        {translations[activeTabLang].subhead} {idx + 1}
+                      </label>
+                      <Input
+                        value={block.title?.[lang] || ""}
+                        onChange={(e) => {
+                          const updated = [
+                            ...aboutMissionVission.headingBlocks,
+                          ];
+                          updated[idx] = {
+                            ...updated[idx],
+                            title: {
+                              ...updated[idx].title,
+                              [lang]: e.target.value,
+                            },
+                          };
+                          setAboutMissionVission({
+                            ...aboutMissionVission,
+                            headingBlocks: updated,
+                          });
+                        }}
+                        style={{
+                          backgroundColor: "#262626",
+                          border: "1px solid #2E2F2F",
+                          borderRadius: "8px",
+                          color: "#fff",
+                          padding: "10px 14px",
+                        }}
+                      />
+
+                      <label className="block font-medium mt-4 mb-2 text-white">
+                        {translations[activeTabLang].description} {idx + 1}
+                      </label>
+                      <Input.TextArea
+                        value={block.desc?.[lang] || ""}
+                        onChange={(e) => {
+                          const updated = [
+                            ...aboutMissionVission.headingBlocks,
+                          ];
+                          updated[idx] = {
+                            ...updated[idx],
+                            desc: {
+                              ...updated[idx].desc,
+                              [lang]: e.target.value,
+                            },
+                          };
+                          setAboutMissionVission({
+                            ...aboutMissionVission,
+                            headingBlocks: updated,
+                          });
+                        }}
+                        style={{
+                          backgroundColor: "#262626",
+                          border: "1px solid #2E2F2F",
+                          borderRadius: "8px",
+                          color: "#fff",
+                          padding: "10px 14px",
+                        }}
+                      />
+
+                      <div className="flex justify-end mt-3">
+                        <Button
+                          danger
+                          onClick={() => {
+                            const updated =
+                              aboutMissionVission.headingBlocks.filter(
+                                (_, i) => i !== idx
+                              );
+                            setAboutMissionVission({
+                              ...aboutMissionVission,
+                              headingBlocks: updated,
+                            });
+                          }}
+                        >
+                          {translations[activeTabLang].remove}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button
+                    onClick={() =>
+                      setAboutMissionVission({
+                        ...aboutMissionVission,
+                        headingBlocks: [
+                          ...(aboutMissionVission.headingBlocks || []),
+                          {
+                            title: { en: "", vi: "" },
+                            desc: { en: "", vi: "" },
                           },
-                        })
-                      }
-                    />
+                        ],
+                      })
+                    }
+                    style={{
+                      backgroundColor: "#0284C7",
+                      color: "#fff",
+                      borderRadius: "9999px",
+                      padding: "12px 24px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {translations[activeTabLang].addmore}
+                  </Button>
+                </div>
 
-                    <label className="block font-medium mt-5 mb-3">
-                      {translations[activeTabLang].description} {i}
-                    </label>
-                    <Input
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                        fontSize: "14px",
-                        transition: "all 0.3s ease",
-                      }}
-                      value={
-                        aboutMissionVission[`aboutMissionVissionDes${i}`][lang]
-                      }
-                      onChange={(e) =>
-                        setAboutMissionVission({
-                          ...aboutMissionVission,
-                          [`aboutMissionVissionDes${i}`]: {
-                            ...aboutMissionVission[
-                              `aboutMissionVissionDes${i}`
-                            ],
-                            [lang]: e.target.value,
-                          },
-                        })
-                      }
-                    />
+                {/* ==============================
+            📦 BOX COUNT + DESCRIPTION (FIXED 4)
+        =============================== */}
+                <div className="mt-12">
+                  <h3 className="text-xl font-semibold mb-3 text-white">
+                    {translations[activeTabLang].boxDescription}
+                  </h3>
 
-                    <label className="block font-medium mt-2">
-                      {translations[activeTabLang].boxCount} {i}
-                    </label>
-                    <Input
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                        fontSize: "14px",
-                        transition: "all 0.3s ease",
-                      }}
-                      type="number"
-                      value={
-                        aboutMissionVission[`aboutMissionVissionBoxCount${i}`]
-                      }
-                      onChange={(e) =>
-                        setAboutMissionVission({
-                          ...aboutMissionVission,
-                          [`aboutMissionVissionBoxCount${i}`]: Number(
-                            e.target.value
-                          ),
-                        })
-                      }
-                    />
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className="bg-[#1E1E1E] border border-[#2E2F2F] p-4 rounded-lg mb-5"
+                    >
+                      <h4 className="text-white font-semibold mb-3 text-lg">
+                        Box {i}
+                      </h4>
 
-                    <label className="block font-medium mt-5 mb-3">
-                      {translations[activeTabLang].boxDescription} {i}
-                    </label>
-                    <Input
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                        fontSize: "14px",
-                        transition: "all 0.3s ease",
-                      }}
-                      value={
-                        aboutMissionVission[`aboutMissionBoxDes${i}`][lang]
-                      }
-                      onChange={(e) =>
-                        setAboutMissionVission({
-                          ...aboutMissionVission,
-                          [`aboutMissionBoxDes${i}`]: {
-                            ...aboutMissionVission[`aboutMissionBoxDes${i}`],
-                            [lang]: e.target.value,
-                          },
-                        })
-                      }
-                    />
-                  </div>
-                ))}
+                      <label className="block font-medium mb-2 text-white">
+                        {translations[activeTabLang].boxCount} {i}
+                      </label>
+                      <Input
+                        type="number"
+                        value={
+                          aboutMissionVission[
+                            `aboutMissionVissionBoxCount${i}`
+                          ] ?? 0
+                        }
+                        onChange={(e) =>
+                          setAboutMissionVission({
+                            ...aboutMissionVission,
+                            [`aboutMissionVissionBoxCount${i}`]: Number(
+                              e.target.value
+                            ),
+                          })
+                        }
+                        style={{
+                          backgroundColor: "#262626",
+                          border: "1px solid #2E2F2F",
+                          borderRadius: "8px",
+                          color: "#fff",
+                          padding: "10px 14px",
+                        }}
+                      />
+
+                      <label className="block font-medium mt-4 mb-2 text-white">
+                        {translations[activeTabLang].boxDescription} {i}
+                      </label>
+                      <Input.TextArea
+                        value={
+                          aboutMissionVission[`aboutMissionBoxDes${i}`]?.[
+                            lang
+                          ] || ""
+                        }
+                        onChange={(e) =>
+                          setAboutMissionVission({
+                            ...aboutMissionVission,
+                            [`aboutMissionBoxDes${i}`]: {
+                              ...aboutMissionVission[`aboutMissionBoxDes${i}`],
+                              [lang]: e.target.value,
+                            },
+                          })
+                        }
+                        style={{
+                          backgroundColor: "#262626",
+                          border: "1px solid #2E2F2F",
+                          borderRadius: "8px",
+                          color: "#fff",
+                          padding: "10px 14px",
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
               </TabPane>
             ))}
           </Tabs>
 
+          {/* ✅ Save / Cancel buttons */}
           <div className="flex justify-end gap-4 mt-6">
-            {/* Cancel Button (Gray / Outline) */}
             <Button
               onClick={() => window.location.reload()}
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
                 backgroundColor: "transparent",
                 color: "#fff",
                 border: "1px solid #333",
-                padding: "22px 30px",
-                borderRadius: "9999px", // pill shape
-                fontWeight: "500",
+                padding: "12px 24px",
+                borderRadius: "9999px",
               }}
             >
               {translations[activeTabLang].cancel}
             </Button>
-
-            {/* Save Button (Blue) */}
             <Button
               onClick={() =>
                 handleSave("aboutMissionVission", aboutMissionVission)
               }
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                backgroundColor: "#0284C7", // blue
+                backgroundColor: "#0284C7",
                 color: "#fff",
                 border: "none",
-                padding: "22px 30px",
-                borderRadius: "9999px", // pill shape
-                fontWeight: "500",
+                padding: "12px 24px",
+                borderRadius: "9999px",
               }}
             >
               {translations[activeTabLang].saveMissionVision}
@@ -1821,6 +1972,7 @@ const handleRemoveTeam = async (teamKey) => {
           </div>
         </Panel>
 
+        {/* CORE VALUES */}
         {/* CORE VALUES */}
         <Panel
           header={
@@ -1840,6 +1992,39 @@ const handleRemoveTeam = async (teamKey) => {
                 tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
                 key={lang}
               >
+                {/* 🌟 NEW MAIN TITLE INPUT */}
+                <label className="block font-medium mt-4 mb-3">
+                  {lang === "vi" ? "Tiêu đề chính" : "Main Title"}
+                </label>
+                <Input
+                  style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    transition: "all 0.3s ease",
+                  }}
+                  value={aboutCore.aboutCoreTitle?.[lang] || ""}
+                  onChange={(e) =>
+                    setAboutCore((prev) => ({
+                      ...prev,
+                      aboutCoreTitle: {
+                        ...prev.aboutCoreTitle,
+                        [lang]: e.target.value,
+                      },
+                    }))
+                  }
+                  placeholder={
+                    lang === "vi"
+                      ? "Nhập tiêu đề cho phần Giá trị cốt lõi"
+                      : "Enter main title for Core Values section"
+                  }
+                  className="mb-6"
+                />
+
+                {/* Existing Core Value Title + Description Fields */}
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="mb-6">
                     <label className="block font-medium mt-5 mb-3">
@@ -1904,10 +2089,10 @@ const handleRemoveTeam = async (teamKey) => {
             {translations[activeTabLang].coreImages}
           </label>
 
+          {/* --- Image Uploads --- */}
           <div className="flex flex-wrap gap-6 mt-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="relative group w-48 h-48">
-                {/* --- Image Preview --- */}
                 {aboutCore[`aboutCoreBg${i}File`] ||
                 aboutCore[`aboutCoreBg${i}`] ? (
                   <>
@@ -1922,30 +2107,6 @@ const handleRemoveTeam = async (teamKey) => {
                       alt={`Core ${i}`}
                       className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
                     />
-
-                    {/* 👁 View Full */}
-                    <button
-                      type="button"
-                      onClick={() => setActiveCoreModal(i)}
-                      className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                      title={activeTabLang === "vi" ? "Xem hình" : "View Full"}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-4 h-4"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    </button>
 
                     {/* 🔁 Change */}
                     <label
@@ -2001,7 +2162,6 @@ const handleRemoveTeam = async (teamKey) => {
                     </button>
                   </>
                 ) : (
-                  /* --- Empty Upload Box --- */
                   <label
                     htmlFor={`aboutCoreUpload-${i}`}
                     className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -2118,46 +2278,59 @@ const handleRemoveTeam = async (teamKey) => {
           }
           key="6"
         >
-          {aboutHistory.map((item, index) => (
-            <div key={index} className="mb-6 shadow-sm text-white">
-              {/* 📅 Year */}
-              <label className="block font-medium mt-5 mb-3">
-                {translations[activeTabLang].year}
-              </label>
-              <Input
-                style={{
-                  backgroundColor: "#262626",
-                  border: "1px solid #2E2F2F",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  padding: "10px 14px",
-                  fontSize: "14px",
-                  transition: "all 0.3s ease",
-                  marginBottom: "12px",
-                }}
-                value={item.year}
-                onChange={(e) => {
-                  const newHistory = [...aboutHistory];
-                  newHistory[index].year = e.target.value;
-                  setAboutHistory(newHistory);
-                }}
-              />
-
-              {/* 🌐 Language Tabs */}
-              <Tabs
-                activeKey={activeTabLang}
-                onChange={setActiveTabLang}
-                className="mt-12 pill-tabs"
+          {/* 🌐 Single Language Tab (controls all fields) */}
+          <Tabs
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
+            className="pill-tabs mb-6"
+          >
+            {["en", "vi"].map((lang) => (
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
               >
-                {["en", "vi"].map((lang) => (
-                  <TabPane
-                    tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
-                    key={lang}
+                {/* 🏷️ Section Main Heading */}
+                <div className="mb-8">
+                  <label className="block font-bold mb-3">
+                    {isVietnamese
+                      ? "Tiêu đề chính của phần lịch sử"
+                      : "Main History Heading"}
+                  </label>
+                  <Input
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                      fontSize: "14px",
+                    }}
+                    placeholder={
+                      lang === "en"
+                        ? "Enter main heading..."
+                        : "Nhập tiêu đề chính..."
+                    }
+                    value={aboutHistoryTitle?.[lang] || ""}
+                    onChange={(e) =>
+                      setAboutHistoryTitle((prev) => ({
+                        ...prev,
+                        [lang]: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                {/* 🕓 HISTORY ITEMS */}
+                {aboutHistory.map((item, index) => (
+                  <div
+                    key={index}
+                    className="mb-10 p-4 rounded-lg border border-[#2E2F2F] bg-[#1a1a1a]"
                   >
-                    <label className="block font-medium">
-                      {translations[activeTabLang].content} ({lang})
+                    {/* 📅 Year */}
+                    <label className="block font-medium mb-2">
+                      {translations[activeTabLang].year}
                     </label>
-                    <Input.TextArea
+                    <Input
                       style={{
                         backgroundColor: "#262626",
                         border: "1px solid #2E2F2F",
@@ -2165,10 +2338,30 @@ const handleRemoveTeam = async (teamKey) => {
                         color: "#fff",
                         padding: "10px 14px",
                         fontSize: "14px",
-                        transition: "all 0.3s ease",
                       }}
+                      value={item.year}
+                      onChange={(e) => {
+                        const newHistory = [...aboutHistory];
+                        newHistory[index].year = e.target.value;
+                        setAboutHistory(newHistory);
+                      }}
+                    />
+
+                    {/* 📝 Content */}
+                    <label className="block font-medium mt-4 mb-2">
+                      {translations[activeTabLang].content}
+                    </label>
+                    <Input.TextArea
                       rows={3}
-                      value={item.content?.[lang]}
+                      style={{
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                      }}
+                      value={item.content?.[lang] || ""}
                       onChange={(e) => {
                         const newHistory = [...aboutHistory];
                         newHistory[index].content = {
@@ -2178,341 +2371,191 @@ const handleRemoveTeam = async (teamKey) => {
                         setAboutHistory(newHistory);
                       }}
                     />
-                  </TabPane>
-                ))}
-              </Tabs>
 
-              {/* 🖼 History Image Upload */}
-              <label className="block font-bold mt-5 mb-3">
-                {translations[activeTabLang].historyImage}
-              </label>
-              <p className="text-sm text-slate-500 mb-2">
-                {translations[activeTabLang].recommendedSize} 720×920px
-              </p>
+                    {/* 🖼 Image Upload */}
+                    <label className="block font-bold mt-5 mb-3">
+                      {translations[activeTabLang].historyImage}
+                    </label>
+                    <div className="relative group w-48 h-64">
+                      {item.imageFile || item.image ? (
+                        <>
+                          <img
+                            src={
+                              item.imageFile
+                                ? URL.createObjectURL(item.imageFile)
+                                : getFullUrl(item.image)
+                            }
+                            alt={`History ${index + 1}`}
+                            className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
+                          />
+                          <label
+                            htmlFor={`changeHistoryUpload-${index}`}
+                            className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
+                            title={
+                              isVietnamese ? "Thay đổi hình" : "Change Image"
+                            }
+                          >
+                            <input
+                              id={`changeHistoryUpload-${index}`}
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                if (!validateFileSize(file)) return;
+                                const newHistory = [...aboutHistory];
+                                newHistory[index].imageFile = file;
+                                newHistory[index].image = "";
+                                setAboutHistory(newHistory);
+                              }}
+                              style={{ display: "none" }}
+                            />
+                            <RotateCw className="w-4 h-4" />
+                          </label>
+                        </>
+                      ) : (
+                        <label
+                          htmlFor={`aboutHistoryUpload-${index}`}
+                          className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="2"
+                            stroke="currentColor"
+                            className="w-8 h-8 text-gray-400"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                          <span className="mt-2 text-sm text-gray-400">
+                            {isVietnamese
+                              ? `Tải lên hình ${index + 1}`
+                              : `Upload Image ${index + 1}`}
+                          </span>
+                          <input
+                            id={`aboutHistoryUpload-${index}`}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (!file) return;
+                              if (!validateFileSize(file)) return;
+                              const newHistory = [...aboutHistory];
+                              newHistory[index].imageFile = file;
+                              newHistory[index].image = "";
+                              setAboutHistory(newHistory);
+                            }}
+                            style={{ display: "none" }}
+                          />
+                        </label>
+                      )}
+                    </div>
 
-              <div className="relative group w-48 h-64">
-                {item.imageFile || item.image ? (
-                  <>
-                    <img
-                      src={
-                        item.imageFile
-                          ? URL.createObjectURL(item.imageFile)
-                          : getFullUrl(item.image)
-                      }
-                      alt={`History ${index + 1}`}
-                      className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
-                    />
-
-                    {/* 👁 View Full */}
-                    <button
-                      type="button"
-                      onClick={() => setActiveHistoryModal(index)}
-                      className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                      title={activeTabLang === "vi" ? "Xem hình" : "View Full"}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-4 h-4"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    </button>
-
-                    {/* 🔁 Change */}
-                    <label
-                      htmlFor={`changeHistoryUpload-${index}`}
-                      className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
-                      title={
-                        activeTabLang === "vi"
-                          ? "Thay đổi hình"
-                          : "Change Image"
-                      }
-                    >
-                      <input
-                        id={`changeHistoryUpload-${index}`}
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (!file) return;
-                          if (!validateFileSize(file)) return;
-                          const newHistory = [...aboutHistory];
-                          newHistory[index].imageFile = file;
-                          newHistory[index].image = "";
+                    {/* 🗑 Remove Button */}
+                    <div className="flex justify-end mt-4">
+                      <Button
+                        danger
+                        onClick={() => {
+                          const newHistory = aboutHistory.filter(
+                            (_, i) => i !== index
+                          );
                           setAboutHistory(newHistory);
                         }}
-                        style={{ display: "none" }}
-                      />
-                      <RotateCw className="w-4 h-4" />
-                    </label>
-
-                    {/* ❌ Remove */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newHistory = [...aboutHistory];
-                        newHistory[index].imageFile = null;
-                        newHistory[index].image = "";
-                        setAboutHistory(newHistory);
-                      }}
-                      className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white p-1 rounded-full transition cursor-pointer opacity-0 group-hover:opacity-100"
-                      title={
-                        activeTabLang === "vi" ? "Xóa hình" : "Remove Image"
-                      }
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        className="w-4 h-4"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </>
-                ) : (
-                  <label
-                    htmlFor={`aboutHistoryUpload-${index}`}
-                    className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="2"
-                      stroke="currentColor"
-                      className="w-8 h-8 text-gray-400"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                    <span className="mt-2 text-sm text-gray-400">
-                      {activeTabLang === "vi"
-                        ? `Tải lên hình ${index + 1}`
-                        : `Upload Image ${index + 1}`}
-                    </span>
-                    <input
-                      id={`aboutHistoryUpload-${index}`}
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        if (!validateFileSize(file)) return;
-                        const newHistory = [...aboutHistory];
-                        newHistory[index].imageFile = file;
-                        newHistory[index].image = "";
-                        setAboutHistory(newHistory);
-                      }}
-                      style={{ display: "none" }}
-                    />
-                  </label>
-                )}
-              </div>
+                        {translations[activeTabLang].removeHistory}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
 
-              {/* 🖼 Modal Preview */}
-              <Modal
-                open={activeHistoryModal === index}
-                footer={null}
-                onCancel={() => setActiveHistoryModal(null)}
-                centered
-                width={600}
-                bodyStyle={{ background: "#000", padding: "0" }}
-              >
-                {activeHistoryModal === index && (
-                  <img
-                    src={
-                      item.imageFile
-                        ? URL.createObjectURL(item.imageFile)
-                        : getFullUrl(item.image)
+                {/* ➕ Add & 💾 Save Buttons */}
+                <div className="flex justify-between mt-6">
+                  <Button
+                    onClick={() =>
+                      setAboutHistory([
+                        ...aboutHistory,
+                        {
+                          year: "",
+                          content: { en: "", vi: "" },
+                          image: "",
+                          imageFile: null,
+                        },
+                      ])
                     }
-                    alt={`History ${index + 1} Full`}
-                    className="w-full h-auto rounded-lg"
-                  />
-                )}
-              </Modal>
+                    style={{
+                      backgroundColor: "#0284C7",
+                      color: "#fff",
+                      borderRadius: "9999px",
+                      padding: "18px 28px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    + {translations[activeTabLang].addHistory}
+                  </Button>
 
-              {/* 🗑 Remove Button */}
-              <div className="flex justify-end mt-3">
-                <Button
-                  danger
-                  onClick={async () => {
-                    try {
-                      const newHistory = aboutHistory.filter(
-                        (_, i) => i !== index
-                      );
-                      setAboutHistory(newHistory);
-
+                  <Button
+                    type="primary"
+                    onClick={async () => {
                       const formData = new FormData();
+                      formData.append("section", "aboutHistory");
+                      formData.append(
+                        "aboutHistoryTitle",
+                        JSON.stringify(aboutHistoryTitle)
+                      );
                       formData.append(
                         "aboutHistory",
-                        JSON.stringify(newHistory)
+                        JSON.stringify(aboutHistory)
                       );
-
-                      newHistory.forEach((item, i) => {
-                        if (item.imageFile instanceof File) {
+                      aboutHistory.forEach((item, i) => {
+                        if (item.imageFile) {
                           formData.append(`historyImage${i}`, item.imageFile);
                         }
                       });
 
                       const res = await updateAboutPage(formData);
-                      if (res.data?.about?.aboutHistory) {
-                        setAboutHistory(res.data.about.aboutHistory);
-                        localStorage.removeItem("aboutHistory");
+                      if (res.data?.about?.aboutHistorySection) {
+                        setAboutHistory(
+                          res.data.about.aboutHistorySection.aboutHistory
+                        );
+                        setAboutHistoryTitle(
+                          res.data.about.aboutHistorySection.aboutHistoryTitle
+                        );
                         CommonToaster(
-                          activeTabLang === "vi"
-                            ? "Xóa lịch sử thành công!"
-                            : "History item removed successfully!",
+                          isVietnamese
+                            ? "Lưu lịch sử thành công!"
+                            : "History saved successfully!",
                           "success"
                         );
                       } else {
                         CommonToaster(
-                          activeTabLang === "vi"
-                            ? "Xóa lịch sử thất bại!"
-                            : "Failed to remove history item",
+                          isVietnamese
+                            ? "Không thể lưu lịch sử!"
+                            : "Failed to save history",
                           "error"
                         );
                       }
-                    } catch (err) {
-                      CommonToaster(
-                        "Error",
-                        err.message || "Something went wrong!"
-                      );
-                    }
-                  }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    backgroundColor: "#E50000",
-                    color: "#fff",
-                    border: "none",
-                    padding: "22px 30px",
-                    borderRadius: "9999px",
-                    fontWeight: "600",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  <Trash2 size={15} />
-                  {translations[activeTabLang].removeHistory}
-                </Button>
-              </div>
-            </div>
-          ))}
-
-          <div className="flex justify-between mt-6">
-            {/* ➕ Add History */}
-            <Button
-              onClick={() =>
-                setAboutHistory([
-                  ...aboutHistory,
-                  {
-                    year: "",
-                    content: { en: "", vi: "" },
-                    image: "",
-                    imageFile: null,
-                  },
-                ])
-              }
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                backgroundColor: "#0284C7",
-                color: "#fff",
-                border: "none",
-                padding: "22px 30px",
-                borderRadius: "9999px",
-                fontWeight: "600",
-                fontSize: "14px",
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: "18px", height: "18px" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              {translations[activeTabLang].addHistory}
-            </Button>
-
-            {/* 💾 Save History */}
-            <Button
-              type="primary"
-              onClick={async () => {
-                const formData = new FormData();
-                formData.append("aboutHistory", JSON.stringify(aboutHistory));
-
-                aboutHistory.forEach((item, i) => {
-                  if (item.imageFile) {
-                    formData.append(`historyImage${i}`, item.imageFile);
-                  }
-                });
-
-                const res = await updateAboutPage(formData);
-                if (res.data?.about?.aboutHistory) {
-                  setAboutHistory(res.data.about.aboutHistory);
-                  localStorage.removeItem("aboutHistory");
-                  CommonToaster(
-                    activeTabLang === "vi"
-                      ? "Lưu lịch sử thành công!"
-                      : "History saved successfully!",
-                    "success"
-                  );
-                } else {
-                  CommonToaster(
-                    activeTabLang === "vi"
-                      ? "Không thể lưu lịch sử!"
-                      : "Failed to save history",
-                    "error"
-                  );
-                }
-              }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                backgroundColor: "#10B981",
-                color: "#fff",
-                border: "none",
-                padding: "22px 30px",
-                borderRadius: "9999px",
-                fontWeight: "600",
-                fontSize: "14px",
-              }}
-            >
-              {translations[activeTabLang].saveHistory}
-            </Button>
-          </div>
+                    }}
+                    style={{
+                      backgroundColor: "#10B981",
+                      color: "#fff",
+                      borderRadius: "9999px",
+                      padding: "18px 28px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {translations[activeTabLang].saveHistory}
+                  </Button>
+                </div>
+              </TabPane>
+            ))}
+          </Tabs>
         </Panel>
+
 {/* 🧑‍🤝‍🧑 TEAM */}
 <Panel
   header={
@@ -2523,395 +2566,359 @@ const handleRemoveTeam = async (teamKey) => {
   key="7"
 >
   {/* 🌐 Language Tabs */}
-  <Tabs activeKey={activeTabLang} onChange={setActiveTabLang} className="pill-tabs mb-6">
-    <TabPane tab="English (EN)" key="en" />
-    <TabPane tab="Tiếng Việt (VN)" key="vi" />
-  </Tabs>
-
-  {/* Add New Team Button */}
-  <div className="flex justify-between items-center mb-6">
-    <h3 className="text-white text-base font-semibold">
-      {activeTabLang === "vi" ? "Nhóm" : "Teams"}
-    </h3>
-    <Button
-      onClick={() => setIsAddTeamModalVisible(true)}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "8px",
-        backgroundColor: "#262626",
-        color: "#fff",
-        border: "1px solid #2E2F2F",
-        padding: "22px 30px",
-        borderRadius: "9999px",
-        fontWeight: "500",
-        fontSize: "14px",
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-        marginTop:"20px"
-      }}
-    >
-      <Plus size={16} />
-      {activeTabLang === "vi" ? "Thêm Nhóm Mới" : "Add New Team"}
-    </Button>
-  </div>
-
-  {/* Tabs for Each Team */}
   <Tabs
-    defaultActiveKey={Object.keys(aboutTeam?.dynamicTeams || aboutTeam || {})[0]}
-    className="mb-6 pill-tabs"
+    activeKey={activeTabLang}
+    onChange={setActiveTabLang}
+    className="pill-tabs mb-6"
   >
-    {Object.entries(aboutTeam?.dynamicTeams || aboutTeam || {}).map(([teamKey, teamData]) => {
-      const teamMembers = Array.isArray(teamData?.members)
-        ? teamData.members
-        : Array.isArray(teamData)
-        ? teamData
-        : [];
+    {["en", "vi"].map((lang) => (
+      <TabPane
+        tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+        key={lang}
+      >
+        {/* TEAM INTRO */}
+        <div className="mb-8">
+          <h3 className="text-white text-lg font-semibold mb-4">
+            {lang === "en" ? "Team Section Intro" : "Phần Giới Thiệu Đội Ngũ"}
+          </h3>
 
-      const teamLabel =
-        teamData?.teamLabel?.[activeTabLang] ||
-        teamData?.teamLabel?.en ||
-        teamKey.replace(/_/g, " ");
-
-      return (
-        <TabPane
-          tab={
-            <div className="flex items-center gap-2">
-              <span>{teamLabel}</span>
-              <Trash2
-                size={16}
-                className="cursor-pointer text-red-500 hover:text-red-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveTeam(teamKey);
-                }}
-              />
-            </div>
-          }
-          key={teamKey}
-          className="mt-4"
-        >
-          {teamMembers.map((member, idx) => (
-            <div key={idx} className="mb-6 rounded-lg text-white">
-              {/* 🧍 Name */}
-              <label className="block font-medium mt-5 mb-3">
-                {translations[activeTabLang].name}
-              </label>
-              <Input
-                style={{
-                  backgroundColor: "#262626",
-                  border: "1px solid #2E2F2F",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  padding: "10px 14px",
-                  fontSize: "14px",
-                }}
-                value={member.teamName?.[activeTabLang] || ""}
-                onChange={(e) => {
-                  const updated = [...teamMembers];
-                  updated[idx] = {
-                    ...member,
-                    teamName: {
-                      ...member.teamName,
-                      [activeTabLang]: e.target.value,
-                    },
-                  };
-
-                  const newTeams = {
-                    ...(aboutTeam?.dynamicTeams || aboutTeam),
-                    [teamKey]: { ...teamData, members: updated },
-                  };
-
-                  setAboutTeam(
-                    aboutTeam?.dynamicTeams
-                      ? { dynamicTeams: newTeams }
-                      : newTeams
-                  );
-                }}
-              />
-
-              {/* 💼 Designation */}
-              <label className="block font-medium mt-5 mb-3">
-                {translations[activeTabLang].designation}
-              </label>
-              <Input
-                style={{
-                  backgroundColor: "#262626",
-                  border: "1px solid #2E2F2F",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  padding: "10px 14px",
-                  fontSize: "14px",
-                }}
-                value={member.teamDesgn?.[activeTabLang] || ""}
-                onChange={(e) => {
-                  const updated = [...teamMembers];
-                  updated[idx] = {
-                    ...member,
-                    teamDesgn: {
-                      ...member.teamDesgn,
-                      [activeTabLang]: e.target.value,
-                    },
-                  };
-
-                  const newTeams = {
-                    ...(aboutTeam?.dynamicTeams || aboutTeam),
-                    [teamKey]: { ...teamData, members: updated },
-                  };
-
-                  setAboutTeam(
-                    aboutTeam?.dynamicTeams
-                      ? { dynamicTeams: newTeams }
-                      : newTeams
-                  );
-                }}
-              />
-
-              {/* 📧 Email */}
-              <label className="block font-medium mt-5 mb-3">
-                {translations[activeTabLang].email}
-              </label>
-              <Input
-                style={{
-                  backgroundColor: "#262626",
-                  border: "1px solid #2E2F2F",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  padding: "10px 14px",
-                  fontSize: "14px",
-                }}
-                value={member.teamEmail || ""}
-                onChange={(e) => {
-                  const updated = [...teamMembers];
-                  updated[idx] = { ...member, teamEmail: e.target.value };
-
-                  const newTeams = {
-                    ...(aboutTeam?.dynamicTeams || aboutTeam),
-                    [teamKey]: { ...teamData, members: updated },
-                  };
-
-                  setAboutTeam(
-                    aboutTeam?.dynamicTeams
-                      ? { dynamicTeams: newTeams }
-                      : newTeams
-                  );
-                }}
-              />
-
-              {/* 🗑 Remove Member */}
-              <Button
-                onClick={async () => {
-                  try {
-                    const updatedList = teamMembers.filter((_, i) => i !== idx);
-                    const newTeams = {
-                      ...(aboutTeam?.dynamicTeams || aboutTeam),
-                      [teamKey]: { ...teamData, members: updatedList },
-                    };
-
-                    setAboutTeam(
-                      aboutTeam?.dynamicTeams
-                        ? { dynamicTeams: newTeams }
-                        : newTeams
-                    );
-
-                    const formData = new FormData();
-                    formData.append(
-                      "aboutTeam",
-                      JSON.stringify(
-                        aboutTeam?.dynamicTeams
-                          ? { dynamicTeams: newTeams }
-                          : newTeams
-                      )
-                    );
-
-                    await updateAboutPage(formData);
-
-                    CommonToaster(
-                      activeTabLang === "vi"
-                        ? "Xóa thành viên thành công!"
-                        : "Team member removed successfully!",
-                      "success"
-                    );
-                  } catch (err) {
-                    CommonToaster("Error", err.message || "Something went wrong!");
-                  }
-                }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  backgroundColor: "#E50000",
-                  border: "1px solid #E50000",
-                  color: "#fff",
-                  padding: "22px 30px",
-                  borderRadius: "9999px",
-                  fontWeight: "500",
-                  marginTop: "12px",
-                }}
-              >
-                <Trash2 size={16} />
-                {translations[activeTabLang].removeMember}
-              </Button>
-            </div>
-          ))}
-
-          {/* ➕ Add Member */}
-          <Button
-            onClick={() => {
-              const newMember = {
-                teamName: { en: "", vi: "" },
-                teamDesgn: { en: "", vi: "" },
-                teamEmail: "",
-              };
-              const updatedList = [...teamMembers, newMember];
-              const newTeams = {
-                ...(aboutTeam?.dynamicTeams || aboutTeam),
-                [teamKey]: { ...teamData, members: updatedList },
-              };
-              setAboutTeam(
-                aboutTeam?.dynamicTeams
-                  ? { dynamicTeams: newTeams }
-                  : newTeams
-              );
-            }}
+          {/* Tag */}
+          <label className="block font-medium mb-2 text-white">
+            {lang === "en" ? "Small Tag" : "Thẻ tiêu đề nhỏ"}
+          </label>
+          <Input
+            value={aboutTeamIntro?.tag?.[lang] || ""}
+            onChange={(e) =>
+              setAboutTeamIntro((prev) => ({
+                ...prev,
+                tag: { ...prev.tag, [lang]: e.target.value },
+              }))
+            }
+            placeholder={lang === "en" ? "Our People" : "Đội ngũ của chúng tôi"}
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
               backgroundColor: "#262626",
-              color: "#fff",
               border: "1px solid #2E2F2F",
-              padding: "22px 30px",
-              borderRadius: "9999px",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "10px 14px",
+            }}
+            className="!placeholder-gray-400"
+          />
+
+          {/* Heading */}
+          <label className="block font-medium mt-5 mb-2 text-white">
+            {lang === "en" ? "Main Heading" : "Tiêu đề chính"}
+          </label>
+          <Input
+            value={aboutTeamIntro?.heading?.[lang] || ""}
+            onChange={(e) =>
+              setAboutTeamIntro((prev) => ({
+                ...prev,
+                heading: { ...prev.heading, [lang]: e.target.value },
+              }))
+            }
+            placeholder={
+              lang === "en" ? "Meet Our Team" : "Gặp gỡ đội ngũ của chúng tôi"
+            }
+            style={{
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "10px 14px",
+            }}
+            className="!placeholder-gray-400"
+          />
+
+          {/* Description */}
+          <label className="block font-medium mt-5 mb-2 text-white">
+            {lang === "en" ? "Description" : "Mô tả"}
+          </label>
+          <Input.TextArea
+            rows={4}
+            value={aboutTeamIntro?.description?.[lang] || ""}
+            onChange={(e) =>
+              setAboutTeamIntro((prev) => ({
+                ...prev,
+                description: {
+                  ...prev.description,
+                  [lang]: e.target.value,
+                },
+              }))
+            }
+            placeholder={
+              lang === "en"
+                ? "Our experienced professionals combine deep textile knowledge..."
+                : "Các chuyên gia của chúng tôi kết hợp kiến thức sâu rộng..."
+            }
+            style={{
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "10px 14px",
+            }}
+            className="!placeholder-gray-400"
+          />
+        </div>
+
+        {/* TEAM LIST HEADER */}
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-white text-lg font-semibold">
+            {lang === "en" ? "Team Groups" : "Nhóm Đội Ngũ"}
+          </h3>
+          <Button
+            type="primary"
+            onClick={() => setIsAddTeamModalVisible(true)}
+            style={{
+              backgroundColor: "#0284C7",
+              borderRadius: "999px",
               fontWeight: "500",
-              fontSize: "14px",
+              padding: "12px 24px",
             }}
           >
-            <Plus size={16} />
-            {translations[activeTabLang].addMember}
+            {lang === "en" ? "Add Team" : "Thêm Nhóm"}
           </Button>
-        </TabPane>
-      );
-    })}
+        </div>
+
+        {/* ✅ List of Teams */}
+        <Tabs
+          className="mb-6 pill-tabs"
+          defaultActiveKey={Object.keys(aboutTeam || {})[0]}
+        >
+          {Object.entries(aboutTeam || {}).map(([teamKey, teamData]) => (
+            <TabPane
+              key={teamKey}
+              tab={
+                <div className="flex items-center gap-2">
+                  <span>{teamData.teamLabel?.[lang] || "Untitled Team"}</span>
+                  <Trash2
+                    size={16}
+                    className="cursor-pointer text-red-500 hover:text-red-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveTeam(teamKey);
+                    }}
+                  />
+                </div>
+              }
+            >
+              {/* Existing Members */}
+              {(teamData.members || []).map((member, idx) => (
+                <div key={idx} className="mb-6 text-white border-b pb-4">
+                  <label className="block font-medium mt-5 mb-2">
+                    {lang === "en" ? "Name" : "Tên"}
+                  </label>
+                  <Input
+                    value={member.teamName?.[lang] || ""}
+                    onChange={(e) => {
+                      const updated = [...teamData.members];
+                      updated[idx] = {
+                        ...member,
+                        teamName: {
+                          ...member.teamName,
+                          [lang]: e.target.value,
+                        },
+                      };
+                      setAboutTeam((prev) => ({
+                        ...prev,
+                        [teamKey]: { ...teamData, members: updated },
+                      }));
+                    }}
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                  />
+
+                  <label className="block font-medium mt-5 mb-2">
+                    {lang === "en" ? "Designation" : "Chức danh"}
+                  </label>
+                  <Input
+                    value={member.teamDesgn?.[lang] || ""}
+                    onChange={(e) => {
+                      const updated = [...teamData.members];
+                      updated[idx] = {
+                        ...member,
+                        teamDesgn: {
+                          ...member.teamDesgn,
+                          [lang]: e.target.value,
+                        },
+                      };
+                      setAboutTeam((prev) => ({
+                        ...prev,
+                        [teamKey]: { ...teamData, members: updated },
+                      }));
+                    }}
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                  />
+
+                  <label className="block font-medium mt-5 mb-2">Email</label>
+                  <Input
+                    value={member.teamEmail || ""}
+                    onChange={(e) => {
+                      const updated = [...teamData.members];
+                      updated[idx] = {
+                        ...member,
+                        teamEmail: e.target.value,
+                      };
+                      setAboutTeam((prev) => ({
+                        ...prev,
+                        [teamKey]: { ...teamData, members: updated },
+                      }));
+                    }}
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                  />
+
+                  <Button
+                    danger
+                    onClick={() => {
+                      const updated = teamData.members.filter(
+                        (_, i) => i !== idx
+                      );
+                      setAboutTeam((prev) => ({
+                        ...prev,
+                        [teamKey]: { ...teamData, members: updated },
+                      }));
+                    }}
+                    style={{
+                      backgroundColor: "#FB2C36",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "9999px",
+                      padding: "10px 24px",
+                      marginTop: "20px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    <Trash2 size={16} />
+                    {lang === "en" ? "Remove Member" : "Xóa thành viên"}
+                  </Button>
+                </div>
+              ))}
+
+              {/* ➕ Add Member Inline */}
+              <Button
+                type="dashed"
+                onClick={() => handleAddMemberInline(teamKey)}
+                block
+                style={{
+                  backgroundColor: "#0284C7",
+                  border: "1px solid #333",
+                  color: "#fff",
+                  padding: "18px 24px",
+                  borderRadius: "9999px",
+                  fontWeight: "500",
+                  marginTop: "20px",
+                  width: "fit-content",
+                }}
+              >
+                <Plus /> {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
+              </Button>
+            </TabPane>
+          ))}
+        </Tabs>
+      </TabPane>
+    ))}
   </Tabs>
 
-  {/* ➕ Add New Team Modal */}
+  {/* 🧩 Add Team Modal */}
   <Modal
-    title={activeTabLang === "vi" ? "Thêm Nhóm Mới" : "Add New Team"}
     open={isAddTeamModalVisible}
     onCancel={() => setIsAddTeamModalVisible(false)}
-    footer={[
+    footer={null}
+    centered
+    width={450}
+    bodyStyle={{
+      background: "#1a1a1a",
+      borderRadius: "10px",
+      padding: "24px",
+    }}
+  >
+    <h3 className="text-white text-lg font-semibold mb-4">
+      {isVietnamese ? "Thêm Nhóm Mới" : "Add New Team"}
+    </h3>
+
+    {/* English Input */}
+    <label className="block font-medium mb-2 text-white">Team Title (EN)</label>
+    <Input
+      value={newTeamName.en}
+      onChange={(e) =>
+        setNewTeamName((prev) => ({ ...prev, en: e.target.value }))
+      }
+      placeholder="Enter English team title"
+      style={{
+        backgroundColor: "#262626",
+        border: "1px solid #2E2F2F",
+        borderRadius: "8px",
+        color: "#fff",
+        padding: "10px 14px",
+        marginBottom: "16px",
+      }}
+    />
+
+    {/* Vietnamese Input */}
+    <label className="block font-medium mb-2 text-white">Team Title (VI)</label>
+    <Input
+      value={newTeamName.vi}
+      onChange={(e) =>
+        setNewTeamName((prev) => ({ ...prev, vi: e.target.value }))
+      }
+      placeholder="Nhập tên nhóm (Tiếng Việt)"
+      style={{
+        backgroundColor: "#262626",
+        border: "1px solid #2E2F2F",
+        borderRadius: "8px",
+        color: "#fff",
+        padding: "10px 14px",
+      }}
+    />
+
+    {/* Footer Buttons */}
+    <div className="flex justify-end gap-3 mt-6">
       <Button
-        key="cancel"
         onClick={() => setIsAddTeamModalVisible(false)}
         style={{
-          border: "none",
+          backgroundColor: "transparent",
           color: "#fff",
-          borderRadius: "20px",
-          padding: "18px 30px",
-          fontSize: "18px",
-          backgroundColor: "#262626",
+          border: "1px solid #333",
+          padding: "10px 24px",
+          borderRadius: "9999px",
         }}
       >
-        {translations[activeTabLang].cancel}
-      </Button>,
+        Cancel
+      </Button>
       <Button
-        key="add"
         type="primary"
-        onClick={handleAddTeam}
         style={{
           backgroundColor: "#0284C7",
           border: "none",
           color: "#fff",
-          borderRadius: "20px",
-          padding: "18px 30px",
-          fontSize: "18px",
+          padding: "10px 24px",
+          borderRadius: "9999px",
         }}
+        onClick={handleAddTeam}
       >
-        {translations[activeTabLang].add}
-      </Button>,
-    ]}
-  >
-    <div className="space-y-4">
-      <div>
-        <label className="block font-medium mb-2 text-white">
-          English Team Name
-        </label>
-        <Input
-          placeholder="Enter team name in English (e.g., Design Team)"
-          value={newTeamName.en || ""}
-          onChange={(e) =>
-            setNewTeamName((prev) => ({ ...prev, en: e.target.value }))
-          }
-          style={{
-            backgroundColor: "#262626",
-            border: "1px solid #2E2F2F",
-            borderRadius: "8px",
-            color: "#fff",
-            padding: "10px 14px",
-          }}
-        />
-      </div>
-
-      <div>
-        <label className="block font-medium mb-2 text-white">
-          Tên Nhóm (Tiếng Việt)
-        </label>
-        <Input
-          placeholder="Nhập tên nhóm bằng Tiếng Việt (ví dụ: Đội Thiết Kế)"
-          value={newTeamName.vi || ""}
-          onChange={(e) =>
-            setNewTeamName((prev) => ({ ...prev, vi: e.target.value }))
-          }
-          style={{
-            backgroundColor: "#262626",
-            border: "1px solid #2E2F2F",
-            borderRadius: "8px",
-            color: "#fff",
-            padding: "10px 14px",
-          }}
-        />
-      </div>
+        {isVietnamese ? "Thêm Nhóm" : "Add Team"}
+      </Button>
     </div>
   </Modal>
-
-  {/* Footer Buttons */}
-  <div className="flex justify-end gap-4 mt-6">
-    <Button
-      onClick={() => window.location.reload()}
-      style={{
-        backgroundColor: "transparent",
-        color: "#fff",
-        border: "1px solid #333",
-        padding: "22px 30px",
-        borderRadius: "9999px",
-        fontWeight: "500",
-      }}
-    >
-      {translations[activeTabLang].cancel}
-    </Button>
-
-    <Button
-      onClick={() => handleSave("aboutTeam", aboutTeam)}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "8px",
-        backgroundColor: "#0284C7",
-        color: "#fff",
-        border: "none",
-        padding: "22px 30px",
-        borderRadius: "9999px",
-        fontWeight: "500",
-      }}
-    >
-      {translations[activeTabLang].saveTeam}
-    </Button>
-  </div>
 </Panel>
-
 
 
         {/* ALLIANCES */}
@@ -2934,6 +2941,36 @@ const handleRemoveTeam = async (teamKey) => {
                 tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
                 key={lang}
               >
+                {/* --- MAIN TITLE --- */}
+                <label className="block font-bold mt-3 mb-2">
+                  {lang === "vi" ? "Tiêu đề chính" : "Main Title"}
+                </label>
+                <Input
+                  value={aboutAlliances.aboutAlliancesTitle?.[lang] || ""}
+                  onChange={(e) =>
+                    setAboutAlliances((prev) => ({
+                      ...prev,
+                      aboutAlliancesTitle: {
+                        ...prev.aboutAlliancesTitle,
+                        [lang]: e.target.value,
+                      },
+                    }))
+                  }
+                  placeholder={
+                    lang === "vi"
+                      ? "Nhập tiêu đề cho phần Liên minh"
+                      : "Enter main title for Alliances section"
+                  }
+                  style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                  }}
+                  className="!placeholder-gray-400"
+                />
+
                 <label className="block font-bold mt-5 mb-3">
                   {lang === "vi" ? "Logo liên minh" : "Alliance Logos"}
                 </label>
@@ -2943,14 +2980,32 @@ const handleRemoveTeam = async (teamKey) => {
 
                 {/* --- Alliance Logos Grid --- */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
-                  {/* Saved from DB */}
-                  {(aboutAlliances.aboutAlliancesImg || []).map((url, idx) => (
+                  {/* Combine both saved + new previews safely */}
+                  {[
+                    ...(aboutAlliances.aboutAlliancesImg || []).map(
+                      (url, index) => ({
+                        type: "saved",
+                        src: getFullUrl(url),
+                        index,
+                      })
+                    ),
+                    ...(aboutAlliances.aboutAlliancesFiles || [])
+                      .filter((f) => f instanceof File || f instanceof Blob)
+                      .map((file, index) => ({
+                        type: "new",
+                        src: URL.createObjectURL(file),
+                        file,
+                        index:
+                          (aboutAlliances.aboutAlliancesImg?.length || 0) +
+                          index,
+                      })),
+                  ].map((item, idx) => (
                     <div
-                      key={`saved-${idx}`}
+                      key={idx}
                       className="relative group w-full h-32 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center"
                     >
                       <img
-                        src={getFullUrl(url)}
+                        src={item.src}
                         alt={`Alliance ${idx + 1}`}
                         className="w-full h-full object-contain p-2"
                       />
@@ -2959,7 +3014,10 @@ const handleRemoveTeam = async (teamKey) => {
                       <button
                         type="button"
                         onClick={() =>
-                          setActiveAllianceModal({ type: "saved", index: idx })
+                          setActiveAllianceModal({
+                            type: item.type,
+                            index: item.index,
+                          })
                         }
                         className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
                         title={lang === "vi" ? "Xem logo" : "View Full"}
@@ -2981,80 +3039,90 @@ const handleRemoveTeam = async (teamKey) => {
                         </svg>
                       </button>
 
-                      {/* 🔁 Change */}
+                      {/* 🔁 Change (now works for BOTH new + saved) */}
                       <label
                         htmlFor={`changeAllianceUpload-${idx}`}
-                        className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
+                        className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 !text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
                         title={lang === "vi" ? "Thay đổi logo" : "Change Logo"}
                       >
                         <input
                           id={`changeAllianceUpload-${idx}`}
                           type="file"
                           accept="image/*"
-                          onChange={async (e) => {
-                            const file = e.target.files[0];
+                          style={{ display: "none" }}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
                             if (!file) return;
                             if (!validateFileSize(file)) return;
 
-                            const formData = new FormData();
-                            formData.append("aboutAlliancesFiles", file);
-
-                            const updated = [
-                              ...aboutAlliances.aboutAlliancesImg,
+                            const updatedFiles = [
+                              ...(aboutAlliances.aboutAlliancesFiles || []),
+                              file,
                             ];
-                            updated[idx] = "";
 
-                            const res = await updateAboutPage(formData);
-                            if (res.data?.uploadedFiles?.length) {
-                              updated[idx] = res.data.uploadedFiles[0];
-                              setAboutAlliances({
-                                ...aboutAlliances,
-                                aboutAlliancesImg: [...updated],
-                              });
-                              CommonToaster(
-                                lang === "vi"
-                                  ? "Đã thay đổi logo thành công!"
-                                  : "Logo changed successfully!",
-                                "success"
-                              );
-                            }
+                            // if saved image -> mark replaced
+                            const updatedImages = [
+                              ...(aboutAlliances.aboutAlliancesImg || []),
+                            ];
+                            if (item.type === "saved")
+                              updatedImages[item.index] = "";
+
+                            setAboutAlliances((prev) => ({
+                              ...prev,
+                              aboutAlliancesImg: updatedImages,
+                              aboutAlliancesFiles: updatedFiles,
+                            }));
+
+                            CommonToaster(
+                              lang === "vi"
+                                ? "Đã thay đổi logo, bấm Lưu để cập nhật!"
+                                : "Logo replaced, click Save to update!",
+                              "success"
+                            );
                           }}
-                          style={{ display: "none" }}
                         />
-                        <RotateCw size={15} />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="2"
+                          stroke="currentColor"
+                          className="w-4 h-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4 4v5h.582M20 20v-5h-.581M4 9.582A7.97 7.97 0 0 1 12 4a7.972 7.972 0 0 1 7.418 5M4 14.418A7.972 7.972 0 0 0 12 20a7.972 7.972 0 0 0 7.418-5"
+                          />
+                        </svg>
                       </label>
 
                       {/* ❌ Remove */}
                       <button
                         type="button"
-                        onClick={async () => {
-                          const updatedList =
-                            aboutAlliances.aboutAlliancesImg.filter(
-                              (_, i) => i !== idx
-                            );
-
-                          const formData = new FormData();
-                          formData.append(
-                            "aboutAlliances",
-                            JSON.stringify({ aboutAlliancesImg: updatedList })
-                          );
-
-                          const res = await updateAboutPage(formData);
-                          if (res.data?.about?.aboutAlliances) {
+                        onClick={() => {
+                          if (item.type === "saved") {
+                            const updated =
+                              aboutAlliances.aboutAlliancesImg.filter(
+                                (_, i) => i !== item.index
+                              );
                             setAboutAlliances((prev) => ({
                               ...prev,
-                              aboutAlliancesImg: [...updatedList],
+                              aboutAlliancesImg: updated,
                             }));
-                            localStorage.removeItem("aboutAlliances");
-                            CommonToaster(
-                              lang === "vi"
-                                ? "Đã xóa liên minh thành công!"
-                                : "Alliance removed successfully!",
-                              "success"
-                            );
+                          } else {
+                            const updatedFiles =
+                              aboutAlliances.aboutAlliancesFiles.filter(
+                                (f) => f !== item.file
+                              );
+                            setAboutAlliances((prev) => ({
+                              ...prev,
+                              aboutAlliancesFiles: updatedFiles,
+                            }));
+                            URL.revokeObjectURL(item.src);
                           }
                         }}
-                        className="absolute top-1 right-1 bg-black/70 !text-white p-1 rounded-full cursor-pointer transition"
+                        className="absolute top-1 right-1 bg-black/70 !text-white p-1 rounded-full cursor-pointer transition opacity-0 group-hover:opacity-100"
                         title={lang === "vi" ? "Xóa logo" : "Remove Logo"}
                       >
                         <svg
@@ -3074,86 +3142,6 @@ const handleRemoveTeam = async (teamKey) => {
                       </button>
                     </div>
                   ))}
-
-                  {/* Unsaved Local Files */}
-                  {(aboutAlliances.aboutAlliancesFiles || []).map(
-                    (file, idx) => (
-                      <div
-                        key={`new-${idx}`}
-                        className="relative group w-full h-32 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center"
-                      >
-                        {file instanceof File ? (
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt={`Alliance new ${idx + 1}`}
-                            className="w-full h-full object-contain p-2"
-                          />
-                        ) : (
-                          <p className="text-xs text-red-500">Invalid file</p>
-                        )}
-
-                        {/* 👁 View */}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setActiveAllianceModal({ type: "new", index: idx })
-                          }
-                          className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                          title={lang === "vi" ? "Xem logo" : "View Full"}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2}
-                            stroke="currentColor"
-                            className="w-4 h-4"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                            <circle cx="12" cy="12" r="3" />
-                          </svg>
-                        </button>
-
-                        {/* ❌ Remove */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updatedFiles =
-                              aboutAlliances.aboutAlliancesFiles.filter(
-                                (_, i) => i !== idx
-                              );
-                            if (file instanceof File)
-                              URL.revokeObjectURL(URL.createObjectURL(file));
-                            setAboutAlliances((prev) => ({
-                              ...prev,
-                              aboutAlliancesFiles: [...updatedFiles],
-                            }));
-                          }}
-                          className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
-                          title={lang === "vi" ? "Xóa logo" : "Remove"}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            className="w-4 h-4"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    )
-                  )}
 
                   {/* Upload Box */}
                   <label
@@ -3197,16 +3185,17 @@ const handleRemoveTeam = async (teamKey) => {
                           "error"
                         );
                       }
-                      setAboutAlliances({
-                        ...aboutAlliances,
+                      setAboutAlliances((prev) => ({
+                        ...prev,
                         aboutAlliancesFiles: [
-                          ...(aboutAlliances.aboutAlliancesFiles || []),
+                          ...(prev.aboutAlliancesFiles || []),
                           ...validFiles,
                         ],
-                      });
+                      }));
                     }}
                   />
                 </div>
+
                 {/* 🖼 Full Preview Modal */}
                 <Modal
                   open={!!activeAllianceModal}
@@ -3265,12 +3254,18 @@ const handleRemoveTeam = async (teamKey) => {
                 formData.append(
                   "aboutAlliances",
                   JSON.stringify({
+                    aboutAlliancesTitle: aboutAlliances.aboutAlliancesTitle || {
+                      en: "",
+                      vi: "",
+                    },
                     aboutAlliancesImg: aboutAlliances.aboutAlliancesImg,
                   })
                 );
                 (aboutAlliances.aboutAlliancesFiles || []).forEach((file) =>
                   formData.append("aboutAlliancesFiles", file)
                 );
+                formData.append("section", "aboutAlliances");
+
                 const res = await updateAboutPage(formData);
                 if (res.data?.about?.aboutAlliances) {
                   setAboutAlliances({
@@ -3361,7 +3356,7 @@ const handleRemoveTeam = async (teamKey) => {
                   {lang === "vi" ? "Mô tả Meta" : "Meta Description"}
                 </label>
                 <Input.TextArea
-                className="!placeholder-gray-400"
+                  className="!placeholder-gray-400"
                   rows={3}
                   placeholder={
                     lang === "vi"

@@ -1,18 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { Cpu, Plus, Edit2, Trash2 } from "lucide-react"; // 🔹 removed Eye, added Trash2
-import { Modal, Button, Spin, Tag, Popconfirm, message } from "antd"; // 🔹 added Popconfirm + message
+import { Cpu, Plus, Edit2, Trash2 } from "lucide-react";
+import { Modal, Button, Spin, Tag, Popconfirm, message } from "antd";
 import MachineCategoryCreate from "../components/forms/MachineCategoryCreate";
 import MachineCategoryEdit from "../components/forms/MachineCategoryEdit";
-import { getMachineCategories, deleteMachineCategory } from "../Api/api"; // 🔹 import delete API
+import { getMachineCategories, deleteMachineCategory } from "../Api/api";
 
 const MachineCategoriesScreen = () => {
-  const [activeLanguage, setActiveLanguage] = useState("en");
+  const [isVietnamese, setIsVietnamese] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // ✅ Detect language mode (linked to TranslateToggle)
+  useEffect(() => {
+    const checkLang = () =>
+      setIsVietnamese(document.body.classList.contains("vi-mode"));
+    checkLang();
+    const observer = new MutationObserver(checkLang);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   // ✅ Fetch categories
   const fetchCategories = async () => {
@@ -31,11 +44,19 @@ const MachineCategoriesScreen = () => {
   const handleDelete = async (id) => {
     try {
       await deleteMachineCategory(id);
-      message.success("Machine category deleted successfully");
+      message.success(
+        isVietnamese
+          ? "Xóa danh mục máy thành công ✅"
+          : "Machine category deleted successfully ✅"
+      );
       fetchCategories();
     } catch (err) {
       console.error("Delete category error:", err);
-      message.error("Failed to delete category");
+      message.error(
+        isVietnamese
+          ? "Xóa danh mục máy thất bại ❌"
+          : "Failed to delete category ❌"
+      );
     }
   };
 
@@ -43,79 +64,112 @@ const MachineCategoriesScreen = () => {
     fetchCategories();
   }, []);
 
+  const lang = {
+    title: isVietnamese ? "Danh Mục Máy" : "Machine Categories",
+    add: isVietnamese ? "Thêm Danh Mục Máy" : "Add Machine Category",
+    edit: isVietnamese ? "Chỉnh sửa" : "Edit",
+    delete: isVietnamese ? "Xóa" : "Delete",
+    confirmDelete: isVietnamese
+      ? "Bạn có chắc muốn xóa danh mục này không?"
+      : "Are you sure you want to delete this category?",
+    yes: isVietnamese ? "Có" : "Yes",
+    no: isVietnamese ? "Không" : "No",
+    createTitle: isVietnamese ? "Tạo Danh Mục Máy" : "Create Machine Category",
+    editTitle: isVietnamese
+      ? "Chỉnh Sửa Danh Mục Máy"
+      : "Edit Machine Category",
+    loading: isVietnamese ? "Đang tải..." : "Loading...",
+    noCats: isVietnamese ? "Không có danh mục nào" : "No categories found",
+  };
+
   return (
     <div>
       {/* Page Header */}
-      <div className="mb-6 p-6 bg-[#171717] dark:bg-gray-800 rounded-lg shadow-sm border border-[#2E2F2F] dark:border-gray-700">
-        <div className="mt-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white">Machine Categories</h1>
-          <Button
-            icon={<Plus size={16} />}
-            onClick={() => setIsCreateModalOpen(true)}
-            style={{
-              backgroundColor: "#0085C8",
-              border: "none",
-              borderRadius: "2rem",
-              color: "#fff",
-              fontWeight: "500",
-              padding: "22px",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              transition: "all 0.3s ease",
-            }}
-            onMouseOver={(e) =>
-              (e.currentTarget.style.backgroundColor = "#009FE3")
-            }
-            onMouseOut={(e) =>
-              (e.currentTarget.style.backgroundColor = "#0085C8")
-            }
-          >
-            Add Machine Category
-          </Button>
-        </div>
+      <div className="mb-6 p-6 bg-[#171717] rounded-lg shadow-sm border border-[#2E2F2F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          {lang.title}
+        </h1>
+
+        <Button
+          icon={<Plus size={16} />}
+          onClick={() => setIsCreateModalOpen(true)}
+          style={{
+            backgroundColor: "#0085C8",
+            border: "none",
+            borderRadius: "2rem",
+            color: "#fff",
+            fontWeight: "500",
+            padding: "22px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            transition: "all 0.3s ease",
+          }}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.backgroundColor = "#009FE3")
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.backgroundColor = "#0085C8")
+          }
+        >
+          {lang.add}
+        </Button>
       </div>
 
       {/* Machine Categories List */}
       {loading ? (
-        <Spin size="large" />
+        <div className="flex justify-center items-center h-48">
+          <Spin size="large" />
+        </div>
+      ) : categories.length === 0 ? (
+        <p className="text-center text-gray-400">{lang.noCats}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category) => (
             <div
               key={category._id}
-              className="bg-[#171717] rounded-lg shadow-sm border border-[#2E2F2F] dark:border-gray-700 overflow-hidden hover:shadow-md dark:hover:shadow-indigo-500/10 transition-shadow transform hover:-translate-y-1 duration-200 group"
+              className="bg-[#171717] rounded-lg shadow-sm border border-[#2E2F2F] overflow-hidden hover:shadow-md transition-transform transform hover:-translate-y-1 duration-200 group"
             >
               <div className="h-48 overflow-hidden">
                 <img
-                  src={`http://localhost:5000${category.image}`}
-                  alt={category.name?.[activeLanguage] || ""}
+                  src={`${category.image}`}
+                  alt={
+                    isVietnamese
+                      ? category.name?.vi || ""
+                      : category.name?.en || ""
+                  }
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="p-5">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-medium text-white flex items-center">
-                    <Cpu size={20} className="mr-2 text-white" />
-                    {category.name?.[activeLanguage] || category.slug}
+                    {isVietnamese
+                      ? category.name?.vi || category.slug
+                      : category.name?.en || category.slug}
                   </h3>
                 </div>
 
                 {/* Parent Main Category */}
                 <p className="text-xs mb-2">
                   <Tag color="blue">
-                    {category.mainCategory?.name?.[activeLanguage] ||
-                      category.mainCategory?.slug}
+                    {isVietnamese
+                      ? category.mainCategory?.name?.vi ||
+                        category.mainCategory?.slug
+                      : category.mainCategory?.name?.en ||
+                        category.mainCategory?.slug}
                   </Tag>
                 </p>
 
                 <p className="text-sm text-white h-10">
-                  {category.description?.[activeLanguage] || ""}
+                  {isVietnamese
+                    ? category.description?.vi || ""
+                    : category.description?.en || ""}
                 </p>
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-3">
-                  {/* Edit Button */}
+                  {/* ✏️ Edit Button */}
                   <Button
                     size="small"
                     icon={<Edit2 size={14} />}
@@ -142,14 +196,14 @@ const MachineCategoriesScreen = () => {
                       (e.currentTarget.style.backgroundColor = "#0085C8")
                     }
                   >
-                    Edit
+                    {lang.edit}
                   </Button>
 
-                  {/* Delete Button */}
+                  {/* 🗑 Delete Button */}
                   <Popconfirm
-                    title="Are you sure you want to delete this category?"
-                    okText="Yes"
-                    cancelText="No"
+                    title={lang.confirmDelete}
+                    okText={lang.yes}
+                    cancelText={lang.no}
                     onConfirm={() => handleDelete(category._id)}
                   >
                     <Button
@@ -174,7 +228,7 @@ const MachineCategoriesScreen = () => {
                         (e.currentTarget.style.backgroundColor = "#E74C3C")
                       }
                     >
-                      Delete
+                      {lang.delete}
                     </Button>
                   </Popconfirm>
                 </div>
@@ -184,7 +238,7 @@ const MachineCategoriesScreen = () => {
         </div>
       )}
 
-      {/* Modal: Create */}
+      {/* 🟦 Create Machine Category Modal */}
       <Modal
         title={
           <h2
@@ -196,7 +250,7 @@ const MachineCategoriesScreen = () => {
               background: "#171717",
             }}
           >
-            Create Machine Category
+            {lang.createTitle}
           </h2>
         }
         open={isCreateModalOpen}
@@ -207,21 +261,22 @@ const MachineCategoriesScreen = () => {
           backgroundColor: "#171717",
           borderTop: "1px solid #2E2F2F",
         }}
-        style={{
-          backgroundColor: "#171717",
-          borderRadius: "12px",
-          overflow: "hidden",
-        }}
       >
         <MachineCategoryCreate
+          isVietnamese={isVietnamese} // 🔹 pass language state
           onSuccess={() => {
             fetchCategories();
             setIsCreateModalOpen(false);
+            message.success(
+              isVietnamese
+                ? "Danh mục máy đã được tạo thành công ✅"
+                : "Machine category created successfully ✅"
+            );
           }}
         />
       </Modal>
 
-      {/* Modal: Edit */}
+      {/* 🟩 Edit Machine Category Modal */}
       <Modal
         title={
           <h2
@@ -233,22 +288,36 @@ const MachineCategoriesScreen = () => {
               background: "#171717",
             }}
           >
-            Edit Machine Category
+            {lang.editTitle}
           </h2>
         }
         open={isEditModalOpen}
         footer={null}
         onCancel={() => setIsEditModalOpen(false)}
         destroyOnClose
+        bodyStyle={{
+          backgroundColor: "#171717",
+          borderTop: "1px solid #2E2F2F",
+        }}
       >
-        {selectedCategory && (
+        {selectedCategory ? (
           <MachineCategoryEdit
             category={selectedCategory}
+            isVietnamese={isVietnamese} // 🔹 pass language state
             onSuccess={() => {
               fetchCategories();
               setIsEditModalOpen(false);
+              message.success(
+                isVietnamese
+                  ? "Cập nhật danh mục máy thành công ✅"
+                  : "Machine category updated successfully ✅"
+              );
             }}
           />
+        ) : (
+          <div className="text-center text-gray-400 py-6">
+            {isVietnamese ? "Đang tải dữ liệu..." : "Loading category data..."}
+          </div>
         )}
       </Modal>
     </div>

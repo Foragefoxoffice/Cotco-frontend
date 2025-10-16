@@ -4,8 +4,14 @@ import { getHomepageBannerSection } from "../../Api/api"; // ✅ you'll add this
 const ContactToday = () => {
   const [activeLang, setActiveLang] = useState("en");
   const [banner, setBanner] = useState({
-    bannerTitle1: { en: "Ready to Grow with COTCO?", vi: "Sẵn sàng phát triển cùng COTCO?" },
-    bannerTitle2: { en: "Contact Us Today", vi: "Liên hệ với chúng tôi ngay hôm nay" },
+    bannerTitle1: {
+      en: "Ready to Grow with COTCO?",
+      vi: "Sẵn sàng phát triển cùng COTCO?",
+    },
+    bannerTitle2: {
+      en: "Contact Us Today",
+      vi: "Liên hệ với chúng tôi ngay hôm nay",
+    },
     bannerButtonText: { en: "Get Started", vi: "Bắt đầu ngay" },
     bannerButtonLink: "#contact",
     bannerBackgroundImage: "/img/home/upperFooter.jpg",
@@ -24,7 +30,10 @@ const ContactToday = () => {
       setActiveLang(detectLanguage());
     });
 
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -39,25 +48,23 @@ const ContactToday = () => {
   }, []);
 
   // ✅ Helper to get full URL
-const getFullUrl = (path) => {
-  if (!path) return "";
-  if (path.startsWith("http")) return path;
-  const base = import.meta.env.VITE_API_URL || "http://localhost:5000";
-  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
-};
-
+  const getFullUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    const base = import.meta.env.VITE_API_URL || "";
+    return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+  };
 
   return (
     <section className="relative h-[300px] md:h-[400px] overflow-hidden">
       {/* ✅ Dynamic Background Image */}
-<div
-  className="absolute inset-0 bg-cover bg-center"
-  style={{
-    backgroundImage: `url(${getFullUrl(banner.bannerBackgroundImage)})`,
-    backgroundAttachment: "fixed",
-  }}
-></div>
-
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${getFullUrl(banner.bannerBackgroundImage)})`,
+          backgroundAttachment: "fixed",
+        }}
+      ></div>
 
       {/* Overlay */}
       <div

@@ -4,24 +4,24 @@ import { getCottonPage } from "../../Api/api";
 
 export default function CottonTrustSection() {
   const [trust, setTrust] = useState(null);
-  const [activeLang, setActiveLang] = useState("en"); // ✅ language state
+  const [activeLang, setActiveLang] = useState("en");
+  const [hoverImage, setHoverImage] = useState(null); // 🆕 current hovered image
+  const [defaultImage, setDefaultImage] = useState(null); // 🆕 first logo
 
-  // ✅ Detect and sync language with body + localStorage
+  // ✅ Detect and sync language
   useEffect(() => {
     const detectLanguage = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
 
     const saved = localStorage.getItem("preferred_lang");
-    if (saved === "vi" || saved === "en") {
-      setActiveLang(saved);
-      document.body.classList.toggle("vi-mode", saved === "vi");
-    } else {
-      setActiveLang(detectLanguage());
-    }
+    const lang = saved === "vi" || saved === "en" ? saved : detectLanguage();
+    setActiveLang(lang);
+    document.body.classList.toggle("vi-mode", lang === "vi");
 
-    const observer = new MutationObserver(() => setActiveLang(detectLanguage()));
+    const observer = new MutationObserver(() =>
+      setActiveLang(detectLanguage())
+    );
     observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-
     return () => observer.disconnect();
   }, []);
 
@@ -29,12 +29,18 @@ export default function CottonTrustSection() {
   useEffect(() => {
     getCottonPage().then((res) => {
       if (res.data?.cottonTrust) {
-        setTrust(res.data.cottonTrust);
+        const trustData = res.data.cottonTrust;
+        setTrust(trustData);
+
+        // 🧩 Set first logo as default image
+        if (trustData.cottonTrustLogo?.length > 0) {
+          setDefaultImage(trustData.cottonTrustLogo[0]);
+        }
       }
     });
   }, []);
 
-  if (!trust) return null; // Wait for API
+  if (!trust) return null;
 
   const API_BASE = import.meta.env.VITE_API_URL;
   const getFullUrl = (path) => {
@@ -43,75 +49,63 @@ export default function CottonTrustSection() {
     return `${API_BASE}${path}`;
   };
 
-  // ✅ Pick helper for bilingual text
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
-  // ✅ Optional toggle button
-  const toggleLanguage = () => {
-    const newLang = activeLang === "en" ? "vi" : "en";
-    setActiveLang(newLang);
-    localStorage.setItem("preferred_lang", newLang);
-    document.body.classList.toggle("vi-mode", newLang === "vi");
-  };
+  // 🧩 The image currently shown (default = first logo)
+  const displayImage = hoverImage || defaultImage;
 
   return (
-    <section className="pt-20 page-width bg-white relative">
-      {/* 🔘 Language switch button */}
-      {/* <div className="absolute top-6 right-6 z-20">
-        <button
-          onClick={toggleLanguage}
-          className="px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-sm font-medium text-gray-800 backdrop-blur-md transition"
-        >
-          {activeLang === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}
-        </button>
-      </div> */}
-
+    <section className="py-20 page-width bg-white">
       <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-10">
-        {/* ---------- Left Text + Logos ---------- */}
+        {/* ---------- LEFT: Text + Logos ---------- */}
         <div>
+          {/* Title */}
           <TitleAnimation
             text={pick(trust.cottonTrustTitle) || "GROW IN TRUST, QUALITY AND SERVICE"}
-            className="heading"
+            className="heading mb-6 text-[#0A1C2E]"
             align="center"
             mdAlign="left"
-            lgAlign="right"
+            lgAlign="left"
             delay={0.05}
             stagger={0.05}
             once={true}
           />
 
-          <p className="text-gray-600 mb-6 max-w-lg">
+          {/* Description */}
+          <p className="text-gray-600 mb-6 max-w-lg leading-relaxed">
             {pick(trust.cottonTrustDes) ||
               "Besides marketing cotton from major production regions worldwide, COTCO enhances product value through stable quality control and professional logistics, ensuring efficient supply."}
           </p>
 
           {/* Logos */}
-          <div className="flex flex-wrap items-center gap-6">
+          <div className="flex flex-wrap gap-6">
             {trust.cottonTrustLogo?.length > 0 ? (
               trust.cottonTrustLogo.map((logo, idx) => (
                 <img
                   key={idx}
                   src={getFullUrl(logo)}
                   alt={`Trust Logo ${idx + 1}`}
-                  className="w-24 h-24 object-contain border-2 border-[#74AFDF66] p-2 rounded-md bg-white"
+                  onMouseEnter={() => setHoverImage(logo)} // 🆕 change image on hover
+                  onMouseLeave={() => setHoverImage(null)} // 🆕 reset on hover leave
+                  className="w-20 h-20 object-contain border border-gray-300 p-2 rounded-md cursor-pointer transition-transform duration-300 hover:scale-105"
                 />
               ))
             ) : (
-              <p className="text-gray-400">No trust logos added</p>
+              <p className="text-gray-400">No logos available</p>
             )}
           </div>
         </div>
 
-        {/* ---------- Right Image ---------- */}
-        <div className="flex justify-center md:justify-center">
-          {trust.cottonTrustImg ? (
+        {/* ---------- RIGHT: Main Image ---------- */}
+        <div className="flex justify-center md:justify-end">
+          {displayImage ? (
             <img
-              src={getFullUrl(trust.cottonTrustImg)}
-              alt="Trust Image"
-              className="w-4/7 h-auto object-contain"
+              src={getFullUrl(displayImage)}
+              alt="Trust Display"
+              className="w-[380px] h-[380px] object-contain transition-all duration-500 ease-in-out"
             />
           ) : (
-            <div className="w-64 h-40 flex items-center justify-center border border-dashed text-gray-400">
+            <div className="w-[380px] h-[380px] flex items-center justify-center border border-dashed text-gray-400">
               No Image
             </div>
           )}

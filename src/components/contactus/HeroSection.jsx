@@ -78,7 +78,7 @@ const HeroSection = () => {
       {/* Title */}
       <motion.h3
         style={{ y: yTitle }}
-        className="text-4xl z-20 absolute bottom-24 left-24 text-[#fff] md:text-6xl font-bold tracking-wider uppercase"
+        className="text-4xl z-20 absolute bottom-2 md:bottom-24 left-2 md:left-24 text-[#fff] md:text-[100px] font-[700] tracking-wider uppercase"
       >
         {banner?.contactBannerTitle?.en || "CONTACT"}
       </motion.h3>

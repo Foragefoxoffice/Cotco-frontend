@@ -648,7 +648,7 @@ const StaffManagement = () => {
                   {languageTab === "en"
                     ? "Last Name (English)"
                     : "Tên (Tiếng Việt)"}{" "}
-                  *
+                  
                 </label>
                 <input
                   type="text"
@@ -656,7 +656,6 @@ const StaffManagement = () => {
                   value={formData.lastName?.[languageTab] || ""}
                   onChange={handleChange}
                   style={inputStyle}
-                  required
                 />
               </div>
 
@@ -690,14 +689,13 @@ const StaffManagement = () => {
 
               {/* Mobile + Role */}
               <div>
-                <label className="block mb-1 text-gray-300">Mobile *</label>
+                <label className="block mb-1 text-gray-300">Mobile</label>
                 <input
                   type="text"
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
                   style={inputStyle}
-                  required
                 />
               </div>
 
@@ -741,9 +739,8 @@ const StaffManagement = () => {
               <div>
                 <label className="block mb-1 text-gray-300">
                   {languageTab === "en"
-                    ? "Department (English)"
-                    : "Phòng ban (Tiếng Việt)"}{" "}
-                  *
+                    ? "Department"
+                    : "Phòng ban"}{" "}
                 </label>
                 <input
                   type="text"
@@ -751,7 +748,6 @@ const StaffManagement = () => {
                   value={formData.department?.[languageTab] || ""}
                   onChange={handleChange}
                   style={inputStyle}
-                  required
                 />
               </div>
 
@@ -759,9 +755,8 @@ const StaffManagement = () => {
               <div className="col-span-2">
                 <label className="block mb-1 text-gray-300">
                   {languageTab === "en"
-                    ? "Designation (English)"
-                    : "Chức vụ (Tiếng Việt)"}{" "}
-                  *
+                    ? "Designation"
+                    : "Chức vụ"}{" "}
                 </label>
                 <input
                   type="text"
@@ -769,14 +764,13 @@ const StaffManagement = () => {
                   value={formData.designation?.[languageTab] || ""}
                   onChange={handleChange}
                   style={inputStyle}
-                  required
                 />
               </div>
 
               {/* DOB + Gender + DOJ */}
               <div>
                 <label className="block mb-1 text-gray-300">
-                  Date of Birth *
+                  Date of Birth
                 </label>
                 <input
                   type="date"
@@ -784,18 +778,16 @@ const StaffManagement = () => {
                   value={formData.dateOfBirth}
                   onChange={handleChange}
                   style={inputStyle}
-                  required
                 />
               </div>
 
               <div>
-                <label className="block mb-1 text-gray-300">Gender *</label>
+                <label className="block mb-1 text-gray-300">Gender</label>
                 <select
                   name="gender"
                   value={formData.gender}
                   onChange={handleChange}
                   style={inputStyle}
-                  required
                 >
                   <option value="">-- Select Gender --</option>
                   <option value="Male">Male</option>
@@ -806,7 +798,7 @@ const StaffManagement = () => {
 
               <div>
                 <label className="block mb-1 text-gray-300">
-                  Date of Joining *
+                  Date of Joining 
                 </label>
                 <input
                   type="date"
@@ -814,7 +806,6 @@ const StaffManagement = () => {
                   value={formData.dateOfJoining}
                   onChange={handleChange}
                   style={inputStyle}
-                  required
                 />
               </div>
 
@@ -840,14 +831,14 @@ const StaffManagement = () => {
                     setShowModal(false);
                     resetForm();
                   }}
-                  className="px-4 py-2 border border-[#2E2F2F] text-gray-300 rounded-md hover:bg-[#2E2F2F] transition"
+                  className="cursor-pointer px-6 py-4 rounded-full border border-[#2E2F2F] text-gray-300  hover:bg-[#2E2F2F] transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!isSuperAdmin}
-                  className={`px-4 py-2 rounded-md transition ${
+                  className={`px-6 py-4 rounded-full transition cursor-pointer ${
                     isSuperAdmin
                       ? "bg-[#0085C8] text-white hover:bg-[#009FE3]"
                       : "bg-gray-600 text-gray-300 cursor-not-allowed"

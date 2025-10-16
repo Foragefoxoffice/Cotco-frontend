@@ -17,7 +17,10 @@ export default function Certification() {
     setActiveLang(detectLang());
 
     const observer = new MutationObserver(() => setActiveLang(detectLang()));
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     return () => observer.disconnect();
   }, []);
@@ -26,54 +29,61 @@ export default function Certification() {
   const getImageUrl = (path) => {
     if (!path) return "";
     if (path.startsWith("data:") || path.startsWith("http")) return path;
-    return `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${path}`;
+    return `${import.meta.env.VITE_API_URL || ""}${path}`;
   };
 
-  // ✅ Fetch data dynamically
+  // ✅ Fetch About Page Data
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await getAboutPage();
-        if (res.data?.aboutAlliances) {
-          const section = res.data.aboutAlliances;
+        const aboutData = res?.data;
 
-          // ✅ Set translated heading
-          if (section.aboutAlliancesTitle) {
-            setHeading(
-              section.aboutAlliancesTitle[activeLang] ||
-                section.aboutAlliancesTitle.en ||
-                "STRATEGIC ALLIANCES"
-            );
-          }
+        if (aboutData?.aboutAlliances) {
+          const section = aboutData.aboutAlliances;
 
-          // ✅ Handle image list
+          // ✅ Handle multilingual title
+          const fetchedTitle =
+            section.aboutAlliancesTitle?.[activeLang] ||
+            section.aboutAlliancesTitle?.en ||
+            (activeLang === "vi"
+              ? "LIÊN MINH CHIẾN LƯỢC"
+              : "STRATEGIC ALLIANCES");
+
+          setHeading(fetchedTitle);
+
+          // ✅ Handle logos array (safe parsing)
           if (Array.isArray(section.aboutAlliancesImg)) {
             setLogos(section.aboutAlliancesImg);
+          } else if (section.aboutAlliancesImg) {
+            setLogos(Object.values(section.aboutAlliancesImg));
           } else {
-            // Fallback if API returns object instead of array
-            setLogos(Object.values(section.aboutAlliancesImg || {}));
+            setLogos([]);
           }
+        } else {
+          // fallback when section missing
+          setHeading(
+            activeLang === "vi"
+              ? "LIÊN MINH CHIẾN LƯỢC"
+              : "STRATEGIC ALLIANCES"
+          );
+          setLogos([]);
         }
       } catch (err) {
-        console.error("Failed to fetch alliances:", err);
+        console.error("❌ Failed to fetch alliances:", err);
       }
     }
+
     fetchData();
   }, [activeLang]); // refetch if language changes
-
-  // ✅ Fallback translation
-  const translatedHeading =
-    activeLang === "vi"
-      ? heading || "LIÊN MINH CHIẾN LƯỢC"
-      : heading || "STRATEGIC ALLIANCES";
 
   return (
     <section className="md:pt-20 pt-6 bg-white">
       <div className="page-width">
-        {/* Heading */}
+        {/* ✅ Title */}
         <div className="text-center mb-12">
           <TitleAnimation
-            text={translatedHeading}
+            text={heading}
             className="heading uppercase"
             align="center"
             delay={0.05}
@@ -82,7 +92,7 @@ export default function Certification() {
           />
         </div>
 
-        {/* Logos Grid */}
+        {/* ✅ Logos Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 justify-items-center">
           {logos.length > 0 ? (
             logos.map((src, index) => (
@@ -91,6 +101,7 @@ export default function Certification() {
                 src={getImageUrl(src)}
                 alt={`Alliance ${index + 1}`}
                 className="h-28 w-[250px] object-contain"
+                loading="lazy"
               />
             ))
           ) : (

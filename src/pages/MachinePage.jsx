@@ -44,7 +44,7 @@ const MachinePageDetail = () => {
     return <div className="p-10 text-center">Machine not found</div>;
 
   // ✅ Banner
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API_URL = import.meta.env.VITE_API_URL || "";
   const bannerUrl =
     machine.banner && machine.banner.startsWith("/uploads")
       ? `${API_URL}${machine.banner}`

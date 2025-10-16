@@ -26,6 +26,8 @@ import {
   PictureOutlined,
   CloseOutlined,
 } from "@ant-design/icons";
+import { ReloadOutlined } from "@ant-design/icons";
+
 
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { getMachineCategories, createMachinePage } from "../Api/api";
@@ -37,14 +39,10 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CustomStepper from "../components/CustomStepper";
 
-const stepsList = [
-  { title: "Basic Info" },
-  { title: "Sections" },
-  { title: "SEO & Create" },
-];
 
 const { TextArea } = Input;
 const { Step } = Steps;
+
 
 /* ---------- Translation Inputs ---------- */
 const TranslationInput = ({
@@ -55,7 +53,7 @@ const TranslationInput = ({
   <Row gutter={12}>
     <Col span={12}>
       <h3 className="text-white mt-5 text-md">
-        EN <span className="text-xs">(English)</span>
+        <span className="text-xs">English</span>
       </h3>
       <Input
         className="custom-dark-input"
@@ -75,7 +73,7 @@ const TranslationInput = ({
     </Col>
     <Col span={12}>
       <h3 className="text-white mt-5 text-md">
-        VN <span className="text-xs">(vietnamese)</span>
+        <span className="text-xs">tiếng việt</span>
       </h3>
       <Input
         className="custom-dark-input"
@@ -104,7 +102,7 @@ const TranslationTextArea = ({
   <Row gutter={12}>
     <Col span={12}>
       <h3 className="text-white mt-5 text-md">
-        EN <span className="text-xs">(English)</span>
+        <span className="text-xs">English</span>
       </h3>
       <TextArea
         className="custom-dark-input"
@@ -125,7 +123,7 @@ const TranslationTextArea = ({
     </Col>
     <Col span={12}>
       <h3 className="text-white mt-5">
-        VN <span className="text-xs">(vietnamese)</span>
+        <span className="text-xs">tiếng việt</span>
       </h3>
       <TextArea
         className="custom-dark-input"
@@ -975,10 +973,38 @@ const MachinePageCreate = ({
     remove,
   } = useFieldArray({ control, name: "sections" });
 
+    // 🌐 Detect language from body class
+  const [isVietnamese, setIsVietnamese] = useState(false);
+
+  useEffect(() => {
+    const checkLang = () => {
+      setIsVietnamese(document.body.classList.contains("vi-mode"));
+    };
+    checkLang();
+
+    const observer = new MutationObserver(checkLang);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // 🌐 Two-language steps list (auto updates)
+  const stepsList = [
+    { title: isVietnamese ? "Thông tin cơ bản" : "Basic Info" },
+    { title: isVietnamese ? "Các phần" : "Sections" },
+    { title: isVietnamese ? "SEO & Tạo" : "SEO & Create" },
+  ];
+
+
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [bannerFile, setBannerFile] = useState([]);
+const [showBannerModal, setShowBannerModal] = useState(false);
+
 
   useEffect(() => {
     (async () => {
@@ -1125,19 +1151,18 @@ const MachinePageCreate = ({
       {/* 🔙 Back Button */}
       <div className="mb-4">
         <Button
-          icon={<LeftOutlined />}
-          onClick={() => window.history.back()} // or use navigate(-1) if using react-router
-          style={{
-            borderRadius: "2rem",
-            fontWeight: 500,
-            background: "#171717",
-            color: "#fff",
-            border: "1px solid #2d2d2d",
-
-          }}
-        >
-          Back
-        </Button>
+  icon={<LeftOutlined />}
+  onClick={() => window.history.back()} // or use navigate(-1)
+  style={{
+    borderRadius: "2rem",
+    fontWeight: 500,
+    background: "#171717",
+    color: "#fff",
+    border: "1px solid #2d2d2d",
+  }}
+>
+  {isVietnamese ? "Quay lại" : "Back"}
+</Button>
       </div>
       <Card className="mb-6 shadow-md bg-[#171717] border border-[#2E2F2F]">
         <CustomStepper
@@ -1152,36 +1177,70 @@ const MachinePageCreate = ({
         className="bg-[#171717] rounded-2xl"
       >
         {step === 0 && (
-          <Card title="Basic Information" className="shadow-md bg-red-500">
+          <Card
+  title={isVietnamese ? "Thông tin cơ bản" : "Basic Information"}
+  className="shadow-md "
+>
+
             <Controller
               name="categoryId"
               control={control}
               rules={{ required: "Category is required" }}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  value={field.value || undefined}
-                  placeholder="Select category"
-                  className="w-72 custom-dark-select"
-                  allowClear
-                  style={{
-                    backgroundColor: "#262626",
-                    border: "1px solid #2E2F2F",
-                    borderRadius: "8px",
-                    color: "#fff !impotant",
-                    fontSize: "14px",
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  {categories.map((cat) => (
-                    <Select.Option key={cat._id} value={cat._id}>
-                      {cat.name?.en}
-                    </Select.Option>
-                  ))}
-                </Select>
-              )}
-            />
+              render={({ field }) => {
+                const [showDropdown, setShowDropdown] = useState(false);
 
+                return (
+                  <div className="relative w-72">
+                    {/* Dropdown button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowDropdown((p) => !p)}
+                      className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-[#272626] border border-[#3A3A3A] !text-gray-200 hover:border-gray-500 transition-all"
+                    >
+                      <span>
+                        {categories.find((c) => c._id === field.value)?.name
+                          ?.en || "Select category"}
+                      </span>
+                      <svg
+                        className={`ml-2 w-4 h-4 transform transition-transform ${
+                          showDropdown ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Dropdown list */}
+                    {showDropdown && (
+                      <div className="absolute w-full mt-2 bg-[#1F1F1F] border border-[#2E2F2F] rounded-xl z-20 animate-fadeIn shadow-lg max-h-60 overflow-y-auto">
+                        {categories.map((cat) => (
+                          <button
+                            key={cat._id}
+                            type="button"
+                            onClick={() => {
+                              field.onChange(cat._id);
+                              setShowDropdown(false);
+                            }}
+                            className={`block w-full text-left px-4 py-2 rounded-md transition ${
+                              field.value === cat._id
+                                ? "bg-[#2E2F2F] !text-white"
+                                : "!text-gray-300 hover:bg-[#2A2A2A]"
+                            }`}
+                          >
+                            {cat.name?.en}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }}
+            />
+            <br/>
             <Controller
               name="title"
               control={control}
@@ -1227,26 +1286,139 @@ const MachinePageCreate = ({
 
             {/* ✅ Banner Upload moved here */}
             <div className="mt-4">
-              <h3 className="mb-2 font-medium text-white">
-                Meta Image / Banner
-              </h3>
-              <Upload
-                style={{
-                  color: "white",
-                }}
-                beforeUpload={() => false}
-                listType="picture-card"
-                fileList={bannerFile}
-                onChange={({ fileList }) => setBannerFile(fileList)}
-              >
-                {bannerFile.length === 0 && (
-                  <div>
-                    <PlusOutlined />
-                    <div className="text-white">Upload</div>
-                  </div>
-                )}
-              </Upload>
-            </div>
+  <h3 className="mb-2 font-medium text-white">Meta Image / Banner</h3>
+
+  {/* Hidden file input */}
+  <input
+    id="banner-upload"
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        setBannerFile([{ originFileObj: file, url }]);
+      }
+    }}
+    style={{ display: "none" }}
+  />
+
+  <div className="flex flex-wrap gap-4 mt-2">
+    {/* Upload Placeholder */}
+    {bannerFile.length === 0 && (
+      <label
+        htmlFor="banner-upload"
+        className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="2"
+          stroke="currentColor"
+          className="w-8 h-8 text-gray-400"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        <span className="mt-2 text-sm text-gray-400">Upload</span>
+      </label>
+    )}
+
+    {/* Image Preview */}
+    {bannerFile.length > 0 && bannerFile[0].url && (
+      <div className="relative w-40 h-40 group">
+        <img
+          src={bannerFile[0].url}
+          alt="Banner Preview"
+          className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
+        />
+
+        {/* View (Eye) Icon */}
+        <button
+          type="button"
+          onClick={() => setShowBannerModal(true)}
+          className="absolute bottom-2 left-2 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+          title="View full image"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-5 h-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+            />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+
+        {/* Replace (Upload Again) Icon */}
+        <label
+          htmlFor="banner-upload"
+          className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+          title="Replace image"
+        >
+          <ReloadOutlined />
+        </label>
+
+        {/* Delete (X) Icon */}
+        <button
+          type="button"
+          onClick={() => setBannerFile([])}
+          className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full transition cursor-pointer"
+          title="Remove image"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-4 h-4"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    )}
+  </div>
+
+  {/* Preview Modal */}
+  {showBannerModal && (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+      <div className="relative max-w-4xl max-h-[90vh] w-auto">
+        <img
+          src={bannerFile[0]?.url}
+          alt="Full Preview"
+          className="max-h-[85vh] w-auto rounded-lg shadow-lg"
+        />
+        <button
+          type="button"
+          onClick={() => setShowBannerModal(false)}
+          className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg transition cursor-pointer"
+          title="Close"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-5 h-5"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+
           </Card>
         )}
 

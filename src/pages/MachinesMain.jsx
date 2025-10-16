@@ -69,7 +69,7 @@ const MachinesMain = () => {
                 <div className="relative group rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
                   {/* Background image */}
                   <img
-                    src={`http://localhost:5000${cat.image}`}
+                    src={`${cat.image}`}
                     alt={pick(cat.name.en, cat.name.vi)}
                     className="w-full h-[400px] object-cover transform group-hover:scale-105 transition-transform duration-500"
                   />

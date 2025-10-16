@@ -157,7 +157,7 @@ export const updateHomepage = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-  // ✅ Get Homepage Blog Section
+// ✅ Get Homepage Blog Section
 export const getHomepageBlogSection = async () => {
   try {
     const res = await API.get("/homepage");

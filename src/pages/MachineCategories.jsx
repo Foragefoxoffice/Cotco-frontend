@@ -40,7 +40,7 @@ const MachineCategories = () => {
                   <div className="h-[350px] w-full">
                     <img
                       alt={cat.name.en}
-                      src={`http://localhost:5000${cat.image}`}
+                      src={`${cat.image}`}
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500 rounded-2xl"
                     />
                   </div>

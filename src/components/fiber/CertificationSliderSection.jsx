@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
+import { FaArrowRight, FaArrowLeft, FaTimes } from "react-icons/fa";
 import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import TitleAnimation from "../common/AnimatedTitle";
 import { FiArrowDownRight } from "react-icons/fi";
 import { getFiberPage } from "../../Api/api";
 
-export default function CertificationSliderSection() {
-  const [certification, setCertification] = useState(null);
+export default function FiberCertificationSliderSection() {
+  const [certData, setCertData] = useState(null);
   const [current, setCurrent] = useState(0);
-  const [activeLang, setActiveLang] = useState("en"); // ✅ language state
+  const [activeLang, setActiveLang] = useState("en");
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [popupIndex, setPopupIndex] = useState(0);
+
   const sectionRef = useRef(null);
   const intervalRef = useRef(null);
-
   const controls = useAnimation();
   const { ref: inViewRef, inView } = useInView({ threshold: 0.3 });
 
@@ -23,68 +25,53 @@ export default function CertificationSliderSection() {
     return `${API_BASE}${path}`;
   };
 
-  // ✅ Detect and sync global language
+  // 🌐 Sync global language
   useEffect(() => {
     const detectLang = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
 
     const saved = localStorage.getItem("preferred_lang");
-    if (saved === "vi" || saved === "en") {
-      setActiveLang(saved);
-      document.body.classList.toggle("vi-mode", saved === "vi");
-    } else {
-      setActiveLang(detectLang());
-    }
+    const lang = saved === "vi" || saved === "en" ? saved : detectLang();
+    setActiveLang(lang);
+    document.body.classList.toggle("vi-mode", lang === "vi");
 
     const observer = new MutationObserver(() => setActiveLang(detectLang()));
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
 
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Language helper
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
-  // ✅ Fetch certification data
+  // 🧠 Fetch from API
   useEffect(() => {
-    getFiberPage().then((res) => {
-      if (res.data?.fiberCertification) {
-        setCertification(res.data.fiberCertification);
-      }
-    });
+    getFiberPage()
+      .then((res) => {
+        if (res.data?.fiberCertification)
+          setCertData(res.data.fiberCertification);
+      })
+      .catch(console.error);
   }, []);
 
-  const prevSlide = () => {
-    if (!certification?.fiberCertificationImg?.length) return;
-    setCurrent((prev) =>
-      prev === 0 ? certification.fiberCertificationImg.length - 1 : prev - 1
-    );
-  };
+  const images = certData?.fiberCertificationImg || [];
 
-  const nextSlide = () => {
-    if (!certification?.fiberCertificationImg?.length) return;
-    setCurrent((prev) =>
-      prev === certification.fiberCertificationImg.length - 1 ? 0 : prev + 1
-    );
-  };
+  // 🧭 Slider navigation
+  const prevSlide = () =>
+    setCurrent((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const nextSlide = () =>
+    setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1));
 
   const startAutoSlide = () => {
     stopAutoSlide();
-    intervalRef.current = setInterval(() => {
-      nextSlide();
-    }, 4000);
+    intervalRef.current = setInterval(() => nextSlide(), 4000);
   };
-
   const stopAutoSlide = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
   };
 
-  // Auto slide when visible
+  // 👀 Animate only when in view
   useEffect(() => {
-    if (inView) {
+    if (inView && images.length > 0) {
       controls.start({ opacity: 1, x: 0 });
       startAutoSlide();
     } else {
@@ -92,20 +79,28 @@ export default function CertificationSliderSection() {
       stopAutoSlide();
     }
     return stopAutoSlide;
-  }, [inView]);
+  }, [inView, images.length]);
 
-  if (!certification) return null;
+  // 🪟 Popup handlers
+  const openPopup = (index = 0) => {
+    setPopupIndex(index);
+    setPopupOpen(true);
+  };
+  const closePopup = () => setPopupOpen(false);
+  const prevPopup = () =>
+    setPopupIndex((i) => (i === 0 ? images.length - 1 : i - 1));
+  const nextPopup = () => setPopupIndex((i) => (i + 1) % images.length);
 
   return (
     <section
       ref={sectionRef}
-      className="py-6 md:py-20 page-width bg-white overflow-x-hidden"
+      className="py-20 page-width bg-white overflow-x-hidden relative"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-10">
-        {/* Left Side */}
-        <div className="text-center md:text-left">
+        {/* LEFT SIDE */}
+        <div>
           <TitleAnimation
-            text={pick(certification.fiberCertificationTitle) || "GROW IN TRUST AND QUALITY"}
+            text={pick(certData?.fiberCertificationTitle) || "Our Certifications"}
             className="heading mb-6 leading-snug text-black"
             align="center"
             mdAlign="left"
@@ -115,19 +110,17 @@ export default function CertificationSliderSection() {
             once={true}
           />
 
-          {certification.fiberCertificationButtonText && (
-            <a
-              href={certification.fiberCertificationButtonLink || "/products"}
-              className="w-72 mt-6 px-5 py-2 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-xl font-semibold"
-              style={{ fontSize: "20px" }}
+          {certData?.fiberCertificationButtonText && (
+            <button
+              onClick={() => openPopup(0)}
+              className="w-72 mt-6 px-5 py-3 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black/40 cursor-pointer hover:text-white transition-all text-xl font-semibold"
             >
-              {pick(certification.fiberCertificationButtonText) || "Explore Certifications"}
-              <FiArrowDownRight />
-            </a>
+              {pick(certData.fiberCertificationButtonText)} <FiArrowDownRight />
+            </button>
           )}
         </div>
 
-        {/* Right Side - Slider */}
+        {/* RIGHT SIDE (Slider) */}
         <motion.div
           ref={inViewRef}
           animate={controls}
@@ -135,57 +128,111 @@ export default function CertificationSliderSection() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="relative w-full flex flex-col items-center justify-center"
         >
-          {/* Certificate Stack */}
           <div className="relative w-full h-full md:h-100">
-            {certification.fiberCertificationImg?.map((src, i) => {
+            {images.map((src, i) => {
               const isActive = i === current;
               return (
                 <img
                   key={i}
                   src={getFullUrl(src)}
                   alt={`Certificate ${i + 1}`}
-                  className={`absolute certificate-slider-img top-0 left-0 w-[600px] h-[450px] rounded-2xl transition-all duration-700 ease-in-out
-                    ${
-                      isActive
-                        ? "z-30 scale-100 rotate-0 opacity-100"
-                        : "z-10 opacity-40 scale-[0.95]"
-                    }
-                  `}
+                  className={`absolute top-0 left-0 w-[600px] h-[200px] md:h-[450px] rounded-2xl transition-all duration-700 ease-in-out cursor-pointer ${
+                    isActive
+                      ? "z-30 scale-100 rotate-0 opacity-100"
+                      : "z-10 opacity-40 scale-[0.95]"
+                  }`}
                   style={{
                     transform: isActive
                       ? "rotate(0deg) translateX(0)"
                       : "rotate(-7deg) translateX(25px)",
                   }}
+                  onClick={() => openPopup(i)}
                 />
               );
             })}
           </div>
 
-          {/* Navigation */}
-          <div className="flex gap-4 mt-33 certification-slider-controls">
+          {/* Navigation Arrows */}
+          {images.length > 1 && (
+            <div className="flex gap-4 mt-33 certification-slider-controls">
+              <button
+                onClick={() => {
+                  prevSlide();
+                  startAutoSlide();
+                }}
+                aria-label="Previous"
+                className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors duration-300"
+              >
+                <FaArrowLeft />
+              </button>
+              <button
+                onClick={() => {
+                  nextSlide();
+                  startAutoSlide();
+                }}
+                aria-label="Next"
+                className="w-10 h-10 rounded-full bg-[#0A1C2E] text-white flex items-center justify-center hover:bg-[#122b45] transition-colors duration-300"
+              >
+                <FaArrowRight />
+              </button>
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* ---------- POPUP MODAL ---------- */}
+      {popupOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          {/* ❌ Close Button */}
+          <button
+            onClick={closePopup}
+            className="absolute top-6 right-6 !text-white text-3xl bg-red-600 p-2 rounded-full cursor-pointer hover:text-gray-400 transition"
+          >
+            <FaTimes />
+          </button>
+
+          {/* 🖼 Image Viewer */}
+          <div className="relative w-full max-w-4xl flex items-center justify-center px-6">
+            <motion.img
+              key={popupIndex}
+              src={getFullUrl(images[popupIndex])}
+              alt={`Certificate ${popupIndex + 1}`}
+              className="w-full max-h-[80vh] object-contain rounded-2xl shadow-lg"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.5 }}
+            />
+
+            {/* ⬅️ Previous */}
             <button
-              onClick={() => {
-                prevSlide();
-                startAutoSlide();
-              }}
-              aria-label="Previous"
-              className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors duration-300"
+              onClick={prevPopup}
+              className="absolute left-3 md:-left-10 !text-black text-3xl p-2 rounded-full bg-white cursor-pointer transition"
             >
               <FaArrowLeft />
             </button>
+
+            {/* ➡️ Next */}
             <button
-              onClick={() => {
-                nextSlide();
-                startAutoSlide();
-              }}
-              aria-label="Next"
-              className="w-10 h-10 rounded-full bg-[#0A1C2E] text-white flex items-center justify-center hover:bg-[#122b45] transition-colors duration-300"
+              onClick={nextPopup}
+              className="absolute right-3 md:-right-10 !text-black text-3xl p-2 rounded-full bg-white cursor-pointer transition"
             >
               <FaArrowRight />
             </button>
           </div>
+
+          {/* 🔢 Counter */}
+          <div className="mt-4 text-gray-300 text-sm">
+            {popupIndex + 1} / {images.length}
+          </div>
         </motion.div>
-      </div>
+      )}
     </section>
   );
 }

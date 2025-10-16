@@ -1,8 +1,8 @@
-// src/components/MeetOurTeam.jsx
+// src/components/FiberMeetOurTeam.jsx
 import { useState, useEffect } from "react";
 import { FiPlus } from "react-icons/fi";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getAboutPage } from "../../Api/api";
+import { getFiberPage } from "../../Api/api";
 
 function PlusIcon({ open }) {
   return (
@@ -17,7 +17,7 @@ function PlusIcon({ open }) {
   );
 }
 
-function MemberCard({ name, role, phone, email }) {
+function MemberCard({ name, role, email }) {
   return (
     <li className="relative rounded-xl border border-slate-200 bg-white p-4 pl-6 shadow-sm">
       <span className="pointer-events-none absolute left-2 top-3 bottom-3 w-1 rounded-full bg-gradient-to-b from-indigo-400 to-sky-400" />
@@ -27,24 +27,23 @@ function MemberCard({ name, role, phone, email }) {
       <div className="mt-1 text-[16px] font-semibold uppercase tracking-wide text-slate-500">
         {role}
       </div>
-      <div className="mt-2 space-y-0.5 text-[16px] leading-relaxed text-slate-600">
-        {phone && <div>{phone}</div>}
-        {email && (
+      {email && (
+        <div className="mt-2 text-[16px] leading-relaxed text-slate-600">
           <a href={`mailto:${email}`} className="text-sky-600 hover:underline">
             {email}
           </a>
-        )}
-      </div>
+        </div>
+      )}
     </li>
   );
 }
 
-export default function MeetOurTeam() {
+export default function FiberMeetOurTeam() {
   const [openIndex, setOpenIndex] = useState(null);
-  const [teamData, setTeamData] = useState(null);
-  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
+  const [fiberTeam, setFiberTeam] = useState(null);
+  const [activeLang, setActiveLang] = useState("en");
 
-  // ✅ Detect language (sync with global toggle)
+  // 🌐 Detect active language (auto sync with header toggle)
   useEffect(() => {
     const detectLang = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
@@ -66,65 +65,58 @@ export default function MeetOurTeam() {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Helper to pick correct language
+  // 🌐 Helper to pick correct translation
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
-  // ✅ Fetch data
+  // ✅ Fetch Fiber Team data
   useEffect(() => {
-    getAboutPage()
+    getFiberPage()
       .then((res) => {
-        if (res.data?.aboutTeam) {
-          setTeamData(res.data.aboutTeam);
+        if (res.data?.fiberTeam) {
+          setFiberTeam(res.data.fiberTeam);
         }
       })
-      .catch((err) => console.error("Failed to load team:", err));
+      .catch((err) => console.error("Failed to load fiber team:", err));
   }, []);
 
-  if (!teamData) return null;
+  if (!fiberTeam) return null;
 
-  // ✅ Only Fiber Team
-  const TEAM_SECTIONS = [
-    {
-      title: "Fiber",
-      members: (teamData?.fiberTeam || []).map((m) => ({
-        name: pick(m.teamName),
-        role: pick(m.teamDesgn),
-        phone: m.teamPhone || "",
-        email: m.teamEmail || "",
-      })),
-    },
-  ];
+  const intro = fiberTeam.aboutTeamIntro || {};
+  const groups = fiberTeam.aboutTeam || {};
 
   return (
-    <section className="pt-6 md:pt-10 mb-15">
+    <section className="pt-10 md:pt-16 mb-20">
       <div className="mx-auto max-w-5xl px-4">
-        {/* Header */}
-        <div className="text-center">
-          <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[13px] font-medium text-slate-600">
-            Our people
-          </span>
+        {/* ---------- HEADER ---------- */}
+        <div className="text-center mb-10">
+          {intro.tag?.[activeLang] && (
+            <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[13px] font-medium text-slate-600">
+              {pick(intro.tag)}
+            </span>
+          )}
 
           <TitleAnimation
-            text={activeLang === "vi" ? "Gặp gỡ đội ngũ của chúng tôi" : "Meet our team"}
+            text={pick(intro.heading) || "Meet our team"}
             className="heading uppercase"
             align="center"
             delay={0.05}
             stagger={0.05}
             once={true}
           />
-          <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
-            {activeLang === "vi"
-              ? "Đội ngũ chuyên gia giàu kinh nghiệm của chúng tôi kết hợp kiến thức sâu rộng trong ngành dệt may với chuyên môn thương mại quốc tế, đảm bảo các giao dịch diễn ra suôn sẻ và hỗ trợ kỹ thuật tối ưu."
-              : "Our experienced professionals combine deep textile industry knowledge with international trade expertise, ensuring seamless transactions and technical support for our clients."}
-          </p>
+
+          {intro.description?.[activeLang] && (
+            <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
+              {pick(intro.description)}
+            </p>
+          )}
         </div>
 
-        {/* Accordions */}
+        {/* ---------- TEAM ACCORDIONS ---------- */}
         <div className="mx-auto mt-8 max-w-4xl space-y-6">
-          {TEAM_SECTIONS.map((section, idx) => {
+          {Object.entries(groups).map(([key, group], idx) => {
             const isOpen = openIndex === idx;
             return (
-              <div key={section.title} className="rounded-2xl">
+              <div key={key} className="rounded-2xl">
                 <button
                   type="button"
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
@@ -132,21 +124,26 @@ export default function MeetOurTeam() {
                   aria-expanded={isOpen}
                 >
                   <span className="text-[20px] font-bold uppercase tracking-wide text-slate-700">
-                    {section.title}
+                    {pick(group.teamLabel) || "Unnamed Team"}
                   </span>
                   <PlusIcon open={isOpen} />
                 </button>
 
-                {/* Collapsible content */}
+                {/* COLLAPSIBLE CONTENT */}
                 <div
                   className={`overflow-hidden transition-all duration-300 ${
                     isOpen ? "max-h-[1000px] py-3" : "max-h-0"
                   }`}
                 >
-                  {section.members.length > 0 && (
+                  {group.members?.length > 0 && (
                     <ul className="space-y-3 rounded-xl bg-slate-50/50 p-1">
-                      {section.members.map((m, i) => (
-                        <MemberCard key={i} {...m} />
+                      {group.members.map((m, i) => (
+                        <MemberCard
+                          key={i}
+                          name={pick(m.teamName)}
+                          role={pick(m.teamDesgn)}
+                          email={m.teamEmail}
+                        />
                       ))}
                     </ul>
                   )}

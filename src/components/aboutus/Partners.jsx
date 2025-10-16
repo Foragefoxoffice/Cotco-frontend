@@ -20,7 +20,10 @@ export default function PartnerSection() {
     setActiveLang(detectLang());
 
     const observer = new MutationObserver(() => setActiveLang(detectLang()));
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     return () => observer.disconnect();
   }, []);
@@ -114,7 +117,7 @@ export default function PartnerSection() {
                 src={
                   partner.image?.startsWith("http")
                     ? partner.image
-                    : `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${partner.image}`
+                    : `${import.meta.env.VITE_API_URL || ""}${partner.image}`
                 }
                 alt={partner.name}
                 className="h-16 md:h-20 object-contain"

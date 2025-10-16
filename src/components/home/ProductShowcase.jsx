@@ -5,7 +5,7 @@ import TitleAnimation from "../common/AnimatedTitle";
 export default function ProductShowcase() {
   const [data, setData] = useState(null);
   const [activeLang, setActiveLang] = useState("en");
-  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const BASE_URL = import.meta.env.VITE_API_URL || "";
 
   // ✅ Detect language dynamically based on <body class="vi-mode">
   useEffect(() => {
@@ -20,7 +20,10 @@ export default function ProductShowcase() {
     const observer = new MutationObserver(() => {
       setActiveLang(detectLanguage());
     });
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     return () => observer.disconnect();
   }, []);
@@ -93,10 +96,7 @@ export default function ProductShowcase() {
             once={true}
           />
           <p className="text-lg text-gray-600">
-            {pick(
-              data.whatWeDoDec,
-              activeLang
-            ) ||
+            {pick(data.whatWeDoDec, activeLang) ||
               "Explore our complete range of premium cotton, sustainable fibers, and advanced textile machines"}
           </p>
         </div>

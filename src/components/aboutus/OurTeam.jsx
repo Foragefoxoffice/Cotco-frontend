@@ -43,10 +43,11 @@ function MemberCard({ name, role, phone, email }) {
 /* ---------- Main Component ---------- */
 export default function MeetOurTeam() {
   const [openIndex, setOpenIndex] = useState(null);
-  const [teamData, setTeamData] = useState(null);
+  const [aboutTeam, setAboutTeam] = useState(null);
+  const [aboutTeamIntro, setAboutTeamIntro] = useState(null);
   const [activeLang, setActiveLang] = useState("en");
 
-  // ✅ Detect current language dynamically via body class
+  // ✅ Detect language dynamically
   useEffect(() => {
     const detectLanguage = () => {
       if (typeof document === "undefined") return "en";
@@ -68,59 +69,31 @@ export default function MeetOurTeam() {
   useEffect(() => {
     getAboutPage()
       .then((res) => {
-        if (res.data?.aboutTeam) {
-          setTeamData(res.data.aboutTeam);
-        }
+        const data = res.data;
+        if (data?.aboutTeam) setAboutTeam(data.aboutTeam);
+        if (data?.aboutTeamIntro) setAboutTeamIntro(data.aboutTeamIntro);
       })
-      .catch((err) => console.error("Failed to load team:", err));
+      .catch((err) => console.error("❌ Failed to load team:", err));
   }, []);
 
-  // ✅ Safe pick helper for multilingual support
-  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
+  // ✅ Safe bilingual helper
+  const pick = (obj) =>
+    typeof obj === "object" ? obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "" : obj ?? "";
 
-  if (!teamData) return null;
+  if (!aboutTeam || !aboutTeamIntro) return null;
 
-  // ✅ Define bilingual section titles
-  const SECTION_TITLES = {
-    en: {
-      cottonTeam: "Cotton",
-      machineTeam: "Machine",
-      fiberTeam: "Fiber",
-      marketingTeam: "Marketing",
-      directorTeam: "Director",
-      ourPeople: "Our People",
-      meetOurTeam: "Meet Our Team",
-      description:
-        "Our experienced professionals combine deep textile industry knowledge with international trade expertise, ensuring seamless transactions and technical support for our clients.",
-    },
-    vi: {
-      cottonTeam: "Bông",
-      machineTeam: "Máy móc",
-      fiberTeam: "Sợi",
-      marketingTeam: "Tiếp thị",
-      directorTeam: "Giám đốc",
-      ourPeople: "Đội ngũ của chúng tôi",
-      meetOurTeam: "Gặp gỡ đội ngũ của chúng tôi",
-      description:
-        "Các chuyên gia giàu kinh nghiệm của chúng tôi kết hợp kiến thức sâu rộng về ngành dệt may với chuyên môn thương mại quốc tế, đảm bảo giao dịch suôn sẻ và hỗ trợ kỹ thuật cho khách hàng.",
-    },
-  };
+  // ✅ Extract bilingual text
+  const sectionTag = pick(aboutTeamIntro.tag);
+  const sectionHeading = pick(aboutTeamIntro.heading);
+  const sectionDescription = pick(aboutTeamIntro.description);
 
-  const t = SECTION_TITLES[activeLang];
-
-  // ✅ Convert API data to bilingual team sections
-  const TEAM_SECTIONS = [
-    { key: "cottonTeam", title: t.cottonTeam },
-    { key: "machineTeam", title: t.machineTeam },
-    { key: "fiberTeam", title: t.fiberTeam },
-    { key: "marketingTeam", title: t.marketingTeam },
-    { key: "directorTeam", title: t.directorTeam },
-  ].map((section) => ({
-    title: section.title,
-    members: (teamData[section.key] || []).map((m) => ({
-      name: pick(m.teamName, activeLang),
-      role: pick(m.teamDesgn, activeLang),
-      phone: m.teamPhone || "",
+  // ✅ Convert dynamicTeams map into array
+  const teamSections = Object.entries(aboutTeam.dynamicTeams || {}).map(([key, value]) => ({
+    key,
+    title: pick(value.teamLabel),
+    members: (value.members || []).map((m) => ({
+      name: pick(m.teamName),
+      role: pick(m.teamDesgn),
       email: m.teamEmail || "",
     })),
   }));
@@ -130,12 +103,14 @@ export default function MeetOurTeam() {
       <div className="mx-auto max-w-5xl px-4">
         {/* ---------- Header ---------- */}
         <div className="text-center">
-          <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[13px] font-medium text-slate-600">
-            {t.ourPeople}
-          </span>
+          {sectionTag && (
+            <span className="mx-auto mb-3 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[13px] font-medium text-slate-600">
+              {sectionTag}
+            </span>
+          )}
 
           <TitleAnimation
-            text={t.meetOurTeam}
+            text={sectionHeading}
             className="heading uppercase"
             align="center"
             delay={0.05}
@@ -143,17 +118,19 @@ export default function MeetOurTeam() {
             once={true}
           />
 
-          <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
-            {t.description}
-          </p>
+          {sectionDescription && (
+            <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
+              {sectionDescription}
+            </p>
+          )}
         </div>
 
-        {/* ---------- Accordions ---------- */}
+        {/* ---------- Accordion ---------- */}
         <div className="mx-auto mt-8 max-w-4xl space-y-6">
-          {TEAM_SECTIONS.map((section, idx) => {
+          {teamSections.map((section, idx) => {
             const isOpen = openIndex === idx;
             return (
-              <div key={section.title} className="rounded-2xl">
+              <div key={section.key} className="rounded-2xl">
                 <button
                   type="button"
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
@@ -166,18 +143,24 @@ export default function MeetOurTeam() {
                   <PlusIcon open={isOpen} />
                 </button>
 
-                {/* Collapsible content */}
+                {/* Collapsible Members */}
                 <div
                   className={`overflow-hidden transition-all duration-300 ${
                     isOpen ? "max-h-[1000px] py-3" : "max-h-0"
                   }`}
                 >
-                  {section.members.length > 0 && (
+                  {section.members.length > 0 ? (
                     <ul className="space-y-3 rounded-xl bg-slate-50/50 p-1">
                       {section.members.map((m, i) => (
                         <MemberCard key={i} {...m} />
                       ))}
                     </ul>
+                  ) : (
+                    <p className="p-4 text-center text-sm text-slate-500">
+                      {activeLang === "vi"
+                        ? "Chưa có thành viên nào trong nhóm này."
+                        : "No members in this team yet."}
+                    </p>
                   )}
                 </div>
               </div>

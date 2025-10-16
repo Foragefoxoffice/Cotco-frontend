@@ -5,7 +5,7 @@ import { slugify } from "../../utils/helpers";
 import { createBlogMainCategory, updateBlogMainCategory } from "../../Api/api";
 import { CommonToaster } from "../../Common/CommonToaster";
 import "../../assets/css/LanguageTabs.css";
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 const labels = {
   en: {
@@ -124,23 +124,22 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
     try {
       const data = new FormData();
 
-// Only append what’s needed — no nested object conflicts
-data.append("slug", formData.slug || "");
-data.append("name.en", formData.name.en || "");
-data.append("name.vi", formData.name.vi || "");
+      // Only append what’s needed — no nested object conflicts
+      data.append("slug", formData.slug || "");
+      data.append("name.en", formData.name.en || "");
+      data.append("name.vi", formData.name.vi || "");
 
-// Append background image fields individually
-if (formData.bgImage?.alt) {
-  data.append("bgImageAlt", formData.bgImage.alt);
-}
-if (formData.bgImage?.url && !formData.bgImage?.file) {
-  // Optional: Send the current image URL only if no new file is chosen
-  data.append("bgImageUrl", formData.bgImage.url);
-}
-if (formData.bgImage?.file) {
-  data.append("bgImageFile", formData.bgImage.file);
-}
-
+      // Append background image fields individually
+      if (formData.bgImage?.alt) {
+        data.append("bgImageAlt", formData.bgImage.alt);
+      }
+      if (formData.bgImage?.url && !formData.bgImage?.file) {
+        // Optional: Send the current image URL only if no new file is chosen
+        data.append("bgImageUrl", formData.bgImage.url);
+      }
+      if (formData.bgImage?.file) {
+        data.append("bgImageFile", formData.bgImage.file);
+      }
 
       let savedMainCategory;
       if (isCreating) {
@@ -211,7 +210,10 @@ if (formData.bgImage?.file) {
         {/* English Name */}
         {activeLanguage === "en" && (
           <div>
-            <label className={labelClasses}>{labels.en.name}<span className="text-red-500 text-lg">*</span></label>
+            <label className={labelClasses}>
+              {labels.en.name}
+              <span className="text-red-500 text-lg">*</span>
+            </label>
             <input
               type="text"
               style={darkInputStyle}
@@ -230,7 +232,10 @@ if (formData.bgImage?.file) {
         {/* Vietnamese Name */}
         {activeLanguage === "vi" && (
           <div>
-            <label className={labelClasses}>{labels.vi.name}<span className="text-red-500 text-lg">*</span></label>
+            <label className={labelClasses}>
+              {labels.vi.name}
+              <span className="text-red-500 text-lg">*</span>
+            </label>
             <input
               type="text"
               style={darkInputStyle}
@@ -248,7 +253,10 @@ if (formData.bgImage?.file) {
 
         {/* Slug */}
         <div>
-          <label className={labelClasses}>{labels[activeLanguage].slug}<span className="text-red-500 text-lg">*</span></label>
+          <label className={labelClasses}>
+            {labels[activeLanguage].slug}
+            <span className="text-red-500 text-lg">*</span>
+          </label>
           <input
             type="text"
             style={darkInputStyle}
@@ -264,7 +272,8 @@ if (formData.bgImage?.file) {
         {/* 🖼️ Background Image */}
         <div>
           <label className={labelClasses}>
-            {labels[activeLanguage].bgImage}<span className="text-red-500 text-lg">*</span>
+            {labels[activeLanguage].bgImage}
+            <span className="text-red-500 text-lg">*</span>
           </label>
           <div className="flex flex-wrap gap-4 mt-2">
             {!preview && (

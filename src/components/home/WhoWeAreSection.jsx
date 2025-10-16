@@ -6,7 +6,7 @@ import { getHomepage } from "../../Api/api"; // adjust path if needed
 const WhoWeAreSection = () => {
   const [data, setData] = useState(null);
   const [activeLang, setActiveLang] = useState("en");
-  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const BASE_URL = import.meta.env.VITE_API_URL || "";
 
   // ✅ Detect and react to language changes (vi-mode)
   useEffect(() => {
@@ -23,7 +23,10 @@ const WhoWeAreSection = () => {
       setActiveLang(detectLanguage());
     });
 
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -69,10 +72,7 @@ const WhoWeAreSection = () => {
           />
 
           <p className="text-gray-600 text-base md:text-lg mb-6 leading-relaxed">
-            {pick(
-              data.whoWeAredescription,
-              activeLang
-            ) ||
+            {pick(data.whoWeAredescription, activeLang) ||
               "From Raw Materials to Technology – Our Journey to Elevate the Value of Textiles"}
           </p>
 

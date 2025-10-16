@@ -8,6 +8,8 @@ import { CommonToaster } from "../../Common/CommonToaster";
 import usePersistedState from "../../hooks/usePersistedState";
 import { getCottonPage, updateCottonPage } from "../../Api/api";
 import "../../assets/css/LanguageTabs.css";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
@@ -110,12 +112,17 @@ const CottonPage = () => {
     return () => observer.disconnect();
   }, []);
 
+  
+
   const [showHeroModal, setShowHeroModal] = useState(false);
   const [activeSlideModal, setActiveSlideModal] = useState(null);
   const [supplierBgModal, setSupplierBgModal] = useState(null);
   const [supplierLogoModal, setSupplierLogoModal] = useState(null);
   const [trustLogoModal, setTrustLogoModal] = useState(null);
   const [memberImgModal, setMemberImgModal] = useState(null);
+  const [addTeamModal, setAddTeamModal] = useState(false);
+const [tempTeamTitle, setTempTeamTitle] = useState({ en: "", vi: "" });
+
 
   const translations = {
     en: {
@@ -236,6 +243,17 @@ const CottonPage = () => {
     cottonMemberImgFiles: [],
   });
 
+const [cottonTeam, setCottonTeam] = usePersistedState("cottonTeam", {
+  aboutTeamIntro: {
+    tag: { en: "", vi: "" },
+    heading: { en: "", vi: "" },
+    description: { en: "", vi: "" },
+  },
+  aboutTeam: {},
+});
+
+
+
   const [seoMeta, setSeoMeta] = useState({
     metaTitle: { en: "", vi: "" },
     metaDescription: { en: "", vi: "" },
@@ -243,44 +261,90 @@ const CottonPage = () => {
   });
 
   // ---------------------- FETCH ---------------------- //
-  useEffect(() => {
-    getCottonPage().then((res) => {
-      if (res.data?.seoMeta) setSeoMeta(res.data.seoMeta);
-      if (res.data?.cottonBanner)
+useEffect(() => {
+  getCottonPage()
+    .then((res) => {
+      const data = res.data || {};
+
+      // ✅ SEO META
+      if (data.seoMeta) {
+        setSeoMeta(data.seoMeta);
+      }
+
+      // ✅ BANNER SECTION
+      if (data.cottonBanner) {
+        const banner = data.cottonBanner;
+
         setCottonBanner((prev) => ({
           ...prev,
-          ...res.data.cottonBanner,
-          cottonBannerImgFile: prev.cottonBannerImgFile,
-          cottonBannerSlideImg:
-            res.data.cottonBanner.cottonBannerSlideImg || [],
-          cottonBannerSlideImgFiles: prev.cottonBannerSlideImgFiles || [],
-          cottonBannerOverview: res.data.cottonBanner.cottonBannerOverview || {
-            en: "",
-            vi: "",
+
+          // 🔹 Merge text fields safely (avoid missing keys)
+          cottonBannerTitle: {
+            en: banner?.cottonBannerTitle?.en || "",
+            vi: banner?.cottonBannerTitle?.vi || "",
           },
+          cottonBannerDes: {
+            en: banner?.cottonBannerDes?.en || "",
+            vi: banner?.cottonBannerDes?.vi || "",
+          },
+          cottonBannerOverview: {
+            en: banner?.cottonBannerOverview?.en || "",
+            vi: banner?.cottonBannerOverview?.vi || "",
+          },
+
+          // 🔹 Normalize image/video field
+          cottonBannerImg:
+            typeof banner?.cottonBannerImg === "string"
+              ? banner.cottonBannerImg
+              : banner?.cottonBannerImg?.url || "",
+
+          // 🔹 Normalize slides (always an array)
+          cottonBannerSlideImg: Array.isArray(banner?.cottonBannerSlideImg)
+            ? banner.cottonBannerSlideImg
+            : banner?.cottonBannerSlideImg
+            ? [banner.cottonBannerSlideImg]
+            : [],
+
+          // 🔹 Keep any unsaved local files
+          cottonBannerImgFile: prev.cottonBannerImgFile || null,
+          cottonBannerSlideImgFiles: prev.cottonBannerSlideImgFiles || [],
         }));
+      }
 
-      if (res.data?.cottonSupplier)
-        setCottonSupplier(res.data.cottonSupplier || []); // ✅ fallback
+      // ✅ SUPPLIER SECTION
+      if (data.cottonSupplier) {
+        setCottonSupplier(data.cottonSupplier || []);
+      }
 
-      if (res.data?.cottonTrust)
+      // ✅ TRUST SECTION
+      if (data.cottonTrust) {
+        const trust = data.cottonTrust;
         setCottonTrust((prev) => ({
           ...prev,
-          ...res.data.cottonTrust,
-          cottonTrustLogo: res.data.cottonTrust.cottonTrustLogo || [],
+          ...trust,
+          cottonTrustLogo: trust.cottonTrustLogo || [],
           cottonTrustLogoFiles: prev.cottonTrustLogoFiles || [],
-          cottonTrustImgFile: prev.cottonTrustImgFile,
+          cottonTrustImgFile: prev.cottonTrustImgFile || null,
         }));
+      }
 
-      if (res.data?.cottonMember)
+      // ✅ MEMBER SECTION
+      if (data.cottonMember) {
+        const member = data.cottonMember;
         setCottonMember((prev) => ({
           ...prev,
-          ...res.data.cottonMember,
-          cottonMemberImg: res.data.cottonMember.cottonMemberImg || [],
+          ...member,
+          cottonMemberImg: member.cottonMemberImg || [],
           cottonMemberImgFiles: prev.cottonMemberImgFiles || [],
         }));
+      }
+    })
+    .catch((err) => {
+      console.error("❌ Failed to fetch cotton page:", err);
     });
-  }, []);
+}, []);
+
+
 
   // ---------------------- SAVE HANDLER ---------------------- //
   const handleSave = async (sectionName, formState, files = []) => {
@@ -366,7 +430,39 @@ const CottonPage = () => {
   return (
     <div className="max-w-7xl mx-auto p-8 mt-8 rounded-xl shadow-xl bg-[#171717] text-white">
       <style>{`
-        label {
+  .ql-editor {
+    min-height: 250px;
+  }
+
+  .ql-container.ql-snow {
+    border-radius: 0 0 0.5rem 0.5rem;
+  }
+
+  .ql-container.ql-snow {
+    color: #fff;
+  }
+
+  .ant-collapse>.ant-collapse-item>.ant-collapse-header .ant-collapse-header-text {
+    color:white;
+    font-weight:600;
+    font-size:16px;
+  }
+
+  /* ✅ Sticky Quill toolbar */
+  .ql-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
+    border-radius: 0.5rem 0.5rem 0 0;
+    border-bottom: 1px solid #333;
+  }
+
+  .ql-container {
+    max-height: 350px;
+    overflow-y: auto;
+  }
+    label {
           color: #fff !important;
         }
         .ant-tabs-nav::before{
@@ -380,7 +476,7 @@ const CottonPage = () => {
           border-radius:50% !important;
           color:white !important;
         }
-      `}</style>
+`}</style>
       <h2 className="text-4xl font-extrabold mb-10 text-center text-white">
         {isVietnamese ? "Trang Bông" : "Cotton Page"}
       </h2>
@@ -700,27 +796,22 @@ const CottonPage = () => {
             </Modal>
           </div>
 
-          {/* ================= Banner Slide ================= */}
+          {/* ================= Banner Slide (Single Image + Preview Modal) ================= */}
           <label className="block font-medium mt-5 mb-1">
-            {translations[activeTabLang].bannerSlide}
+            {translations[activeTabLang].bannerSlides}
           </label>
           <p className="text-sm text-slate-500 mb-2">
             {translations[activeTabLang].recommended} 750×750px
           </p>
 
           <div className="flex flex-wrap gap-4 mt-3">
-            {/* --- If an image exists (from DB or local) --- */}
-            {cottonBanner.cottonBannerSlideImgFile instanceof File ||
-            cottonBanner.cottonBannerSlideImg ? (
+            {cottonBanner.cottonBannerSlideImgFiles?.length > 0 ? (
+              // 🔹 Show new unsaved slide file
               <div className="relative group w-32 h-32 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
                 <img
-                  src={
-                    cottonBanner.cottonBannerSlideImgFile
-                      ? URL.createObjectURL(
-                          cottonBanner.cottonBannerSlideImgFile
-                        )
-                      : getFullUrl(cottonBanner.cottonBannerSlideImg)
-                  }
+                  src={URL.createObjectURL(
+                    cottonBanner.cottonBannerSlideImgFiles[0]
+                  )}
                   alt="Banner Slide"
                   className="w-full h-full object-contain p-2"
                 />
@@ -730,13 +821,13 @@ const CottonPage = () => {
                   type="button"
                   onClick={() => setActiveSlideModal(true)}
                   className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                  title={isVietnamese ? "Xem hình" : "View Full"}
+                  title={isVietnamese ? "Xem toàn màn hình" : "View Full"}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
-                    strokeWidth={2}
+                    strokeWidth="2"
                     stroke="currentColor"
                     className="w-4 h-4"
                   >
@@ -751,25 +842,25 @@ const CottonPage = () => {
 
                 {/* 🔁 Change */}
                 <label
-                  htmlFor="changeSlideUpload"
-                  className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 !text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
-                  title={isVietnamese ? "Thay đổi" : "Change Image"}
+                  htmlFor="cottonBannerSlideUpload"
+                  className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 !text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                  title={isVietnamese ? "Thay đổi" : "Change"}
                 >
                   <input
-                    id="changeSlideUpload"
+                    id="cottonBannerSlideUpload"
                     type="file"
                     accept="image/*"
+                    style={{ display: "none" }}
                     onChange={(e) => {
                       const file = e.target.files[0];
                       if (!file) return;
                       if (!validateFileSize(file)) return;
                       setCottonBanner({
                         ...cottonBanner,
-                        cottonBannerSlideImgFile: file,
-                        cottonBannerSlideImg: "",
+                        cottonBannerSlideImgFiles: [file], // ✅ replace
+                        cottonBannerSlideImg: [], // clear old
                       });
                     }}
-                    style={{ display: "none" }}
                   />
                   <RotateCw size={14} />
                 </label>
@@ -780,31 +871,92 @@ const CottonPage = () => {
                   onClick={() =>
                     setCottonBanner({
                       ...cottonBanner,
-                      cottonBannerSlideImgFile: null,
-                      cottonBannerSlideImg: "",
+                      cottonBannerSlideImgFiles: [],
+                      cottonBannerSlideImg: [],
                     })
                   }
-                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full  transition"
+                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white py-0 px-1 rounded-full transition cursor-pointer"
                   title={isVietnamese ? "Xóa" : "Remove"}
+                >
+                  ✕
+                </button>
+              </div>
+            ) : cottonBanner.cottonBannerSlideImg?.length > 0 ? (
+              // 🔹 Show saved image from DB
+              <div className="relative group w-32 h-32 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
+                <img
+                  src={getFullUrl(cottonBanner.cottonBannerSlideImg[0])}
+                  alt="Banner Slide"
+                  className="w-full h-full object-contain p-2"
+                />
+
+                {/* 👁 View Full */}
+                <button
+                  type="button"
+                  onClick={() => setActiveSlideModal(true)}
+                  className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition"
+                  title={isVietnamese ? "Xem toàn màn hình" : "View Full"}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
+                    strokeWidth="2"
                     stroke="currentColor"
-                    strokeWidth={2}
                     className="w-4 h-4"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                     />
+                    <circle cx="12" cy="12" r="3" />
                   </svg>
+                </button>
+
+                {/* 🔁 Change */}
+                <label
+                  htmlFor="cottonBannerSlideUpload"
+                  className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                  title={isVietnamese ? "Thay đổi" : "Change"}
+                >
+                  <input
+                    id="cottonBannerSlideUpload"
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      if (!validateFileSize(file)) return;
+                      setCottonBanner({
+                        ...cottonBanner,
+                        cottonBannerSlideImgFiles: [file],
+                        cottonBannerSlideImg: [],
+                      });
+                    }}
+                  />
+                  <RotateCw size={14} />
+                </label>
+
+                {/* ❌ Remove */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCottonBanner({
+                      ...cottonBanner,
+                      cottonBannerSlideImgFiles: [],
+                      cottonBannerSlideImg: [],
+                    })
+                  }
+                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white p-1 rounded-full transition"
+                  title={isVietnamese ? "Xóa" : "Remove"}
+                >
+                  ✕
                 </button>
               </div>
             ) : (
-              // --- Upload Box (Empty) ---
+              // 🔹 Empty Upload Box
               <label
                 htmlFor="cottonBannerSlideUpload"
                 className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -826,25 +978,24 @@ const CottonPage = () => {
                 <span className="mt-2 text-sm text-gray-400 text-center px-2">
                   {isVietnamese ? "Thêm hình slide" : "Add Slide Image"}
                 </span>
+                <input
+                  id="cottonBannerSlideUpload"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (!validateFileSize(file)) return;
+                    setCottonBanner({
+                      ...cottonBanner,
+                      cottonBannerSlideImgFiles: [file],
+                      cottonBannerSlideImg: [],
+                    });
+                  }}
+                />
               </label>
             )}
-
-            <input
-              id="cottonBannerSlideUpload"
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                if (!validateFileSize(file)) return;
-                setCottonBanner({
-                  ...cottonBanner,
-                  cottonBannerSlideImgFile: file,
-                  cottonBannerSlideImg: "",
-                });
-              }}
-            />
           </div>
 
           {/* 🖼 Full Preview Modal */}
@@ -856,20 +1007,71 @@ const CottonPage = () => {
             width={500}
             bodyStyle={{ background: "#000", padding: "0" }}
           >
-            {cottonBanner.cottonBannerSlideImgFile ? (
+            {cottonBanner.cottonBannerSlideImgFiles?.length > 0 ? (
               <img
-                src={URL.createObjectURL(cottonBanner.cottonBannerSlideImgFile)}
+                src={URL.createObjectURL(
+                  cottonBanner.cottonBannerSlideImgFiles[0]
+                )}
                 alt="Slide Preview"
                 className="w-full h-auto rounded-lg"
               />
-            ) : cottonBanner.cottonBannerSlideImg ? (
+            ) : cottonBanner.cottonBannerSlideImg?.length > 0 ? (
               <img
-                src={getFullUrl(cottonBanner.cottonBannerSlideImg)}
+                src={getFullUrl(cottonBanner.cottonBannerSlideImg[0])}
                 alt="Slide Preview"
                 className="w-full h-auto rounded-lg"
               />
             ) : null}
           </Modal>
+
+          {/* 📝 Banner Overview (ReactQuill) */}
+<label className="block font-medium mt-8 mb-2">
+  {isVietnamese ? "Tổng quan Biểu ngữ" : "Banner Overview"}
+</label>
+
+{/* Language Tabs for Overview Editor */}
+<Tabs activeKey={activeTabLang} onChange={setActiveTabLang} className="pill-tabs">
+  {["en", "vi"].map((lang) => (
+    <TabPane
+      tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+      key={lang}
+    >
+      <ReactQuill
+        theme="snow"
+        value={cottonBanner.cottonBannerOverview?.[lang] || ""}
+        onChange={(value) =>
+          setCottonBanner({
+            ...cottonBanner,
+            cottonBannerOverview: {
+              ...cottonBanner.cottonBannerOverview,
+              [lang]: value,
+            },
+          })
+        }
+        placeholder={
+          lang === "en"
+            ? "Write banner overview here..."
+            : "Viết mô tả tổng quan về biểu ngữ..."
+        }
+        style={{
+          backgroundColor: "#171717",
+          color: "#fff",
+          border: "1px solid #2d2d2d",
+          borderRadius: "8px",
+          fontSize: "14px",
+        }}
+        modules={{
+          toolbar: [
+            ["bold", "italic", "underline"],
+            [{ list: "ordered" }, { list: "bullet" }],
+            ["link", "clean"],
+          ],
+        }}
+      />
+    </TabPane>
+  ))}
+</Tabs>
+
 
           <div className="flex justify-end mt-6 gap-4">
             {/* Cancel Button (Gray / Outline) */}
@@ -2382,6 +2584,510 @@ const CottonPage = () => {
           </div>
         </Panel>
 
+
+{/* 🧑‍🤝‍🧑 TEAM */}
+<Panel
+  header={
+    <span className="font-semibold text-lg flex items-center text-white gap-2">
+      {isVietnamese ? "Về Đội Ngũ" : "About Team"}
+    </span>
+  }
+  key="7"
+>
+  {/* 🌐 Language Tabs */}
+  <Tabs
+    activeKey={activeTabLang}
+    onChange={setActiveTabLang}
+    className="pill-tabs mb-6"
+  >
+    {["en", "vi"].map((lang) => (
+      <TabPane
+        tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+        key={lang}
+      >
+        {/* TEAM INTRO */}
+        <div className="mb-8">
+          <h3 className="text-white text-lg font-semibold mb-4">
+            {lang === "en" ? "Team Section Intro" : "Phần Giới Thiệu Đội Ngũ"}
+          </h3>
+
+          {/* Tag */}
+          <label className="block font-medium mb-2 text-white">
+            {lang === "en" ? "Small Tag" : "Thẻ tiêu đề nhỏ"}
+          </label>
+          <Input
+            value={cottonTeam.aboutTeamIntro?.tag?.[lang] || ""}
+            onChange={(e) =>
+              setCottonTeam((prev) => ({
+                ...prev,
+                aboutTeamIntro: {
+                  ...prev.aboutTeamIntro,
+                  tag: {
+                    ...prev.aboutTeamIntro?.tag,
+                    [lang]: e.target.value,
+                  },
+                },
+              }))
+            }
+            placeholder={
+              lang === "en" ? "Our People" : "Đội ngũ của chúng tôi"
+            }
+            style={{
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "10px 14px",
+            }}
+            className="!placeholder-gray-400"
+          />
+
+          {/* Heading */}
+          <label className="block font-medium mt-5 mb-2 text-white">
+            {lang === "en" ? "Main Heading" : "Tiêu đề chính"}
+          </label>
+          <Input
+            value={cottonTeam.aboutTeamIntro?.heading?.[lang] || ""}
+            onChange={(e) =>
+              setCottonTeam((prev) => ({
+                ...prev,
+                aboutTeamIntro: {
+                  ...prev.aboutTeamIntro,
+                  heading: {
+                    ...prev.aboutTeamIntro?.heading,
+                    [lang]: e.target.value,
+                  },
+                },
+              }))
+            }
+            placeholder={
+              lang === "en"
+                ? "Meet Our Team"
+                : "Gặp gỡ đội ngũ của chúng tôi"
+            }
+            style={{
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "10px 14px",
+            }}
+            className="!placeholder-gray-400"
+          />
+
+          {/* Description */}
+          <label className="block font-medium mt-5 mb-2 text-white">
+            {lang === "en" ? "Description" : "Mô tả"}
+          </label>
+          <Input.TextArea
+            rows={4}
+            value={cottonTeam.aboutTeamIntro?.description?.[lang] || ""}
+            onChange={(e) =>
+              setCottonTeam((prev) => ({
+                ...prev,
+                aboutTeamIntro: {
+                  ...prev.aboutTeamIntro,
+                  description: {
+                    ...prev.aboutTeamIntro?.description,
+                    [lang]: e.target.value,
+                  },
+                },
+              }))
+            }
+            placeholder={
+              lang === "en"
+                ? "Our experienced professionals combine deep textile knowledge..."
+                : "Các chuyên gia của chúng tôi kết hợp kiến thức sâu rộng..."
+            }
+            style={{
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "10px 14px",
+            }}
+            className="!placeholder-gray-400"
+          />
+        </div>
+
+        {/* TEAM LIST HEADER */}
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-white text-lg font-semibold">
+            {lang === "en" ? "Team Groups" : "Nhóm Đội Ngũ"}
+          </h3>
+          <Button
+            type="primary"
+            onClick={() => setAddTeamModal(true)}
+            style={{
+              backgroundColor: "#0284C7",
+              borderRadius: "6px",
+              fontWeight: "500",
+              padding:"22px",
+              borderRadius:"999px"
+            }}
+          >
+            {lang === "en" ? "Add Team" : "Thêm Nhóm"}
+          </Button>
+        </div>
+
+        <Tabs
+          className="mb-6 pill-tabs"
+          defaultActiveKey={Object.keys(cottonTeam.aboutTeam || {})[0]}
+        >
+          {Object.entries(cottonTeam.aboutTeam || {}).map(
+            ([teamKey, teamData]) => (
+              <TabPane
+                key={teamKey}
+                tab={
+                  <div className="flex items-center gap-2">
+                    <span>{teamData.teamLabel?.[lang] || "Untitled Team"}</span>
+                    <Trash2
+                      size={16}
+                      className="cursor-pointer text-red-500 hover:text-red-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const updatedTeams = { ...cottonTeam.aboutTeam };
+                        delete updatedTeams[teamKey];
+                        setCottonTeam({
+                          ...cottonTeam,
+                          aboutTeam: updatedTeams,
+                        });
+                      }}
+                    />
+                  </div>
+                }
+              >
+                {(teamData.members || []).map((member, idx) => (
+                  <div key={idx} className="mb-6 text-white border-b pb-4">
+                    <label className="block font-medium mt-5 mb-2">
+                      {lang === "en" ? "Name" : "Tên"}
+                    </label>
+                    <Input
+                      value={member.teamName?.[lang] || ""}
+                      onChange={(e) => {
+                        const updated = [...teamData.members];
+                        updated[idx] = {
+                          ...member,
+                          teamName: {
+                            ...member.teamName,
+                            [lang]: e.target.value,
+                          },
+                        };
+                        setCottonTeam((prev) => ({
+                          ...prev,
+                          aboutTeam: {
+                            ...prev.aboutTeam,
+                            [teamKey]: { ...teamData, members: updated },
+                          },
+                        }));
+                      }}
+                      style={{
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                      }}
+                      className="!placeholder-gray-400"
+                    />
+
+                    <label className="block font-medium mt-5 mb-2">
+                      {lang === "en" ? "Designation" : "Chức danh"}
+                    </label>
+                    <Input
+                      value={member.teamDesgn?.[lang] || ""}
+                      onChange={(e) => {
+                        const updated = [...teamData.members];
+                        updated[idx] = {
+                          ...member,
+                          teamDesgn: {
+                            ...member.teamDesgn,
+                            [lang]: e.target.value,
+                          },
+                        };
+                        setCottonTeam((prev) => ({
+                          ...prev,
+                          aboutTeam: {
+                            ...prev.aboutTeam,
+                            [teamKey]: { ...teamData, members: updated },
+                          },
+                        }));
+                      }}
+                      style={{
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                      }}
+                      className="!placeholder-gray-400"
+                    />
+
+                    <label className="block font-medium mt-5 mb-2">
+                      Email
+                    </label>
+                    <Input
+                      value={member.teamEmail || ""}
+                      onChange={(e) => {
+                        const updated = [...teamData.members];
+                        updated[idx] = {
+                          ...member,
+                          teamEmail: e.target.value,
+                        };
+                        setCottonTeam((prev) => ({
+                          ...prev,
+                          aboutTeam: {
+                            ...prev.aboutTeam,
+                            [teamKey]: { ...teamData, members: updated },
+                          },
+                        }));
+                      }}
+                      style={{
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                      }}
+                      className="!placeholder-gray-400"
+                    />
+
+                    {/* 🗑 Remove Member */}
+                    <Button
+                      danger
+                      size="small"
+                      onClick={() => {
+                        const updated = teamData.members.filter(
+                          (_, i) => i !== idx
+                        );
+                        setCottonTeam((prev) => ({
+                          ...prev,
+                          aboutTeam: {
+                            ...prev.aboutTeam,
+                            [teamKey]: { ...teamData, members: updated },
+                          },
+                        }));
+                      }}
+                      style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  backgroundColor: "#FB2C36", // black
+                  border: "1px solid #333",
+                  color: "#fff",
+                  padding: "22px 30px",
+                  borderRadius: "9999px", // pill shape
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  marginTop: "20px",
+                }}
+              >
+                <Trash2 size={16} />
+                      {lang === "en" ? "Remove Member" : "Xóa thành viên"}
+                    </Button>
+                  </div>
+                ))}
+
+                {/* ➕ Add Member Button */}
+                <Button
+                  type="dashed"
+                  onClick={() => {
+                    const newMember = {
+                      teamName: { en: "", vi: "" },
+                      teamDesgn: { en: "", vi: "" },
+                      teamEmail: "",
+                    };
+                    const updated = [...(teamData.members || []), newMember];
+                    setCottonTeam((prev) => ({
+                      ...prev,
+                      aboutTeam: {
+                        ...prev.aboutTeam,
+                        [teamKey]: { ...teamData, members: updated },
+                      },
+                    }));
+                  }}
+                  block
+                 style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  backgroundColor: "#0284C7", 
+                  border: "1px solid #333",
+                  color: "#fff",
+                  padding: "22px 30px",
+                  borderRadius: "9999px", // pill shape
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  marginTop: "20px",
+                  width:"fit-content"
+                }}
+              >
+                <Plus/>
+                  {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
+                </Button>
+              </TabPane>
+            )
+          )}
+        </Tabs>
+      </TabPane>
+    ))}
+  </Tabs>
+
+  {/* Footer Buttons */}
+  <div className="flex justify-end gap-4 mt-6">
+    <Button
+      onClick={() => window.location.reload()}
+      style={{
+        backgroundColor: "transparent",
+        color: "#fff",
+        border: "1px solid #333",
+        padding: "22px 30px",
+        borderRadius: "9999px",
+        fontWeight: "500",
+      }}
+    >
+      Cancel
+    </Button>
+
+    <Button
+      onClick={async () => {
+        const formData = new FormData();
+        formData.append("cottonTeam", JSON.stringify(cottonTeam));
+        const res = await updateCottonPage(formData);
+        if (res.data?.cotton) {
+          CommonToaster("Team saved successfully!", "success");
+        } else {
+          CommonToaster("Failed to save team", "error");
+        }
+      }}
+      style={{
+        backgroundColor: "#0284C7",
+        color: "#fff",
+        border: "none",
+        padding: "22px 30px",
+        borderRadius: "9999px",
+        fontWeight: "500",
+      }}
+    >
+      Save Team
+    </Button>
+  </div>
+
+  {/* ➕ Popup Modal for Adding Team Title */}
+<Modal
+  open={addTeamModal}
+  onCancel={() => setAddTeamModal(false)}
+  footer={null}
+  centered
+  width={450}
+  bodyStyle={{
+    background: "#1a1a1a",
+    borderRadius: "10px",
+    padding: "24px",
+  }}
+>
+  <h3 className="text-white text-lg font-semibold mb-4">
+    {isVietnamese ? "Thêm Nhóm Mới" : "Add New Team"}
+  </h3>
+
+  {/* English Input */}
+  <label className="block font-medium mb-2 text-white">Team Title (EN)</label>
+  <Input
+    value={tempTeamTitle?.en || ""}
+    onChange={(e) =>
+      setTempTeamTitle((prev) => ({
+        ...prev,
+        en: e.target.value,
+      }))
+    }
+    placeholder="Enter English team title"
+    style={{
+      backgroundColor: "#262626",
+      border: "1px solid #2E2F2F",
+      borderRadius: "8px",
+      color: "#fff",
+      padding: "10px 14px",
+      marginBottom: "16px",
+    }}
+    className="!placeholder-gray-400"
+  />
+
+  {/* Vietnamese Input */}
+  <label className="block font-medium mb-2 text-white">Team Title (VI)</label>
+  <Input
+    value={tempTeamTitle?.vi || ""}
+    onChange={(e) =>
+      setTempTeamTitle((prev) => ({
+        ...prev,
+        vi: e.target.value,
+      }))
+    }
+    placeholder="Nhập tên nhóm (Tiếng Việt)"
+    style={{
+      backgroundColor: "#262626",
+      border: "1px solid #2E2F2F",
+      borderRadius: "8px",
+      color: "#fff",
+      padding: "10px 14px",
+    }}
+    className="!placeholder-gray-400"
+  />
+
+  {/* Footer Buttons */}
+  <div className="flex justify-end gap-3 mt-6">
+    <Button
+      onClick={() => setAddTeamModal(false)}
+      style={{
+        backgroundColor: "transparent",
+        color: "#fff",
+        border: "1px solid #333",
+        padding:"22px",
+        borderRadius:"999px"
+      }}
+    >
+      Cancel
+    </Button>
+    <Button
+      type="primary"
+      style={{
+        backgroundColor: "#0284C7",
+        border: "none",
+        color: "#fff",
+        padding:"22px",
+        borderRadius:"999px"
+      }}
+      onClick={() => {
+        if (!tempTeamTitle.en && !tempTeamTitle.vi) return;
+        const newKey = `team_${Date.now()}`;
+        setCottonTeam((prev) => ({
+          ...prev,
+          aboutTeam: {
+            ...prev.aboutTeam,
+            [newKey]: {
+              teamLabel: {
+                en: tempTeamTitle.en || "New Team",
+                vi: tempTeamTitle.vi || "Nhóm Mới",
+              },
+              members: [],
+            },
+          },
+        }));
+        setTempTeamTitle({ en: "", vi: "" });
+        setAddTeamModal(false);
+      }}
+    >
+      {isVietnamese ? "Thêm Nhóm" : "Add Team"}
+    </Button>
+  </div>
+</Modal>
+
+</Panel>
+
+
+
+
         {/* 6. SEO META SECTION */}
         <Panel
           header={
@@ -2406,7 +3112,7 @@ const CottonPage = () => {
                   {lang === "vi" ? "Tiêu đề Meta" : "Meta Title"}
                 </label>
                 <Input
-                className="!placeholder-gray-400"
+                  className="!placeholder-gray-400"
                   placeholder={
                     lang === "vi"
                       ? "Nhập tiêu đề Meta..."
@@ -2580,6 +3286,9 @@ const CottonPage = () => {
             </Button>
           </div>
         </Panel>
+
+
+        
       </Collapse>
     </div>
   );

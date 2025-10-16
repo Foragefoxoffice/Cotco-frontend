@@ -70,7 +70,7 @@ const MachineList = () => {
 
   if (loading) return <Spin />;
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API_URL = import.meta.env.VITE_API_URL || "";
   const bannerUrl =
     category?.banner && category.banner.startsWith("/uploads")
       ? `${API_URL}${category.banner}`

@@ -26,7 +26,7 @@ const CustomStepper = ({ steps, currentStep, onStepChange }) => {
             <div
               className={`relative z-10 w-8 h-8 flex items-center justify-center rounded-full border-2 transition-all duration-300
                 ${isCompleted ? "bg-blue-500 border-blue-500 text-white" : ""}
-                ${isActive && !isCompleted ? "bg-blue-500 border-blue-500 text-white" : ""}
+                ${isActive && !isCompleted ? "bg-[#0284C7] border-blue-500 text-white" : ""}
                 ${!isCompleted && !isActive ? "border-gray-300 text-gray-400 bg-white" : ""}
               `}
             >
@@ -36,7 +36,7 @@ const CustomStepper = ({ steps, currentStep, onStepChange }) => {
             {/* Step title */}
             <span
               className={`mt-2 text-sm font-medium ${
-                isActive ? "text-blue-600" : "text-gray-500"
+                isActive ? "text-[#0284C7]" : "text-gray-500"
               }`}
             >
               {step.title}

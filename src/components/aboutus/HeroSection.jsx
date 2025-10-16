@@ -87,7 +87,7 @@ const HeroSection = () => {
           }}
           className="max-w-6xl"
         >
-          <h3 className="text-4xl text-[#143A59] md:text-6xl font-bold tracking-wider uppercase">
+          <h3 className="!text-[40px] text-[#143A59] md:!text-[65px] !mt-6 !font-[700] uppercase">
             {pick(heroData.aboutTitle, activeLang) || "About Us"}
           </h3>
         </motion.div>
@@ -100,7 +100,7 @@ const HeroSection = () => {
             style={{ y: yImage }}
             src={getFullUrl(heroData.aboutBanner)}
             alt="Hero Banner"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover mt-[200px] md:mt-0 "
           />
         )}
         <div className="absolute inset-0 bg-black/20 z-10" />

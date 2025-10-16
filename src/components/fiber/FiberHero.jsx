@@ -146,16 +146,16 @@ export default function FiberHero() {
         }`}
       >
         {/* Title / Subtitle */}
-        <div className="absolute z-10 bottom-[190px] left-6 md:left-15">
+        <div className="absolute z-10 bottom-5 md:bottom-[200px] left-6 md:left-15">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-9xl text-white font-bold cotton-section-heading"
+            className="text-6xl md:text-[100px] text-white font-[700] !mb-0 cotton-section-heading"
           >
             {pick(fiberBanner?.fiberBannerTitle) || "FIBER"}
           </motion.h1>
-          <p className="text-white text-xl pl-6.5 pt-3 cotton-section-subheading">
+          <p className="text-white text-[14px] md:text-[20px] pt-3 cotton-section-subheading">
             {pick(fiberBanner?.fiberBannerDes) || "Empowering Vietnam’s Textile Industry Since 2016"}
           </p>
         </div>

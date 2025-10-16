@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { FiArrowDownRight } from "react-icons/fi";
+import { MoveUpRight } from "lucide-react";
 import { getHomepage } from "../../Api/api";
 
 export default function HeroSection() {
@@ -9,7 +9,7 @@ export default function HeroSection() {
   const [activeLang, setActiveLang] = useState("en"); // ✅ language state
   const videoRef = useRef(null);
 
-  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const BASE_URL = import.meta.env.VITE_API_URL || "";
 
   // Detect scroll for animation
   useEffect(() => {
@@ -35,7 +35,10 @@ export default function HeroSection() {
     const observer = new MutationObserver(() =>
       setActiveLang(detectLanguage())
     );
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     return () => observer.disconnect();
   }, []);
@@ -71,7 +74,9 @@ export default function HeroSection() {
   return (
     <motion.div
       initial={{ scale: 1, opacity: 1 }}
-      animate={scrolled ? { scale: 0.95, opacity: 0.9 } : { scale: 1, opacity: 1 }}
+      animate={
+        scrolled ? { scale: 0.95, opacity: 0.9 } : { scale: 1, opacity: 1 }
+      }
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={`relative overflow-hidden hero min-h-screen transition-all duration-500 ease-out ${
         scrolled ? "rounded-2xl shadow-2xl" : ""
@@ -91,7 +96,9 @@ export default function HeroSection() {
         >
           <source
             src={`${BASE_URL}${heroData.bgUrl}`}
-            type={`video/${(heroData.bgUrl.split(".").pop() || "mp4").split("?")[0]}`}
+            type={`video/${
+              (heroData.bgUrl.split(".").pop() || "mp4").split("?")[0]
+            }`}
           />
           Your browser does not support the video tag.
         </video>
@@ -107,31 +114,32 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-black/40" />
 
       {/* ---------- Language Switcher ---------- */}
-      <div className="absolute top-6 right-6 z-20">
+      {/* <div className="absolute top-6 right-6 z-20">
         <button
           onClick={toggleLanguage}
           className="px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-sm font-medium text-white backdrop-blur-md transition"
         >
           {activeLang === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}
         </button>
-      </div>
+      </div> */}
 
       {/* ---------- Text Content ---------- */}
-      <div className="absolute md:bottom-0 bottom-10 md:px-12 p-6 pb-20 text-white max-w-4xl">
-        <h1 className="text-4xl md:text-6xl font-semibold leading-tight">
+      <div className="absolute md:bottom-0 bottom-10 md:px-12 p-6 md:pb-20 text-white max-w-3xl">
+        <h1 className="text-[25px] md:text-[35px] font-[600] leading-tight">
           {pick(heroData.heroTitle) || "Your Trusted Partner"} <br />
         </h1>
-        <p className="mt-4 text-lg">
-          {pick(heroData.heroDescription) || "Empowering Vietnam’s Textile Industry"}
+        <p className="mt-4 text-[14px]  md:text-[20px] font-[400]">
+          {pick(heroData.heroDescription) ||
+            "Empowering Vietnam’s Textile Industry"}
         </p>
 
         {heroData.heroButtonLink?.[activeLang] && (
           <a
             href={heroData.heroButtonLink[activeLang]}
-            className="w-60 mt-6 px-5 py-2 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-xl font-semibold"
+            className="w-fit mt-6 px-3 py-3 md:px-5 md:py-4 rounded-full flex justify-between gap-3 items-center border border-gray-400 hover:bg-black hover:text-white transition-all !text-[32] !font-[400]"
           >
             {pick(heroData.heroButtonText) || "Explore Products"}{" "}
-            <FiArrowDownRight />
+            <MoveUpRight />
           </a>
         )}
       </div>

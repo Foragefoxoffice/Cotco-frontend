@@ -37,7 +37,7 @@ const MachineDetail = () => {
         className="relative h-[60vh] flex items-center justify-center text-center text-white"
         style={{
           background: category.image
-            ? `url(http://localhost:5000${category.image}) center/cover no-repeat`
+            ? `url(${category.image}) center/cover no-repeat`
             : "#11456C",
         }}
       >

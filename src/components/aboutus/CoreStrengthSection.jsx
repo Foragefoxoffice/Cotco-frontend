@@ -19,7 +19,10 @@ export default function CoreStrengthSection() {
     const observer = new MutationObserver(() => {
       setActiveLang(detectLanguage());
     });
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -37,17 +40,23 @@ export default function CoreStrengthSection() {
   const getImageUrl = (path) => {
     if (!path) return "";
     if (path.startsWith("data:") || path.startsWith("http")) return path;
-    return `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${path}`;
+    return `${import.meta.env.VITE_API_URL || ""}${path}`;
   };
 
   const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
 
   if (!coreData) return null;
 
+  // ✅ Get bilingual section title
+  const sectionTitle =
+    pick(coreData.aboutCoreTitle, activeLang) ||
+    (activeLang === "vi" ? "THẾ MẠNH CỐT LÕI" : "CORE STRENGTHS");
+
   // ✅ Normalize strengths with multilingual text
   const strengths = [
     {
-      title: pick(coreData.aboutCoreTitle1, activeLang) || "GLOBAL COTTON SOURCING",
+      title:
+        pick(coreData.aboutCoreTitle1, activeLang) || "GLOBAL COTTON SOURCING",
       description:
         pick(coreData.aboutCoreDes1, activeLang) ||
         "We source high-quality cotton from around the globe.",
@@ -72,8 +81,9 @@ export default function CoreStrengthSection() {
   return (
     <section className="page-width md:py-20 py-6 bg-white core-strength">
       <div className="container mx-auto px-4">
+        {/* ✅ Dynamic Title */}
         <TitleAnimation
-          text={activeLang === "vi" ? "THẾ MẠNH CỐT LÕI" : "CORE STRENGTHS"}
+          text={sectionTitle}
           className="heading uppercase"
           align="center"
           delay={0.05}
@@ -81,10 +91,11 @@ export default function CoreStrengthSection() {
           once={true}
         />
 
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* ---------- Large Left Card ---------- */}
+        {/* ✅ Layout: Left Full Height + Right Two Boxes */}
+        <div className="flex flex-col md:flex-row gap-6 mt-10">
+          {/* ---------- Left Full Height Card ---------- */}
           <SlideIn direction="left" className="w-full md:w-1/2">
-            <div className="relative rounded-xl overflow-hidden group h-[400px] md:h-auto">
+            <div className="relative rounded-xl overflow-hidden group h-[400px] md:h-[540px] lg:h-[600px]">
               <img
                 src={strengths[0].image}
                 alt={strengths[0].title}
@@ -92,7 +103,9 @@ export default function CoreStrengthSection() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300" />
               <div className="absolute bottom-4 left-4 right-4 z-10 text-white space-y-2">
-                <h3 className="text-4xl font-semibold">{strengths[0].title}</h3>
+                <h3 className="text-2xl md:text-3xl font-semibold uppercase">
+                  {strengths[0].title}
+                </h3>
                 <p className="hidden md:block opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                   {strengths[0].description}
                 </p>
@@ -103,11 +116,11 @@ export default function CoreStrengthSection() {
             </div>
           </SlideIn>
 
-          {/* ---------- Right Two Cards ---------- */}
-          <div className="w-full md:w-1/2 flex flex-col gap-6">
+          {/* ---------- Right Side (2 smaller cards stacked) ---------- */}
+          <div className="w-full md:w-1/2 flex flex-col justify-between gap-6">
             {strengths.slice(1).map((item, index) => (
               <SlideIn key={index} direction="right">
-                <div className="relative rounded-xl overflow-hidden group h-52 md:h-full">
+                <div className="relative rounded-xl overflow-hidden group h-[190px] md:h-[260px] lg:h-[280px]">
                   <img
                     src={item.image}
                     alt={item.title}
@@ -115,11 +128,15 @@ export default function CoreStrengthSection() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300" />
                   <div className="absolute bottom-4 left-4 right-4 z-10 text-white space-y-2">
-                    <h3 className="text-4xl font-semibold">{item.title}</h3>
+                    <h3 className="text-2xl md:text-3xl font-semibold uppercase">
+                      {item.title}
+                    </h3>
                     <p className="hidden md:block opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                       {item.description}
                     </p>
-                    <p className="block md:hidden text-sm">{item.description}</p>
+                    <p className="block md:hidden text-sm">
+                      {item.description}
+                    </p>
                   </div>
                 </div>
               </SlideIn>

@@ -74,7 +74,10 @@ export default function VissionMission() {
     const observer = new MutationObserver(() => {
       setActiveLang(detectLanguage());
     });
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -82,19 +85,27 @@ export default function VissionMission() {
   useEffect(() => {
     getAboutPage()
       .then((res) => {
-        if (res.data?.aboutMissionVission) {
-          setData(res.data.aboutMissionVission);
-        }
+        const mv = res.data?.aboutMissionVission;
+        if (mv) setData(mv);
       })
-      .catch((err) => console.error("Failed to fetch mission & vision:", err));
+      .catch((err) =>
+        console.error("❌ Failed to fetch Mission & Vision:", err)
+      );
   }, []);
 
-  // ✅ Helper to pick multilingual content safely
-  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
+  // ✅ Helper for multilingual content
+  const pick = (obj) =>
+    typeof obj === "object"
+      ? obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? ""
+      : obj ?? "";
 
   if (!data) return null;
 
-  const blocks = [1, 2, 3];
+  const headingBlocks = Array.isArray(data.headingBlocks)
+    ? data.headingBlocks
+    : [];
+
+  const boxCounts = [1, 2, 3, 4];
 
   return (
     <section className="bg-white">
@@ -109,8 +120,7 @@ export default function VissionMission() {
               <div>
                 <TitleAnimation
                   text={
-                    pick(data.aboutMissionVissionTitle, activeLang) ||
-                    "Mission & Vision"
+                    pick(data.aboutMissionVissionTitle) || "Mission & Vision"
                   }
                   className="font-extrabold text-white md:text-4xl text-3xl"
                   align="left"
@@ -120,36 +130,48 @@ export default function VissionMission() {
                 />
 
                 <div className="mt-6 space-y-6">
-                  {blocks.map((i) => (
-                    <div key={i}>
-                      <h3 className="uppercase text-md font-bold tracking-wider">
-                        {pick(data[`aboutMissionVissionSubhead${i}`], activeLang) ||
-                          `Subhead ${i}`}
-                      </h3>
-                      <p className="mt-2 text-[16px] text-white/90 leading-relaxed">
-                        {pick(data[`aboutMissionVissionDes${i}`], activeLang) || ""}
-                      </p>
-                    </div>
-                  ))}
+                  {headingBlocks.length > 0 ? (
+                    headingBlocks.map((block, i) => (
+                      <div key={i}>
+                        <h3 className="uppercase text-md font-bold tracking-wider">
+                          {pick(block.title) || `Subhead ${i + 1}`}
+                        </h3>
+                        <p className="mt-2 text-[16px] text-white/90 leading-relaxed">
+                          {pick(block.desc)}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-white/70">
+                      No mission/vision blocks added yet.
+                    </p>
+                  )}
                 </div>
               </div>
             </SlideIn>
 
-            {/* ---------- RIGHT: metrics ---------- */}
+            {/* ---------- RIGHT: stats ---------- */}
             <SlideIn
               direction="right"
               className="col-span-12 md:col-span-5 lg:col-span-4"
             >
-              <div className="grid gap-y-10 md:gap-y-12">
-                {blocks.map((i) => (
+              <div
+                className="
+      grid
+      grid-cols-2               /* Two columns for balance */
+      md:grid-cols-2
+      lg:grid-cols-2
+      gap-6 md:gap-8            /* Spacing between boxes */
+      items-start
+    "
+              >
+                {boxCounts.map((i) => (
                   <Stat
                     key={i}
                     value={data[`aboutMissionVissionBoxCount${i}`] || 0}
-                    suffix={i === 3 ? "%+" : "+"}
-                    label={
-                      pick(data[`aboutMissionBoxDes${i}`], activeLang) || ""
-                    }
-                    className="col-span-1 counters"
+                    suffix="+"
+                    label={pick(data[`aboutMissionBoxDes${i}`]) || ""}
+                    className="flex flex-col items-center text-center"
                   />
                 ))}
               </div>

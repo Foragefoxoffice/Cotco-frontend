@@ -74,7 +74,9 @@ export default function TextileMachines({ category }) {
       <section className="relative bg-white hero md:pt-0 overflow-x-hidden overflow-hidden">
         <motion.div
           initial={{ scale: 1, opacity: 1 }}
-          animate={scrolled ? { scale: 0.95, opacity: 0.9 } : { scale: 1, opacity: 1 }}
+          animate={
+            scrolled ? { scale: 0.95, opacity: 0.9 } : { scale: 1, opacity: 1 }
+          }
           transition={{ duration: 0.6, ease: "easeOut" }}
           className={`relative z-10 transition-all duration-500 ease-out ${
             scrolled ? "rounded-2xl shadow-lg" : ""
@@ -102,7 +104,7 @@ export default function TextileMachines({ category }) {
             <motion.img
               src={
                 category?.image
-                  ? `http://localhost:5000${category.image}`
+                  ? `${category.image}`
                   : "/img/textiles/textiles-bg.jpg"
               }
               alt={category?.name?.en || "Machines"}
@@ -137,7 +139,7 @@ export default function TextileMachines({ category }) {
             <img
               src={
                 category?.image2
-                  ? `http://localhost:5000${category.image2}`
+                  ? `${category.image2}`
                   : "/img/textiles/category.png" // ✅ fallback default
               }
               alt={`${category?.name?.en || "Machine"} image`}
