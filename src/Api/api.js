@@ -2,7 +2,8 @@ import axios from "axios";
 
 // ✅ Setup axios instance
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/v1", // change to your backend URL
+  baseURL: "http://localhost:5000/api/v1",
+  // baseURL: "https://api.cotco-vn.com/api/v1", 
   withCredentials: true, // if you use cookies
 });
 

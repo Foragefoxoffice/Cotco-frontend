@@ -94,13 +94,13 @@ const HeroSection = () => {
       </motion.div>
 
       {/* ---------- Background Image ---------- */}
-      <div className="relative overflow-hidden md:pt-72">
+      <div className="relative overflow-hidden">
         {heroData.aboutBanner && (
           <motion.img
             style={{ y: yImage }}
             src={getFullUrl(heroData.aboutBanner)}
             alt="Hero Banner"
-            className="w-full h-full object-cover mt-[200px] md:mt-0 "
+            className="w-full h-full object-cover md:mt-0 "
           />
         )}
         <div className="absolute inset-0 bg-black/20 z-10" />
