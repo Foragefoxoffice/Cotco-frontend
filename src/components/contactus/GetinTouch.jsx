@@ -3,6 +3,7 @@ import { getContactPage } from "../../Api/api";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
+/* ---------- ICON COMPONENTS ---------- */
 const IconBox = ({ children }) => (
   <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
     <div className="text-blue-600">{children}</div>
@@ -35,27 +36,44 @@ const ClockIcon = () => (
   </svg>
 );
 
+/* ---------- MAIN COMPONENT ---------- */
 const GetinTouch = () => {
   const [contactLocation, setContactLocation] = useState(null);
   const [contactHours, setContactHours] = useState(null);
+  const [isVietnamese, setIsVietnamese] = useState(false);
 
+  // ✅ Detect language dynamically
+  useEffect(() => {
+    const checkLang = () => {
+      setIsVietnamese(document.body.classList.contains("vi-mode"));
+    };
+    checkLang();
+
+    const observer = new MutationObserver(checkLang);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Fetch contact data
   useEffect(() => {
     getContactPage().then((res) => {
-      if (res.data?.contactLocation) {
-        setContactLocation(res.data.contactLocation);
-      }
-      if (res.data?.contactHours) {
-        setContactHours(res.data.contactHours);
-      }
+      if (res.data?.contactLocation) setContactLocation(res.data.contactLocation);
+      if (res.data?.contactHours) setContactHours(res.data.contactHours);
     });
   }, []);
+
+  // ✅ Helper: text based on language
+  const t = (en, vi) => (isVietnamese ? vi || en : en);
 
   return (
     <section className="bg-white">
       <div className="mx-auto page-width md:pt-20 pt-6">
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 md:max-w-5xl m-auto gap-6 lg:gap-8">
-          {/* Our Office (from contactLocation) */}
+          {/* Our Office */}
           <div className="rounded-2xl bg-white shadow-sm p-6 md:p-8">
             <div className="flex items-start gap-4">
               <IconBox>
@@ -63,11 +81,18 @@ const GetinTouch = () => {
               </IconBox>
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">
-                  {contactLocation?.contactLocationTitle?.en || "Our Office"}
+                  {t(
+                    contactLocation?.contactLocationTitle?.en,
+                    contactLocation?.contactLocationTitle?.vi
+                  ) || t("Our Office", "Văn phòng của chúng tôi")}
                 </h3>
                 <p className="mt-2 text-slate-600 leading-7">
-                  {contactLocation?.contactLocationDes?.en || "Office address here"}
+                  {t(
+                    contactLocation?.contactLocationDes?.en,
+                    contactLocation?.contactLocationDes?.vi
+                  ) || t("Office address here", "Địa chỉ văn phòng tại đây")}
                 </p>
+
                 {contactLocation?.contactLocationButtonLink && (
                   <a
                     href={contactLocation.contactLocationButtonLink}
@@ -75,7 +100,10 @@ const GetinTouch = () => {
                     rel="noopener noreferrer"
                     className="mt-3 inline-block text-sm font-medium text-blue-600 hover:text-blue-700"
                   >
-                    {contactLocation?.contactLocationButtonText?.en || "Get Directions"}
+                    {t(
+                      contactLocation?.contactLocationButtonText?.en,
+                      contactLocation?.contactLocationButtonText?.vi
+                    ) || t("Get Directions", "Xem chỉ đường")}
                   </a>
                 )}
               </div>
@@ -90,7 +118,10 @@ const GetinTouch = () => {
               </IconBox>
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">
-                  {contactHours?.contactHoursTitle?.en || "Business Hours"}
+                  {t(
+                    contactHours?.contactHoursTitle?.en,
+                    contactHours?.contactHoursTitle?.vi
+                  ) || t("Business Hours", "Giờ làm việc")}
                 </h3>
 
                 <ul className="mt-3 space-y-3">
@@ -98,14 +129,22 @@ const GetinTouch = () => {
                     contactHours.contactHoursList.map((item, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#DBEAFE]" />
-                        <div className="text-slate-600">{item.en}</div>
+                        <div className="text-slate-600">
+                          {t(item?.en, item?.vi)}
+                        </div>
                       </li>
                     ))
                   ) : (
                     <>
-                      <li className="text-slate-600">Monday – Friday: 8:00 AM – 6:00 PM</li>
-                      <li className="text-slate-600">Saturday: 8:00 AM – 12:00 PM</li>
-                      <li className="text-slate-600">Sunday: Closed</li>
+                      <li className="text-slate-600">
+                        {t("Monday – Friday: 8:00 AM – 6:00 PM", "Thứ Hai – Thứ Sáu: 8:00 – 18:00")}
+                      </li>
+                      <li className="text-slate-600">
+                        {t("Saturday: 8:00 AM – 12:00 PM", "Thứ Bảy: 8:00 – 12:00")}
+                      </li>
+                      <li className="text-slate-600">
+                        {t("Sunday: Closed", "Chủ nhật: Nghỉ")}
+                      </li>
                     </>
                   )}
                 </ul>

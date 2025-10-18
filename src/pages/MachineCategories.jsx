@@ -1,8 +1,8 @@
 // src/pages/MachineCategories.jsx
 import React, { useEffect, useState } from "react";
-import { Card, Row, Col, Spin } from "antd";
+import { Row, Col, Spin } from "antd";
 import { Link } from "react-router-dom";
-import { getMachineCategories } from "../Api/api"; // ✅ only machine categories
+import { getMachineCategories } from "../Api/api";
 import Navbar from "../components/layout/Navbar";
 
 const MachineCategories = () => {
@@ -12,24 +12,23 @@ const MachineCategories = () => {
   useEffect(() => {
     (async () => {
       try {
-        // ✅ Fetch machine categories directly
         const res = await getMachineCategories();
         setCategories(res.data.data || []);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching machine categories:", err);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  if (loading) return <Spin />;
+  if (loading) return <Spin className="flex justify-center items-center h-screen" />;
 
   return (
     <main>
       <Navbar />
-
       <h2 className="text-center font-bold mb-4">MACHINES FROM LMW</h2>
+
       <div className="py-6 page-width">
         <Row gutter={[16, 16]}>
           {categories.map((cat) => (
@@ -39,8 +38,8 @@ const MachineCategories = () => {
                   {/* Image */}
                   <div className="h-[350px] w-full">
                     <img
-                      alt={cat.name.en}
-                      src={`${cat.image}`}
+                      alt={cat.name?.en || "Machine"}
+                      src={cat.image || cat.createMachineCatBgImage}
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500 rounded-2xl"
                     />
                   </div>
@@ -48,10 +47,9 @@ const MachineCategories = () => {
                   {/* Bottom section */}
                   <div className="bg-[#11456C] flex items-center justify-between mt-5 p-4 rounded-2xl">
                     <h3 className="text-white font-semibold uppercase tracking-wide">
-                      {cat.name.en}
+                      {cat.createMachineCatTitle?.en || cat.name?.en}
                     </h3>
 
-                    {/* Right icon */}
                     <div className="text-white bg-white/20 rounded-full p-2 group-hover:bg-white transition">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

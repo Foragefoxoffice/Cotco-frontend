@@ -77,12 +77,12 @@ const WhatDefineUs = () => {
             >
               <div className="flex items-start gap-3">
                 {/* Always show icon */}
-                <TbCheckbox className="h-8 w-8 text-[var(--secondary)] mt-1" />
+                <TbCheckbox className="md:h-14 md:w-14 w-20 h-20 text-[var(--secondary)]" />
                 <div>
                   <h3 className="text-sm sm:text-xl font-semibold mb-1">
                     {item.title}
                   </h3>
-                  <p className="text-lg text-slate-600 leading-relaxed">
+                  <p className="md:text-lg text-sm text-slate-600 leading-relaxed">
                     {item.desc}
                   </p>
                 </div>

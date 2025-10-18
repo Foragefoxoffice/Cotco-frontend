@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FiArrowDownRight } from "react-icons/fi";
+import {ArrowUpRight} from "lucide-react"
 import TitleAnimation from "../common/AnimatedTitle";
 import { getHomepage } from "../../Api/api"; // adjust path if needed
 
@@ -79,10 +80,10 @@ const WhoWeAreSection = () => {
           {data.whoWeArebuttonLink?.[activeLang] && (
             <a
               href={data.whoWeArebuttonLink[activeLang]}
-              className="w-36 px-5 py-2 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-sm font-semibold"
+              className="w-fit px-5 py-4 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-sm font-semibold"
             >
               {pick(data.whoWeArebuttonText, activeLang) || "SEE MORE"}{" "}
-              <FiArrowDownRight />
+              <ArrowUpRight />
             </a>
           )}
         </div>

@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Cpu, Plus, Edit2, Trash2 } from "lucide-react";
-import { Modal, Button, Spin, Tag, Popconfirm, message } from "antd";
+import { Modal, Button, Spin, Tag, Popconfirm } from "antd";
 import MachineCategoryCreate from "../components/forms/MachineCategoryCreate";
 import MachineCategoryEdit from "../components/forms/MachineCategoryEdit";
 import { getMachineCategories, deleteMachineCategory } from "../Api/api";
+import { CommonToaster } from "../Common/CommonToaster";
+
+// ✅ Helper to get full image URL from .env
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+const getFullImageURL = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  if (!path.startsWith("/")) path = "/" + path;
+  return `${BASE_URL}${path}`;
+};
 
 const MachineCategoriesScreen = () => {
   const [isVietnamese, setIsVietnamese] = useState(false);
@@ -27,43 +38,60 @@ const MachineCategoriesScreen = () => {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Fetch categories
+  // ✅ Fetch categories from API
   const fetchCategories = async () => {
     try {
       setLoading(true);
       const res = await getMachineCategories();
-      setCategories(res.data.data || []);
+
+      const fetched = res.data.data || [];
+
+      // Normalize image paths to full URLs
+      const fixed = fetched.map((cat) => ({
+        ...cat,
+        image: getFullImageURL(cat.image),
+        icon: getFullImageURL(cat.icon),
+        createMachineCatBgImage: getFullImageURL(cat.createMachineCatBgImage),
+      }));
+
+      setCategories(fixed);
     } catch (err) {
-      console.error("Fetch categories error:", err);
+      console.error("❌ Fetch categories error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Handle delete
+  // ✅ Delete handler
   const handleDelete = async (id) => {
     try {
       await deleteMachineCategory(id);
-      message.success(
+
+      CommonToaster(
         isVietnamese
-          ? "Xóa danh mục máy thành công ✅"
-          : "Machine category deleted successfully ✅"
+          ? "Xóa danh mục máy thành công"
+          : "Machine category deleted successfully",
+        "success"
       );
+
       fetchCategories();
     } catch (err) {
       console.error("Delete category error:", err);
-      message.error(
+      CommonToaster(
         isVietnamese
-          ? "Xóa danh mục máy thất bại ❌"
-          : "Failed to delete category ❌"
+          ? "Xóa danh mục máy thất bại"
+          : "Failed to delete machine category",
+        "error"
       );
     }
   };
 
+  // ✅ Fetch on mount
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // ✅ Language text map
   const lang = {
     title: isVietnamese ? "Danh Mục Máy" : "Machine Categories",
     add: isVietnamese ? "Thêm Danh Mục Máy" : "Add Machine Category",
@@ -84,7 +112,18 @@ const MachineCategoriesScreen = () => {
 
   return (
     <div>
-      {/* Page Header */}
+      <style>{`
+        .ant-modal .ant-modal-close-x {
+          color: #fff;
+        }
+        .ant-modal-close {
+          background-color: red !important;
+          border-radius: 50% !important;
+          color: white !important;
+        }
+      `}</style>
+
+      {/* Header */}
       <div className="mb-6 p-6 bg-[#171717] rounded-lg shadow-sm border border-[#2E2F2F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
           {lang.title}
@@ -116,7 +155,7 @@ const MachineCategoriesScreen = () => {
         </Button>
       </div>
 
-      {/* Machine Categories List */}
+      {/* Category list */}
       {loading ? (
         <div className="flex justify-center items-center h-48">
           <Spin size="large" />
@@ -131,16 +170,23 @@ const MachineCategoriesScreen = () => {
               className="bg-[#171717] rounded-lg shadow-sm border border-[#2E2F2F] overflow-hidden hover:shadow-md transition-transform transform hover:-translate-y-1 duration-200 group"
             >
               <div className="h-48 overflow-hidden">
-                <img
-                  src={`${category.image}`}
-                  alt={
-                    isVietnamese
-                      ? category.name?.vi || ""
-                      : category.name?.en || ""
-                  }
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+                {category.image ? (
+                  <img
+                    src={getFullImageURL(category.image)}
+                    alt={
+                      isVietnamese
+                        ? category.name?.vi || ""
+                        : category.name?.en || ""
+                    }
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#222] text-gray-500 text-sm">
+                    No Image
+                  </div>
+                )}
               </div>
+
               <div className="p-5">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-medium text-white flex items-center">
@@ -150,17 +196,6 @@ const MachineCategoriesScreen = () => {
                   </h3>
                 </div>
 
-                {/* Parent Main Category */}
-                <p className="text-xs mb-2">
-                  <Tag color="blue">
-                    {isVietnamese
-                      ? category.mainCategory?.name?.vi ||
-                        category.mainCategory?.slug
-                      : category.mainCategory?.name?.en ||
-                        category.mainCategory?.slug}
-                  </Tag>
-                </p>
-
                 <p className="text-sm text-white h-10">
                   {isVietnamese
                     ? category.description?.vi || ""
@@ -169,7 +204,6 @@ const MachineCategoriesScreen = () => {
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-3">
-                  {/* ✏️ Edit Button */}
                   <Button
                     size="small"
                     icon={<Edit2 size={14} />}
@@ -199,7 +233,6 @@ const MachineCategoriesScreen = () => {
                     {lang.edit}
                   </Button>
 
-                  {/* 🗑 Delete Button */}
                   <Popconfirm
                     title={lang.confirmDelete}
                     okText={lang.yes}
@@ -238,7 +271,7 @@ const MachineCategoriesScreen = () => {
         </div>
       )}
 
-      {/* 🟦 Create Machine Category Modal */}
+      {/* 🟦 Create Modal */}
       <Modal
         title={
           <h2
@@ -263,20 +296,21 @@ const MachineCategoriesScreen = () => {
         }}
       >
         <MachineCategoryCreate
-          isVietnamese={isVietnamese} // 🔹 pass language state
+          isVietnamese={isVietnamese}
           onSuccess={() => {
-            fetchCategories();
+            setTimeout(fetchCategories, 500);
             setIsCreateModalOpen(false);
-            message.success(
+            CommonToaster(
               isVietnamese
-                ? "Danh mục máy đã được tạo thành công ✅"
-                : "Machine category created successfully ✅"
+                ? "Danh mục máy đã được tạo thành công"
+                : "Machine category created successfully",
+              "success"
             );
           }}
         />
       </Modal>
 
-      {/* 🟩 Edit Machine Category Modal */}
+      {/* 🟩 Edit Modal */}
       <Modal
         title={
           <h2
@@ -303,14 +337,15 @@ const MachineCategoriesScreen = () => {
         {selectedCategory ? (
           <MachineCategoryEdit
             category={selectedCategory}
-            isVietnamese={isVietnamese} // 🔹 pass language state
+            isVietnamese={isVietnamese}
             onSuccess={() => {
               fetchCategories();
               setIsEditModalOpen(false);
-              message.success(
+              CommonToaster(
                 isVietnamese
-                  ? "Cập nhật danh mục máy thành công ✅"
-                  : "Machine category updated successfully ✅"
+                  ? "Cập nhật danh mục máy thành công"
+                  : "Machine category updated successfully",
+                "success"
               );
             }}
           />

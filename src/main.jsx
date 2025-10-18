@@ -22,9 +22,6 @@ import BlogOverview from "./Blogs/BlogOverview";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 
-// 🧩 Context
-// import { ThemeProvider } from "./contexts/ThemeContext";
-
 // 🛠️ Admin Core
 import AdminLayout from "./admin/AdminLayout";
 import Login from "./admin/Login/Login";
@@ -41,6 +38,7 @@ import ContactPage from "./admin/Dashboard/ContactPage";
 import MachineCMSPage from "./admin/Dashboard/MachineCMSPage";
 import PrivacyPage from "./admin/Dashboard/PrivacyPage";
 import TermsConditionsPage from "./admin/Dashboard/TermsConditionsPage";
+import KnowledgeManagementPage from "./admin/Dashboard/KnowledgeManagementPage";
 
 // 📰 Admin Blog / Resources
 import NewsScreen from "./pages/NewsScreen";
@@ -59,16 +57,14 @@ import ContactEntriesScreen from "./pages/ContactEntriesScreen";
 import RoleManagement from "./pages/RoleManagement";
 import StaffManagement from "./pages/StaffManagement";
 
+// 🏭 Machines
 import MachineCategoriesScreen from "./pages/MachineCategoriesScreen";
 import MachineListScreen from "./pages/MachineListScreen";
 import MachineEditScreen from "./pages/MachineEditScreen";
 import EditMachinePage from "./pages/EditMachinePage";
-
-// 🏭 Machines (Public)
 import MachinesMain from "./pages/MachinesMain";
 import MachineCategories from "./pages/MachineCategories";
 import MachineList from "./pages/MachineList";
-import MachineDetail from "./pages/MachineDetail";
 import MachinePage from "./pages/MachinePage";
 
 // 🔒 Protected Route
@@ -80,7 +76,6 @@ const ProtectedRoute = ({ children }) => {
 // 🚀 Render App
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    {/* <ThemeProvider> */}
     <BrowserRouter>
       <ScrollToTop />
       <ToastContainer
@@ -106,14 +101,6 @@ createRoot(document.getElementById("root")).render(
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-conditions" element={<TermsConditions />} />
 
-        {/* 📰 Blogs / Resources */}
-        <Route path="/blog" element={<BlogList />} />
-        <Route path="/:mainCategorySlug" element={<Blogs />} />
-        <Route path="/:mainCategorySlug/:slug" element={<BlogOverview />} />
-
-        {/* 🔐 Login */}
-        <Route path="/login" element={<Login />} />
-
         {/* 🏭 Machines (Public) */}
         <Route path="/machines" element={<MachinesMain />} />
         <Route path="/machines/:categorySlug" element={<MachineList />} />
@@ -122,7 +109,10 @@ createRoot(document.getElementById("root")).render(
           element={<MachinePage />}
         />
 
-        {/* 🧭 Admin Section */}
+        {/* 🔐 Login */}
+        <Route path="/login" element={<Login />} />
+
+        {/* 🧭 ADMIN SECTION (must come BEFORE wildcard blog routes) */}
         <Route
           path="/admin"
           element={
@@ -141,10 +131,11 @@ createRoot(document.getElementById("root")).render(
           <Route path="about" element={<AboutPage />} />
           <Route path="cotton" element={<CottonPage />} />
           <Route path="fiber" element={<FiberPage />} />
-          <Route path="machine" element={<MachineCMSPage/>}/>
+          <Route path="machine" element={<MachineCMSPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="privacy-policy" element={<PrivacyPage />} />
           <Route path="terms-conditions" element={<TermsConditionsPage />} />
+          <Route path="knowledge" element={<KnowledgeManagementPage />} /> {/* ✅ Fixed lowercase 'path' */}
 
           {/* 📰 Resources / Blog Management */}
           <Route path="resources" element={<NewsScreen />} />
@@ -161,16 +152,11 @@ createRoot(document.getElementById("root")).render(
           <Route path="pages" element={<PagesScreen />} />
           <Route path="pages/:pageSlug" element={<PageEditScreen />} />
           <Route path="products" element={<ProductsScreen />} />
-          <Route
-            path="products/:categorySlug"
-            element={<ProductListScreen />}
-          />
+          <Route path="products/:categorySlug" element={<ProductListScreen />} />
           <Route path="settings" element={<GlobalSettingsScreen />} />
 
-          <Route
-            path="machines/categories"
-            element={<MachineCategoriesScreen />}
-          />
+          {/* 🏭 Machine Management */}
+          <Route path="machines/categories" element={<MachineCategoriesScreen />} />
           <Route path="machines/list" element={<MachineListScreen />} />
           <Route path="machines/new" element={<MachineEditScreen />} />
           <Route path="machines/pages/:id/edit" element={<EditMachinePage />} />
@@ -182,9 +168,12 @@ createRoot(document.getElementById("root")).render(
           <Route path="roles" element={<RoleManagement />} />
           <Route path="staffmanagement" element={<StaffManagement />} />
         </Route>
+
+        {/* 📰 BLOGS / RESOURCES (placed AFTER /admin to prevent collisions) */}
+        <Route path="/blog" element={<BlogList />} />
+        <Route path="/:mainCategorySlug" element={<Blogs />} />
+        <Route path="/:mainCategorySlug/:slug" element={<BlogOverview />} />
       </Routes>
     </BrowserRouter>
-    {/* </ThemeProvider> */}
-    
   </StrictMode>
 );

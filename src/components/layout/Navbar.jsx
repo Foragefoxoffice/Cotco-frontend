@@ -1,23 +1,35 @@
 import { useState, useEffect, useRef } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { FiArrowDownRight, FiChevronDown } from "react-icons/fi";
+import {ArrowUpRight} from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import GoogleTranslate from "../GoogleTranslate";
 import TranslateToggle from "../TranslateToggle";
 import { getHeaderPage, getMainBlogCategories } from "../../Api/api";
-import {TextAlignJustify} from "lucide-react"
+import { TextAlignJustify } from "lucide-react";
+import ChatBot from "../Chatbot";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
-const staticLinks = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/aboutus" },
-  { label: "Cotton", href: "/cotton" },
-  { label: "Fiber", href: "/fiber" },
-  { label: "Machines", href: "/machines" },
-  { label: "Contact", href: "/contact" },
-];
+// ✅ English and Vietnamese static translations
+const translations = {
+  en: [
+    { label: "Home", href: "/" },
+    { label: "About", href: "/aboutus" },
+    { label: "Cotton", href: "/cotton" },
+    { label: "Fiber", href: "/fiber" },
+    { label: "Machines", href: "/machines" },
+    { label: "Contact", href: "/contact" },
+  ],
+  vi: [
+    { label: "Trang Chủ", href: "/" },
+    { label: "Giới Thiệu", href: "/aboutus" },
+    { label: "Bông", href: "/cotton" },
+    { label: "Sợi", href: "/fiber" },
+    { label: "Máy Móc", href: "/machines" },
+    { label: "Liên Hệ", href: "/contact" },
+  ],
+};
 
 const Navbar = () => {
   const location = useLocation();
@@ -26,7 +38,6 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState(null);
-
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const resourcesRef = useRef(null);
 
@@ -34,6 +45,22 @@ const Navbar = () => {
   const [headerLogo, setHeaderLogo] = useState("");
   const [mainCategories, setMainCategories] = useState([]);
   const [loadingCats, setLoadingCats] = useState(true);
+  const [isVietnamese, setIsVietnamese] = useState(false);
+
+  // ✅ Detect language mode (based on body class)
+  useEffect(() => {
+    const detectLang = () => {
+      setIsVietnamese(document.body.classList.contains("vi-mode"));
+    };
+    detectLang();
+
+    const observer = new MutationObserver(detectLang);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const lang = isVietnamese ? "vi" : "en";
+  const staticLinks = translations[lang];
 
   // ✅ Fetch header (logo)
   useEffect(() => {
@@ -138,15 +165,14 @@ const Navbar = () => {
               {staticLinks.map(({ label, href }) => {
                 const isActive = location.pathname === href;
 
-                // ✅ Machines + Resources dropdown
-                if (label === "Machines") {
+                if (label === (isVietnamese ? "Máy Móc" : "Machines")) {
                   return (
                     <div key={label} className="flex items-center gap-8">
                       <Link to={href} className={getLinkClass(href)}>
                         {label}
                       </Link>
 
-                      {/* ✅ Resources Dropdown (Fixed hover cut) */}
+                      {/* ✅ Resources Dropdown */}
                       <div
                         ref={resourcesRef}
                         className="relative"
@@ -160,7 +186,7 @@ const Navbar = () => {
                             " flex items-center gap-1 cursor-pointer select-none"
                           }
                         >
-                          Resources
+                          {isVietnamese ? "Tài Nguyên" : "Resources"}
                           <FiChevronDown
                             className={`transition-transform duration-300 ${
                               isResourcesOpen ? "rotate-180" : ""
@@ -179,7 +205,7 @@ const Navbar = () => {
                             >
                               {loadingCats ? (
                                 <span className="block px-4 py-2 text-gray-500">
-                                  Loading...
+                                  {isVietnamese ? "Đang tải..." : "Loading..."}
                                 </span>
                               ) : mainCategories.length > 0 ? (
                                 mainCategories.map((mc) => (
@@ -188,12 +214,14 @@ const Navbar = () => {
                                     to={`/${mc.slug}`}
                                     className="block px-4 py-2 hover:bg-gray-100 transition"
                                   >
-                                    {mc.name?.en || "Untitled"}
+                                    {mc.name?.[lang] || "Untitled"}
                                   </Link>
                                 ))
                               ) : (
                                 <span className="block px-4 py-2 text-gray-400">
-                                  No Categories
+                                  {isVietnamese
+                                    ? "Không có danh mục"
+                                    : "No Categories"}
                                 </span>
                               )}
                             </motion.div>
@@ -204,24 +232,20 @@ const Navbar = () => {
                   );
                 }
 
-                // ✅ Contact button
-                if (label === "Contact") {
+                if (label === (isVietnamese ? "Liên Hệ" : "Contact")) {
                   return (
                     <Link
-                      style={{
-                        padding: "15px 10px",
-                      }}
                       key={label}
                       to={href}
                       className={contactClasses(isActive)}
+                      style={{ padding: "15px 10px" }}
                     >
-                      <span>Contact</span>
-                      <FiArrowDownRight size={16} />
+                      <span>{label}</span>
+                      <ArrowUpRight />
                     </Link>
                   );
                 }
 
-                // ✅ Default links
                 return (
                   <Link key={label} to={href} className={getLinkClass(href)}>
                     {label}
@@ -235,12 +259,8 @@ const Navbar = () => {
           {/* ---------- MOBILE: LANG + MENU TOGGLE ---------- */}
           <div className="flex items-center gap-4 md:hidden">
             <TranslateToggle />
-
             <button
-              style={{
-                color: "#fff",
-                fontSize: "28px",
-              }}
+              style={{ color: "#fff", fontSize: "28px" }}
               className="cursor-pointer z-[60]"
               onClick={toggleMenu}
               aria-label="Toggle menu"
@@ -276,11 +296,9 @@ const Navbar = () => {
               {staticLinks.map(({ label, href }, index) => {
                 const isActive = location.pathname === href;
 
-                // ✅ Machines + Resources collapsible submenu
-                if (label === "Machines") {
+                if (label === (isVietnamese ? "Máy Móc" : "Machines")) {
                   return (
                     <div key={label}>
-                      {/* Machines */}
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -295,7 +313,6 @@ const Navbar = () => {
                         </Link>
                       </motion.div>
 
-                      {/* Resources */}
                       <motion.div
                         key="Resources"
                         initial={{ opacity: 0, y: 20 }}
@@ -309,9 +326,9 @@ const Navbar = () => {
                               openSubmenu === "Resources" ? null : "Resources"
                             )
                           }
-                          className="flex items-center justify-center w-full text-lg mt-6 font-semibold"
+                          className="flex items-center justify-center w-full text-lg !mt-6 font-semibold"
                         >
-                          Resources
+                          {isVietnamese ? "Tài Nguyên" : "Resources"}
                           <FiChevronDown
                             className={`transition-transform ${
                               openSubmenu === "Resources" ? "rotate-180" : ""
@@ -329,7 +346,7 @@ const Navbar = () => {
                             >
                               {loadingCats ? (
                                 <span className="block text-lg text-gray-500">
-                                  Loading...
+                                  {isVietnamese ? "Đang tải..." : "Loading..."}
                                 </span>
                               ) : mainCategories.length > 0 ? (
                                 mainCategories.map((mc) => (
@@ -339,12 +356,14 @@ const Navbar = () => {
                                     onClick={toggleMenu}
                                     className="block text-lg text-gray-700 hover:text-blue-600"
                                   >
-                                    {mc.name?.en || "Untitled"}
+                                    {mc.name?.[lang] || "Untitled"}
                                   </Link>
                                 ))
                               ) : (
                                 <span className="block text-gray-400 text-lg">
-                                  No Categories
+                                  {isVietnamese
+                                    ? "Không có danh mục"
+                                    : "No Categories"}
                                 </span>
                               )}
                             </motion.div>
@@ -355,7 +374,6 @@ const Navbar = () => {
                   );
                 }
 
-                // ✅ Normal links
                 return (
                   <motion.div
                     key={label}
@@ -379,6 +397,11 @@ const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ✅ Floating Chatbot */}
+      <div className="fixed bottom-6 right-6 z-[1000]">
+        <ChatBot />
+      </div>
     </>
   );
 };

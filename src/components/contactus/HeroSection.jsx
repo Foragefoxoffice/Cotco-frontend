@@ -13,7 +13,23 @@ const getFullUrl = (path) => {
 const HeroSection = () => {
   const [scrolled, setScrolled] = useState(false);
   const [banner, setBanner] = useState(null);
+  const [isVietnamese, setIsVietnamese] = useState(false);
   const containerRef = useRef(null);
+
+  // ✅ Language detection (same system as other components)
+  useEffect(() => {
+    const checkLang = () => {
+      setIsVietnamese(document.body.classList.contains("vi-mode"));
+    };
+    checkLang();
+
+    const observer = new MutationObserver(checkLang);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   // ✅ Fetch banner data
   useEffect(() => {
@@ -24,7 +40,7 @@ const HeroSection = () => {
     });
   }, []);
 
-  // ✅ scroll shrink effect
+  // ✅ Scroll shrink effect
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -41,15 +57,23 @@ const HeroSection = () => {
     ? /\.(mp4|webm|ogg)$/i.test(banner.contactBannerBg)
     : false;
 
+  // ✅ Helper: translation
+  const t = (en, vi) => (isVietnamese ? vi || en : en);
+
   return (
     <motion.div
       ref={containerRef}
       style={{ y: yImage }}
       initial={{ scale: 1, opacity: 1 }}
-      animate={scrolled ? { scale: 0.93, opacity: 0.95 } : { scale: 1, opacity: 1 }}
+      animate={
+        scrolled
+          ? { scale: 0.93, opacity: 0.95 }
+          : { scale: 1, opacity: 1 }
+      }
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`relative h-[90vh] rounded-br-2xl overflow-hidden hero transition-all duration-500 ease-out ${scrolled ? "rounded-2xl" : ""
-        }`}
+      className={`relative h-[90vh] rounded-br-2xl overflow-hidden hero transition-all duration-500 ease-out ${
+        scrolled ? "rounded-2xl" : ""
+      }`}
     >
       {/* ✅ Background video or image */}
       {isVideo ? (
@@ -78,9 +102,12 @@ const HeroSection = () => {
       {/* Title */}
       <motion.h3
         style={{ y: yTitle }}
-        className="text-4xl z-20 absolute bottom-2 md:bottom-24 left-2 md:left-24 text-[#fff] md:text-[100px] font-[700] tracking-wider uppercase"
+        className="text-4xl z-20 absolute bottom-2 md:bottom-24 left-2 md:left-24 text-white md:text-[100px] font-[700] tracking-wider uppercase"
       >
-        {banner?.contactBannerTitle?.en || "CONTACT"}
+        {t(
+          banner?.contactBannerTitle?.en || "CONTACT",
+          banner?.contactBannerTitle?.vi || "LIÊN HỆ"
+        )}
       </motion.h3>
     </motion.div>
   );

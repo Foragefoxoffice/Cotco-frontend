@@ -92,7 +92,9 @@ const SustainabilitySection = () => {
           {/* Cards (Subtitles + Descriptions) */}
           <div className="space-y-6">
             <div className="bg-blue-50 border border-blue-100 p-6 rounded-lg text-left flex items-start gap-4 hover:shadow-sm hover:border hover:border-[#9ABFE1]">
-              <FaRecycle className="text-blue-500 text-xl mt-1" />
+              <div className="bg-blue-200 h-12 md:w-15 w-30 rounded-full grid place-content-center">
+                <FaRecycle className="text-blue-500 text-xl mt-1" />
+              </div>              
               <div>
                 <h4 className="font-semibold text-lg text-gray-900">
                   {pick(data.fiberSustainabilitySubTitle1) || "Biodegradable"}
@@ -105,7 +107,9 @@ const SustainabilitySection = () => {
             </div>
 
             <div className="bg-blue-50 border border-blue-100 p-6 rounded-lg shadow-sm text-left flex items-start gap-4 hover:shadow-sm hover:border hover:border-[#9ABFE1]">
-              <FaDroplet className="text-blue-500 text-xl mt-1" />
+              <div className="bg-blue-200 h-12 md:w-20 w-36 rounded-full grid place-content-center">
+                <FaDroplet className="text-blue-500 text-xl" />
+              </div>
               <div>
                 <h4 className="font-semibold text-lg text-gray-900">
                   {pick(data.fiberSustainabilitySubTitle2) ||
@@ -119,7 +123,10 @@ const SustainabilitySection = () => {
             </div>
 
             <div className="bg-blue-50 border border-blue-100 p-6 rounded-lg shadow-sm text-left flex items-start gap-4 hover:shadow-sm hover:border hover:border-[#9ABFE1]">
-              <FaEarthAmericas className="text-blue-500 text-xl mt-1" />
+              <div className="bg-blue-200 h-12 md:w-17 w-32 rounded-full grid place-content-center">
+                <FaEarthAmericas className="text-blue-500 text-xl mt-1" />
+              </div>
+              
               <div>
                 <h4 className="font-semibold text-lg text-gray-900">
                   {pick(data.fiberSustainabilitySubTitle3) ||

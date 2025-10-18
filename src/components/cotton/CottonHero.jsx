@@ -145,8 +145,6 @@ export default function CottonHero() {
     bannerMedia?.endsWith(".webm") ||
     bannerMedia?.endsWith(".ogg");
 
-
-
   return (
     <section className="relative bg-white hero overflow-hidden">
       {/* ✅ Language Switcher */}
@@ -188,11 +186,18 @@ export default function CottonHero() {
               loop
               playsInline
               preload="none"
-              src={bannerMedia}
               className={`w-full hidden md:block ${
                 scrolled ? "rounded-3xl" : "rounded-none"
               }`}
-            />
+            >
+              <source
+                src={bannerMedia}
+                type={
+                  bannerMedia.endsWith(".webm") ? "video/webm" : "video/mp4"
+                }
+              />
+              Your browser does not support the video tag.
+            </motion.video>
           ) : (
             <motion.img
               src={bannerMedia}
@@ -204,25 +209,34 @@ export default function CottonHero() {
           )}
 
           {/* Mobile Media */}
-          <div className="relative w-full h-screen block md:hidden">
-            {isVideo ? (
-              <motion.video
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="none"
-                src={bannerMedia}
-                className="absolute top-0 left-0 w-screen h-screen object-cover"
-              />
-            ) : (
-              <motion.img
-                src={bannerMedia}
-                alt="Cotton Banner"
-                className="absolute top-0 left-0 w-screen h-screen object-cover"
-              />
-            )}
-          </div>
+         {/* ✅ Fixed Mobile Media */}
+<div className="relative w-full h-screen block md:hidden rounded-b-2xl">
+  {isVideo ? (
+    <motion.video
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="none"
+      className="absolute top-0 left-0 w-screen h-screen object-cover rounded-b-2xl"
+    >
+      <source
+        src={bannerMedia}
+        type={
+          bannerMedia.endsWith(".webm") ? "video/webm" : "video/mp4"
+        }
+      />
+      Your browser does not support the video tag.
+    </motion.video>
+  ) : (
+    <motion.img
+      src={bannerMedia}
+      alt="Cotton Banner"
+      className="absolute top-0 left-0 w-screen h-screen object-cover"
+    />
+  )}
+</div>
+
 
           {/* ✅ Left Bubble */}
           {bannerSlides[0] && (
@@ -240,7 +254,7 @@ export default function CottonHero() {
           {/* ✅ Right Bubble + Shadow */}
           {(bannerSlides[1] || bannerSlides[0]) && (
             <motion.div
-              initial={{ position: "absolute", right: "-200px", top: "70%" }}
+              initial={{ position: "absolute", right: "-150px", top: "70%" }}
               animate={controls}
               className="hidden md:block"
               style={{ position: "absolute" }}
@@ -251,42 +265,61 @@ export default function CottonHero() {
                 alt="Cotton Right"
                 className="rounded-xl w-[240px] sm:w-[200px] md:w-[180px] lg:w-[220px] xl:w-[280px] 2xl:w-[320px]"
               />
-              <motion.div
-                animate={shadowControls}
-                className="w-[60%] h-6 bg-black rounded-full mx-auto mt-[-12px] blur-md"
-              />
+              
             </motion.div>
           )}
         </motion.div>
       </motion.div>
 
-      {/* ✅ Overview Text Section */}
-      <div className="page-width md:pt-20 md:pb-30 p-6">
+      {/* ✅ Overview Text Section (Updated Layout) */}
+      <div className="page-width md:pt-0 md:pb-30 p-6">
         <div
           ref={ref}
-          className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto px-4 mt-10 items-center"
+          className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center mt-10"
         >
+          {/* ---------- LEFT: Overview Text ---------- */}
           <motion.div
-  initial="hidden"
-  animate={textControls}
-  variants={textVariants}
-  className="text-[#4B4B4B] leading-relaxed"
->
-  <div
-    className="banner-overview"
-    dangerouslySetInnerHTML={{ __html: overview || "" }}
-  />
-</motion.div>
+            initial="hidden"
+            animate={textControls}
+            variants={textVariants}
+            className="text-[#4B4B4B] leading-relaxed md:pr-10"
+          >
+            <div
+              className="banner-overview text-base md:text-[17px] text-justify md:text-left"
+              dangerouslySetInnerHTML={{
+                __html: (overview || "")
+                  .replace(/<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "") // remove empty <p> or <p><br>
+                  .replace(/(<br\s*\/?>\s*){2,}/gi, "<br />") // collapse multiple <br> into one
+                  .trim(),
+              }}
+            />
+          </motion.div>
 
+          {/* ---------- RIGHT: Cotton Ball Image ---------- */}
           <motion.div
-            className="flex justify-center items-center md:h-[300px]"
-            initial={{ opacity: 0, scale: 0.9 }}
+            className="flex justify-center md:justify-end items-center relative"
+            initial={{ opacity: 0, scale: 0.9, y: 30 }}
             animate={{
               opacity: 1,
               scale: 1,
-              transition: { delay: 0.4, duration: 0.8 },
+              y: 0,
+              transition: { delay: 0.3, duration: 0.8, ease: "easeOut" },
             }}
-          />
+          >
+            {bannerSlides[2] ? (
+              <img
+                src={bannerSlides[2]} // ✅ third image or fallback
+                alt="Cotton Illustration"
+                className="w-[280px] md:w-[420px] lg:w-[500px] xl:w-[550px] object-contain"
+              />
+            ) : (
+              <img
+                src={bannerSlides[0]}
+                alt="Cotton Illustration"
+                className="w-[280px] md:w-[420px] lg:w-[500px] xl:w-[550px] object-contain"
+              />
+            )}
+          </motion.div>
         </div>
       </div>
     </section>

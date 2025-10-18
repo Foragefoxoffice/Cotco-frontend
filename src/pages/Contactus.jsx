@@ -40,7 +40,6 @@ const Contactus = () => {
           <Form />
           <GetinTouch />
           <ContactMap />
-          <ContactToday />
         </main>
       </Suspense>
       <Footer />

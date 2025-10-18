@@ -2,8 +2,8 @@ import axios from "axios";
 
 // ✅ Setup axios instance
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/v1",
-  // baseURL: "https://api.cotco-vn.com/api/v1", 
+  // baseURL: "http://localhost:5000/api/v1",
+  baseURL: "https://api.cotco-vn.com/api/v1", 
   withCredentials: true, // if you use cookies
 });
 
@@ -44,15 +44,23 @@ export const deleteUser = (id) => API.delete(`/users/${id}`);
    MACHINE CATEGORIES
    (Backend route: /machines/categories)
 ========================================================= */
-export const createMachineCategory = (data) =>
-  API.post("/machines/categories", data);
+export const createMachineCategory = (formData) =>
+  API.post("/machines/categories", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
 export const getMachineCategories = () => API.get("/machines/categories");
-export const getMachineCategory = (id) => API.get(`/machines/categories/${id}`);
-export const updateMachineCategory = (id, data) =>
-  API.put(`/machines/categories/${id}`, data);
+
+export const getMachineCategory = (id) =>
+  API.get(`/machines/categories/${id}`);
+
+export const updateMachineCategory = (id, formData) =>
+  API.put(`/machines/categories/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
 export const deleteMachineCategory = (id) =>
   API.delete(`/machines/categories/${id}`);
-
 /* =========================================================
    MACHINE SECTIONS
    (Backend route: /machines/sections)
@@ -280,6 +288,9 @@ export const updateMachineCMSPage = (formData) =>
   });
 
 
+export const getKnowledge = async () => axios.get("/api/v1/knowledge");
+export const updateKnowledge = async (content) =>
+  axios.post("/api/v1/knowledge", { content });
 
 
 // Get all contact entries (admin)

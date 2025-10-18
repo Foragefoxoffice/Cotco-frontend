@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Spin, Tabs } from "antd";
 import { Link, useParams } from "react-router-dom";
-import { getMachinePageBySlug } from "../Api/api"; // ✅ single page
+import { getMachinePageBySlug } from "../Api/api";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
@@ -12,12 +12,27 @@ const MachinePageDetail = () => {
   const [machine, setMachine] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
   const containerRef = useRef(null);
-  console.log("categroies", categorySlug);
+
+  // ✅ Detect language change dynamically (from body class)
+  useEffect(() => {
+    const detectLang = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
+
+    const updateLang = () => setActiveLang(detectLang());
+    updateLang();
+
+    const observer = new MutationObserver(updateLang);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Fetch single machine page
   useEffect(() => {
     (async () => {
       try {
-        // ✅ Fetch single machine page
         const res = await getMachinePageBySlug(pageSlug);
         setMachine(res.data.data || null);
       } catch (err) {
@@ -28,7 +43,7 @@ const MachinePageDetail = () => {
     })();
   }, [pageSlug]);
 
-  // Scroll shrink effect
+  // ✅ Scroll shrink effect
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -39,54 +54,71 @@ const MachinePageDetail = () => {
   const { scrollY } = useScroll();
   const yImage = useTransform(scrollY, [0, 500], [0, 0]);
 
-  if (loading) return <Spin />;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-screen bg-[#0B0B0B]">
+        <Spin size="large" />
+      </div>
+    );
+
   if (!machine)
     return <div className="p-10 text-center">Machine not found</div>;
 
-  // ✅ Banner
-  const API_URL = import.meta.env.VITE_API_URL || "";
+  // ✅ API Base
+  const API_URL = import.meta.env.VITE_API_URL?.replace("/api/v1", "") || "";
+
+  // ✅ Banner URL
   const bannerUrl =
     machine.banner && machine.banner.startsWith("/uploads")
       ? `${API_URL}${machine.banner}`
       : machine.banner || "/img/default-banner.jpg";
 
-  // ✅ Render section dynamically
+  // ✅ Helper to pick correct language
+  const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
+
+  // ✅ Render section dynamically (language-aware)
   const renderSection = (section, index) => {
     switch (section.type) {
       case "text":
         return (
-          <div
-            key={index}
-            className="my-12 page-width grid grid-cols-1 md:grid-cols-2 "
-          >
-            <h2 className="text-2xl font-bold">{section.title?.en}</h2>
-            <p className="text-gray-700 mt-2">{section.description?.en}</p>
+          <div key={index} className="my-12 page-width grid grid-cols-1 md:grid-cols-2">
+            <h2 className="text-2xl font-bold">{pick(section.title)}</h2>
+            <p className="text-gray-700 mt-2">{pick(section.description)}</p>
           </div>
         );
+
       case "richtext":
-        return (
-          <div
-            key={index}
-            className="prose max-w-none my-6 page-width"
-            dangerouslySetInnerHTML={{ __html: section.richtext?.en }}
-          />
-        );
+  return (
+    <div
+      key={index}
+      className="my-10 page-width prose prose-invert max-w-none leading-relaxed"
+      // ✅ Securely render formatted HTML content
+      dangerouslySetInnerHTML={{
+        __html: pick(section.richtext)
+          ?.replace(/\n/g, "<br>") // support line breaks if needed
+          ?.trim() || "",
+      }}
+    />
+  );
+
+
       case "list":
         return (
           <div key={index} className="my-10 page-width">
-            <h2 className="text-2xl font-bold mb-6">{section.title?.en}</h2>
+            <h2 className="text-2xl font-bold mb-6">{pick(section.title)}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {section.listItems?.map((item, i) => (
                 <div key={i} className="flex items-center gap-4">
                   <span className="text-6xl font-bold text-gray-400 leading-none">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <p className="text-gray-700">{item?.en}</p>
+                  <p className="text-gray-800">{pick(item)}</p>
                 </div>
               ))}
             </div>
           </div>
         );
+
       case "button":
         return (
           <div
@@ -100,16 +132,14 @@ const MachinePageDetail = () => {
             }`}
           >
             <button
-              style={{
-                color: "white",
-              }}
+              style={{ color: "white" }}
               onClick={() => {
                 if (section.button?.link)
                   window.open(section.button.link, "_blank");
               }}
-              className="px-6 py-3 bg-[#11456C] text-white font-medium text-sm md:text-base rounded-full shadow-md hover:bg-[#0E3A5D] transition-all duration-300 hover:scale-105"
+              className="px-6 py-3 bg-[#11456C] !text-white font-medium text-sm md:text-base rounded-full shadow-md hover:bg-[#0E3A5D] transition-all duration-300 hover:scale-105"
             >
-              {section.button?.name?.en || "Learn More"}
+              {pick(section.button?.name) || (activeLang === "vi" ? "Tìm hiểu thêm" : "Learn More")}
             </button>
           </div>
         );
@@ -119,7 +149,7 @@ const MachinePageDetail = () => {
           <div key={index} className="overflow-x-auto my-10 page-width">
             {section.table?.header && (
               <h3 className="text-2xl font-bold mb-4">
-                {section.table.header?.en || section.table.header?.vn || ""}
+                {pick(section.table.header)}
               </h3>
             )}
             <table className="table-auto border-collapse w-full text-sm">
@@ -130,7 +160,7 @@ const MachinePageDetail = () => {
                       key={ci}
                       className="border border-gray-300 px-4 py-2 text-left font-semibold"
                     >
-                      {cell?.en || cell?.vn || ""}
+                      {pick(cell)}
                     </th>
                   ))}
                 </tr>
@@ -143,7 +173,7 @@ const MachinePageDetail = () => {
                         key={ci}
                         className="border border-gray-300 px-4 py-2 text-gray-800"
                       >
-                        {cell?.en || cell?.vn || ""}
+                        {pick(cell)}
                       </td>
                     ))}
                   </tr>
@@ -154,60 +184,113 @@ const MachinePageDetail = () => {
         );
 
       case "image":
-        return (
-          <div key={index} className="page-width my-10 flex justify-center">
-            {section.image && (
-              <img
-                className="rounded-2xl"
-                src={
-                  typeof section.image === "string"
-                    ? section.image.startsWith("/uploads")
-                      ? `${API_URL}${section.image}`
-                      : section.image
-                    : ""
-                }
-                alt={section.title?.en || "section image"}
-              />
-            )}
-          </div>
-        );
+  return (
+    <div key={index} className="page-width my-10 flex flex-col items-center text-center">
+      {/* ✅ Title (render HTML safely) */}
+      {section.title && (
+        <div
+          className="text-2xl font-bold !text-black mb-3"
+          dangerouslySetInnerHTML={{ __html: pick(section.title) }}
+        />
+      )}
+
+      {/* ✅ Description (render HTML safely) */}
+      {section.description && (
+        <div
+          className="text-black max-w-3xl mb-6 prose prose-invert leading-relaxed"
+          dangerouslySetInnerHTML={{
+            __html: pick(section.description)
+              ?.replace(/\n/g, "<br>")
+              ?.trim() || "",
+          }}
+        />
+      )}
+
+      {/* ✅ Image */}
+      {section.image && (
+        <img
+          className="rounded-2xl shadow-lg max-w-full"
+          src={
+            typeof section.image === "string"
+              ? section.image.startsWith("/uploads")
+                ? `${API_URL}${section.image}`
+                : section.image
+              : ""
+          }
+          alt={pick(section.title) || "section image"}
+        />
+      )}
+    </div>
+  );
+
+
       case "imageLeft":
-      case "imageRight":
-        return (
+case "imageRight":
+  return (
+    <div
+      key={index}
+      className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-center my-14 page-width ${
+        section.type === "imageRight" ? "md:[direction:rtl]" : ""
+      }`}
+    >
+      {/* ✅ Text Side */}
+      <div className="text-left space-y-4">
+        {section.title && (
           <div
-            key={index}
-            className={`grid grid-cols-1 md:grid-cols-2 gap-6 items-center my-10 page-width ${
-              section.type === "imageRight" ? "md:[direction:rtl]" : ""
-            }`}
-          >
-            <div>
-              <h2 className="text-2xl font-bold">{section.title?.en}</h2>
-              <p className="text-gray-700 mt-2">{section.description?.en}</p>
-            </div>
-            <div>
-              {section.image && (
-                <img
-                  src={
-                    typeof section.image === "string"
-                      ? `${API_URL}${section.image}`
-                      : ""
-                  }
-                  alt={section.title?.en}
-                  className="rounded-lg shadow"
-                />
-              )}
-            </div>
-          </div>
-        );
+            className="text-2xl font-bold text-black"
+            dangerouslySetInnerHTML={{ __html: pick(section.title) }}
+          />
+        )}
+        {section.description && (
+          <div
+            className="text-baack prose prose-invert leading-relaxed"
+            dangerouslySetInnerHTML={{
+              __html: pick(section.description)
+                ?.replace(/\n/g, "<br>")
+                ?.trim() || "",
+            }}
+          />
+        )}
+      </div>
+
+      {/* ✅ Image Side */}
+      <div className="flex justify-center">
+        {section.image && (
+          <img
+            src={
+              typeof section.image === "string"
+                ? section.image.startsWith("/uploads")
+                  ? `${API_URL}${section.image}`
+                  : section.image
+                : ""
+            }
+            alt={pick(section.title)}
+            className="rounded-xl shadow-lg max-w-full"
+          />
+        )}
+      </div>
+    </div>
+  );
+
+
       case "tabs":
         return (
           <div key={index} className="my-10">
+            <style>
+              {
+                `
+                :where(.css-dev-only-do-not-override-1odpy5d).ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn{
+                  color:#fff !important;
+                }
+                `
+              }
+            </style>
             <Tabs
               defaultActiveKey="0"
-              className="custom-tabs "
+              className="custom-tabs"
               items={section.tabs?.map((tab, ti) => ({
                 key: String(ti),
-                label: tab.tabTitle?.en || `Tab ${ti + 1}`,
+                label: pick(tab.tabTitle) || `Tab ${ti + 1}`,
                 children: (
                   <div className="mt-4 page-width">
                     {tab.sections?.map((childSection, ci) =>
@@ -219,6 +302,7 @@ const MachinePageDetail = () => {
             />
           </div>
         );
+
       default:
         return null;
     }
@@ -236,11 +320,9 @@ const MachinePageDetail = () => {
           y: yImage,
         }}
         initial={{ scale: 1, opacity: 1 }}
-        animate={
-          scrolled ? { scale: 0.93, opacity: 0.95 } : { scale: 1, opacity: 1 }
-        }
+        animate={scrolled ? { scale: 0.93, opacity: 0.95 } : { scale: 1, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className={`relative h-[70vh] md:min-h-[80vh] rounded-xl overflow-hidden hero transition-all duration-500 ease-out ${
+        className={`relative h-[70vh] md:min-h-[80vh] overflow-hidden hero transition-all duration-500 ease-out ${
           scrolled ? "rounded-2xl" : ""
         }`}
       >
@@ -253,27 +335,22 @@ const MachinePageDetail = () => {
         >
           <div className="text-sm opacity-90 mb-2">
             <Link to="/machines" className="hover:underline">
-              Machines
+              {activeLang === "vi" ? "Máy móc" : "Machines"}
             </Link>{" "}
             &gt;{" "}
             <Link to={`/machines/${categorySlug}`} className="hover:underline">
               {categorySlug}
             </Link>{" "}
-            &gt; <span>{machine.title?.en}</span>
+            &gt; <span>{pick(machine.title)}</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-wider">
-            {machine.title?.en}
+            {pick(machine.title)}
           </h1>
         </motion.div>
       </motion.section>
 
-      {/* ================= RENDER MACHINE PAGE ================= */}
+      {/* ================= PAGE CONTENT ================= */}
       <div className="py-10">
-        <div className="page-width">
-          {/* <h2 className="text-2xl font-bold mb-4">{machine.title?.en}</h2>
-          <p className="text-gray-600 mb-6">{machine.description?.en}</p> */}
-        </div>
-
         {machine.sections?.map((section, i) => renderSection(section, i))}
       </div>
 

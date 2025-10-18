@@ -3,7 +3,7 @@ import { FaArrowRight, FaArrowLeft, FaTimes } from "react-icons/fa";
 import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import TitleAnimation from "../common/AnimatedTitle";
-import { FiArrowDownRight } from "react-icons/fi";
+import { ArrowUpRight } from "lucide-react";
 import { getCottonPage } from "../../Api/api";
 
 export default function CertificationSliderSection() {
@@ -14,7 +14,6 @@ export default function CertificationSliderSection() {
   const [popupIndex, setPopupIndex] = useState(0);
 
   const sectionRef = useRef(null);
-  const intervalRef = useRef(null);
   const controls = useAnimation();
   const { ref: inViewRef, inView } = useInView({ threshold: 0.3 });
 
@@ -38,7 +37,10 @@ export default function CertificationSliderSection() {
     const observer = new MutationObserver(() =>
       setActiveLang(detectLanguage())
     );
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -53,7 +55,7 @@ export default function CertificationSliderSection() {
       .catch(console.error);
   }, []);
 
-  // ✅ Slider navigation logic
+  // ✅ Slider navigation (manual only)
   const prevSlide = () => {
     setCurrent((prev) =>
       prev === 0 ? (certData?.cottonMemberImg?.length || 1) - 1 : prev - 1
@@ -66,25 +68,13 @@ export default function CertificationSliderSection() {
     );
   };
 
-  const startAutoSlide = () => {
-    stopAutoSlide();
-    intervalRef.current = setInterval(() => nextSlide(), 4000);
-  };
-
-  const stopAutoSlide = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  };
-
-  // ✅ Animation control when in view
+  // ✅ Appear animation only
   useEffect(() => {
     if (inView && certData?.cottonMemberImg?.length > 0) {
       controls.start({ opacity: 1, x: 0 });
-      startAutoSlide();
     } else {
       controls.start({ opacity: 0, x: 100 });
-      stopAutoSlide();
     }
-    return stopAutoSlide;
   }, [inView, certData?.cottonMemberImg?.length]);
 
   const openPopup = (index = 0) => {
@@ -123,13 +113,15 @@ export default function CertificationSliderSection() {
 
           {certData?.cottonMemberButtonText &&
             certData?.cottonMemberButtonLink && (
-              <button
+              <div className="flex justify-center md:block">
+                <button
                 onClick={() => openPopup(0)}
-                className="w-72 mt-6 px-5 py-3 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black/40 cursor-pointer hover:text-white transition-all text-xl font-semibold"
+                className="w-fit mt-6 px-5 py-4 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black/40 cursor-pointer hover:text-white transition-all text-xl font-semibold"
                 style={{ fontSize: "20px" }}
               >
-                {pick(certData.cottonMemberButtonText)} <FiArrowDownRight />
+                {pick(certData.cottonMemberButtonText)} <ArrowUpRight />
               </button>
+              </div>
             )}
         </div>
 
@@ -141,7 +133,7 @@ export default function CertificationSliderSection() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="relative w-full flex flex-col items-center justify-center"
         >
-          <div className="relative w-full h-full md:h-100">
+          <div className="relative w-full h-[350px] md:h-100">
             {images.map((src, i) => {
               const isActive = i === current;
               return (
@@ -149,7 +141,7 @@ export default function CertificationSliderSection() {
                   key={i}
                   src={getFullUrl(src)}
                   alt={`Certificate ${i + 1}`}
-                  className={`absolute top-0 left-0 w-[600px] h-[200px] md:h-[450px] rounded-2xl transition-all duration-700 ease-in-out cursor-pointer ${
+                  className={`absolute top-0 left-0 w-[600px] h-[350px] md:h-[450px] rounded-2xl transition-all duration-700 ease-in-out cursor-pointer ${
                     isActive
                       ? "z-30 scale-100 rotate-0 opacity-100"
                       : "z-10 opacity-40 scale-[0.95]"
@@ -165,31 +157,7 @@ export default function CertificationSliderSection() {
             })}
           </div>
 
-          {/* ---------- Navigation Buttons ---------- */}
-          {images.length > 1 && (
-            <div className="flex gap-4 mt-33 certification-slider-controls">
-              <button
-                onClick={() => {
-                  prevSlide();
-                  startAutoSlide();
-                }}
-                aria-label="Previous"
-                className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors duration-300"
-              >
-                <FaArrowLeft />
-              </button>
-              <button
-                onClick={() => {
-                  nextSlide();
-                  startAutoSlide();
-                }}
-                aria-label="Next"
-                className="w-10 h-10 rounded-full bg-[#0A1C2E] text-white flex items-center justify-center hover:bg-[#122b45] transition-colors duration-300"
-              >
-                <FaArrowRight />
-              </button>
-            </div>
-          )}
+         
         </motion.div>
       </div>
 

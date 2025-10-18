@@ -116,9 +116,13 @@ export default function PinnedExpertiseTimeline() {
       <div className="hidden md:grid sticky top-0 h-screen grid-cols-1 md:grid-cols-2 gap-20 justify-center w-full px-6 md:pr-0 md:px-20">
         {/* Left: Years + Description */}
         <div className="flex flex-col justify-center space-y-4 h-full py-20 relative">
-          <h3 className="absolute left-[-100px] top-1/2 -translate-y-1/2 text-[#19191940] z-2 rotate-[270deg] text-6xl font-bold text-center uppercase">
-            {headingText}
-          </h3>
+          <h3
+  className={`absolute top-1/2 -translate-y-1/2 text-[#19191940] z-2 rotate-[270deg] text-6xl font-bold text-center uppercase transition-all duration-300
+    ${activeLang === "vi" ? "left-[-150px] w-[400px]" : "left-[-150px]"}
+  `}
+>
+  {headingText}
+</h3>
 
           <div className="space-y-4">
             {historyData.slice(0, currentIndex + 1).map((item, i) => (
@@ -143,7 +147,7 @@ export default function PinnedExpertiseTimeline() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="text-lg text-end text-black max-w-2xl ml-auto font-normal pt-6 pl-16"
+            className="text-lg text-end text-black max-w-2xl ml-auto font-normal pt-6 pl-30"
           >
             {pick(historyData[currentIndex]?.content)}
           </motion.p>
@@ -218,7 +222,7 @@ export default function PinnedExpertiseTimeline() {
           transition={{ delay: 0.3, duration: 0.5 }}
           className="absolute top-24 left-6 z-30"
         >
-          <p className="text-white font-semibold text-3xl uppercase mb-2 tracking-wide">
+          <p className="text-white font-semibold text-3xl uppercase !mt-12 tracking-wide">
             {headingText}
           </p>
         </motion.div>

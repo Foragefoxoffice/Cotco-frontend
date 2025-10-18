@@ -16,41 +16,66 @@ const MachineList = () => {
   const [machines, setMachines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
-  const [activeLang, setActiveLang] = useState("en"); // ✅ Language state
+  const [activeLang, setActiveLang] = useState("en");
   const containerRef = useRef(null);
 
-  // ✅ Detect language dynamically from <body class="vi-mode">
+  // ✅ Base API URL
+  const API_URL = import.meta.env.VITE_API_URL || "";
+
+  // ✅ Helper for uploads
+  const getFullImageURL = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    if (!path.startsWith("/")) path = "/" + path;
+    return `${API_URL}${path}`;
+  };
+
+  // ✅ Detect language toggle from Navbar (via body class)
   useEffect(() => {
-    const detectLanguage = () =>
+    const detectLang = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
 
-    setActiveLang(detectLanguage());
+    const setLang = () => setActiveLang(detectLang());
+    setLang();
 
-    const observer = new MutationObserver(() => {
-      setActiveLang(detectLanguage());
-    });
-
+    // React to future class changes
+    const observer = new MutationObserver(setLang);
     observer.observe(document.body, {
       attributes: true,
       attributeFilter: ["class"],
     });
-
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Fetch category and machine pages
+  // ✅ Fetch category and its pages
   useEffect(() => {
     (async () => {
       try {
-        const catRes = await getMachineCategories();
+        const [catRes, pagesRes] = await Promise.all([
+          getMachineCategories(),
+          getMachinePagesByCategorySlug(categorySlug),
+        ]);
+
         const cats = catRes.data.data || [];
         const foundCat = cats.find((c) => c.slug === categorySlug);
-        setCategory(foundCat || null);
 
-        const machineRes = await getMachinePagesByCategorySlug(categorySlug);
-        setMachines(machineRes.data.data || []);
+        if (foundCat) {
+          foundCat.icon = getFullImageURL(foundCat.icon);
+          foundCat.image = getFullImageURL(foundCat.image);
+          foundCat.createMachineCatBgImage = getFullImageURL(
+            foundCat.createMachineCatBgImage
+          );
+        }
+
+        const pages = (pagesRes.data.data || []).map((m) => ({
+          ...m,
+          banner: getFullImageURL(m.banner),
+        }));
+
+        setCategory(foundCat || null);
+        setMachines(pages);
       } catch (err) {
-        console.error("Error fetching machine data:", err);
+        console.error("❌ Error fetching machine data:", err);
       } finally {
         setLoading(false);
       }
@@ -64,20 +89,32 @@ const MachineList = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ✅ Parallax setup
+  // ✅ Parallax scroll for banner
   const { scrollY } = useScroll();
-  const yImage = useTransform(scrollY, [0, 500], [0, 0]);
+  const yImage = useTransform(scrollY, [0, 500], [0, -60]);
 
-  if (loading) return <Spin />;
-
-  const API_URL = import.meta.env.VITE_API_URL || "";
-  const bannerUrl =
-    category?.banner && category.banner.startsWith("/uploads")
-      ? `${API_URL}${category.banner}`
-      : category?.banner || "/img/default-banner.jpg";
-
-  // ✅ Safe language selector
+  // ✅ Pick correct language text helper
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
+
+  // ✅ Loading state
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-screen bg-[#0B0B0B]">
+        <Spin size="large" />
+      </div>
+    );
+
+  // ✅ Background banner priority
+  let bannerUrl = "/img/default-banner.jpg";
+  if (category?.createMachineCatBgImage) {
+    bannerUrl = getFullImageURL(category.createMachineCatBgImage);
+  } else if (category?.image) {
+    bannerUrl = getFullImageURL(category.image);
+  } else if (category?.icon) {
+    bannerUrl = getFullImageURL(category.icon);
+  }
+
+  console.log("🖼️ Banner URL:", bannerUrl);
 
   return (
     <div>
@@ -95,41 +132,35 @@ const MachineList = () => {
           scrolled ? { scale: 0.93, opacity: 0.95 } : { scale: 1, opacity: 1 }
         }
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className={`relative h-[70vh] md:min-h-[80vh] rounded-xl overflow-hidden hero transition-all duration-500 ease-out ${
+        className={`relative h-[70vh] md:min-h-[80vh] overflow-hidden transition-all duration-500 ease-out ${
           scrolled ? "rounded-2xl" : ""
         }`}
       >
-        <div className="absolute inset-0 bg-black/30 z-10" />
+        <div className="absolute inset-0 bg-black/40 z-10" />
 
+        {/* Title and description */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="absolute bottom-24 left-6 md:left-16 z-20 text-white"
+          transition={{ duration: 1, delay: 0.3 }}
+          className="absolute inset-0 flex flex-col justify-end items-start text-center z-20 p-16"
         >
-          <div className="text-sm opacity-90 mb-2">
-            <Link to="/machines" className="hover:underline">
-              {activeLang === "vi" ? "Máy móc" : "Machines"}
-            </Link>{" "}
-            &gt;{" "}
-            <span className="capitalize">
-              {categorySlug.replace(/-/g, " ")}
-            </span>
-          </div>
-
-          <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-wider">
-            {pick(category?.name) || categorySlug.replace(/-/g, " ")}
+          <h1 className="text-4xl md:text-6xl font-bold text-white uppercase tracking-widest drop-shadow-lg">
+            {pick(category?.createMachineCatTitle) ||
+              pick(category?.name) ||
+              categorySlug.replace(/-/g, " ")}
           </h1>
+
         </motion.div>
       </motion.section>
 
-      {/* ================= CATEGORY DESCRIPTION SECTION ================= */}
+      {/* ================= CATEGORY DESCRIPTION ================= */}
       <div className="page-width py-16">
         <Row gutter={[32, 32]} align="middle">
           {/* Left side - Description */}
           <Col xs={24} md={14}>
             <p className="text-gray-700 text-lg leading-relaxed">
-              {pick(category?.description)}
+              {pick(category?.createMachineCatDes)}
             </p>
           </Col>
 
@@ -137,11 +168,7 @@ const MachineList = () => {
           <Col xs={24} md={10} className="flex justify-center md:justify-end">
             {category?.icon && (
               <img
-                src={
-                  category.icon.startsWith("/uploads")
-                    ? `${API_URL}${category.icon}`
-                    : category.icon
-                }
+                src={getFullImageURL(category.icon)}
                 alt={pick(category?.name)}
                 className="max-h-40 object-contain"
               />
@@ -150,37 +177,54 @@ const MachineList = () => {
         </Row>
       </div>
 
-      {/* ================= MACHINE PAGES LIST ================= */}
-      <div className="page-width py-12">
-        <Row gutter={[24, 24]}>
-          {machines.map((machine) => (
-            <Col xs={24} sm={12} md={12} key={machine._id}>
-              <Link to={`/machines/${categorySlug}/${machine.slug}`}>
-                <div className="rounded-xl overflow-hidden transition duration-300">
-                  {machine.banner && (
-                    <img
-                      alt={pick(machine.title)}
-                      src={
-                        machine.banner.startsWith("/uploads")
-                          ? `${API_URL}${machine.banner}`
-                          : machine.banner
-                      }
-                      className="h-[300px] w-full object-cover rounded-xl"
-                    />
-                  )}
+      {/* ================= MAIN MACHINES TITLE ================= */}
+      <div className="text-center mb-12">
+        <h2 className="text-2xl md:text-3xl font-bold text-[#0D3B66] uppercase tracking-wide relative inline-block">
+          {pick(category?.createMachineCatTitle)}
+        </h2>
+      </div>
 
-                  <div className="flex justify-between items-center bg-[#0D3B66] text-white px-5 py-8 mt-4 rounded-xl">
-                    <h3 className="font-semibold uppercase tracking-wide text-sm md:text-base">
-                      {pick(machine.title)}
-                    </h3>
-                    <div className="w-9 h-9 flex items-center justify-center border border-white text-white rounded-full transition hover:bg-white hover:text-[#0D3B66]">
-                      <FiArrowUpRight size={18} />
+      {/* ================= MACHINE LIST ================= */}
+      <div className="page-width pb-20">
+        <Row gutter={[24, 24]}>
+          {machines.length > 0 ? (
+            machines.map((machine) => (
+              <Col xs={24} sm={12} md={12} key={machine._id}>
+                <Link to={`/machines/${categorySlug}/${machine.slug}`}>
+                  <div className="rounded-xl overflow-hidden transition duration-300">
+                    {machine.banner ? (
+                      <img
+                        alt={pick(machine.title)}
+                        src={getFullImageURL(machine.banner)}
+                        className="h-[300px] w-full object-cover rounded-xl"
+                      />
+                    ) : (
+                      <div className="h-[300px] w-full bg-[#1a1a1a] flex items-center justify-center text-gray-400 text-sm rounded-xl">
+                        No Banner
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center bg-[#0D3B66] text-white px-5 py-8 mt-4 rounded-xl">
+                      <h3 className="font-semibold uppercase tracking-wide text-sm md:text-base">
+                        {pick(machine.title)}
+                      </h3>
+                      <div className="w-9 h-9 flex items-center justify-center border border-white text-white rounded-full transition hover:bg-white hover:text-[#0D3B66]">
+                        <FiArrowUpRight size={18} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </Col>
+            ))
+          ) : (
+            <Col span={24}>
+              <div className="text-center text-gray-500 text-lg py-10">
+                {activeLang === "vi"
+                  ? "Không có máy nào trong danh mục này"
+                  : "No machines found for this category."}
+              </div>
             </Col>
-          ))}
+          )}
         </Row>
       </div>
 

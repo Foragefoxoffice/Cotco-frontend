@@ -28,7 +28,6 @@ import {
 } from "@ant-design/icons";
 import { ReloadOutlined } from "@ant-design/icons";
 
-
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { getMachineCategories, createMachinePage } from "../Api/api";
 import RichTextEditor from "../components/RichTextEditor";
@@ -39,14 +38,20 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CustomStepper from "../components/CustomStepper";
 
-
 const { TextArea } = Input;
 const { Step } = Steps;
 
+const slugify = (text) =>
+  text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[\s\W-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 /* ---------- Translation Inputs ---------- */
 const TranslationInput = ({
-  value = { en: "", vn: "" },
+  value = { en: "", vi: "" },
   onChange,
   placeholder,
 }) => (
@@ -87,15 +92,15 @@ const TranslationInput = ({
           transition: "all 0.3s ease",
         }}
         placeholder={placeholder}
-        value={value?.vn}
-        onChange={(e) => onChange({ ...value, vn: e.target.value })}
+        value={value?.vi}
+        onChange={(e) => onChange({ ...value, vi: e.target.value })}
       />
     </Col>
   </Row>
 );
 
 const TranslationTextArea = ({
-  value = { en: "", vn: "" },
+  value = { en: "", vi: "" },
   onChange,
   placeholder,
 }) => (
@@ -137,9 +142,9 @@ const TranslationTextArea = ({
           transition: "all 0.3s ease",
         }}
         placeholder={placeholder}
-        value={value?.vn}
+        value={value?.vi}
         rows={3}
-        onChange={(e) => onChange({ ...value, vn: e.target.value })}
+        onChange={(e) => onChange({ ...value, vi: e.target.value })}
       />
     </Col>
   </Row>
@@ -161,7 +166,7 @@ const SectionToolbar = ({ onAdd }) => (
       }}
       onClick={() => onAdd("text")}
     >
-      Text
+      Title & Description
     </Button>
 
     <Button
@@ -196,7 +201,7 @@ const SectionToolbar = ({ onAdd }) => (
       List
     </Button>
 
-    <Button
+    {/* <Button
       icon={<PlusOutlined />}
       style={{
         backgroundColor: "#262626",
@@ -210,7 +215,7 @@ const SectionToolbar = ({ onAdd }) => (
       onClick={() => onAdd("blocks")}
     >
       Blocks
-    </Button>
+    </Button> */}
 
     <Button
       icon={<AppstoreOutlined />}
@@ -312,15 +317,16 @@ const SectionToolbar = ({ onAdd }) => (
 /* ---------- Helpers ---------- */
 const newBlankSection = (type) => ({
   type,
-  title: { en: "", vn: "" },
-  description: { en: "", vn: "" },
-  richtext: { en: "", vn: "" },
+  title: { en: "", vi: "" },
+  description: { en: "", vi: "" },
+  richtext: { en: "", vi: "" },
+  listTitle: { en: "", vi: "" },
   listItems: [],
   blocks: [],
   tabs: [],
   table: { header: "", rows: [] },
   image: "",
-  button: { name: { en: "", vn: "" }, link: "" },
+  button: { name: { en: "", vi: "" }, link: "" },
 });
 
 /* ---------- Section Editor ---------- */
@@ -359,7 +365,7 @@ const SectionEditor = ({ basePath, section, control }) => {
           />
           <p className="font-medium mt-3 mb-1 text-white">Rich Text VN</p>
           <Controller
-            name={`${basePath}.richtext.vn`}
+            name={`${basePath}.richtext.vi`}
             control={control}
             render={({ field }) => (
               <RichTextEditor value={field.value} onChange={field.onChange} />
@@ -378,7 +384,7 @@ const SectionEditor = ({ basePath, section, control }) => {
             render={({ field }) => (
               <Card size="small" className=" text-white">
                 <TranslationInput
-                  value={field.value || { en: "", vn: "" }}
+                  value={field.value || { en: "", vi: "" }}
                   placeholder="List Title"
                   onChange={field.onChange}
                 />
@@ -394,7 +400,7 @@ const SectionEditor = ({ basePath, section, control }) => {
               <>
                 <Button
                   onClick={() =>
-                    field.onChange([...(field.value || []), { en: "", vn: "" }])
+                    field.onChange([...(field.value || []), { en: "", vi: "" }])
                   }
                   style={{
                     display: "inline-flex",
@@ -446,8 +452,8 @@ const SectionEditor = ({ basePath, section, control }) => {
                   field.onChange([
                     ...(field.value || []),
                     {
-                      title: { en: "", vn: "" },
-                      description: { en: "", vn: "" },
+                      title: { en: "", vi: "" },
+                      description: { en: "", vi: "" },
                       image: "",
                     },
                   ])
@@ -549,7 +555,7 @@ const SectionEditor = ({ basePath, section, control }) => {
             control={control}
             render={({ field }) => (
               <TranslationInput
-                value={field.value || { en: "", vn: "" }}
+                value={field.value || { en: "", vi: "" }}
                 placeholder="Image Title"
                 onChange={field.onChange}
               />
@@ -568,7 +574,7 @@ const SectionEditor = ({ basePath, section, control }) => {
           />
 
           <Controller
-            name={`${basePath}.description.vn`}
+            name={`${basePath}.description.vi`}
             control={control}
             render={({ field }) => (
               <>
@@ -638,7 +644,7 @@ const SectionEditor = ({ basePath, section, control }) => {
           <Button
             icon={<PlusOutlined />}
             onClick={() =>
-              appendTab({ tabTitle: { en: "", vn: "" }, sections: [] })
+              appendTab({ tabTitle: { en: "", vi: "" }, sections: [] })
             }
             style={{
               borderRadius: "999px",
@@ -780,7 +786,7 @@ const SectionEditor = ({ basePath, section, control }) => {
                           }}
                           onClick={() => {
                             const rows = [...field.value];
-                            rows[ri].push({ en: "", vn: "" }); // add new EN+VN cell
+                            rows[ri].push({ en: "", vi: "" }); // add new EN+VN cell
                             field.onChange(rows);
                           }}
                         >
@@ -830,7 +836,7 @@ const SectionEditor = ({ basePath, section, control }) => {
                   onClick={() =>
                     field.onChange([
                       ...(field.value || []),
-                      [{ en: "", vn: "" }],
+                      [{ en: "", vi: "" }],
                     ])
                   }
                 >
@@ -851,7 +857,7 @@ const SectionEditor = ({ basePath, section, control }) => {
             control={control}
             render={({ field }) => (
               <TranslationInput
-                value={field.value || { en: "", vn: "" }}
+                value={field.value || { en: "", vi: "" }}
                 placeholder="Button Label"
                 onChange={field.onChange}
               />
@@ -954,11 +960,11 @@ const MachinePageCreate = ({
   isEdit = false,
   onSubmitUpdate,
 }) => {
-  const { control, handleSubmit, reset } = useForm({
+  const { control, handleSubmit, reset, watch, setValue } = useForm({
     defaultValues: {
       categoryId: "",
-      title: { en: "", vn: "" },
-      description: { en: "", vn: "" },
+      title: { en: "", vi: "" },
+      description: { en: "", vi: "" },
       slug: "",
       metaTitle: "",
       metaDescription: "",
@@ -967,13 +973,25 @@ const MachinePageCreate = ({
     },
   });
 
+  // ✅ Automatically generate slug from English title and make it readonly
+const title = watch("title");
+
+useEffect(() => {
+  if (title?.en) {
+    setValue("slug", slugify(title.en), { shouldValidate: true });
+  } else {
+    setValue("slug", "");
+  }
+}, [title?.en]);
+
+
   const {
     fields: sections,
     append,
     remove,
   } = useFieldArray({ control, name: "sections" });
 
-    // 🌐 Detect language from body class
+  // 🌐 Detect language from body class
   const [isVietnamese, setIsVietnamese] = useState(false);
 
   useEffect(() => {
@@ -998,13 +1016,11 @@ const MachinePageCreate = ({
     { title: isVietnamese ? "SEO & Tạo" : "SEO & Create" },
   ];
 
-
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [bannerFile, setBannerFile] = useState([]);
-const [showBannerModal, setShowBannerModal] = useState(false);
-
+  const [showBannerModal, setShowBannerModal] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -1019,150 +1035,224 @@ const [showBannerModal, setShowBannerModal] = useState(false);
 
   useEffect(() => {
     if (initialData) {
-      reset({
-        categoryId: initialData.categoryId || "",
-        title: initialData.title || { en: "", vn: "" },
-        description: initialData.description || { en: "", vn: "" },
-        slug: initialData.slug || "",
-        metaTitle: initialData.metaTitle || "",
-        metaDescription: initialData.metaDescription || "",
-        keywords: initialData.keywords || "",
-        sections: initialData.sections || [],
+      const API_BASE =
+        import.meta.env.VITE_API_URL?.replace("/api/v1", "") ||
+        "http://localhost:5000";
+
+      // Normalize image URLs (banner, sections, blocks, tabs)
+      const normalizedSections = (initialData.sections || []).map((s) => {
+        const newSection = { ...s };
+
+        // Section image
+        if (newSection.image && !newSection.image.startsWith("http")) {
+          newSection.image = `${API_BASE}${newSection.image}`;
+        }
+
+        // Blocks image
+        if (Array.isArray(newSection.blocks)) {
+          newSection.blocks = newSection.blocks.map((block) => ({
+            ...block,
+            image:
+              block.image && !block.image.startsWith("http")
+                ? `${API_BASE}${block.image}`
+                : block.image,
+          }));
+        }
+
+        // Tabs → Sections → image
+        if (Array.isArray(newSection.tabs)) {
+          newSection.tabs = newSection.tabs.map((tab) => ({
+            ...tab,
+            sections: Array.isArray(tab.sections)
+              ? tab.sections.map((subSection) => ({
+                  ...subSection,
+                  image:
+                    subSection.image && !subSection.image.startsWith("http")
+                      ? `${API_BASE}${subSection.image}`
+                      : subSection.image,
+                }))
+              : [],
+          }));
+        }
+
+        return newSection;
       });
 
+      // ✅ Reset all form fields
+      reset({
+        categoryId: initialData.categoryId || "",
+        title: initialData.title || { en: "", vi: "" },
+        description: initialData.description || { en: "", vi: "" },
+        slug: initialData.slug || "",
+        metaTitle: initialData.seo?.metaTitle || initialData.metaTitle || "",
+        metaDescription:
+          initialData.seo?.metaDescription || initialData.metaDescription || "",
+        keywords: Array.isArray(initialData.seo?.keywords)
+          ? initialData.seo.keywords.join(", ")
+          : initialData.keywords || "",
+        sections: normalizedSections,
+      });
+
+      // ✅ Banner image preview
       if (initialData.banner) {
+        const imageUrl = initialData.banner.startsWith("http")
+          ? initialData.banner
+          : `${API_BASE}${initialData.banner}`;
+
         setBannerFile([
           {
             uid: "-1",
             name: "banner.png",
             status: "done",
-            url: initialData.banner,
+            url: imageUrl,
           },
         ]);
       }
     }
   }, [initialData, reset]);
 
+  useEffect(() => {
+    return () => {
+      // revoke blob URL when leaving the page to avoid memory leaks
+      bannerFile.forEach((file) => {
+        if (file?.url?.startsWith("blob:")) {
+          URL.revokeObjectURL(file.url);
+        }
+      });
+    };
+  }, [bannerFile]);
+
   const handleFormSubmit = async (values) => {
-    try {
-      setLoading(true);
-      const formData = new FormData();
+  try {
+    setLoading(true);
 
-      formData.append("categoryId", values.categoryId);
-      formData.append("title", JSON.stringify(values.title));
-      formData.append("description", JSON.stringify(values.description));
-      formData.append("slug", values.slug);
+    const formData = new FormData();
+    formData.append("categoryId", values.categoryId);
+    formData.append("title", JSON.stringify(values.title));
+    formData.append("description", JSON.stringify(values.description || { en: "", vi: "" }));
+    formData.append("slug", values.slug);
 
-      const seo = {
-        metaTitle: values.metaTitle,
-        metaDescription: values.metaDescription,
-        keywords: values.keywords
-          ? values.keywords.split(",").map((k) => k.trim())
-          : [],
-      };
-      formData.append("seo", JSON.stringify(seo));
+    const seo = {
+      metaTitle: values.metaTitle,
+      metaDescription: values.metaDescription,
+      keywords: values.keywords
+        ? values.keywords.split(",").map((k) => k.trim())
+        : [],
+    };
+    formData.append("seo", JSON.stringify(seo));
 
-      if (bannerFile.length > 0) {
-        formData.append("banner", bannerFile[0].originFileObj);
+    if (bannerFile.length > 0) {
+      formData.append("banner", bannerFile[0].originFileObj);
+    }
+
+    // Handle sections + nested images
+    const sections = values.sections.map((s, i) => {
+      if (["image", "imageLeft", "imageRight"].includes(s.type) && s.image) {
+        const fieldName = `sectionImage_${i}`;
+        const file = s.image.originFileObj || s.image;
+        if (file instanceof File) {
+          formData.append(fieldName, file);
+          return { ...s, image: fieldName };
+        }
       }
 
-      // Handle sections + nested images
-      const sections = values.sections.map((s, i) => {
-        if (["image", "imageLeft", "imageRight"].includes(s.type) && s.image) {
-          const fieldName = `sectionImage_${i}`;
-          const file = s.image.originFileObj || s.image;
-          if (file instanceof File) {
-            formData.append(fieldName, file);
-            return { ...s, image: fieldName };
+      if (s.type === "blocks" && Array.isArray(s.blocks)) {
+        const updatedBlocks = s.blocks.map((block, bi) => {
+          if (block.image) {
+            const blockKey = `section_${i}_block_${bi}`;
+            const file = block.image.originFileObj || block.image;
+            if (file instanceof File) {
+              formData.append(blockKey, file);
+              return { ...block, image: blockKey };
+            }
           }
-        }
+          return block;
+        });
+        return { ...s, blocks: updatedBlocks };
+      }
 
-        if (s.type === "blocks" && Array.isArray(s.blocks)) {
-          const updatedBlocks = s.blocks.map((block, bi) => {
-            if (block.image) {
-              const blockKey = `section_${i}_block_${bi}`;
-              const file = block.image.originFileObj || block.image;
+      if (s.type === "tabs" && Array.isArray(s.tabs)) {
+        const updatedTabs = s.tabs.map((tab, ti) => {
+          const updatedSections = tab.sections.map((subSection, si) => {
+            if (
+              ["image", "imageLeft", "imageRight"].includes(subSection.type) &&
+              subSection.image
+            ) {
+              const tabImgKey = `section_${i}_tab_${ti}_section_${si}`;
+              const file = subSection.image.originFileObj || subSection.image;
               if (file instanceof File) {
-                formData.append(blockKey, file);
-                return { ...block, image: blockKey };
+                formData.append(tabImgKey, file);
+                return { ...subSection, image: tabImgKey };
               }
             }
-            return block;
+            return subSection;
           });
-          return { ...s, blocks: updatedBlocks };
-        }
-
-        if (s.type === "tabs" && Array.isArray(s.tabs)) {
-          const updatedTabs = s.tabs.map((tab, ti) => {
-            const updatedSections = tab.sections.map((subSection, si) => {
-              if (
-                ["image", "imageLeft", "imageRight"].includes(
-                  subSection.type
-                ) &&
-                subSection.image
-              ) {
-                const tabImgKey = `section_${i}_tab_${ti}_section_${si}`;
-                const file = subSection.image.originFileObj || subSection.image;
-                if (file instanceof File) {
-                  formData.append(tabImgKey, file);
-                  return { ...subSection, image: tabImgKey };
-                }
-              }
-              return subSection;
-            });
-            return { ...tab, sections: updatedSections };
-          });
-          return { ...s, tabs: updatedTabs };
-        }
-
-        return s;
-      });
-
-      formData.append("sections", JSON.stringify(sections));
-
-      if (isEdit) {
-        await onSubmitUpdate(formData);
-        toast.success("Page updated successfully ✅");
-      } else {
-        await createMachinePage(formData);
-        toast.success("Page created successfully 🎉");
-        onSuccess?.();
-        reset();
+          return { ...tab, sections: updatedSections };
+        });
+        return { ...s, tabs: updatedTabs };
       }
-    } catch (err) {
-      console.error("Form submit error:", err);
-      let userMessage = "Something went wrong. Please try again.";
-      if (err?.response?.status === 400)
-        userMessage = "Some fields are missing or invalid.";
-      else if (err?.response?.status === 401)
-        userMessage = "You are not authorized.";
-      else if (err?.response?.status === 404)
-        userMessage = "Requested resource not found.";
-      else if (err?.response?.status === 500)
-        userMessage = "Server error. Please try again later.";
-      toast.error(userMessage);
-    } finally {
-      setLoading(false); // ✅ ensures button returns to normal
+
+      return s;
+    });
+
+    formData.append("sections", JSON.stringify(sections));
+
+    // ✅ CREATE vs UPDATE
+    if (isEdit) {
+      await onSubmitUpdate(formData);
+      toast.success("Page updated successfully ✅");
+    } else {
+      const res = await createMachinePage(formData);
+      toast.success("Page created successfully 🎉");
+      if (onSuccess) onSuccess(res?.data);
+      reset(); // clear form after create
     }
-  };
+  } catch (err) {
+    console.error("Form submit error:", err);
+    let userMessage = "Something went wrong. Please try again.";
+    if (err?.response?.status === 400)
+      userMessage = "Some fields are missing or invalid.";
+    else if (err?.response?.status === 401)
+      userMessage = "You are not authorized.";
+    else if (err?.response?.status === 404)
+      userMessage = "Requested resource not found.";
+    else if (err?.response?.status === 500)
+      userMessage = "Server error. Please try again later.";
+    toast.error(userMessage);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  const watchTitleEn = watch("title.en");
+  const watchSlug = watch("slug");
+
+  useEffect(() => {
+    if (!watchSlug || watchSlug.trim() === "") {
+      if (watchTitleEn) {
+        setValue("slug", slugify(watchTitleEn), { shouldValidate: true });
+      }
+    }
+  }, [watchTitleEn]);
 
   return (
     <div className="p-6 min-h-screen edit-form">
       {/* 🔙 Back Button */}
       <div className="mb-4">
         <Button
-  icon={<LeftOutlined />}
-  onClick={() => window.history.back()} // or use navigate(-1)
-  style={{
-    borderRadius: "2rem",
-    fontWeight: 500,
-    background: "#171717",
-    color: "#fff",
-    border: "1px solid #2d2d2d",
-  }}
->
-  {isVietnamese ? "Quay lại" : "Back"}
-</Button>
+          icon={<LeftOutlined />}
+          onClick={() => window.history.back()} // or use navigate(-1)
+          style={{
+            borderRadius: "2rem",
+            fontWeight: 500,
+            background: "#171717",
+            color: "#fff",
+            border: "1px solid #2d2d2d",
+          }}
+        >
+          {isVietnamese ? "Quay lại" : "Back"}
+        </Button>
       </div>
       <Card className="mb-6 shadow-md bg-[#171717] border border-[#2E2F2F]">
         <CustomStepper
@@ -1178,20 +1268,18 @@ const [showBannerModal, setShowBannerModal] = useState(false);
       >
         {step === 0 && (
           <Card
-  title={isVietnamese ? "Thông tin cơ bản" : "Basic Information"}
-  className="shadow-md "
->
-
+            title={isVietnamese ? "Thông tin cơ bản" : "Basic Information"}
+            className="shadow-md"
+          >
+            {/* ✅ Category Dropdown */}
             <Controller
               name="categoryId"
               control={control}
               rules={{ required: "Category is required" }}
               render={({ field }) => {
                 const [showDropdown, setShowDropdown] = useState(false);
-
                 return (
                   <div className="relative w-72">
-                    {/* Dropdown button */}
                     <button
                       type="button"
                       onClick={() => setShowDropdown((p) => !p)}
@@ -1214,9 +1302,8 @@ const [showBannerModal, setShowBannerModal] = useState(false);
                       </svg>
                     </button>
 
-                    {/* Dropdown list */}
                     {showDropdown && (
-                      <div className="absolute w-full mt-2 bg-[#1F1F1F] border border-[#2E2F2F] rounded-xl z-20 animate-fadeIn shadow-lg max-h-60 overflow-y-auto">
+                      <div className="absolute w-full mt-2 bg-[#1F1F1F] border border-[#2E2F2F] rounded-xl z-20 shadow-lg max-h-60 overflow-y-auto">
                         {categories.map((cat) => (
                           <button
                             key={cat._id}
@@ -1240,185 +1327,205 @@ const [showBannerModal, setShowBannerModal] = useState(false);
                 );
               }}
             />
-            <br/>
+            <br />
+
+            {/* ✅ Title (EN + VN) */}
             <Controller
               name="title"
               control={control}
+              defaultValue={{ en: "", vi: "" }} // ✅ Important!
               rules={{ required: "Title is required" }}
               render={({ field }) => (
-                <TranslationInput {...field} placeholder="Page Title" />
-              )}
-            />
-            <br />
-            <Controller
-              name="description"
-              control={control}
-              render={({ field }) => (
-                <TranslationTextArea
-                  {...field}
-                  placeholder="Page Description"
+                <TranslationInput
+                  value={field.value || { en: "", vi: "" }}
+                  onChange={field.onChange}
+                  placeholder="Page Title"
                 />
               )}
             />
             <br />
-            <h3 className="text-white text-md">slug</h3>
+
+            {/* ✅ Description (EN + VN) */}
+            {/* <Controller
+              name="description"
+              control={control}
+              defaultValue={{ en: "", vi: "" }} // ✅ Important!
+              render={({ field }) => (
+                <TranslationTextArea
+                  value={field.value || { en: "", vi: "" }}
+                  onChange={field.onChange}
+                  placeholder="Page Description"
+                />
+              )}
+            /> */}
+            <br />
+
+            {/* ✅ Slug */}
+            <h3 className="text-white text-md">Slug</h3>
             <Controller
               name="slug"
               control={control}
-              rules={{ required: "Slug is required" }}
               render={({ field }) => (
                 <Input
+                  {...field}
+                  readOnly
                   className="custom-dark-input"
                   style={{
                     backgroundColor: "#262626",
                     border: "1px solid #2E2F2F",
                     borderRadius: "8px",
-                    color: "#fff",
+                    color: "#aaa", // make it look slightly dimmed to indicate readonly
                     padding: "10px 14px",
                     fontSize: "14px",
                     transition: "all 0.3s ease",
                   }}
-                  {...field}
-                  placeholder="slug"
+                  placeholder="Slug will be generated automatically"
                 />
               )}
             />
 
-            {/* ✅ Banner Upload moved here */}
+            {/* ✅ Banner Upload (unchanged) */}
             <div className="mt-4">
-  <h3 className="mb-2 font-medium text-white">Meta Image / Banner</h3>
+              <h3 className="mb-2 font-medium text-white">
+                Meta Image / Banner
+              </h3>
+              <input
+                id="banner-upload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const previewUrl = URL.createObjectURL(file);
 
-  {/* Hidden file input */}
-  <input
-    id="banner-upload"
-    type="file"
-    accept="image/*"
-    onChange={(e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        setBannerFile([{ originFileObj: file, url }]);
-      }
-    }}
-    style={{ display: "none" }}
-  />
+                    // Revoke old URL if exists
+                    if (
+                      bannerFile.length > 0 &&
+                      bannerFile[0]?.url?.startsWith("blob:")
+                    ) {
+                      URL.revokeObjectURL(bannerFile[0].url);
+                    }
 
-  <div className="flex flex-wrap gap-4 mt-2">
-    {/* Upload Placeholder */}
-    {bannerFile.length === 0 && (
-      <label
-        htmlFor="banner-upload"
-        className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="2"
-          stroke="currentColor"
-          className="w-8 h-8 text-gray-400"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-        <span className="mt-2 text-sm text-gray-400">Upload</span>
-      </label>
-    )}
+                    setBannerFile([
+                      {
+                        originFileObj: file,
+                        url: previewUrl,
+                        isTemp: true, // mark as temporary preview
+                      },
+                    ]);
+                  }
+                }}
+                style={{ display: "none" }}
+              />
 
-    {/* Image Preview */}
-    {bannerFile.length > 0 && bannerFile[0].url && (
-      <div className="relative w-40 h-40 group">
-        <img
-          src={bannerFile[0].url}
-          alt="Banner Preview"
-          className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
-        />
+              <div className="flex flex-wrap gap-4 mt-2">
+                {bannerFile.length === 0 && (
+                  <label
+                    htmlFor="banner-upload"
+                    className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="2"
+                      stroke="currentColor"
+                      className="w-8 h-8 text-gray-400"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    <span className="mt-2 text-sm text-gray-400">Upload</span>
+                  </label>
+                )}
 
-        {/* View (Eye) Icon */}
-        <button
-          type="button"
-          onClick={() => setShowBannerModal(true)}
-          className="absolute bottom-2 left-2 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-          title="View full image"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-            />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        </button>
+                {bannerFile.length > 0 && bannerFile[0].url && (
+                  <div className="relative w-40 h-40 group">
+                    <img
+                      src={bannerFile[0].url}
+                      alt="Banner Preview"
+                      className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
+                    />
 
-        {/* Replace (Upload Again) Icon */}
-        <label
-          htmlFor="banner-upload"
-          className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-          title="Replace image"
-        >
-          <ReloadOutlined />
-        </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowBannerModal(true)}
+                      className="absolute bottom-2 left-2 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                      title="View full image"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-5 h-5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    </button>
 
-        {/* Delete (X) Icon */}
-        <button
-          type="button"
-          onClick={() => setBannerFile([])}
-          className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full transition cursor-pointer"
-          title="Remove image"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-4 h-4"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-    )}
-  </div>
+                    <label
+                      htmlFor="banner-upload"
+                      className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                      title="Replace image"
+                    >
+                      <ReloadOutlined />
+                    </label>
 
-  {/* Preview Modal */}
-  {showBannerModal && (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="relative max-w-4xl max-h-[90vh] w-auto">
-        <img
-          src={bannerFile[0]?.url}
-          alt="Full Preview"
-          className="max-h-[85vh] w-auto rounded-lg shadow-lg"
-        />
-        <button
-          type="button"
-          onClick={() => setShowBannerModal(false)}
-          className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg transition cursor-pointer"
-          title="Close"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  )}
-</div>
+                    <button
+                      type="button"
+                      onClick={() => setBannerFile([])}
+                      className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full transition cursor-pointer"
+                      title="Remove image"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-4 h-4"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </div>
 
+              {showBannerModal && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+                  <div className="relative max-w-4xl max-h-[90vh] w-auto">
+                    <img
+                      src={bannerFile[0]?.url}
+                      alt="Full Preview"
+                      className="max-h-[85vh] w-auto rounded-lg shadow-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowBannerModal(false)}
+                      className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg transition cursor-pointer"
+                      title="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </Card>
         )}
 

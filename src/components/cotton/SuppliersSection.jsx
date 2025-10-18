@@ -126,7 +126,7 @@ export default function SuppliersSection() {
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
-            className="mt-24 max-w-2xl md:mt-0"
+            className="mt-14 max-w-2xl md:mt-0"
           >
             <TitleAnimation
               text={pick(suppliers[index].cottonSupplierTitle) || "Supplier"}
@@ -158,7 +158,7 @@ export default function SuppliersSection() {
               suppliers[index].cottonSupplierDes.length > 0 && (
                 <ul className="pt-4 list-disc text-base leading-relaxed text-white/90 md:text-lg">
                   {suppliers[index].cottonSupplierDes.map((desc, dIdx) => (
-                    <li className="text-[18px] mb-3" key={dIdx}>
+                    <li className="ml-3 text-[18px] mb-3" key={dIdx}>
                       {pick(desc)}
                     </li>
                   ))}

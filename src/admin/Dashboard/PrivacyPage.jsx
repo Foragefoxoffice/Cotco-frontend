@@ -217,6 +217,7 @@ const PrivacyPage = () => {
       <style>{`
   .ql-editor {
     min-height: 250px;
+    color:#000 !important;
   }
 
   .ql-container.ql-snow {

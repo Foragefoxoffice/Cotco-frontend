@@ -9,7 +9,23 @@ export default function PrivacyPolicyContent() {
   const [privacy, setPrivacy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeKeys, setActiveKeys] = useState([]);
+  const [isVietnamese, setIsVietnamese] = useState(false);
 
+  // ✅ Detect language
+  useEffect(() => {
+    const checkLang = () =>
+      setIsVietnamese(document.body.classList.contains("vi-mode"));
+    checkLang();
+
+    const observer = new MutationObserver(checkLang);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Fetch privacy data
   useEffect(() => {
     getPrivacyPage().then((res) => {
       if (res.data) setPrivacy(res.data);
@@ -18,6 +34,8 @@ export default function PrivacyPolicyContent() {
   }, []);
 
   const handlePanelChange = (keys) => setActiveKeys(keys);
+
+  const t = (en, vi) => (isVietnamese ? vi || en : en);
 
   if (loading) {
     return (
@@ -30,7 +48,12 @@ export default function PrivacyPolicyContent() {
   if (!privacy || !privacy.privacyPolicies?.length) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-white text-gray-600">
-        <p>No Privacy Policies found.</p>
+        <p>
+          {t(
+            "No Privacy Policies found.",
+            "Không tìm thấy chính sách bảo mật nào."
+          )}
+        </p>
       </div>
     );
   }
@@ -65,7 +88,12 @@ export default function PrivacyPolicyContent() {
           ) : null}
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <h1 className="text-4xl font-bold text-white text-center">
-              {privacy.privacyBanner.privacyBannerTitle?.en || "Privacy Policy"}
+              {t(
+                privacy.privacyBanner.privacyBannerTitle?.en ||
+                  "Privacy Policy",
+                privacy.privacyBanner.privacyBannerTitle?.vi ||
+                  "Chính Sách Bảo Mật"
+              )}
             </h1>
           </div>
         </div>
@@ -74,7 +102,7 @@ export default function PrivacyPolicyContent() {
       {/* ===== Policies Section ===== */}
       <div className="w-10/12 mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold mb-10 text-gray-800 text-center">
-          Privacy Policy
+          {t("Privacy Policy", "Chính Sách Bảo Mật")}
         </h2>
 
         <Collapse
@@ -102,7 +130,11 @@ export default function PrivacyPolicyContent() {
               header={
                 <div className="flex items-center justify-between w-full">
                   <span className="text-gray-800 text-md font-medium">
-                    {index + 1}. {policy.policyTitle?.en || "Untitled Policy"}
+                    {index + 1}.{" "}
+                    {t(
+                      policy.policyTitle?.en || "Untitled Policy",
+                      policy.policyTitle?.vi || "Chính sách chưa có tiêu đề"
+                    )}
                   </span>
                 </div>
               }
@@ -113,8 +145,12 @@ export default function PrivacyPolicyContent() {
                   className="text-gray-700 leading-relaxed text-[15px]"
                   dangerouslySetInnerHTML={{
                     __html:
-                      policy.policyContent?.en ||
-                      "<p class='text-gray-500 italic'>No content available.</p>",
+                      t(
+                        policy.policyContent?.en ||
+                          "<p class='text-gray-500 italic'>No content available.</p>",
+                        policy.policyContent?.vi ||
+                          "<p class='text-gray-500 italic'>Không có nội dung.</p>"
+                      ),
                   }}
                 />
               </div>
@@ -123,6 +159,7 @@ export default function PrivacyPolicyContent() {
         </Collapse>
       </div>
 
+      {/* ===== CSS Styles ===== */}
       <style jsx>{`
         .privacy-collapse .ant-collapse-item {
           border: none !important;
@@ -159,10 +196,6 @@ export default function PrivacyPolicyContent() {
         }
         .privacy-collapse .ant-collapse-expand-icon {
           color: black !important;
-        }
-        .ql-container.ql-snow {
-          background: transparent !important;
-          color: #fff !important;
         }
       `}</style>
     </div>

@@ -28,17 +28,30 @@ const validateVietnamese = (formState) => {
   return checkObject(formState);
 };
 
-// ✅ Validate file size (Image ≤ 2MB, Video ≤ 10MB)
 const validateFileSize = (file) => {
   if (!file) return true;
 
-  if (file.type.startsWith("image/") && file.size > 2 * 1024 * 1024) {
-    CommonToaster("Image size must be below 2MB!", "error");
+  const allowedVideoTypes = ["video/mp4", "video/webm", "video/ogg"];
+  const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+
+  const isImage = allowedImageTypes.includes(file.type);
+  const isVideo = allowedVideoTypes.includes(file.type);
+
+  const maxImageSize = 2 * 1024 * 1024; // 2MB
+  const maxVideoSize = 10 * 1024 * 1024; // 10MB
+
+  if (isImage && file.size > maxImageSize) {
+    CommonToaster("❌ Image size must be below 2MB!", "error");
     return false;
   }
 
-  if (file.type.startsWith("video/") && file.size > 10 * 1024 * 1024) {
-    CommonToaster("Video size must be below 10MB!", "error");
+  if (isVideo && file.size > maxVideoSize) {
+    CommonToaster("❌ Video size must be below 10MB!", "error");
+    return false;
+  }
+
+  if (!isImage && !isVideo) {
+    CommonToaster("❌ Only JPG, PNG, WEBP, MP4, WEBM, or OGG allowed!", "error");
     return false;
   }
 

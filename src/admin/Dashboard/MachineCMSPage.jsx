@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Input, Button, Collapse, Tabs, Divider, Modal } from "antd";
-import { UploadOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import {
+  UploadOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 import { getMachineCMSPage, updateMachineCMSPage } from "../../Api/api";
 import { CommonToaster } from "../../Common/CommonToaster";
 import { X, RotateCw, Trash2 } from "lucide-react";
@@ -16,6 +20,7 @@ const MachineCMSPage = () => {
   const [loading, setLoading] = useState(false);
   const [showBenefitImageModal, setShowBenefitImageModal] = useState(false);
   const [addTeamModal, setAddTeamModal] = useState(false);
+  const [tempBenefitFile, setTempBenefitFile] = useState(null);
   const [tempTeamTitle, setTempTeamTitle] = useState({ en: "", vi: "" });
   const [seoMeta, setSeoMeta] = useState({
     metaTitle: { en: "", vi: "" },
@@ -56,8 +61,6 @@ const MachineCMSPage = () => {
       .catch((err) => console.error("❌ Failed to fetch Machine Page:", err));
   }, []);
 
-
-
   const lang = isVietnamese ? "vi" : "en";
 
   // 🛠 Update nested object values
@@ -74,19 +77,53 @@ const MachineCMSPage = () => {
   };
 
   // 💾 Save changes
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("machinePage", JSON.stringify({ ...machine, seoMeta }));
-      await updateMachineCMSPage(formData);
-      CommonToaster("Machine page updated successfully", "success");
-    } catch (error) {
-      CommonToaster("Failed to update machine page", "error");
-    } finally {
-      setLoading(false);
+ const handleSave = async () => {
+  setLoading(true);
+  try {
+    const formData = new FormData();
+
+    // Include the full machine object & SEO data
+    formData.append("machinePage", JSON.stringify({ ...machine, seoMeta }));
+
+    // ✅ Attach benefit image if a new file was selected
+    if (tempBenefitFile) {
+      formData.append("benefitImage", tempBenefitFile);
     }
-  };
+
+    // ✅ You can also attach other pending files if needed later (e.g., hero video)
+    // if (tempHeroVideo) formData.append("heroVideo", tempHeroVideo);
+
+    const res = await updateMachineCMSPage(formData);
+
+    if (res.data?.success) {
+      const updatedPage = res.data.machinePage;
+      const API_BASE = import.meta.env.VITE_API_URL;
+
+      // Normalize backend image URL (ensures correct display)
+      if (
+        updatedPage.benefitsSection?.benefitImage &&
+        !updatedPage.benefitsSection.benefitImage.startsWith("http")
+      ) {
+        updatedPage.benefitsSection.benefitImage = `${API_BASE}/${updatedPage.benefitsSection.benefitImage.replace(
+          /^\/+/,
+          ""
+        )}`;
+      }
+
+      setMachine(updatedPage);
+      setTempBenefitFile(null); // ✅ clear after successful save
+
+      CommonToaster("Machine page updated successfully", "success");
+    } else {
+      CommonToaster("Failed to update machine page", "error");
+    }
+  } catch (error) {
+    console.error("❌ Save failed:", error);
+    CommonToaster("Failed to update machine page", "error");
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!machine) return null;
 
@@ -154,138 +191,190 @@ const MachineCMSPage = () => {
 
           <Divider />
 
-{/* 🎬 Hero Video Upload */}
-<div style={{ marginBottom: "30px" }}>
-  <label className="block text-white text-lg font-semibold mb-2">
-    {activeTabLang === "vi" ? "Video Giới Thiệu" : "Hero Video"}
-  </label>
+          {/* 🎬 Hero Video Upload */}
+          <div style={{ marginBottom: "30px" }}>
+            <label className="block text-white text-lg font-semibold mb-2">
+              {activeTabLang === "vi" ? "Video Giới Thiệu" : "Hero Video"}
+            </label>
 
-  {!machine.heroSection.heroVideo ? (
-    <label
-      htmlFor="heroVideoUpload"
-      className="flex flex-col items-center justify-center w-44 h-44 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer bg-[#1F1F1F] hover:bg-[#2A2A2A] transition-all duration-200"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth="2"
-        stroke="currentColor"
-        className="w-8 h-8 text-gray-400"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-      </svg>
-      <span className="mt-2 text-sm text-gray-400 text-center px-2">
-        {activeTabLang === "vi"
-          ? "Tải lên video giới thiệu"
-          : "Upload Hero Video"}
-      </span>
-      <input
-        id="heroVideoUpload"
-        type="file"
-        accept="video/*"
-        onChange={async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+            {!machine.heroSection.heroVideo ? (
+              <label
+                htmlFor="heroVideoUpload"
+                className="flex flex-col items-center justify-center w-44 h-44 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer bg-[#1F1F1F] hover:bg-[#2A2A2A] transition-all duration-200"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                  className="w-8 h-8 text-gray-400"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                <span className="mt-2 text-sm text-gray-400 text-center px-2">
+                  {activeTabLang === "vi"
+                    ? "Tải lên video giới thiệu"
+                    : "Upload Hero Video"}
+                </span>
+                <input
+                  id="heroVideoUpload"
+                  type="file"
+                  accept="video/*"
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
 
-  // Optional: local preview before upload
-  const previewUrl = URL.createObjectURL(file);
-  handleChange("heroSection.heroVideo", previewUrl);
+                    // 🟢 Local preview before upload
+                    const previewUrl = URL.createObjectURL(file);
+                    handleChange("heroSection.heroVideo", previewUrl);
 
-  // 🔹 Auto-upload to backend
-  const formData = new FormData();
-  formData.append("heroVideo", file);
-  formData.append("machinePage", JSON.stringify(machine));
+                    // 🟢 Upload to backend
+                    const formData = new FormData();
+                    formData.append("heroVideo", file);
+                    formData.append("machinePage", JSON.stringify(machine));
 
-  try {
-    const res = await updateMachineCMSPage(formData);
-    if (res.data?.machinePage) {
-      // 🔹 Update state with saved version from backend
-      setMachine(res.data.machinePage);
-      CommonToaster("Hero video uploaded & saved successfully!", "success");
-    }
-  } catch (err) {
-    console.error("Video upload error:", err);
-    CommonToaster("Failed to upload hero video", "error");
-  }
-}}
+                    try {
+                      const res = await updateMachineCMSPage(formData);
 
-        style={{ display: "none" }}
-      />
-    </label>
-  ) : (
-    <div className="relative group w-44 h-44 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
-      <video
-        src={machine.heroSection.heroVideo}
-        muted
-        loop
-        autoPlay
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover rounded-lg"
-      />
+                      if (res.data?.machinePage) {
+                        // ✅ Update state with saved backend path
+                        const updatedPage = res.data.machinePage;
+                        const API_BASE = import.meta.env.VITE_API_URL;
+                        const backendVideo =
+                          updatedPage.heroSection?.heroVideo || "";
 
-      {/* 👁 Preview */}
-      <button
-        type="button"
-        onClick={() => setShowHeroVideoModal(true)}
-        className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-      >
-        👁
-      </button>
+                        // If backend returns a relative path, fix it
+                        const realUrl = backendVideo.startsWith("http")
+                          ? backendVideo
+                          : `${API_BASE}${backendVideo}`;
 
-      {/* 🔁 Change */}
-      <label
-        htmlFor="heroVideoChange"
-        className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer"
-      >
-        <input
-          id="heroVideoChange"
-          type="file"
-          accept="video/*"
-          onChange={async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+                        setMachine({
+                          ...updatedPage,
+                          heroSection: {
+                            ...updatedPage.heroSection,
+                            heroVideo: realUrl,
+                          },
+                        });
 
-  // Optional: local preview before upload
-  const previewUrl = URL.createObjectURL(file);
-  handleChange("heroSection.heroVideo", previewUrl);
+                        CommonToaster(
+                          "Hero video uploaded & saved successfully!",
+                          "success"
+                        );
+                      } else {
+                        CommonToaster(
+                          "Failed to save hero video path",
+                          "error"
+                        );
+                      }
+                    } catch (err) {
+                      console.error("Video upload error:", err);
+                      CommonToaster("Failed to upload hero video", "error");
+                    }
+                  }}
+                  style={{ display: "none" }}
+                />
+              </label>
+            ) : (
+              <div className="relative group w-44 h-44 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
+                <video
+                  src={machine.heroSection.heroVideo}
+                  muted
+                  loop
+                  autoPlay
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                />
 
-  // 🔹 Auto-upload to backend
-  const formData = new FormData();
-  formData.append("heroVideo", file);
-  formData.append("machinePage", JSON.stringify(machine));
+                {/* 👁 Preview */}
+                <button
+                  type="button"
+                  onClick={() => setShowHeroVideoModal(true)}
+                  className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                >
+                  👁
+                </button>
 
-  try {
-    const res = await updateMachineCMSPage(formData);
-    if (res.data?.machinePage) {
-      // 🔹 Update state with saved version from backend
-      setMachine(res.data.machinePage);
-      CommonToaster("Hero video uploaded & saved successfully!", "success");
-    }
-  } catch (err) {
-    console.error("Video upload error:", err);
-    CommonToaster("Failed to upload hero video", "error");
-  }
-}}
+                {/* 🔁 Change */}
+                <label
+                  htmlFor="heroVideoChange"
+                  className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer"
+                >
+                  <input
+                    id="heroVideoChange"
+                    type="file"
+                    accept="video/*"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
 
-          style={{ display: "none" }}
-        />
-        <ReloadOutlined w={4} h={4} />
-      </label>
+                      // 🟢 Local preview before upload
+                      const previewUrl = URL.createObjectURL(file);
+                      handleChange("heroSection.heroVideo", previewUrl);
 
-      {/* ❌ Remove */}
-      <button
-        type="button"
-        onClick={() => handleChange("heroSection.heroVideo", "")}
-        className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition"
-      >
-        ✖
-      </button>
-    </div>
-  )}
-</div>
+                      // 🟢 Upload to backend
+                      const formData = new FormData();
+                      formData.append("heroVideo", file);
+                      formData.append("machinePage", JSON.stringify(machine));
 
+                      try {
+                        const res = await updateMachineCMSPage(formData);
 
+                        if (res.data?.machinePage) {
+                          // ✅ Update state with saved backend path
+                          const updatedPage = res.data.machinePage;
+                          const API_BASE = import.meta.env.VITE_API_URL;
+                          const backendVideo =
+                            updatedPage.heroSection?.heroVideo || "";
+
+                          // If backend returns a relative path, fix it
+                          const realUrl = backendVideo.startsWith("http")
+                            ? backendVideo
+                            : `${API_BASE}${backendVideo}`;
+
+                          setMachine({
+                            ...updatedPage,
+                            heroSection: {
+                              ...updatedPage.heroSection,
+                              heroVideo: realUrl,
+                            },
+                          });
+
+                          CommonToaster(
+                            "Hero video uploaded & saved successfully!",
+                            "success"
+                          );
+                        } else {
+                          CommonToaster(
+                            "Failed to save hero video path",
+                            "error"
+                          );
+                        }
+                      } catch (err) {
+                        console.error("Video upload error:", err);
+                        CommonToaster("Failed to upload hero video", "error");
+                      }
+                    }}
+                    style={{ display: "none" }}
+                  />
+                  <ReloadOutlined w={4} h={4} />
+                </label>
+
+                {/* ❌ Remove */}
+                <button
+                  type="button"
+                  onClick={() => handleChange("heroSection.heroVideo", "")}
+                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition"
+                >
+                  ✖
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* 🪟 Video Preview Modal */}
           {showHeroVideoModal && (
@@ -506,133 +595,118 @@ const MachineCMSPage = () => {
           <Divider />
 
           {/* 🖼 Benefit Image Upload */}
-          {/* 🖼 Benefit Image Upload */}
-          <div style={{ marginBottom: "30px" }}>
-            <label className="block text-white text-lg font-semibold mb-2">
-              {activeTabLang === "vi" ? "Hình ảnh lợi ích" : "Benefit Image"}
-            </label>
+<div style={{ marginBottom: "30px" }}>
+  <label className="block text-white text-lg font-semibold mb-2">
+    {activeTabLang === "vi" ? "Hình ảnh lợi ích" : "Benefit Image"}
+  </label>
 
-            {!machine.benefitsSection.benefitImage ? (
-              <label
-                htmlFor="benefitImageUpload"
-                className="flex flex-col items-center justify-center w-44 h-44 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer bg-[#1F1F1F] hover:bg-[#2A2A2A] transition-all duration-200"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2"
-                  stroke="currentColor"
-                  className="w-8 h-8 text-gray-400"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                <span className="mt-2 text-sm text-gray-400 text-center px-2">
-                  {activeTabLang === "vi"
-                    ? "Tải lên hình ảnh lợi ích"
-                    : "Upload Benefit Image"}
-                </span>
-                <input
-                  id="benefitImageUpload"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const previewUrl = URL.createObjectURL(file);
-                    handleChange("benefitsSection.benefitImage", previewUrl);
-                  }}
-                  style={{ display: "none" }}
-                />
-              </label>
-            ) : (
-              <div className="relative group w-44 h-44 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
-                <img
-                  src={machine.benefitsSection.benefitImage}
-                  alt="Benefit Preview"
-                  className="w-full h-full object-cover"
-                />
+  {!machine.benefitsSection.benefitImage ? (
+    <label
+      htmlFor="benefitImageUpload"
+      className="flex flex-col items-center justify-center w-44 h-44 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer bg-[#1F1F1F] hover:bg-[#2A2A2A] transition-all duration-200"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="2"
+        stroke="currentColor"
+        className="w-8 h-8 text-gray-400"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      <span className="mt-2 text-sm text-gray-400 text-center px-2">
+        {activeTabLang === "vi"
+          ? "Tải lên hình ảnh lợi ích"
+          : "Upload Benefit Image"}
+      </span>
+      <input
+        id="benefitImageUpload"
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const previewUrl = URL.createObjectURL(file);
+          handleChange("benefitsSection.benefitImage", previewUrl);
+          setTempBenefitFile(file); // 🔹 keep file for later save
+        }}
+        style={{ display: "none" }}
+      />
+    </label>
+  ) : (
+    <div className="relative group w-44 h-44 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
+      <img
+        src={machine.benefitsSection.benefitImage}
+        alt="Benefit Preview"
+        className="w-full h-full object-cover"
+      />
 
-                {/* 👁 Preview Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowBenefitImageModal(true)}
-                  className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-4 h-4"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                </button>
+      {/* 👁 Preview Button */}
+      <button
+        type="button"
+        onClick={() => setShowBenefitImageModal(true)}
+        className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+      >
+        👁
+      </button>
 
-                {/* 🔁 Change */}
-                <label
-                  htmlFor="benefitImageChange"
-                  className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition"
-                >
-                  <input
-                    id="benefitImageChange"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-                      const previewUrl = URL.createObjectURL(file);
-                      handleChange("benefitsSection.benefitImage", previewUrl);
-                    }}
-                    style={{ display: "none" }}
-                  />
-                  <RotateCw size={14} />
-                </label>
+      {/* 🔁 Change */}
+      <label
+        htmlFor="benefitImageChange"
+        className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition"
+      >
+        <input
+          id="benefitImageChange"
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const previewUrl = URL.createObjectURL(file);
+            handleChange("benefitsSection.benefitImage", previewUrl);
+            setTempBenefitFile(file); // 🔹 store file to upload later
+          }}
+          style={{ display: "none" }}
+        />
+        <ReloadOutlined size={14} />
+      </label>
 
-                {/* ❌ Remove */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleChange("benefitsSection.benefitImage", "")
-                  }
-                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            )}
+      {/* ❌ Remove */}
+      <button
+        type="button"
+        onClick={() => {
+          handleChange("benefitsSection.benefitImage", "");
+          setTempBenefitFile(null);
+        }}
+        className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition"
+      >
+        ✖
+      </button>
+    </div>
+  )}
 
-            {/* 🪟 Popup Preview Modal */}
-            {showBenefitImageModal && (
-              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                <div className="relative w-[90vw] max-w-4xl">
-                  <button
-                    type="button"
-                    onClick={() => setShowBenefitImageModal(false)}
-                    className="absolute z-50 -top-2 -right-2 bg-red-600 !text-white p-2 rounded-full cursor-pointer"
-                  >
-                    <X size={20} />
-                  </button>
-                  <img
-                    src={machine.benefitsSection.benefitImage}
-                    alt="Benefit Full Preview"
-                    className="w-full rounded-lg"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+  {/* 🪟 Popup Preview Modal */}
+  {showBenefitImageModal && (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+      <div className="relative w-[90vw] max-w-4xl">
+        <button
+          type="button"
+          onClick={() => setShowBenefitImageModal(false)}
+          className="absolute z-50 -top-2 -right-2 bg-red-600 !text-white p-2 rounded-full cursor-pointer"
+        >
+          <X size={20} />
+        </button>
+        <img
+          src={machine.benefitsSection.benefitImage}
+          alt="Benefit Full Preview"
+          className="w-full rounded-lg"
+        />
+      </div>
+    </div>
+  )}
+</div>
+
         </Panel>
 
         {/* 🔹 MACHINE TEAM SECTION */}

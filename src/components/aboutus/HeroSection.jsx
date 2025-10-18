@@ -100,7 +100,7 @@ const HeroSection = () => {
             style={{ y: yImage }}
             src={getFullUrl(heroData.aboutBanner)}
             alt="Hero Banner"
-            className="w-full h-full object-cover md:mt-0 "
+            className="w-full h-[600px] md:h-full object-contain md:object-cover md:mt-0 "
           />
         )}
         <div className="absolute inset-0 bg-black/20 z-10" />

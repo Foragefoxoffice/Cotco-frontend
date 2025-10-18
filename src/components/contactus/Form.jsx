@@ -1,9 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
-import { getContactPage, submitContactForm } from "../../Api/api"; // ✅ Using both APIs
+import { getContactPage, submitContactForm } from "../../Api/api";
 
 export default function ContactSection() {
   const [contactFormData, setContactFormData] = useState(null);
+  const [isVietnamese, setIsVietnamese] = useState(false);
   const API_BASE = import.meta.env.VITE_API_URL;
+
+  // ✅ Detect language (body class)
+  useEffect(() => {
+    const checkLang = () =>
+      setIsVietnamese(document.body.classList.contains("vi-mode"));
+    checkLang();
+
+    const observer = new MutationObserver(checkLang);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   const getFullUrl = (path) => {
     if (!path) return "";
@@ -20,7 +32,6 @@ export default function ContactSection() {
     });
   }, []);
 
-  // ✅ Detect if uploaded media is video
   const isVideo = contactFormData?.contactFormImg
     ? /\.(mp4|webm|ogg)$/i.test(contactFormData.contactFormImg)
     : false;
@@ -62,7 +73,12 @@ export default function ContactSection() {
           {/* RIGHT: Form */}
           <div className="rounded-2xl ring-1 ring-slate-200 bg-white p-6 md:p-8 shadow-sm">
             <ContactForm
-              heading={contactFormData?.contactForm?.en || "Send Us a Message"}
+              heading={
+                isVietnamese
+                  ? contactFormData?.contactForm?.vi || "Gửi tin nhắn cho chúng tôi"
+                  : contactFormData?.contactForm?.en || "Send Us a Message"
+              }
+              isVietnamese={isVietnamese}
             />
           </div>
         </div>
@@ -72,7 +88,7 @@ export default function ContactSection() {
 }
 
 /** ---------- Contact Form Component (with API submit) ---------- */
-function ContactForm({ heading }) {
+function ContactForm({ heading, isVietnamese }) {
   const [values, setValues] = useState({
     name: "",
     company: "",
@@ -89,6 +105,8 @@ function ContactForm({ heading }) {
   const [success, setSuccess] = useState("");
   const firstErrorRef = useRef(null);
 
+  const t = (en, vi) => (isVietnamese ? vi : en);
+
   const baseFieldClass =
     "mt-2 w-full h-13 rounded-lg bg-slate-50 border border-gray-200 px-4 text-[15px] text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-slate-300 focus:ring-2 focus:ring-slate-200";
 
@@ -99,44 +117,42 @@ function ContactForm({ heading }) {
         : ""
     }`;
 
-  // ------- validators -------
+  // ✅ Validators (no change)
   const validateName = (v) => {
     const val = v.trim();
-    if (!val) return "Name is required.";
-    if (val.length < 2) return "Name must be at least 2 characters.";
+    if (!val) return t("Name is required.", "Tên là bắt buộc.");
+    if (val.length < 2) return t("Name must be at least 2 characters.", "Tên phải có ít nhất 2 ký tự.");
     if (!/^[a-zA-Z\s.'-]+$/.test(val))
-      return "Only letters, spaces, (.'-) allowed.";
+      return t("Only letters, spaces, (.'-) allowed.", "Chỉ cho phép chữ cái và dấu (.'-).");
     return "";
   };
-
   const validateEmail = (v) => {
     const val = v.trim();
-    if (!val) return "Email is required.";
+    if (!val) return t("Email is required.", "Email là bắt buộc.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val))
-      return "Enter a valid email address.";
+      return t("Enter a valid email address.", "Nhập địa chỉ email hợp lệ.");
     return "";
   };
-
   const validatePhone = (v) => {
     const val = v.trim();
-    if (!val) return "Phone is required.";
+    if (!val) return t("Phone is required.", "Số điện thoại là bắt buộc.");
     const digits = val.replace(/\D/g, "");
     const isIN10 = digits.length === 10 && /^[6-9]/.test(digits);
     const isIN91 = digits.length === 12 && digits.startsWith("91");
     const genericOK = digits.length >= 7 && digits.length <= 15;
-    if (!(isIN10 || isIN91 || genericOK)) return "Enter a valid phone number.";
+    if (!(isIN10 || isIN91 || genericOK))
+      return t("Enter a valid phone number.", "Nhập số điện thoại hợp lệ.");
     return "";
   };
-
-  const validateProduct = (v) => (!v ? "Select a product interest." : "");
-
+  const validateProduct = (v) =>
+    !v ? t("Select a product interest.", "Chọn sản phẩm bạn quan tâm.") : "";
   const validateMessage = (v) => {
     const val = v.trim();
-    if (!val) return "Message is required.";
-    if (val.length < 20) return "Message must be at least 20 characters.";
+    if (!val) return t("Message is required.", "Nội dung là bắt buộc.");
+    if (val.length < 20)
+      return t("Message must be at least 20 characters.", "Nội dung phải có ít nhất 20 ký tự.");
     return "";
   };
-
   const validateFile = (file) => {
     if (!file) return "";
     const maxSize = 5 * 1024 * 1024;
@@ -148,8 +164,9 @@ function ContactForm({ heading }) {
       "image/jpeg",
     ];
     if (!okTypes.includes(file.type))
-      return "Allowed: PDF, DOC, DOCX, PNG, JPG.";
-    if (file.size > maxSize) return "File must be ≤ 5 MB.";
+      return t("Allowed: PDF, DOC, DOCX, PNG, JPG.", "Cho phép: PDF, DOC, DOCX, PNG, JPG.");
+    if (file.size > maxSize)
+      return t("File must be ≤ 5 MB.", "Tệp phải nhỏ hơn hoặc bằng 5 MB.");
     return "";
   };
 
@@ -174,7 +191,6 @@ function ContactForm({ heading }) {
     return e;
   };
 
-  // ------- handlers -------
   const handleBlur = (e) => {
     const { name } = e.target;
     setTouched((t) => ({ ...t, [name]: true }));
@@ -205,10 +221,8 @@ function ContactForm({ heading }) {
     }
   };
 
-  // ✅ API Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setTouched({
       name: true,
       company: true,
@@ -221,40 +235,19 @@ function ContactForm({ heading }) {
 
     const newErrors = validateAll(values);
     setErrors(newErrors);
-
-    if (Object.keys(newErrors).length) {
-      const firstKey = [
-        "name",
-        "company",
-        "email",
-        "phone",
-        "product",
-        "message",
-        "file",
-      ].find((k) => newErrors[k]);
-      if (firstKey) {
-        firstErrorRef.current?.querySelector(`[name="${firstKey}"]`)?.focus();
-      }
-      return;
-    }
+    if (Object.keys(newErrors).length) return;
 
     setSubmitting(true);
     setSuccess("");
 
     try {
       const formData = new FormData();
-      formData.append("name", values.name);
-      formData.append("company", values.company);
-      formData.append("email", values.email);
-      formData.append("phone", values.phone);
-      formData.append("product", values.product);
-      formData.append("message", values.message);
-      if (values.file) formData.append("file", values.file);
+      for (const [key, val] of Object.entries(values)) {
+        if (val) formData.append(key, val);
+      }
+      await submitContactForm(formData);
 
-      // ✅ Real API call
-      const res = await submitContactForm(formData);
-
-      setSuccess("✅ Your message has been sent successfully.");
+      setSuccess(t("✅ Message sent successfully.", "✅ Gửi tin nhắn thành công."));
       setValues({
         name: "",
         company: "",
@@ -267,8 +260,8 @@ function ContactForm({ heading }) {
       setTouched({});
       setErrors({});
     } catch (err) {
-      console.error(err.response?.data || err.message);
-      setSuccess("❌ Something went wrong. Please try again.");
+      console.error(err);
+      setSuccess(t("❌ Something went wrong.", "❌ Đã xảy ra lỗi. Vui lòng thử lại."));
     } finally {
       setSubmitting(false);
     }
@@ -276,12 +269,6 @@ function ContactForm({ heading }) {
 
   return (
     <div ref={firstErrorRef}>
-      <style>{`
-        label {
-          color: #314158 !important;
-        }
-      `}</style>
-
       <h3 className="text-xl font-semibold text-slate-900">{heading}</h3>
 
       {success && (
@@ -291,8 +278,6 @@ function ContactForm({ heading }) {
               ? "border-green-200 bg-green-50 text-green-700"
               : "border-red-200 bg-red-50 text-red-700"
           }`}
-          role="status"
-          aria-live="polite"
         >
           {success}
         </div>
@@ -303,7 +288,7 @@ function ContactForm({ heading }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm text-slate-700">
-              Name <span className="text-red-500">*</span>
+              {t("Name", "Tên")} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -312,20 +297,23 @@ function ContactForm({ heading }) {
               onChange={handleChange}
               onBlur={handleBlur}
               className={getFieldClass("name")}
-              required
+              placeholder={t("Enter your name", "Nhập tên của bạn")}
             />
             {errors.name && touched.name && (
               <p className="mt-2 text-xs text-red-600">{errors.name}</p>
             )}
           </div>
           <div>
-            <label className="block text-sm text-slate-700">Company</label>
+            <label className="block text-sm text-slate-700">
+              {t("Company", "Công ty")}
+            </label>
             <input
               type="text"
               name="company"
               value={values.company}
               onChange={handleChange}
               className={baseFieldClass}
+              placeholder={t("Company (optional)", "Công ty (tùy chọn)")}
             />
           </div>
         </div>
@@ -334,7 +322,7 @@ function ContactForm({ heading }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm text-slate-700">
-              Email <span className="text-red-500">*</span>
+              {t("Email", "Email")} <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -343,7 +331,7 @@ function ContactForm({ heading }) {
               onChange={handleChange}
               onBlur={handleBlur}
               className={getFieldClass("email")}
-              required
+              placeholder="example@email.com"
             />
             {errors.email && touched.email && (
               <p className="mt-2 text-xs text-red-600">{errors.email}</p>
@@ -351,7 +339,7 @@ function ContactForm({ heading }) {
           </div>
           <div>
             <label className="block text-sm text-slate-700">
-              Phone <span className="text-red-500">*</span>
+              {t("Phone", "Số điện thoại")} <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
@@ -360,7 +348,7 @@ function ContactForm({ heading }) {
               onChange={handleChange}
               onBlur={handleBlur}
               className={getFieldClass("phone")}
-              required
+              placeholder={t("Enter your phone number", "Nhập số điện thoại của bạn")}
             />
             {errors.phone && touched.phone && (
               <p className="mt-2 text-xs text-red-600">{errors.phone}</p>
@@ -368,10 +356,11 @@ function ContactForm({ heading }) {
           </div>
         </div>
 
-        {/* Product Interest */}
+        {/* Product */}
         <div>
           <label className="block text-sm text-slate-700">
-            Product Interest <span className="text-red-500">*</span>
+            {t("Product Interest", "Sản phẩm quan tâm")}{" "}
+            <span className="text-red-500">*</span>
           </label>
           <select
             name="product"
@@ -379,12 +368,11 @@ function ContactForm({ heading }) {
             onChange={handleChange}
             onBlur={handleBlur}
             className={`${getFieldClass("product")} h-12`}
-            required
           >
-            <option value="">Select an option</option>
-            <option value="cotton">Cotton</option>
-            <option value="viscose">Viscose</option>
-            <option value="machinery">Machinery</option>
+            <option value="">{t("Select an option", "Chọn một tùy chọn")}</option>
+            <option value="cotton">{t("Cotton", "Bông")}</option>
+            <option value="Fiber">{t("Fiber", "chất xơ")}</option>
+            <option value="machinery">{t("Machinery", "Máy móc")}</option>
           </select>
           {errors.product && touched.product && (
             <p className="mt-2 text-xs text-red-600">{errors.product}</p>
@@ -394,7 +382,8 @@ function ContactForm({ heading }) {
         {/* Message */}
         <div>
           <label className="block text-sm text-slate-700">
-            Message/Inquiry Details <span className="text-red-500">*</span>
+            {t("Message / Inquiry Details", "Tin nhắn / Nội dung yêu cầu")}{" "}
+            <span className="text-red-500">*</span>
           </label>
           <textarea
             name="message"
@@ -402,7 +391,10 @@ function ContactForm({ heading }) {
             onChange={handleChange}
             onBlur={handleBlur}
             className={`${getFieldClass("message")} h-36 resize-none`}
-            required
+            placeholder={t(
+              "Write your message...",
+              "Nhập nội dung yêu cầu của bạn..."
+            )}
           />
           {errors.message && touched.message && (
             <p className="mt-2 text-xs text-red-600">{errors.message}</p>
@@ -412,7 +404,7 @@ function ContactForm({ heading }) {
         {/* File Upload */}
         <div>
           <label className="block text-sm text-slate-700">
-            Upload Specifications (Optional)
+            {t("Upload Specifications (Optional)", "Tải lên tệp (tùy chọn)")}
           </label>
           <input
             name="file"
@@ -420,33 +412,27 @@ function ContactForm({ heading }) {
             onChange={handleChange}
             onBlur={handleBlur}
             accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-            className="mt-3 block w-full text-sm text-slate-600
-                       file:mr-4 file:py-2.5 file:px-4
-                       file:rounded-md file:border-0
-                       file:text-sm file:font-medium
-                       file:bg-slate-100 file:text-slate-700
-                       hover:file:bg-slate-200"
+            className="mt-3 block w-full text-sm text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
           />
           {errors.file && touched.file && (
             <p className="mt-2 text-xs text-red-600">{errors.file}</p>
           )}
           {values.file && !errors.file && (
             <p className="mt-2 text-xs text-slate-500">
-              Selected: {values.file.name}
+              {t("Selected:", "Đã chọn:")} {values.file.name}
             </p>
           )}
         </div>
 
         {/* Submit */}
         <button
-          style={{
-            color: "#fff",
-          }}
           type="submit"
           disabled={submitting}
-          className="w-full rounded-full bg-[#0E3A5B] hover:bg-[#0B2F49] disabled:opacity-70 disabled:cursor-not-allowed text-white text-[15px] font-medium py-4 cursor-pointer"
+          className="w-full rounded-full bg-[#0E3A5B] hover:bg-[#0B2F49] disabled:opacity-70 !text-white text-[15px] font-medium py-4"
         >
-          {submitting ? "Sending..." : "Send Message"}
+          {submitting
+            ? t("Sending...", "Đang gửi...")
+            : t("Send Message", "Gửi tin nhắn")}
         </button>
       </form>
     </div>

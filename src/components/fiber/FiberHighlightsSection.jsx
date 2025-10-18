@@ -80,7 +80,24 @@ export default function FiberInfoBlocks() {
   }
 
   return (
-    <section className="w-full divide-y divide-gray-200 relative">
+    <main>
+      <div className="text-center my-10 relative py-6 z-20">
+        {/* Top border line */}
+
+        {/* Title */}
+        <h3 className="!text-5xl  md:text-[28px] !font-[700] text-[#212121] uppercase tracking-wide inline-block relative bg-white px-6">
+          {activeLang === "vi" ? "SẢN PHẨM" : "PRODUCTS"}
+        </h3>
+
+        {/* Subtitle */}
+        <p className="text-[14px] md:text-[16px] text-[#555] mt-1">
+          {activeLang === "vi"
+            ? "Danh mục sản phẩm của Birla Cellulose"
+            : "Birla Cellulose Product Portfolio"}
+        </p>
+
+      </div>
+      <section className="w-full divide-y divide-gray-200 relative">
       {fiberProducts.map((product, idx) => {
         const isActive = activeIndex === idx;
 
@@ -151,5 +168,6 @@ export default function FiberInfoBlocks() {
         );
       })}
     </section>
+    </main>
   );
 }
