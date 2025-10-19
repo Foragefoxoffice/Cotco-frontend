@@ -7,7 +7,7 @@ import { Link, useLocation } from "react-router-dom";
 import TranslateToggle from "../TranslateToggle";
 import { getHeaderPage, getMainBlogCategories } from "../../Api/api";
 import { TextAlignJustify } from "lucide-react";
-import ChatBot from "../Chatbot";
+import ChatBot from "../ChatBot";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
