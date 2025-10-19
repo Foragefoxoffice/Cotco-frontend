@@ -3,6 +3,14 @@ import { motion, useAnimation, useInView } from "framer-motion";
 import { FiUser } from "react-icons/fi";
 import SlideIn from "../common/SlideIn";
 
+const API_BASE = import.meta.env.VITE_API_URL;
+
+const getFullUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE}${path}`;
+};
+
 export default function ProductsHero() {
   const [isMobile, setIsMobile] = useState(false);
   const [bubbleRotation, setBubbleRotation] = useState("-16deg");

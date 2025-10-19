@@ -105,7 +105,7 @@ const MachinePageDetail = () => {
       case "list":
         return (
           <div key={index} className="my-10 page-width">
-            <h2 className="text-2xl font-bold mb-6">{pick(section.title)}</h2>
+            <h2 className="text-2xl font-bold mb-6">{pick(section.listTitle)}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {section.listItems?.map((item, i) => (
                 <div key={i} className="flex items-center gap-4">

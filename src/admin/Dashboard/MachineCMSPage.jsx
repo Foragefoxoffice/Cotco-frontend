@@ -12,6 +12,15 @@ import { X, RotateCw, Trash2 } from "lucide-react";
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
 
+const API_BASE = import.meta.env.VITE_API_URL;
+
+const getFullUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE}${path}`;
+};
+
+
 const MachineCMSPage = () => {
   const [machine, setMachine] = useState(null);
   const [isVietnamese, setIsVietnamese] = useState(false);
@@ -282,7 +291,7 @@ const MachineCMSPage = () => {
             ) : (
               <div className="relative group w-44 h-44 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
                 <video
-                  src={machine.heroSection.heroVideo}
+                  src={getFullUrl(machine.heroSection.heroVideo)}
                   muted
                   loop
                   autoPlay
@@ -637,7 +646,7 @@ const MachineCMSPage = () => {
   ) : (
     <div className="relative group w-44 h-44 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
       <img
-        src={machine.benefitsSection.benefitImage}
+        src={getFullUrl(machine.benefitsSection.benefitImage)}
         alt="Benefit Preview"
         className="w-full h-full object-cover"
       />

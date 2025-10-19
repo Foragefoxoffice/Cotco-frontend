@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useParams } from "react-router-dom";
 import { getMainBlogCategories } from "../Api/api";
 
+
 const HeroSection = () => {
   const [mainCategory, setMainCategory] = useState(null);
   const [scrolled, setScrolled] = useState(false);
@@ -63,7 +64,7 @@ const HeroSection = () => {
       ref={containerRef}
       style={{
         background: mainCategory?.bgImage?.url
-          ? `url('https://mitoslearning.co.in${mainCategory.bgImage.url}') center/cover no-repeat`
+          ? `url('https://api.cotco-vn.com${mainCategory.bgImage.url}') center/cover no-repeat`
           : "url('/img/fallback-bg.jpg') center/cover no-repeat",
         y: yImage,
       }}

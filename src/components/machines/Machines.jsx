@@ -2,6 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, useAnimation, useInView } from "framer-motion";
 import { getMachineCMSPage } from "../../Api/api"; // ✅ Import API
 
+const API_BASE = import.meta.env.VITE_API_URL;
+
+const getFullUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE}${path}`;
+};
+
+
 export default function Machines() {
   const [machineData, setMachineData] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -131,7 +140,7 @@ export default function Machines() {
             playsInline
             preload="none"
             poster="/img/fallback/product.png"
-            src={machineData?.heroSection?.heroVideo || "/video/products.webm"}
+            src={getFullUrl/(machineData?.heroSection?.heroVideo) || "/video/products.webm"}
             className="w-full rounded-xl hidden md:block"
             whileHover={{ scale: 1.01 }}
             transition={{ duration: 0.3 }}

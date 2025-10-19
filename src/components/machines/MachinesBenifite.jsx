@@ -2,6 +2,15 @@ import React, { useEffect, useState } from "react";
 import TitleAnimation from "../common/AnimatedTitle";
 import { getMachineCMSPage } from "../../Api/api";
 
+const API_BASE = import.meta.env.VITE_API_URL;
+
+const getFullUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE}${path}`;
+};
+
+
 export default function MachinesBenefits() {
   const [machineData, setMachineData] = useState(null);
   const [activeLang, setActiveLang] = useState("en");
@@ -119,8 +128,7 @@ export default function MachinesBenefits() {
           <div className="pointer-events-none md:absolute right-0 md:top-1/2 z-20 md:-translate-y-1/2">
             <img
               src={
-                machineData?.benefitsSection?.benefitImage ||
-                "/img/products/hero.png"
+               getFullUrl( machineData?.benefitsSection?.benefitImage) || "/images/machine-benefit.png"
               }
               alt="Machine Benefit"
               className="w-[320px] md:w-[420px] lg:w-[520px] drop-shadow-[0_12px_24px_rgba(0,0,0,0.25)]"

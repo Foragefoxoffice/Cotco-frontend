@@ -1037,7 +1037,7 @@ useEffect(() => {
     if (initialData) {
       const API_BASE =
         import.meta.env.VITE_API_URL?.replace("/api/v1", "") ||
-        "http://localhost:5000";
+        " https://api.cotco-vn.com";
 
       // Normalize image URLs (banner, sections, blocks, tabs)
       const normalizedSections = (initialData.sections || []).map((s) => {
