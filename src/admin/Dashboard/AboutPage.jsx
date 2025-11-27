@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Collapse, Input, Button, Tabs, Modal } from "antd";
-import { Plus, Minus, RotateCw, X, Trash2 } from "lucide-react";
+import { Plus, Minus, RotateCw, X, Trash2,Eye } from "lucide-react";
 // import { useTheme } from "../../contexts/ThemeContext";
 import { CommonToaster } from "../../Common/CommonToaster";
 import usePersistedState from "../../hooks/usePersistedState";
@@ -64,7 +64,7 @@ const AboutPage = () => {
   const [showBannerModal, setShowBannerModal] = useState(false);
   const [showOverviewModal, setShowOverviewModal] = useState(false);
   const [activeFounderModal, setActiveFounderModal] = useState(null);
-  const [activeHistoryModal, setActiveHistoryModal] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
   const [activeCoreModal, setActiveCoreModal] = useState(null);
   // 🧠 State for controlling alliance modal
   const [activeAllianceModal, setActiveAllianceModal] = useState(null);
@@ -319,41 +319,42 @@ const AboutPage = () => {
   //   directorTeam: [],
   // });
 
-const handleAddMemberInline = (teamKey) => {
-  const lang = activeTabLang; // get the current tab language
+  const handleAddMemberInline = (teamKey) => {
+    const lang = activeTabLang; // get the current tab language
 
-  // ✅ only require the current language field
-  if (!newMember.teamName?.[lang]?.trim()) {
+    // ✅ only require the current language field
+    if (!newMember.teamName?.[lang]?.trim()) {
+      CommonToaster(
+        isVietnamese
+          ? "Vui lòng nhập tên thành viên!"
+          : "Please enter member name!",
+        "error"
+      );
+      return;
+    }
+
+    setAboutTeam((prev) => {
+      const updatedTeam = {
+        ...prev[teamKey],
+        members: [...(prev[teamKey]?.members || []), newMember],
+      };
+      return { ...prev, [teamKey]: updatedTeam };
+    });
+
+    // reset the new member form
+    setNewMember({
+      teamName: { en: "", vi: "" },
+      teamDesgn: { en: "", vi: "" },
+      teamEmail: "",
+    });
+
     CommonToaster(
-      isVietnamese ? "Vui lòng nhập tên thành viên!" : "Please enter member name!",
-      "error"
+      isVietnamese
+        ? "Thêm thành viên thành công!"
+        : "Member added successfully!",
+      "success"
     );
-    return;
-  }
-
-  setAboutTeam((prev) => {
-    const updatedTeam = {
-      ...prev[teamKey],
-      members: [...(prev[teamKey]?.members || []), newMember],
-    };
-    return { ...prev, [teamKey]: updatedTeam };
-  });
-
-  // reset the new member form
-  setNewMember({
-    teamName: { en: "", vi: "" },
-    teamDesgn: { en: "", vi: "" },
-    teamEmail: "",
-  });
-
-  CommonToaster(
-    isVietnamese
-      ? "Thêm thành viên thành công!"
-      : "Member added successfully!",
-    "success"
-  );
-};
-
+  };
 
   const handleAddTeam = async () => {
     const trimmedEN = newTeamName.en?.trim();
@@ -563,16 +564,19 @@ const handleAddMemberInline = (teamKey) => {
         }
 
         // ✅ TEAM SECTION
-       if (data.aboutTeam && typeof data.aboutTeam === "object") {
-  // check if it contains a nested dynamicTeams object
-  if (data.aboutTeam.dynamicTeams && typeof data.aboutTeam.dynamicTeams === "object") {
-    setAboutTeam(data.aboutTeam.dynamicTeams);
-  } else {
-    setAboutTeam(data.aboutTeam);
-  }
-} else {
-  setAboutTeam({});
-}
+        if (data.aboutTeam && typeof data.aboutTeam === "object") {
+          // check if it contains a nested dynamicTeams object
+          if (
+            data.aboutTeam.dynamicTeams &&
+            typeof data.aboutTeam.dynamicTeams === "object"
+          ) {
+            setAboutTeam(data.aboutTeam.dynamicTeams);
+          } else {
+            setAboutTeam(data.aboutTeam);
+          }
+        } else {
+          setAboutTeam({});
+        }
 
         // ✅ ALLIANCES SECTION
         if (data.aboutAlliances) {
@@ -680,6 +684,40 @@ const handleAddMemberInline = (teamKey) => {
       "success"
     );
   };
+
+  // ✅ Fetch Company History data on mount
+  useEffect(() => {
+    const fetchAboutHistory = async () => {
+      try {
+        const res = await getAboutPage();
+        const section = res.data?.aboutHistorySection;
+
+        if (section) {
+          // ✅ Set main bilingual title
+          setAboutHistoryTitle(section.aboutHistoryTitle || { en: "", vi: "" });
+
+          // ✅ Sort history items chronologically (optional)
+          const sorted = Array.isArray(section.aboutHistory)
+            ? [...section.aboutHistory].sort(
+                (a, b) => Number(a.year) - Number(b.year)
+              )
+            : [];
+
+          setAboutHistory(sorted);
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch about history:", error);
+        CommonToaster(
+          isVietnamese
+            ? "Không thể tải lịch sử công ty!"
+            : "Failed to load company history!",
+          "error"
+        );
+      }
+    };
+
+    fetchAboutHistory();
+  }, []);
 
   // ---------------------- UI ---------------------- //
   return (
@@ -2279,6 +2317,24 @@ const handleAddMemberInline = (teamKey) => {
           }
           key="6"
         >
+          {/* 🖼 Full Image Preview Modal */}
+          <Modal
+            open={!!previewImage}
+            footer={null}
+            onCancel={() => setPreviewImage(null)}
+            centered
+            width={600}
+            bodyStyle={{ background: "#000", padding: "0" }}
+          >
+            {previewImage && (
+              <img
+                src={previewImage}
+                alt="Full Preview"
+                className="w-full h-auto rounded-lg"
+              />
+            )}
+          </Modal>
+
           {/* 🌐 Single Language Tab (controls all fields) */}
           <Tabs
             activeKey={activeTabLang}
@@ -2377,7 +2433,9 @@ const handleAddMemberInline = (teamKey) => {
                     <label className="block font-bold mt-5 mb-3">
                       {translations[activeTabLang].historyImage}
                     </label>
+
                     <div className="relative group w-48 h-64">
+                      {/* --- Uploaded or Saved Image --- */}
                       {item.imageFile || item.image ? (
                         <>
                           <img
@@ -2389,6 +2447,24 @@ const handleAddMemberInline = (teamKey) => {
                             alt={`History ${index + 1}`}
                             className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
                           />
+
+                          {/* 👁 View Full */}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPreviewImage(
+                                item.imageFile
+                                  ? URL.createObjectURL(item.imageFile)
+                                  : getFullUrl(item.image)
+                              )
+                            }
+                            className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                            title={isVietnamese ? "Xem hình ảnh" : "View Image"}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+
+                          {/* 🔁 Change Image */}
                           <label
                             htmlFor={`changeHistoryUpload-${index}`}
                             className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer transform hover:scale-110"
@@ -2413,8 +2489,32 @@ const handleAddMemberInline = (teamKey) => {
                             />
                             <RotateCw className="w-4 h-4" />
                           </label>
+
+                          {/* 🗑 Remove Image */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newHistory = [...aboutHistory];
+                              newHistory[index].imageFile = null;
+                              newHistory[index].image = "";
+                              setAboutHistory(newHistory);
+                              CommonToaster(
+                                isVietnamese
+                                  ? "Đã xóa hình ảnh!"
+                                  : "Image removed!",
+                                "success"
+                              );
+                            }}
+                            className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                            title={
+                              isVietnamese ? "Xóa hình ảnh" : "Remove Image"
+                            }
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
                         </>
                       ) : (
+                        // --- Empty Upload Box ---
                         <label
                           htmlFor={`aboutHistoryUpload-${index}`}
                           className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -2456,21 +2556,6 @@ const handleAddMemberInline = (teamKey) => {
                         </label>
                       )}
                     </div>
-
-                    {/* 🗑 Remove Button */}
-                    <div className="flex justify-end mt-4">
-                      <Button
-                        danger
-                        onClick={() => {
-                          const newHistory = aboutHistory.filter(
-                            (_, i) => i !== index
-                          );
-                          setAboutHistory(newHistory);
-                        }}
-                      >
-                        {translations[activeTabLang].removeHistory}
-                      </Button>
-                    </div>
                   </div>
                 ))}
 
@@ -2500,515 +2585,587 @@ const handleAddMemberInline = (teamKey) => {
                   </Button>
 
                   <Button
-                    type="primary"
-                    onClick={async () => {
-                      const formData = new FormData();
-                      formData.append("section", "aboutHistory");
-                      formData.append(
-                        "aboutHistoryTitle",
-                        JSON.stringify(aboutHistoryTitle)
-                      );
-                      formData.append(
-                        "aboutHistory",
-                        JSON.stringify(aboutHistory)
-                      );
-                      aboutHistory.forEach((item, i) => {
-                        if (item.imageFile) {
-                          formData.append(`historyImage${i}`, item.imageFile);
-                        }
-                      });
+  type="primary"
+  onClick={async () => {
+    try {
+      const formData = new FormData();
+      formData.append("section", "aboutHistory");
+      formData.append(
+        "aboutHistoryTitle",
+        JSON.stringify(aboutHistoryTitle)
+      );
 
-                      const res = await updateAboutPage(formData);
-                      if (res.data?.about?.aboutHistorySection) {
-                        setAboutHistory(
-                          res.data.about.aboutHistorySection.aboutHistory
-                        );
-                        setAboutHistoryTitle(
-                          res.data.about.aboutHistorySection.aboutHistoryTitle
-                        );
-                        CommonToaster(
-                          isVietnamese
-                            ? "Lưu lịch sử thành công!"
-                            : "History saved successfully!",
-                          "success"
-                        );
-                      } else {
-                        CommonToaster(
-                          isVietnamese
-                            ? "Không thể lưu lịch sử!"
-                            : "Failed to save history",
-                          "error"
-                        );
-                      }
-                    }}
-                    style={{
-                      backgroundColor: "#10B981",
-                      color: "#fff",
-                      borderRadius: "9999px",
-                      padding: "18px 28px",
-                      fontWeight: "600",
-                    }}
-                  >
-                    {translations[activeTabLang].saveHistory}
-                  </Button>
+      // ✅ Clean up history data before saving
+      const cleanedHistory = aboutHistory.map((item) => ({
+        year: item.year?.trim() || "",
+        content: {
+          en: item.content?.en?.trim() || "",
+          vi: item.content?.vi?.trim() || "",
+        },
+        // Explicitly clear the image field if removed
+        image: item.imageFile ? "" : item.image || "",
+      }));
+
+      formData.append("aboutHistory", JSON.stringify(cleanedHistory));
+
+      // ✅ Attach only actual files
+      aboutHistory.forEach((item, i) => {
+        if (item.imageFile instanceof File) {
+          formData.append(`historyImage${i}`, item.imageFile);
+        }
+      });
+
+      const res = await updateAboutPage(formData);
+
+      // ✅ Immediately refetch updated data from backend
+      if (res.data?.about?.aboutHistorySection) {
+        const refreshed = await getAboutPage();
+        const section = refreshed.data?.aboutHistorySection;
+        if (section) {
+          const sorted = Array.isArray(section.aboutHistory)
+            ? [...section.aboutHistory].sort(
+                (a, b) => Number(a.year) - Number(b.year)
+              )
+            : [];
+          setAboutHistory(sorted);
+          setAboutHistoryTitle(section.aboutHistoryTitle || { en: "", vi: "" });
+        }
+
+        CommonToaster(
+          isVietnamese
+            ? "Lưu lịch sử thành công!"
+            : "History saved successfully!",
+          "success"
+        );
+      } else {
+        CommonToaster(
+          isVietnamese
+            ? "Không thể lưu lịch sử!"
+            : "Failed to save history",
+          "error"
+        );
+      }
+    } catch (err) {
+      console.error("❌ Save failed:", err);
+      CommonToaster(
+        isVietnamese
+          ? "Có lỗi xảy ra khi lưu!"
+          : "Something went wrong while saving!",
+        "error"
+      );
+    }
+  }}
+  style={{
+    backgroundColor: "#10B981",
+    color: "#fff",
+    borderRadius: "9999px",
+    padding: "18px 28px",
+    fontWeight: "600",
+  }}
+>
+  {translations[activeTabLang].saveHistory}
+</Button>
+
                 </div>
               </TabPane>
             ))}
           </Tabs>
         </Panel>
 
-{/* 🧑‍🤝‍🧑 TEAM */}
-<Panel
-  header={
-    <span className="font-semibold text-lg flex items-center text-white gap-2">
-      {isVietnamese ? "Về Đội Ngũ" : "About Team"}
-    </span>
-  }
-  key="7"
->
-  {/* 🌐 Language Tabs */}
-  <Tabs
-    activeKey={activeTabLang}
-    onChange={setActiveTabLang}
-    className="pill-tabs mb-6"
-  >
-    {["en", "vi"].map((lang) => (
-      <TabPane
-        tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
-        key={lang}
-      >
-        {/* TEAM INTRO */}
-        <div className="mb-8">
-          <h3 className="text-white text-lg font-semibold mb-4">
-            {lang === "en" ? "Team Section Intro" : "Phần Giới Thiệu Đội Ngũ"}
-          </h3>
-
-          {/* Tag */}
-          <label className="block font-medium mb-2 text-white">
-            {lang === "en" ? "Small Tag" : "Thẻ tiêu đề nhỏ"}
-          </label>
-          <Input
-            value={aboutTeamIntro?.tag?.[lang] || ""}
-            onChange={(e) =>
-              setAboutTeamIntro((prev) => ({
-                ...prev,
-                tag: { ...prev.tag, [lang]: e.target.value },
-              }))
-            }
-            placeholder={lang === "en" ? "Our People" : "Đội ngũ của chúng tôi"}
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-            }}
-          />
-
-          {/* Heading */}
-          <label className="block font-medium mt-5 mb-2 text-white">
-            {lang === "en" ? "Main Heading" : "Tiêu đề chính"}
-          </label>
-          <Input
-            value={aboutTeamIntro?.heading?.[lang] || ""}
-            onChange={(e) =>
-              setAboutTeamIntro((prev) => ({
-                ...prev,
-                heading: { ...prev.heading, [lang]: e.target.value },
-              }))
-            }
-            placeholder={
-              lang === "en" ? "Meet Our Team" : "Gặp gỡ đội ngũ của chúng tôi"
-            }
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-            }}
-          />
-
-          {/* Description */}
-          <label className="block font-medium mt-5 mb-2 text-white">
-            {lang === "en" ? "Description" : "Mô tả"}
-          </label>
-          <Input.TextArea
-            rows={4}
-            value={aboutTeamIntro?.description?.[lang] || ""}
-            onChange={(e) =>
-              setAboutTeamIntro((prev) => ({
-                ...prev,
-                description: {
-                  ...prev.description,
-                  [lang]: e.target.value,
-                },
-              }))
-            }
-            placeholder={
-              lang === "en"
-                ? "Our experienced professionals combine deep textile knowledge..."
-                : "Các chuyên gia của chúng tôi kết hợp kiến thức sâu rộng..."
-            }
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-            }}
-          />
-        </div>
-
-        {/* TEAM LIST HEADER */}
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-white text-lg font-semibold">
-            {lang === "en" ? "Team Groups" : "Nhóm Đội Ngũ"}
-          </h3>
-          <Button
-            type="primary"
-            onClick={() => setIsAddTeamModalVisible(true)} // <<-- use the state name you declared
-            style={{
-              backgroundColor: "#0284C7",
-              borderRadius: "999px",
-              fontWeight: "500",
-              padding: "22px",
-            }}
+        {/* 🧑‍🤝‍🧑 TEAM */}
+        <Panel
+          header={
+            <span className="font-semibold text-lg flex items-center text-white gap-2">
+              {isVietnamese ? "Về Đội Ngũ" : "About Team"}
+            </span>
+          }
+          key="7"
+        >
+          {/* 🌐 Language Tabs */}
+          <Tabs
+            activeKey={activeTabLang}
+            onChange={setActiveTabLang}
+            className="pill-tabs mb-6"
           >
-            {lang === "en" ? "Add Team" : "Thêm Nhóm"}
-          </Button>
-        </div>
+            {["en", "vi"].map((lang) => (
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
+              >
+                {/* TEAM INTRO */}
+                <div className="mb-8">
+                  <h3 className="text-white text-lg font-semibold mb-4">
+                    {lang === "en"
+                      ? "Team Section Intro"
+                      : "Phần Giới Thiệu Đội Ngũ"}
+                  </h3>
 
-        {/* TEAM LIST TABS */}
-{Object.keys(aboutTeam || {}).length > 0 ? (
-  <Tabs
-    className="mb-6 pill-tabs"
-    defaultActiveKey={Object.keys(aboutTeam)[0]}
-  >
-    {Object.entries(aboutTeam).map(([teamKey, teamData]) => (
-      <TabPane
-        key={teamKey}
-        tab={
-          <div className="flex items-center gap-2">
-            <span>{teamData.teamLabel?.[lang] || "Untitled Team"}</span>
-            <Trash2
-              size={16}
-              className="cursor-pointer text-red-500 hover:text-red-700"
-              onClick={(e) => {
-                e.stopPropagation();
-                const updatedTeams = { ...aboutTeam };
-                delete updatedTeams[teamKey];
-                setAboutTeam(updatedTeams);
-              }}
-            />
-          </div>
-        }
-      >
-        {(teamData.members || []).map((member, idx) => (
-          <div key={idx} className="mb-6 text-white border-b pb-4">
-            {/* Name */}
-            <label className="block font-medium mt-5 mb-2">
-              {lang === "en" ? "Name" : "Tên"}
-            </label>
-            <Input
-              value={member.teamName?.[lang] || ""}
-              onChange={(e) => {
-                const updated = [...teamData.members];
-                updated[idx] = {
-                  ...member,
-                  teamName: { ...member.teamName, [lang]: e.target.value },
-                };
-                setAboutTeam((prev) => ({
-                  ...prev,
-                  [teamKey]: { ...teamData, members: updated },
-                }));
-              }}
-              style={{
-                backgroundColor: "#262626",
-                border: "1px solid #2E2F2F",
-                borderRadius: "8px",
-                color: "#fff",
-                padding: "10px 14px",
-              }}
-            />
+                  {/* Tag */}
+                  <label className="block font-medium mb-2 text-white">
+                    {lang === "en" ? "Small Tag" : "Thẻ tiêu đề nhỏ"}
+                  </label>
+                  <Input
+                    value={aboutTeamIntro?.tag?.[lang] || ""}
+                    onChange={(e) =>
+                      setAboutTeamIntro((prev) => ({
+                        ...prev,
+                        tag: { ...prev.tag, [lang]: e.target.value },
+                      }))
+                    }
+                    placeholder={
+                      lang === "en" ? "Our People" : "Đội ngũ của chúng tôi"
+                    }
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                  />
 
-            {/* Designation */}
-            <label className="block font-medium mt-5 mb-2">
-              {lang === "en" ? "Designation" : "Chức danh"}
-            </label>
-            <Input
-              value={member.teamDesgn?.[lang] || ""}
-              onChange={(e) => {
-                const updated = [...teamData.members];
-                updated[idx] = {
-                  ...member,
-                  teamDesgn: { ...member.teamDesgn, [lang]: e.target.value },
-                };
-                setAboutTeam((prev) => ({
-                  ...prev,
-                  [teamKey]: { ...teamData, members: updated },
-                }));
-              }}
-              style={{
-                backgroundColor: "#262626",
-                border: "1px solid #2E2F2F",
-                borderRadius: "8px",
-                color: "#fff",
-                padding: "10px 14px",
-              }}
-            />
+                  {/* Heading */}
+                  <label className="block font-medium mt-5 mb-2 text-white">
+                    {lang === "en" ? "Main Heading" : "Tiêu đề chính"}
+                  </label>
+                  <Input
+                    value={aboutTeamIntro?.heading?.[lang] || ""}
+                    onChange={(e) =>
+                      setAboutTeamIntro((prev) => ({
+                        ...prev,
+                        heading: { ...prev.heading, [lang]: e.target.value },
+                      }))
+                    }
+                    placeholder={
+                      lang === "en"
+                        ? "Meet Our Team"
+                        : "Gặp gỡ đội ngũ của chúng tôi"
+                    }
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                  />
 
-            {/* Phone */}
-            <label className="block font-medium mt-5 mb-2">
-              {lang === "en" ? "Phone Number" : "Số điện thoại"}
-            </label>
-            <Input
-              value={member.teamPhone || ""}
-              onChange={(e) => {
-                const updated = [...teamData.members];
-                updated[idx] = { ...member, teamPhone: e.target.value };
-                setAboutTeam((prev) => ({
-                  ...prev,
-                  [teamKey]: { ...teamData, members: updated },
-                }));
-              }}
-              placeholder={
-                lang === "en" ? "Enter phone number" : "Nhập số điện thoại"
-              }
-              style={{
-                backgroundColor: "#262626",
-                border: "1px solid #2E2F2F",
-                borderRadius: "8px",
-                color: "#fff",
-                padding: "10px 14px",
-              }}
-            />
+                  {/* Description */}
+                  <label className="block font-medium mt-5 mb-2 text-white">
+                    {lang === "en" ? "Description" : "Mô tả"}
+                  </label>
+                  <Input.TextArea
+                    rows={4}
+                    value={aboutTeamIntro?.description?.[lang] || ""}
+                    onChange={(e) =>
+                      setAboutTeamIntro((prev) => ({
+                        ...prev,
+                        description: {
+                          ...prev.description,
+                          [lang]: e.target.value,
+                        },
+                      }))
+                    }
+                    placeholder={
+                      lang === "en"
+                        ? "Our experienced professionals combine deep textile knowledge..."
+                        : "Các chuyên gia của chúng tôi kết hợp kiến thức sâu rộng..."
+                    }
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                  />
+                </div>
 
-            {/* Email */}
-            <label className="block font-medium mt-5 mb-2">Email</label>
-            <Input
-              value={member.teamEmail || ""}
-              onChange={(e) => {
-                const updated = [...teamData.members];
-                updated[idx] = { ...member, teamEmail: e.target.value };
-                setAboutTeam((prev) => ({
-                  ...prev,
-                  [teamKey]: { ...teamData, members: updated },
-                }));
-              }}
-              style={{
-                backgroundColor: "#262626",
-                border: "1px solid #2E2F2F",
-                borderRadius: "8px",
-                color: "#fff",
-                padding: "10px 14px",
-              }}
-            />
+                {/* TEAM LIST HEADER */}
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-white text-lg font-semibold">
+                    {lang === "en" ? "Team Groups" : "Nhóm Đội Ngũ"}
+                  </h3>
+                  <Button
+                    type="primary"
+                    onClick={() => setIsAddTeamModalVisible(true)} // <<-- use the state name you declared
+                    style={{
+                      backgroundColor: "#0284C7",
+                      borderRadius: "999px",
+                      fontWeight: "500",
+                      padding: "22px",
+                    }}
+                  >
+                    {lang === "en" ? "Add Team" : "Thêm Nhóm"}
+                  </Button>
+                </div>
 
-            {/* Remove Member */}
+                {/* TEAM LIST TABS */}
+                {Object.keys(aboutTeam || {}).length > 0 ? (
+                  <Tabs
+                    className="mb-6 pill-tabs"
+                    defaultActiveKey={Object.keys(aboutTeam)[0]}
+                  >
+                    {Object.entries(aboutTeam).map(([teamKey, teamData]) => (
+                      <TabPane
+                        key={teamKey}
+                        tab={
+                          <div className="flex items-center gap-2">
+                            <span>
+                              {teamData.teamLabel?.[lang] || "Untitled Team"}
+                            </span>
+                            <Trash2
+                              size={16}
+                              className="cursor-pointer text-red-500 hover:text-red-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const updatedTeams = { ...aboutTeam };
+                                delete updatedTeams[teamKey];
+                                setAboutTeam(updatedTeams);
+                              }}
+                            />
+                          </div>
+                        }
+                      >
+                        {(teamData.members || []).map((member, idx) => (
+                          <div
+                            key={idx}
+                            className="mb-6 text-white border-b pb-4"
+                          >
+                            {/* Name */}
+                            <label className="block font-medium mt-5 mb-2">
+                              {lang === "en" ? "Name" : "Tên"}
+                            </label>
+                            <Input
+                              value={member.teamName?.[lang] || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamName: {
+                                    ...member.teamName,
+                                    [lang]: e.target.value,
+                                  },
+                                };
+                                setAboutTeam((prev) => ({
+                                  ...prev,
+                                  [teamKey]: { ...teamData, members: updated },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                            />
+
+                            {/* Designation */}
+                            <label className="block font-medium mt-5 mb-2">
+                              {lang === "en" ? "Designation" : "Chức danh"}
+                            </label>
+                            <Input
+                              value={member.teamDesgn?.[lang] || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamDesgn: {
+                                    ...member.teamDesgn,
+                                    [lang]: e.target.value,
+                                  },
+                                };
+                                setAboutTeam((prev) => ({
+                                  ...prev,
+                                  [teamKey]: { ...teamData, members: updated },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                            />
+
+                            {/* Phone */}
+                            <label className="block font-medium mt-5 mb-2">
+                              {lang === "en" ? "Phone Number" : "Số điện thoại"}
+                            </label>
+                            <Input
+                              value={member.teamPhone || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamPhone: e.target.value,
+                                };
+                                setAboutTeam((prev) => ({
+                                  ...prev,
+                                  [teamKey]: { ...teamData, members: updated },
+                                }));
+                              }}
+                              placeholder={
+                                lang === "en"
+                                  ? "Enter phone number"
+                                  : "Nhập số điện thoại"
+                              }
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                            />
+
+                            {/* Email */}
+                            <label className="block font-medium mt-5 mb-2">
+                              Email
+                            </label>
+                            <Input
+                              value={member.teamEmail || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamEmail: e.target.value,
+                                };
+                                setAboutTeam((prev) => ({
+                                  ...prev,
+                                  [teamKey]: { ...teamData, members: updated },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                            />
+
+                            {/* Remove Member */}
+                            <Button
+                              danger
+                              size="small"
+                              onClick={() => {
+                                const updated = teamData.members.filter(
+                                  (_, i) => i !== idx
+                                );
+                                setAboutTeam((prev) => ({
+                                  ...prev,
+                                  [teamKey]: { ...teamData, members: updated },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#FB2C36",
+                                color: "#fff",
+                                borderRadius: "9999px",
+                                padding: "22px 30px",
+                                marginTop: "20px",
+                              }}
+                            >
+                              <Trash2 size={16} />
+                              {lang === "en"
+                                ? "Remove Member"
+                                : "Xóa thành viên"}
+                            </Button>
+                          </div>
+                        ))}
+
+                        {/* ➕ Add Member */}
+                        <Button
+                          type="dashed"
+                          onClick={() => {
+                            const newMember = {
+                              teamName: { en: "", vi: "" },
+                              teamDesgn: { en: "", vi: "" },
+                              teamEmail: "",
+                              teamPhone: "",
+                            };
+                            const updated = [
+                              ...(teamData.members || []),
+                              newMember,
+                            ];
+                            setAboutTeam((prev) => ({
+                              ...prev,
+                              [teamKey]: { ...teamData, members: updated },
+                            }));
+                          }}
+                          style={{
+                            backgroundColor: "#0284C7",
+                            color: "#fff",
+                            borderRadius: "9999px",
+                            padding: "22px 30px",
+                            marginTop: "20px",
+                          }}
+                        >
+                          <Plus />{" "}
+                          {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
+                        </Button>
+                      </TabPane>
+                    ))}
+                  </Tabs>
+                ) : (
+                  <div className="text-gray-400 italic py-4">
+                    {lang === "en"
+                      ? "No teams yet. Click 'Add Team' to create one."
+                      : "Chưa có nhóm nào. Nhấn 'Thêm Nhóm' để tạo."}
+                  </div>
+                )}
+              </TabPane>
+            ))}
+          </Tabs>
+
+          {/* Footer Buttons */}
+          <div className="flex justify-end gap-4 mt-6">
             <Button
-              danger
-              size="small"
-              onClick={() => {
-                const updated = teamData.members.filter((_, i) => i !== idx);
-                setAboutTeam((prev) => ({
-                  ...prev,
-                  [teamKey]: { ...teamData, members: updated },
-                }));
-              }}
+              onClick={() => window.location.reload()}
               style={{
-                backgroundColor: "#FB2C36",
+                backgroundColor: "transparent",
                 color: "#fff",
-                borderRadius: "9999px",
+                border: "1px solid #333",
                 padding: "22px 30px",
-                marginTop: "20px",
+                borderRadius: "9999px",
+                fontWeight: "500",
               }}
             >
-              <Trash2 size={16} />
-              {lang === "en" ? "Remove Member" : "Xóa thành viên"}
+              Cancel
+            </Button>
+
+            <Button
+              onClick={async () => {
+                const formData = new FormData();
+                formData.append("section", "aboutTeam");
+                formData.append(
+                  "aboutTeamIntro",
+                  JSON.stringify(aboutTeamIntro)
+                );
+                formData.append("aboutTeam", JSON.stringify(aboutTeam));
+                const res = await updateAboutPage(formData);
+                if (res.data?.about) {
+                  CommonToaster("Team saved successfully!", "success");
+                } else {
+                  CommonToaster("Failed to save team", "error");
+                }
+              }}
+              style={{
+                backgroundColor: "#0284C7",
+                color: "#fff",
+                border: "none",
+                padding: "22px 30px",
+                borderRadius: "9999px",
+                fontWeight: "500",
+              }}
+            >
+              Save Team
             </Button>
           </div>
-        ))}
 
-        {/* ➕ Add Member */}
-        <Button
-          type="dashed"
-          onClick={() => {
-            const newMember = {
-              teamName: { en: "", vi: "" },
-              teamDesgn: { en: "", vi: "" },
-              teamEmail: "",
-              teamPhone: "",
-            };
-            const updated = [...(teamData.members || []), newMember];
-            setAboutTeam((prev) => ({
-              ...prev,
-              [teamKey]: { ...teamData, members: updated },
-            }));
-          }}
-          style={{
-            backgroundColor: "#0284C7",
-            color: "#fff",
-            borderRadius: "9999px",
-            padding: "22px 30px",
-            marginTop: "20px",
-          }}
-        >
-          <Plus /> {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
-        </Button>
-      </TabPane>
-    ))}
-  </Tabs>
-) : (
-  <div className="text-gray-400 italic py-4">
-    {lang === "en"
-      ? "No teams yet. Click 'Add Team' to create one."
-      : "Chưa có nhóm nào. Nhấn 'Thêm Nhóm' để tạo."}
-  </div>
-)}
+          {/* ➕ Popup Modal for Adding Team Title */}
+          <Modal
+            open={isAddTeamModalVisible} // <-- use isAddTeamModalVisible
+            onCancel={() => setIsAddTeamModalVisible(false)} // <-- use setIsAddTeamModalVisible
+            footer={null}
+            centered
+            width={450}
+            bodyStyle={{
+              background: "#1a1a1a",
+              borderRadius: "10px",
+              padding: "24px",
+            }}
+          >
+            <h3 className="text-white text-lg font-semibold mb-4">
+              {isVietnamese ? "Thêm Nhóm Mới" : "Add New Team"}
+            </h3>
 
-      </TabPane>
-    ))}
-  </Tabs>
+            {/* English Input */}
+            <label className="block font-medium mb-2 text-white">
+              Team Title (EN)
+            </label>
+            <Input
+              value={tempTeamTitle?.en || ""}
+              onChange={(e) =>
+                setTempTeamTitle((prev) => ({ ...prev, en: e.target.value }))
+              }
+              placeholder="Enter English team title"
+              style={{
+                backgroundColor: "#262626",
+                border: "1px solid #2E2F2F",
+                borderRadius: "8px",
+                color: "#fff",
+                padding: "10px 14px",
+                marginBottom: "16px",
+              }}
+            />
 
-  {/* Footer Buttons */}
-  <div className="flex justify-end gap-4 mt-6">
-    <Button
-      onClick={() => window.location.reload()}
-      style={{
-        backgroundColor: "transparent",
-        color: "#fff",
-        border: "1px solid #333",
-        padding: "22px 30px",
-        borderRadius: "9999px",
-        fontWeight: "500",
-      }}
-    >
-      Cancel
-    </Button>
+            {/* Vietnamese Input */}
+            <label className="block font-medium mb-2 text-white">
+              Team Title (VI)
+            </label>
+            <Input
+              value={tempTeamTitle?.vi || ""}
+              onChange={(e) =>
+                setTempTeamTitle((prev) => ({ ...prev, vi: e.target.value }))
+              }
+              placeholder="Nhập tên nhóm (Tiếng Việt)"
+              style={{
+                backgroundColor: "#262626",
+                border: "1px solid #2E2F2F",
+                borderRadius: "8px",
+                color: "#fff",
+                padding: "10px 14px",
+              }}
+            />
 
-    <Button
-      onClick={async () => {
-        const formData = new FormData();
-        formData.append("section", "aboutTeam");
-        formData.append("aboutTeamIntro", JSON.stringify(aboutTeamIntro));
-        formData.append("aboutTeam", JSON.stringify(aboutTeam));
-        const res = await updateAboutPage(formData);
-        if (res.data?.about) {
-          CommonToaster("Team saved successfully!", "success");
-        } else {
-          CommonToaster("Failed to save team", "error");
-        }
-      }}
-      style={{
-        backgroundColor: "#0284C7",
-        color: "#fff",
-        border: "none",
-        padding: "22px 30px",
-        borderRadius: "9999px",
-        fontWeight: "500",
-      }}
-    >
-      Save Team
-    </Button>
-  </div>
-
-  {/* ➕ Popup Modal for Adding Team Title */}
-  <Modal
-    open={isAddTeamModalVisible}                    // <-- use isAddTeamModalVisible
-    onCancel={() => setIsAddTeamModalVisible(false)}// <-- use setIsAddTeamModalVisible
-    footer={null}
-    centered
-    width={450}
-    bodyStyle={{
-      background: "#1a1a1a",
-      borderRadius: "10px",
-      padding: "24px",
-    }}
-  >
-    <h3 className="text-white text-lg font-semibold mb-4">
-      {isVietnamese ? "Thêm Nhóm Mới" : "Add New Team"}
-    </h3>
-
-    {/* English Input */}
-    <label className="block font-medium mb-2 text-white">Team Title (EN)</label>
-    <Input
-      value={tempTeamTitle?.en || ""}
-      onChange={(e) => setTempTeamTitle((prev) => ({ ...prev, en: e.target.value }))}
-      placeholder="Enter English team title"
-      style={{
-        backgroundColor: "#262626",
-        border: "1px solid #2E2F2F",
-        borderRadius: "8px",
-        color: "#fff",
-        padding: "10px 14px",
-        marginBottom: "16px",
-      }}
-    />
-
-    {/* Vietnamese Input */}
-    <label className="block font-medium mb-2 text-white">Team Title (VI)</label>
-    <Input
-      value={tempTeamTitle?.vi || ""}
-      onChange={(e) => setTempTeamTitle((prev) => ({ ...prev, vi: e.target.value }))}
-      placeholder="Nhập tên nhóm (Tiếng Việt)"
-      style={{
-        backgroundColor: "#262626",
-        border: "1px solid #2E2F2F",
-        borderRadius: "8px",
-        color: "#fff",
-        padding: "10px 14px",
-      }}
-    />
-
-    {/* Footer Buttons */}
-    <div className="flex justify-end gap-3 mt-6">
-      <Button
-        onClick={() => setIsAddTeamModalVisible(false)}
-        style={{
-          backgroundColor: "transparent",
-          color: "#fff",
-          border: "1px solid #333",
-          padding: "22px",
-          borderRadius: "999px",
-        }}
-      >
-        Cancel
-      </Button>
-      <Button
-        type="primary"
-        style={{
-          backgroundColor: "#0284C7",
-          border: "none",
-          color: "#fff",
-          padding: "22px",
-          borderRadius: "999px",
-        }}
-        onClick={() => {
-          if (!tempTeamTitle.en && !tempTeamTitle.vi) return;
-          const newKey = `team_${Date.now()}`;
-          setAboutTeam((prev) => ({
-            ...prev,
-            [newKey]: {
-              teamLabel: {
-                en: tempTeamTitle.en || "New Team",
-                vi: tempTeamTitle.vi || "Nhóm Mới",
-              },
-              members: [],
-            },
-          }));
-          setTempTeamTitle({ en: "", vi: "" });
-          setIsAddTeamModalVisible(false);
-        }}
-      >
-        {isVietnamese ? "Thêm Nhóm" : "Add Team"}
-      </Button>
-    </div>
-  </Modal>
-</Panel>
-
-
-
+            {/* Footer Buttons */}
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                onClick={() => setIsAddTeamModalVisible(false)}
+                style={{
+                  backgroundColor: "transparent",
+                  color: "#fff",
+                  border: "1px solid #333",
+                  padding: "22px",
+                  borderRadius: "999px",
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                style={{
+                  backgroundColor: "#0284C7",
+                  border: "none",
+                  color: "#fff",
+                  padding: "22px",
+                  borderRadius: "999px",
+                }}
+                onClick={() => {
+                  if (!tempTeamTitle.en && !tempTeamTitle.vi) return;
+                  const newKey = `team_${Date.now()}`;
+                  setAboutTeam((prev) => ({
+                    ...prev,
+                    [newKey]: {
+                      teamLabel: {
+                        en: tempTeamTitle.en || "New Team",
+                        vi: tempTeamTitle.vi || "Nhóm Mới",
+                      },
+                      members: [],
+                    },
+                  }));
+                  setTempTeamTitle({ en: "", vi: "" });
+                  setIsAddTeamModalVisible(false);
+                }}
+              >
+                {isVietnamese ? "Thêm Nhóm" : "Add Team"}
+              </Button>
+            </div>
+          </Modal>
+        </Panel>
 
         {/* ALLIANCES */}
         <Panel

@@ -3,6 +3,9 @@ import { getFiberPage } from "../../Api/api";
 
 export default function FiberInfoBlocks() {
   const [fiberProducts, setFiberProducts] = useState([]);
+  const [fiberProductSectionTitle, setFiberProductSectionTitle] = useState({});
+  const [fiberProductSectionSubtitle, setFiberProductSectionSubtitle] = useState({});
+
   const [activeIndex, setActiveIndex] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [activeLang, setActiveLang] = useState("en");
@@ -15,7 +18,9 @@ export default function FiberInfoBlocks() {
     return `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
   };
 
-  // ✅ Detect and sync language (same logic as FiberHero)
+  // ---------------------------
+  // LANGUAGE SYNC
+  // ---------------------------
   useEffect(() => {
     const detectLang = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
@@ -37,25 +42,34 @@ export default function FiberInfoBlocks() {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Helper for picking localized text
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
-  // ✅ Fetch fiber products dynamically
+  // ---------------------------
+  // FETCH DATA (ONLY ONCE)
+  // ---------------------------
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await getFiberPage();
-        if (res.data?.fiberProducts?.fiberProduct?.length > 0) {
-          setFiberProducts(res.data.fiberProducts.fiberProduct);
-        }
+        const FP = res.data?.fiberProducts;
+
+        if (!FP) return;
+
+        setFiberProducts(FP.fiberProduct || []);
+        setFiberProductSectionTitle(FP.fiberProductSectionTitle || {});
+        setFiberProductSectionSubtitle(FP.fiberProductSectionSubtitle || {});
+
       } catch (err) {
         console.error("Failed to load fiber products:", err);
       }
     };
+
     fetchData();
   }, []);
 
-  // ✅ Detect mobile
+  // ---------------------------
+  // MOBILE CHECK
+  // ---------------------------
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -65,16 +79,18 @@ export default function FiberInfoBlocks() {
 
   const handleInteraction = (index) => {
     if (isMobile) {
-      setActiveIndex(activeIndex === index ? null : index); // toggle on tap
+      setActiveIndex(activeIndex === index ? null : index);
     } else {
-      setActiveIndex(index); // show on hover
+      setActiveIndex(index);
     }
   };
 
   if (!fiberProducts.length) {
     return (
       <section className="py-20 text-center text-gray-400">
-        {activeLang === "vi" ? "Đang tải sản phẩm..." : "Loading fiber products..."}
+        {activeLang === "vi"
+          ? "Đang tải sản phẩm..."
+          : "Loading fiber products..."}
       </section>
     );
   }
@@ -82,92 +98,88 @@ export default function FiberInfoBlocks() {
   return (
     <main>
       <div className="text-center my-10 relative py-6 z-20">
-        {/* Top border line */}
 
         {/* Title */}
-        <h3 className="!text-5xl  md:text-[28px] !font-[700] text-[#212121] uppercase tracking-wide inline-block relative bg-white px-6">
-          {activeLang === "vi" ? "SẢN PHẨM" : "PRODUCTS"}
+        <h3 className="!text-5xl md:!text-[40px] !font-[700] text-[#212121] uppercase tracking-wide inline-block relative bg-white px-6">
+          {pick(fiberProductSectionTitle)}
         </h3>
 
         {/* Subtitle */}
         <p className="text-[14px] md:text-[16px] text-[#555] mt-1">
-          {activeLang === "vi"
-            ? "Danh mục sản phẩm của Birla Cellulose"
-            : "Birla Cellulose Product Portfolio"}
+          {pick(fiberProductSectionSubtitle)}
         </p>
-
       </div>
+
       <section className="w-full divide-y divide-gray-200 relative">
-      {fiberProducts.map((product, idx) => {
-        const isActive = activeIndex === idx;
+        {fiberProducts.map((product, idx) => {
+          const isActive = activeIndex === idx;
 
-        return (
-          <div
-            key={idx}
-            className={`group relative bg-white ${isActive ? "active" : ""}`}
-            onClick={() => handleInteraction(idx)}
-            onMouseEnter={() => !isMobile && handleInteraction(idx)}
-            onMouseLeave={() => !isMobile && setActiveIndex(null)}
-          >
-            {/* BACKGROUND when active */}
-            <div className="absolute inset-0 z-0 bg-[#0A4A78]" />
-
-            {/* ANIMATED DOORS */}
-            <div className="pointer-events-none absolute inset-0 z-10">
-              <div
-                className={`absolute left-0 top-0 h-1/2 w-full bg-white transition-transform duration-700 ease-out ${
-                  isActive ? "-translate-y-full" : "translate-y-0"
-                }`}
-              />
-              <div
-                className={`absolute left-0 bottom-0 h-1/2 w-full bg-white transition-transform duration-700 ease-out ${
-                  isActive ? "translate-y-full" : "translate-y-0"
-                }`}
-              />
-            </div>
-
-            {/* FLOATING IMAGE (desktop) */}
+          return (
             <div
-              className={`absolute bottom-[-60px] right-0 z-30 w-48 -translate-x-1/2 transform transition-opacity duration-500 ${
-                isActive ? "opacity-100" : "opacity-0"
-              }`}
+              key={idx}
+              className={`group relative bg-white ${isActive ? "active" : ""}`}
+              onClick={() => handleInteraction(idx)}
+              onMouseEnter={() => !isMobile && handleInteraction(idx)}
+              onMouseLeave={() => !isMobile && setActiveIndex(null)}
             >
-              <img
-                src={getFullUrl(product.fiberProductImg)}
-                alt={pick(product.fiberProductTitle) || "Fiber Product"}
-                className="hidden h-auto w-full md:block"
-                onError={(e) => (e.currentTarget.src = "/img/fallback.png")}
-              />
-            </div>
+              {/* BACKGROUND */}
+              <div className="absolute inset-0 z-0 bg-[#0A4A78]" />
 
-            {/* CONTENT */}
-            <div
-              className={`relative z-20 page-width grid gap-10 py-20 transition-colors duration-500 md:grid-cols-4 md:gap-20 ${
-                isActive ? "text-white" : "text-black"
-              }`}
-            >
-              <h3
-                className="outlined-text flex min-w-[180px] items-center text-4xl font-extrabold uppercase tracking-wide md:col-span-2 md:text-6xl"
-                dangerouslySetInnerHTML={{
-                  __html: pick(product.fiberProductTitle),
-                }}
-              />
+              {/* ANIMATED DOORS */}
+              <div className="pointer-events-none absolute inset-0 z-10">
+                <div
+                  className={`absolute left-0 top-0 h-1/2 w-full bg-white transition-transform duration-700 ${
+                    isActive ? "-translate-y-full" : "translate-y-0"
+                  }`}
+                />
+                <div
+                  className={`absolute left-0 bottom-0 h-1/2 w-full bg-white transition-transform duration-700 ${
+                    isActive ? "translate-y-full" : "translate-y-0"
+                  }`}
+                />
+              </div>
 
-              <ul className="md:col-span-2 space-y-3 text-sm leading-relaxed md:text-base">
-                {product.fiberProductDes?.map((d, i) => (
-                  <li
-                    key={i}
-                    className="relative pl-6 before:absolute before:left-0 before:top-1 before:content-['--']"
-                  >
-                    {pick(d)}
-                  </li>
-                ))}
-              </ul>
+              {/* FLOATING IMAGE */}
+              <div
+                className={`absolute bottom-[-60px] right-0 z-30 w-48 -translate-x-1/2 transform transition-opacity duration-500 ${
+                  isActive ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <img
+                  src={getFullUrl(product.fiberProductImg)}
+                  alt={pick(product.fiberProductTitle) || "Fiber Product"}
+                  className="hidden h-auto w-full md:block"
+                />
+              </div>
+
+              {/* CONTENT */}
+              <div
+                className={`relative z-20 page-width grid gap-10 py-20 md:grid-cols-4 md:gap-20 transition-colors ${
+                  isActive ? "text-white" : "text-black"
+                }`}
+              >
+                <h3
+                  className="outlined-text flex min-w-[180px] items-center text-4xl font-extrabold uppercase tracking-wide md:col-span-2 md:text-6xl"
+                  dangerouslySetInnerHTML={{
+                    __html: pick(product.fiberProductTitle),
+                  }}
+                />
+
+                <ul className="md:col-span-2 space-y-3 text-sm leading-relaxed md:text-base">
+                  {product.fiberProductDes?.map((d, i) => (
+                    <li
+                      key={i}
+                      className="relative pl-6 before:absolute before:left-0 before:top-1 before:content-['--']"
+                    >
+                      {pick(d)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </section>
+          );
+        })}
+      </section>
     </main>
   );
 }

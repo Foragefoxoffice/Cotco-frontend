@@ -10,7 +10,7 @@ export default function PartnerSection() {
   const [heading, setHeading] = useState("PROUD PARTNERS OF GLOBAL LEADERS");
   const [activeLang, setActiveLang] = useState("en");
 
-  // ✅ Detect active language from <body class="vi-mode">
+  // Detect active language
   useEffect(() => {
     const detectLang = () => {
       if (typeof document === "undefined") return "en";
@@ -28,13 +28,13 @@ export default function PartnerSection() {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Fetch Homepage data
+  // Fetch Homepage data
   useEffect(() => {
     getHomepage().then((res) => {
       if (res.data?.companyLogosSection) {
         const section = res.data.companyLogosSection;
 
-        // ✅ Handle multilingual heading
+        // multilingual heading
         if (section.companyLogosHeading) {
           setHeading(
             section.companyLogosHeading[activeLang] ||
@@ -45,7 +45,7 @@ export default function PartnerSection() {
 
         let collected = [];
 
-        // ✅ Prefer new array-based schema
+        // new array-based schema
         if (Array.isArray(section.logos) && section.logos.length > 0) {
           collected = section.logos
             .filter((logo) => logo.url)
@@ -54,7 +54,7 @@ export default function PartnerSection() {
               image: logo.url,
             }));
         } else {
-          // ✅ Fallback for old schema (companyLogo1..6)
+          // old schema (companyLogo1..6)
           for (let i = 1; i <= 6; i++) {
             if (section[`companyLogo${i}`]) {
               collected.push({
@@ -68,9 +68,13 @@ export default function PartnerSection() {
         setLogos(collected);
       }
     });
-  }, [activeLang]); // refetch heading when language changes
+  }, [activeLang]);
 
-  // ✅ Slider settings
+  if (!logos.length) return null;
+
+  // Duplicate logos for continuous scroll
+  const scrollingLogos = [...logos, ...logos];
+
   const settings = {
     dots: false,
     infinite: true,
@@ -82,6 +86,7 @@ export default function PartnerSection() {
     slidesToScroll: 1,
     arrows: false,
     pauseOnHover: false,
+    rtl: false, // ensure right → left movement
     responsive: [
       {
         breakpoint: 768,
@@ -90,9 +95,7 @@ export default function PartnerSection() {
     ],
   };
 
-  if (!logos.length) return null;
-
-  // ✅ Fallback Vietnamese translation if no API text provided
+  // fallback Vietnamese translation
   const translatedHeading =
     activeLang === "vi"
       ? heading || "ĐỐI TÁC TỰ HÀO CỦA CÁC NHÀ LÃNH ĐẠO TOÀN CẦU"
@@ -110,7 +113,7 @@ export default function PartnerSection() {
       />
 
       <Slider {...settings}>
-        {logos.map((partner, index) => (
+        {scrollingLogos.map((partner, index) => (
           <div key={index} className="px-4">
             <div className="flex justify-center items-center">
               <img

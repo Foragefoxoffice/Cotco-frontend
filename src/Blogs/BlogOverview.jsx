@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { FiChevronRight } from "react-icons/fi";
 import Header from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
+import { FaShare } from "react-icons/fa6";
 
 export default function BlogOverview() {
   const { slug } = useParams();
@@ -14,6 +15,15 @@ export default function BlogOverview() {
   const [recentBlogs, setRecentBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeLang, setActiveLang] = useState("en");
+  const [copyTooltip, setCopyTooltip] = useState(false);
+
+  const handleShare = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopyTooltip(true);
+      setTimeout(() => setCopyTooltip(false), 1500);
+    });
+  };
 
   // ✅ Detect language mode
   useEffect(() => {
@@ -62,7 +72,7 @@ export default function BlogOverview() {
         <div className="relative w-40 h-40 flex items-center justify-center">
           {/* Logo in center */}
           <img
-            src="/logo/loader-Logo.png" // ✅ change to your actual logo path
+            src="/logo/logo.png" // ✅ change to your actual logo path
             alt="Loading..."
             className="w-20 h-20 object-contain z-10"
           />
@@ -80,9 +90,9 @@ export default function BlogOverview() {
 
   const title = pick(blog.title, activeLang);
   const coverImage = blog.coverImage?.url || "/img/blog/blog-img.png";
-  const publishedAt = new Date(
-    blog.publishedAt || blog.createdAt
-  ).toLocaleDateString();
+  const rawDate = new Date(blog.publishedAt || blog.createdAt);
+  const publishedAt = rawDate.toLocaleDateString("en-GB"); // ✅ DD/MM/YYYY
+
   const mainCategory = blog.mainCategory;
   const category = blog.category;
 
@@ -97,7 +107,7 @@ export default function BlogOverview() {
 
       <Header />
 
-      <section className="max-w-6xl mx-auto px-4 md:px-6 py-10 mt-24">
+      <section className="max-w-7xl mx-auto px-4 md:px-6 py-10 mt-24">
         {/* ---------- ✅ BREADCRUMB ---------- */}
         <div className="text-sm text-gray-500 mb-6 flex flex-wrap items-center gap-1">
           <Link to="/" className="hover:text-[#1276BD]">
@@ -256,15 +266,26 @@ export default function BlogOverview() {
             </div>
           </aside>
         </div>
-        <p className="text-gray-500 mb-6 text-sm">
-              {publishedAt} •{" "}
-              <span className="capitalize">
-                {pick(category?.name, activeLang) || "General"}
-              </span>
-            </p>
-      </section>
-      
+        <p className="text-gray-500 mb-6 text-sm">{publishedAt}</p>
 
+        {/* SHARE BUTTON */}
+        <div className="relative inline-block">
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full shadow-sm hover:bg-gray-200 transition cursor-pointer"
+          >
+            <FaShare />
+            <span className="font-medium text-gray-800">Share</span>
+          </button>
+
+          {/* Tooltip */}
+          {copyTooltip && (
+            <div className="absolute left-1/2 -translate-x-1/2 mt-2 bg-black text-white text-xs px-3 py-1 rounded-full whitespace-nowrap">
+              Link copied!
+            </div>
+          )}
+        </div>
+      </section>
       <Footer />
     </>
   );

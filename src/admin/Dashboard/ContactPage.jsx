@@ -202,6 +202,47 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
       if (res.data?.contactHours) setContactHours(res.data.contactHours);
       if (res.data?.contactMap) setContactMap(res.data.contactMap);
 
+      // ✅ CONTACT TEAM SECTION
+if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
+  const teamData = res.data.contactTeam;
+
+  // ✅ Normalize team list and members structure
+  const normalizedTeamList = {};
+  for (const [teamKey, teamVal] of Object.entries(teamData.teamList || {})) {
+    const normalizedMembers = (teamVal.members || []).map((m) => ({
+      teamName: m.teamName || m.name || { en: "", vi: "" },
+      teamDesgn: m.teamDesgn || m.role || { en: "", vi: "" },
+      teamEmail: m.teamEmail || m.email || "",
+      teamPhone: m.teamPhone || m.phone || "",
+    }));
+
+    normalizedTeamList[teamKey] = {
+      teamLabel: teamVal.teamLabel || { en: "", vi: "" },
+      members: normalizedMembers,
+    };
+  }
+
+  setContactTeam({
+    teamIntro: {
+      tag: teamData.teamIntro?.tag || { en: "", vi: "" },
+      heading: teamData.teamIntro?.heading || { en: "", vi: "" },
+      description: teamData.teamIntro?.description || { en: "", vi: "" },
+    },
+    teamList: normalizedTeamList,
+  });
+} else {
+  // 🧩 Fallback when no team data exists yet
+  setContactTeam({
+    teamIntro: {
+      tag: { en: "", vi: "" },
+      heading: { en: "", vi: "" },
+      description: { en: "", vi: "" },
+    },
+    teamList: {},
+  });
+}
+
+
       // ✅ NEW: load SEO Meta from DB
       if (res.data?.seoMeta) {
         setSeoMeta({
@@ -334,6 +375,20 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
             // ✅ Properly update SEO state after saving
             setSeoMeta(res.data.contact.seoMeta || formState);
             break;
+            case "contactTeam":
+  if (res.data.contact.contactTeam) {
+    const teamData = res.data.contact.contactTeam;
+    setContactTeam({
+      teamIntro: {
+        tag: teamData.teamIntro?.tag || { en: "", vi: "" },
+        heading: teamData.teamIntro?.heading || { en: "", vi: "" },
+        description: teamData.teamIntro?.description || { en: "", vi: "" },
+      },
+      teamList: teamData.teamList || {},
+    });
+  }
+  break;
+
         }
         CommonToaster(`${sectionName} saved successfully!`, "success");
       } else {
@@ -1456,7 +1511,6 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
           </div>
         </Panel>
 
-{/* 👥 CONTACT TEAM SECTION */}
 <Panel
   header={
     <span className="font-semibold text-lg flex items-center text-white gap-2">
@@ -1465,6 +1519,7 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
   }
   key="6"
 >
+  {/* 🌐 Language Tabs */}
   <Tabs
     activeKey={currentLang}
     onChange={setCurrentLang}
@@ -1475,14 +1530,15 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
         tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
         key={lang}
       >
-        {/* SECTION INTRO */}
+        {/* TEAM INTRO */}
         <div className="mb-8">
           <h3 className="text-white text-lg font-semibold mb-4">
             {lang === "en" ? "Team Section Intro" : "Phần Giới Thiệu Đội Liên Hệ"}
           </h3>
 
+          {/* Tag */}
           <label className="block font-medium mb-2 text-white">
-            {lang === "en" ? "Small Tag" : "Thẻ nhỏ"}
+            {lang === "en" ? "Small Tag" : "Thẻ tiêu đề nhỏ"}
           </label>
           <Input
             value={contactTeam.teamIntro?.tag?.[lang] || ""}
@@ -1491,7 +1547,10 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
                 ...prev,
                 teamIntro: {
                   ...prev.teamIntro,
-                  tag: { ...prev.teamIntro?.tag, [lang]: e.target.value },
+                  tag: {
+                    ...prev.teamIntro?.tag,
+                    [lang]: e.target.value,
+                  },
                 },
               }))
             }
@@ -1506,6 +1565,7 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
             className="!placeholder-gray-400"
           />
 
+          {/* Heading */}
           <label className="block font-medium mt-5 mb-2 text-white">
             {lang === "en" ? "Main Heading" : "Tiêu đề chính"}
           </label>
@@ -1536,6 +1596,7 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
             className="!placeholder-gray-400"
           />
 
+          {/* Description */}
           <label className="block font-medium mt-5 mb-2 text-white">
             {lang === "en" ? "Description" : "Mô tả"}
           </label>
@@ -1556,8 +1617,8 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
             }
             placeholder={
               lang === "en"
-                ? "Our experienced team provides exceptional support..."
-                : "Đội ngũ giàu kinh nghiệm của chúng tôi cung cấp hỗ trợ xuất sắc..."
+                ? "Our dedicated team provides excellent support..."
+                : "Đội ngũ tận tâm của chúng tôi cung cấp hỗ trợ xuất sắc..."
             }
             style={{
               backgroundColor: "#262626",
@@ -1573,7 +1634,7 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
         {/* TEAM GROUPS */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-white text-lg font-semibold">
-            {lang === "en" ? "Team Groups" : "Nhóm Liên Hệ"}
+            {lang === "en" ? "Team Groups" : "Nhóm Đội Ngũ"}
           </h3>
           <Button
             type="primary"
@@ -1589,42 +1650,229 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
           </Button>
         </div>
 
-        {Object.keys(contactTeam.teamList || {}).length > 0 ? (
-  <Tabs
-    className="mb-6 pill-tabs"
-    defaultActiveKey={Object.keys(contactTeam.teamList)[0]}
-  >
-    {Object.entries(contactTeam.teamList).map(([teamKey, teamData]) => (
-      <TabPane
-        key={teamKey}
-        tab={
-          <div className="flex items-center gap-2">
-            <span>{teamData.teamLabel?.[lang] || "Unnamed Team"}</span>
-            <Trash2
-              size={16}
-              className="cursor-pointer text-red-500 hover:text-red-700"
-              onClick={(e) => {
-                e.stopPropagation();
-                const updated = { ...contactTeam.teamList };
-                delete updated[teamKey];
-                setContactTeam({ ...contactTeam, teamList: updated });
-              }}
-            />
-          </div>
-        }
-      >
-        {/* TEAM MEMBERS CODE HERE */}
-      </TabPane>
-    ))}
-  </Tabs>
-) : (
-  <div className="text-gray-400 italic">
-    {lang === "en"
-      ? "No teams yet. Click 'Add Team' to create one."
-      : "Chưa có nhóm nào. Nhấn 'Thêm Nhóm' để tạo."}
-  </div>
-)}
+        <Tabs
+          className="mb-6 pill-tabs"
+          defaultActiveKey={Object.keys(contactTeam.teamList || {})[0]}
+        >
+          {Object.entries(contactTeam.teamList || {}).map(
+            ([teamKey, teamData]) => (
+              <TabPane
+                key={teamKey}
+                tab={
+                  <div className="flex items-center gap-2">
+                    <span>{teamData.teamLabel?.[lang] || "Untitled Team"}</span>
+                    <Trash2
+                      size={16}
+                      className="cursor-pointer text-red-500 hover:text-red-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const updatedTeams = { ...contactTeam.teamList };
+                        delete updatedTeams[teamKey];
+                        setContactTeam({
+                          ...contactTeam,
+                          teamList: updatedTeams,
+                        });
+                      }}
+                    />
+                  </div>
+                }
+              >
+                {(teamData.members || []).map((member, idx) => (
+                  <div key={idx} className="mb-6 text-white border-b pb-4">
+                    {/* Name */}
+                    <label className="block font-medium mt-5 mb-2">
+                      {lang === "en" ? "Name" : "Tên"}
+                    </label>
+                    <Input
+                      value={member.teamName?.[lang] || ""}
+                      onChange={(e) => {
+                        const updated = [...teamData.members];
+                        updated[idx] = {
+                          ...member,
+                          teamName: {
+                            ...member.teamName,
+                            [lang]: e.target.value,
+                          },
+                        };
+                        setContactTeam((prev) => ({
+                          ...prev,
+                          teamList: {
+                            ...prev.teamList,
+                            [teamKey]: { ...teamData, members: updated },
+                          },
+                        }));
+                      }}
+                      style={{
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                      }}
+                      className="!placeholder-gray-400"
+                    />
 
+                    {/* Designation */}
+                    <label className="block font-medium mt-5 mb-2">
+                      {lang === "en" ? "Designation" : "Chức danh"}
+                    </label>
+                    <Input
+                      value={member.teamDesgn?.[lang] || ""}
+                      onChange={(e) => {
+                        const updated = [...teamData.members];
+                        updated[idx] = {
+                          ...member,
+                          teamDesgn: {
+                            ...member.teamDesgn,
+                            [lang]: e.target.value,
+                          },
+                        };
+                        setContactTeam((prev) => ({
+                          ...prev,
+                          teamList: {
+                            ...prev.teamList,
+                            [teamKey]: { ...teamData, members: updated },
+                          },
+                        }));
+                      }}
+                      style={{
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                      }}
+                      className="!placeholder-gray-400"
+                    />
+
+                    {/* Email */}
+                    <label className="block font-medium mt-5 mb-2">Email</label>
+                    <Input
+                      value={member.teamEmail || ""}
+                      onChange={(e) => {
+                        const updated = [...teamData.members];
+                        updated[idx] = {
+                          ...member,
+                          teamEmail: e.target.value,
+                        };
+                        setContactTeam((prev) => ({
+                          ...prev,
+                          teamList: {
+                            ...prev.teamList,
+                            [teamKey]: { ...teamData, members: updated },
+                          },
+                        }));
+                      }}
+                      style={{
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                      }}
+                      className="!placeholder-gray-400"
+                    />
+
+                    {/* Phone */}
+                    <label className="block font-medium mt-5 mb-2">
+                      {lang === "en" ? "Phone Number" : "Số điện thoại"}
+                    </label>
+                    <Input
+                      value={member.teamPhone || ""}
+                      onChange={(e) => {
+                        const updated = [...teamData.members];
+                        updated[idx] = {
+                          ...member,
+                          teamPhone: e.target.value.replace(/[^0-9+]/g, ""),
+                        };
+                        setContactTeam((prev) => ({
+                          ...prev,
+                          teamList: {
+                            ...prev.teamList,
+                            [teamKey]: { ...teamData, members: updated },
+                          },
+                        }));
+                      }}
+                      placeholder={
+                        lang === "en"
+                          ? "Enter phone number"
+                          : "Nhập số điện thoại"
+                      }
+                      style={{
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                      }}
+                      className="!placeholder-gray-400"
+                    />
+
+                    {/* 🗑 Remove Member */}
+                    <Button
+                      danger
+                      size="small"
+                      onClick={() => {
+                        const updated = teamData.members.filter(
+                          (_, i) => i !== idx
+                        );
+                        setContactTeam((prev) => ({
+                          ...prev,
+                          teamList: {
+                            ...prev.teamList,
+                            [teamKey]: { ...teamData, members: updated },
+                          },
+                        }));
+                      }}
+                      style={{
+                        backgroundColor: "#FB2C36",
+                        color: "#fff",
+                        borderRadius: "9999px",
+                        padding: "22px 30px",
+                        marginTop: "20px",
+                      }}
+                    >
+                      <Trash2 size={16} />
+                      {lang === "en" ? "Remove Member" : "Xóa thành viên"}
+                    </Button>
+                  </div>
+                ))}
+
+                {/* ➕ Add Member */}
+                <Button
+                  type="dashed"
+                  onClick={() => {
+                    const newMember = {
+                      teamName: { en: "", vi: "" },
+                      teamDesgn: { en: "", vi: "" },
+                      teamEmail: "",
+                      teamPhone: "",
+                    };
+                    const updated = [...(teamData.members || []), newMember];
+                    setContactTeam((prev) => ({
+                      ...prev,
+                      teamList: {
+                        ...prev.teamList,
+                        [teamKey]: { ...teamData, members: updated },
+                      },
+                    }));
+                  }}
+                  style={{
+                    backgroundColor: "#0284C7",
+                    color: "#fff",
+                    borderRadius: "9999px",
+                    padding: "22px 30px",
+                    marginTop: "20px",
+                    width: "fit-content",
+                  }}
+                >
+                  <Plus />
+                  {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
+                </Button>
+              </TabPane>
+            )
+          )}
+        </Tabs>
       </TabPane>
     ))}
   </Tabs>
@@ -1677,6 +1925,7 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
       {isVietnamese ? "Thêm Nhóm Mới" : "Add New Team"}
     </h3>
 
+    {/* English */}
     <label className="block font-medium mb-2 text-white">Team Title (EN)</label>
     <Input
       value={tempContactTeamTitle?.en || ""}
@@ -1695,6 +1944,7 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
       className="!placeholder-gray-400"
     />
 
+    {/* Vietnamese */}
     <label className="block font-medium mb-2 text-white">Team Title (VI)</label>
     <Input
       value={tempContactTeamTitle?.vi || ""}
@@ -1712,6 +1962,7 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
       className="!placeholder-gray-400"
     />
 
+    {/* Footer */}
     <div className="flex justify-end gap-3 mt-6">
       <Button
         onClick={() => setAddContactTeamModal(false)}
@@ -1759,6 +2010,7 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
     </div>
   </Modal>
 </Panel>
+
 
         {/* SEO META SECTION */}
         <Panel

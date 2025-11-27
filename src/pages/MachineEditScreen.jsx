@@ -14,7 +14,6 @@ import {
 } from "antd";
 import {
   PlusOutlined,
-  DeleteOutlined,
   FileTextOutlined,
   AppstoreOutlined,
   FileAddOutlined,
@@ -27,7 +26,7 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import { ReloadOutlined } from "@ant-design/icons";
-
+import { Trash2 } from "lucide-react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { getMachineCategories, createMachinePage } from "../Api/api";
 import RichTextEditor from "../components/RichTextEditor";
@@ -37,7 +36,60 @@ import DeleteConfirm from "../components/DeleteConfirm";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CustomStepper from "../components/CustomStepper";
+// ===================== 🔧 FIXED QUILL REGISTRATION =====================
+// ===================== 🔧 FIXED QUILL REGISTRATION =====================
+import ReactQuill, { Quill } from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 
+// ✅ Ensure Quill’s default formats and keyboard bindings are registered
+const List = Quill.import("formats/list");
+const Indent = Quill.import("formats/indent");
+Quill.register(List, true);
+Quill.register(Indent, true);
+
+// ✅ Define shared modules and formats (no repetition)
+const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline", "strike", "blockquote"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ indent: "-1" }, { indent: "+1" }],
+    ["link", "image"],
+    ["clean"],
+  ],
+  keyboard: {
+    bindings: {
+      handleEnter: {
+        key: 13, // Enter key
+        handler: function (range, context) {
+          const quill = this.quill;
+          if (context.format.list) {
+            quill.format("list", context.format.list);
+            quill.insertText(range.index, "\n");
+            quill.setSelection(range.index + 1, 0);
+          } else {
+            quill.insertText(range.index, "\n");
+            quill.setSelection(range.index + 1, 0);
+          }
+        },
+      },
+    },
+  },
+};
+
+const quillFormats = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "blockquote",
+  "list",
+  "bullet",
+  "indent",
+  "link",
+  "image",
+];
 const { TextArea } = Input;
 const { Step } = Steps;
 
@@ -356,19 +408,33 @@ const SectionEditor = ({ basePath, section, control }) => {
       return (
         <>
           <p className="font-medium mb-1 text-white">Rich Text EN</p>
+
           <Controller
             name={`${basePath}.richtext.en`}
             control={control}
             render={({ field }) => (
-              <RichTextEditor value={field.value} onChange={field.onChange} />
+              <ReactQuill
+                theme="snow"
+                value={field.value || ""}
+                onChange={field.onChange}
+                modules={quillModules}
+                formats={quillFormats}
+              />
             )}
           />
+
           <p className="font-medium mt-3 mb-1 text-white">Rich Text VN</p>
           <Controller
             name={`${basePath}.richtext.vi`}
             control={control}
             render={({ field }) => (
-              <RichTextEditor value={field.value} onChange={field.onChange} />
+              <ReactQuill
+                theme="snow"
+                value={field.value || ""}
+                onChange={field.onChange}
+                modules={quillModules}
+                formats={quillFormats}
+              />
             )}
           />
         </>
@@ -568,7 +634,13 @@ const SectionEditor = ({ basePath, section, control }) => {
             render={({ field }) => (
               <>
                 <p className="font-medium mb-1 text-white">Description (EN)</p>
-                <RichTextEditor value={field.value} onChange={field.onChange} />
+                <ReactQuill
+                  theme="snow"
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  modules={quillModules}
+                  formats={quillFormats}
+                />
               </>
             )}
           />
@@ -579,9 +651,15 @@ const SectionEditor = ({ basePath, section, control }) => {
             render={({ field }) => (
               <>
                 <p className="font-medium mt-3 mb-1 text-white">
-                  Description (VN)
+                  Sự miêu tả (VN)
                 </p>
-                <RichTextEditor value={field.value} onChange={field.onChange} />
+                <ReactQuill
+                  theme="snow"
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  modules={quillModules}
+                  formats={quillFormats}
+                />
               </>
             )}
           />
@@ -751,14 +829,14 @@ const SectionEditor = ({ basePath, section, control }) => {
 
                           <Button
                             size="small"
-                            icon={<DeleteOutlined />}
+                            icon={<Trash2 width={20} />}
                             style={{
                               borderRadius: "999px",
                               fontWeight: 500,
                               background: "#E50000", // red
                               color: "#fff",
                               border: "none",
-                              padding: "12px 24px",
+                              padding: "10px 26px",
                               height: "auto",
                             }}
                             onClick={() => {
@@ -795,7 +873,7 @@ const SectionEditor = ({ basePath, section, control }) => {
 
                         <Button
                           size="small"
-                          icon={<DeleteOutlined />}
+                          icon={<Trash2 class="w-14" />}
                           style={{
                             borderRadius: "999px",
                             fontWeight: 500,
@@ -920,24 +998,25 @@ const SectionEditor = ({ basePath, section, control }) => {
 };
 
 /* ---------- Tab Sections Editor ---------- */
+/* ---------- Tab Sections Editor ---------- */
 const TabSectionsEditor = ({ basePath, control }) => {
   const { fields, append, remove } = useFieldArray({ name: basePath, control });
 
   return (
     <>
+      {/* Toolbar for adding new sections inside a Tab */}
       <SectionToolbar onAdd={(type) => append(newBlankSection(type))} />
+
+      {/* Collapsible child sections */}
       <Collapse
         accordion
         items={fields.map((s, i) => ({
           key: s.id,
           label: `Child Section (${s.type})`,
           extra: (
-            <DeleteOutlined
-              onClick={(e) => {
-                e.stopPropagation();
-                remove(i);
-              }}
-              className="text-white"
+            // ✅ Use DeleteConfirm here instead of Trash2 directly
+            <DeleteConfirm
+              onConfirm={() => remove(i)} // handle confirmed delete
             />
           ),
           children: (
@@ -974,16 +1053,15 @@ const MachinePageCreate = ({
   });
 
   // ✅ Automatically generate slug from English title and make it readonly
-const title = watch("title");
+  const title = watch("title");
 
-useEffect(() => {
-  if (title?.en) {
-    setValue("slug", slugify(title.en), { shouldValidate: true });
-  } else {
-    setValue("slug", "");
-  }
-}, [title?.en]);
-
+  useEffect(() => {
+    if (title?.en) {
+      setValue("slug", slugify(title.en), { shouldValidate: true });
+    } else {
+      setValue("slug", "");
+    }
+  }, [title?.en]);
 
   const {
     fields: sections,
@@ -1123,107 +1201,111 @@ useEffect(() => {
   }, [bannerFile]);
 
   const handleFormSubmit = async (values) => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const formData = new FormData();
-    formData.append("categoryId", values.categoryId);
-    formData.append("title", JSON.stringify(values.title));
-    formData.append("description", JSON.stringify(values.description || { en: "", vi: "" }));
-    formData.append("slug", values.slug);
+      const formData = new FormData();
+      formData.append("categoryId", values.categoryId);
+      formData.append("title", JSON.stringify(values.title));
+      formData.append(
+        "description",
+        JSON.stringify(values.description || { en: "", vi: "" })
+      );
+      formData.append("slug", values.slug);
 
-    const seo = {
-      metaTitle: values.metaTitle,
-      metaDescription: values.metaDescription,
-      keywords: values.keywords
-        ? values.keywords.split(",").map((k) => k.trim())
-        : [],
-    };
-    formData.append("seo", JSON.stringify(seo));
+      const seo = {
+        metaTitle: values.metaTitle,
+        metaDescription: values.metaDescription,
+        keywords: values.keywords
+          ? values.keywords.split(",").map((k) => k.trim())
+          : [],
+      };
+      formData.append("seo", JSON.stringify(seo));
 
-    if (bannerFile.length > 0) {
-      formData.append("banner", bannerFile[0].originFileObj);
-    }
-
-    // Handle sections + nested images
-    const sections = values.sections.map((s, i) => {
-      if (["image", "imageLeft", "imageRight"].includes(s.type) && s.image) {
-        const fieldName = `sectionImage_${i}`;
-        const file = s.image.originFileObj || s.image;
-        if (file instanceof File) {
-          formData.append(fieldName, file);
-          return { ...s, image: fieldName };
-        }
+      if (bannerFile.length > 0) {
+        formData.append("banner", bannerFile[0].originFileObj);
       }
 
-      if (s.type === "blocks" && Array.isArray(s.blocks)) {
-        const updatedBlocks = s.blocks.map((block, bi) => {
-          if (block.image) {
-            const blockKey = `section_${i}_block_${bi}`;
-            const file = block.image.originFileObj || block.image;
-            if (file instanceof File) {
-              formData.append(blockKey, file);
-              return { ...block, image: blockKey };
-            }
+      // Handle sections + nested images
+      const sections = values.sections.map((s, i) => {
+        if (["image", "imageLeft", "imageRight"].includes(s.type) && s.image) {
+          const fieldName = `sectionImage_${i}`;
+          const file = s.image.originFileObj || s.image;
+          if (file instanceof File) {
+            formData.append(fieldName, file);
+            return { ...s, image: fieldName };
           }
-          return block;
-        });
-        return { ...s, blocks: updatedBlocks };
-      }
+        }
 
-      if (s.type === "tabs" && Array.isArray(s.tabs)) {
-        const updatedTabs = s.tabs.map((tab, ti) => {
-          const updatedSections = tab.sections.map((subSection, si) => {
-            if (
-              ["image", "imageLeft", "imageRight"].includes(subSection.type) &&
-              subSection.image
-            ) {
-              const tabImgKey = `section_${i}_tab_${ti}_section_${si}`;
-              const file = subSection.image.originFileObj || subSection.image;
+        if (s.type === "blocks" && Array.isArray(s.blocks)) {
+          const updatedBlocks = s.blocks.map((block, bi) => {
+            if (block.image) {
+              const blockKey = `section_${i}_block_${bi}`;
+              const file = block.image.originFileObj || block.image;
               if (file instanceof File) {
-                formData.append(tabImgKey, file);
-                return { ...subSection, image: tabImgKey };
+                formData.append(blockKey, file);
+                return { ...block, image: blockKey };
               }
             }
-            return subSection;
+            return block;
           });
-          return { ...tab, sections: updatedSections };
-        });
-        return { ...s, tabs: updatedTabs };
+          return { ...s, blocks: updatedBlocks };
+        }
+
+        if (s.type === "tabs" && Array.isArray(s.tabs)) {
+          const updatedTabs = s.tabs.map((tab, ti) => {
+            const updatedSections = tab.sections.map((subSection, si) => {
+              if (
+                ["image", "imageLeft", "imageRight"].includes(
+                  subSection.type
+                ) &&
+                subSection.image
+              ) {
+                const tabImgKey = `section_${i}_tab_${ti}_section_${si}`;
+                const file = subSection.image.originFileObj || subSection.image;
+                if (file instanceof File) {
+                  formData.append(tabImgKey, file);
+                  return { ...subSection, image: tabImgKey };
+                }
+              }
+              return subSection;
+            });
+            return { ...tab, sections: updatedSections };
+          });
+          return { ...s, tabs: updatedTabs };
+        }
+
+        return s;
+      });
+
+      formData.append("sections", JSON.stringify(sections));
+
+      // ✅ CREATE vs UPDATE
+      if (isEdit) {
+        await onSubmitUpdate(formData);
+        toast.success("Page updated successfully ✅");
+      } else {
+        const res = await createMachinePage(formData);
+        toast.success("Page created successfully 🎉");
+        if (onSuccess) onSuccess(res?.data);
+        reset(); // clear form after create
       }
-
-      return s;
-    });
-
-    formData.append("sections", JSON.stringify(sections));
-
-    // ✅ CREATE vs UPDATE
-    if (isEdit) {
-      await onSubmitUpdate(formData);
-      toast.success("Page updated successfully ✅");
-    } else {
-      const res = await createMachinePage(formData);
-      toast.success("Page created successfully 🎉");
-      if (onSuccess) onSuccess(res?.data);
-      reset(); // clear form after create
+    } catch (err) {
+      console.error("Form submit error:", err);
+      let userMessage = "Something went wrong. Please try again.";
+      if (err?.response?.status === 400)
+        userMessage = "Some fields are missing or invalid.";
+      else if (err?.response?.status === 401)
+        userMessage = "You are not authorized.";
+      else if (err?.response?.status === 404)
+        userMessage = "Requested resource not found.";
+      else if (err?.response?.status === 500)
+        userMessage = "Server error. Please try again later.";
+      toast.error(userMessage);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Form submit error:", err);
-    let userMessage = "Something went wrong. Please try again.";
-    if (err?.response?.status === 400)
-      userMessage = "Some fields are missing or invalid.";
-    else if (err?.response?.status === 401)
-      userMessage = "You are not authorized.";
-    else if (err?.response?.status === 404)
-      userMessage = "Requested resource not found.";
-    else if (err?.response?.status === 500)
-      userMessage = "Server error. Please try again later.";
-    toast.error(userMessage);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const watchTitleEn = watch("title.en");
   const watchSlug = watch("slug");
@@ -1384,147 +1466,170 @@ useEffect(() => {
               )}
             />
 
-            {/* ✅ Banner Upload (unchanged) */}
+            {/* ✅ Fixed Banner Upload */}
             <div className="mt-4">
               <h3 className="mb-2 font-medium text-white">
                 Meta Image / Banner
               </h3>
-              <input
-                id="banner-upload"
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    const previewUrl = URL.createObjectURL(file);
 
-                    // Revoke old URL if exists
-                    if (
-                      bannerFile.length > 0 &&
-                      bannerFile[0]?.url?.startsWith("blob:")
-                    ) {
-                      URL.revokeObjectURL(bannerFile[0].url);
-                    }
+              <Controller
+                name="banner"
+                control={control}
+                render={({ field }) => {
+                  const file = field.value;
+                  const fileUrl =
+                    file instanceof File
+                      ? URL.createObjectURL(file)
+                      : typeof file === "string"
+                      ? file
+                      : bannerFile[0]?.url || "";
 
-                    setBannerFile([
-                      {
-                        originFileObj: file,
-                        url: previewUrl,
-                        isTemp: true, // mark as temporary preview
-                      },
-                    ]);
-                  }
-                }}
-                style={{ display: "none" }}
-              />
+                  return (
+                    <>
+                      <input
+                        id="banner-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const newFile = e.target.files[0];
+                          if (newFile) {
+                            field.onChange(newFile); // save into form
+                            const previewUrl = URL.createObjectURL(newFile);
 
-              <div className="flex flex-wrap gap-4 mt-2">
-                {bannerFile.length === 0 && (
-                  <label
-                    htmlFor="banner-upload"
-                    className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="2"
-                      stroke="currentColor"
-                      className="w-8 h-8 text-gray-400"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 4v16m8-8H4"
+                            // revoke old blob if needed
+                            if (bannerFile[0]?.url?.startsWith("blob:")) {
+                              URL.revokeObjectURL(bannerFile[0].url);
+                            }
+
+                            setBannerFile([
+                              { originFileObj: newFile, url: previewUrl },
+                            ]);
+                          }
+                        }}
+                        style={{ display: "none" }}
                       />
-                    </svg>
-                    <span className="mt-2 text-sm text-gray-400">Upload</span>
-                  </label>
-                )}
 
-                {bannerFile.length > 0 && bannerFile[0].url && (
-                  <div className="relative w-40 h-40 group">
-                    <img
-                      src={bannerFile[0].url}
-                      alt="Banner Preview"
-                      className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
-                    />
+                      {/* Upload / Preview */}
+                      <div className="flex flex-wrap gap-4 mt-2">
+                        {!file && bannerFile.length === 0 && (
+                          <label
+                            htmlFor="banner-upload"
+                            className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth="2"
+                              stroke="currentColor"
+                              className="w-8 h-8 text-gray-400"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M12 4v16m8-8H4"
+                              />
+                            </svg>
+                            <span className="mt-2 text-sm text-gray-400">
+                              Upload
+                            </span>
+                          </label>
+                        )}
 
-                    <button
-                      type="button"
-                      onClick={() => setShowBannerModal(true)}
-                      className="absolute bottom-2 left-2 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                      title="View full image"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-5 h-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    </button>
+                        {(fileUrl || bannerFile[0]?.url) && (
+                          <div className="relative w-40 h-40 group">
+                            <img
+                              src={fileUrl}
+                              alt="Banner Preview"
+                              className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
+                            />
 
-                    <label
-                      htmlFor="banner-upload"
-                      className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                      title="Replace image"
-                    >
-                      <ReloadOutlined />
-                    </label>
+                            {/* 👁 View full */}
+                            <button
+                              type="button"
+                              onClick={() => setShowBannerModal(true)}
+                              className="absolute bottom-2 left-2 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                              title="View full image"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={2}
+                                stroke="currentColor"
+                                className="w-5 h-5"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                            </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setBannerFile([])}
-                      className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full transition cursor-pointer"
-                      title="Remove image"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-4 h-4"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                )}
-              </div>
+                            {/* 🔁 Replace */}
+                            <label
+                              htmlFor="banner-upload"
+                              className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                              title="Replace image"
+                            >
+                              <ReloadOutlined />
+                            </label>
 
-              {showBannerModal && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                  <div className="relative max-w-4xl max-h-[90vh] w-auto">
-                    <img
-                      src={bannerFile[0]?.url}
-                      alt="Full Preview"
-                      className="max-h-[85vh] w-auto rounded-lg shadow-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowBannerModal(false)}
-                      className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg transition cursor-pointer"
-                      title="Close"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              )}
+                            {/* ❌ Remove */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                field.onChange(null);
+                                setBannerFile([]);
+                              }}
+                              className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full transition cursor-pointer"
+                              title="Remove image"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={2}
+                                stroke="currentColor"
+                                className="w-4 h-4"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Modal Preview */}
+                      {showBannerModal && fileUrl && (
+                        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+                          <div className="relative max-w-4xl max-h-[90vh] w-auto">
+                            <img
+                              src={fileUrl}
+                              alt="Full Preview"
+                              className="max-h-[85vh] w-auto rounded-lg shadow-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowBannerModal(false)}
+                              className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg transition cursor-pointer"
+                              title="Close"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                }}
+              />
             </div>
           </Card>
         )}
@@ -1706,6 +1811,63 @@ useEffect(() => {
           )}
         </div>
       </form>
+      <style>
+        {`
+    .ql-editor {
+      min-height: 250px;
+      color: #000 !important;
+    }
+
+    .ql-container.ql-snow {
+      border-radius: 0 0 0.5rem 0.5rem;
+      background: #fff;
+    }
+
+    .ql-container.ql-snow {
+      background: #ffffff;
+      color: #fff;
+    }
+
+    .ant-collapse > .ant-collapse-item > .ant-collapse-header .ant-collapse-header-text {
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    /* ✅ Sticky Quill toolbar */
+    .ql-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #fff;
+      border-radius: 0.5rem 0.5rem 0 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .ql-container {
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    label {
+      color: #fff !important;
+    }
+
+    .ant-tabs-nav::before {
+      border-bottom: 1px solid #2E2F2F !important;
+    }
+
+    .ant-collapse-header {
+      padding: 20px 0 !important;
+    }
+
+    .ant-modal-close {
+      background-color: red !important;
+      border-radius: 50% !important;
+      color: white !important;
+    }
+  `}
+      </style>
     </div>
   );
 };

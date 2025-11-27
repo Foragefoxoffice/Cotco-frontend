@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { getContactPage } from "../../Api/api";
 import { FiPlus } from "react-icons/fi";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getContactPage } from "../../Api/api";
 
 function PlusIcon({ open }) {
   return (
@@ -45,7 +45,7 @@ export default function ContactTeam() {
   const [contactTeam, setContactTeam] = useState(null);
   const [activeLang, setActiveLang] = useState("en");
 
-  /* 🌐 Detect active language (auto sync with header toggle) */
+  // 🌐 Detect language
   useEffect(() => {
     const detectLang = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
@@ -58,17 +58,15 @@ export default function ContactTeam() {
       setActiveLang(detectLang());
     }
 
-    // Observe changes to body class (for live language toggle)
     const observer = new MutationObserver(() => setActiveLang(detectLang()));
     observer.observe(document.body, {
       attributes: true,
       attributeFilter: ["class"],
     });
-
     return () => observer.disconnect();
   }, []);
 
-  /* 🌍 Fetch contact page data */
+  // 🌍 Fetch Contact Page data
   useEffect(() => {
     getContactPage()
       .then((res) => {
@@ -82,24 +80,20 @@ export default function ContactTeam() {
   if (!contactTeam) return null;
 
   const { teamIntro, teamList } = contactTeam;
-
-  // 🌐 Helper function to pick correct translation
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
   const tag = pick(teamIntro?.tag) || "Our People";
   const heading = pick(teamIntro?.heading) || "Meet Our Team";
   const description =
-    pick(teamIntro?.description) ||
-    "Our dedicated team is always ready to assist you.";
+    pick(teamIntro?.description) || "Our team is ready to support you.";
 
-  // ✅ Fixed key mapping + language aware
   const TEAM_SECTIONS = Object.entries(teamList || {}).map(([key, team]) => ({
     title: pick(team.teamLabel) || "Unnamed Team",
     members: (team.members || []).map((m) => ({
-      name: pick(m.name),
-      role: pick(m.role),
-      phone: m.phone || "",
-      email: m.email || "",
+      name: pick(m.teamName),
+      role: pick(m.teamDesgn),
+      phone: m.teamPhone || "",
+      email: m.teamEmail || "",
     })),
   }));
 
@@ -113,7 +107,6 @@ export default function ContactTeam() {
               {tag}
             </span>
           )}
-
           <TitleAnimation
             text={heading}
             className="heading uppercase"
@@ -122,7 +115,6 @@ export default function ContactTeam() {
             stagger={0.05}
             once={true}
           />
-
           {description && (
             <p className="mx-auto mt-3 max-w-3xl text-[16px] leading-relaxed text-slate-500 md:text-[16px]">
               {description}
@@ -130,7 +122,7 @@ export default function ContactTeam() {
           )}
         </div>
 
-        {/* Accordions */}
+        {/* Accordion Layout */}
         <div className="mx-auto mt-8 max-w-4xl space-y-6">
           {TEAM_SECTIONS.map((section, idx) => {
             const isOpen = openIndex === idx;

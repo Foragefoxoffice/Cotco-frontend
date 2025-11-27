@@ -3,6 +3,8 @@ import { Collapse, Button, Tabs, Modal } from "antd";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 
+
+
 import { getPrivacyPage, updatePrivacyPage } from "../../Api/api";
 import { CommonToaster } from "../../Common/CommonToaster";
 import "../../assets/css/LanguageTabs.css";
@@ -46,6 +48,8 @@ const validateFileSize = (file) => {
 };
 
 const API_BASE = import.meta.env.VITE_API_URL;
+
+
 
 const PrivacyPage = () => {
   const [isVietnamese, setIsVietnamese] = useState(false);
@@ -96,8 +100,10 @@ const PrivacyPage = () => {
       if (res.data?.seoMeta) {
         setSeoMeta({
           metaTitle: res.data.seoMeta.metaTitle || { en: "", vi: "" },
-          metaDescription:
-            res.data.seoMeta.metaDescription || { en: "", vi: "" },
+          metaDescription: res.data.seoMeta.metaDescription || {
+            en: "",
+            vi: "",
+          },
           metaKeywords: res.data.seoMeta.metaKeywords || { en: "", vi: "" },
         });
       }
@@ -117,7 +123,9 @@ const PrivacyPage = () => {
 
   // ✅ DELETE POLICY
   const deletePolicy = async (index) => {
-    const updatedPolicies = privacy.privacyPolicies.filter((_, i) => i !== index);
+    const updatedPolicies = privacy.privacyPolicies.filter(
+      (_, i) => i !== index
+    );
     setPrivacy({ ...privacy, privacyPolicies: updatedPolicies });
 
     try {
@@ -200,7 +208,10 @@ const PrivacyPage = () => {
     const formData = new FormData();
     formData.append("privacyBanner", JSON.stringify(privacyBanner));
     if (privacyBanner.privacyBannerMediaFile) {
-      formData.append("privacyBannerMediaFile", privacyBanner.privacyBannerMediaFile);
+      formData.append(
+        "privacyBannerMediaFile",
+        privacyBanner.privacyBannerMediaFile
+      );
     }
 
     const res = await updatePrivacyPage(formData);
@@ -264,6 +275,23 @@ const PrivacyPage = () => {
           border-radius:50% !important;
           color:white !important;
         }
+          .ql-editor ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ql-editor ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ql-editor li {
+  margin-bottom: 0.25rem;
+}
 `}</style>
 
       <h2 className="text-3xl font-bold mb-8 text-center text-white">
@@ -672,7 +700,7 @@ const PrivacyPage = () => {
                     {/* Content */}
                     <ReactQuill
                       value={policy.policyContent?.[lang] || ""}
-                      onChange={(value) =>
+                      onChange={(value) => {
                         setPrivacy((prev) => {
                           const updated = [...prev.privacyPolicies];
                           updated[index].policyContent = {
@@ -680,9 +708,31 @@ const PrivacyPage = () => {
                             [lang]: value,
                           };
                           return { ...prev, privacyPolicies: updated };
-                        })
-                      }
+                        });
+                      }}
                       theme="snow"
+                      modules={{
+                        toolbar: [
+                          [{ header: [1, 2, 3, false] }],
+                          ["bold", "italic", "underline", "strike"],
+                          [{ list: "ordered" }, { list: "bullet" }],
+                          ["link", "blockquote", "code-block"],
+                          ["clean"],
+                        ],
+                      }}
+                      formats={[
+                        "header",
+                        "bold",
+                        "italic",
+                        "underline",
+                        "strike",
+                        "blockquote",
+                        "list",
+                        "bullet",
+                        "indent",
+                        "link",
+                        "code-block",
+                      ]}
                     />
                   </div>
                 ))}
@@ -818,80 +868,77 @@ const PrivacyPage = () => {
                 />
 
                 {/* ✅ Meta Keywords with Enter to Add */}
-<label className="block font-medium mt-5 mb-3 text-white">
-  {lang === "vi" ? "Từ khóa Meta" : "Meta Keywords"}
-</label>
+                <label className="block font-medium mt-5 mb-3 text-white">
+                  {lang === "vi" ? "Từ khóa Meta" : "Meta Keywords"}
+                </label>
 
-<div
-  className="flex flex-wrap gap-2 mb-3 p-2 rounded-lg bg-[#1C1C1C] border border-[#2E2F2F] min-h-[48px] focus-within:ring-1 focus-within:ring-[#0284C7] transition-all"
->
-  {/* Existing tags */}
-  {seoMeta.metaKeywords?.[lang]
-    ?.split(",")
-    .map((kw) => kw.trim())
-    .filter(Boolean)
-    .map((kw, i) => (
-      <span
-        key={i}
-        className="px-3 py-1 rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-sm flex items-center gap-2 text-gray-200 shadow-sm"
-      >
-        {kw}
-        <button
-          type="button"
-          onClick={() => {
-            const updated = seoMeta.metaKeywords?.[lang]
-              ?.split(",")
-              .map((k) => k.trim())
-              .filter((k) => k && k !== kw);
-            setSeoMeta({
-              ...seoMeta,
-              metaKeywords: {
-                ...seoMeta.metaKeywords,
-                [lang]: updated.join(", "),
-              },
-            });
-          }}
-          className="text-gray-400 hover:text-red-400 transition"
-        >
-          <X size={12} />
-        </button>
-      </span>
-    ))}
+                <div className="flex flex-wrap gap-2 mb-3 p-2 rounded-lg bg-[#1C1C1C] border border-[#2E2F2F] min-h-[48px] focus-within:ring-1 focus-within:ring-[#0284C7] transition-all">
+                  {/* Existing tags */}
+                  {seoMeta.metaKeywords?.[lang]
+                    ?.split(",")
+                    .map((kw) => kw.trim())
+                    .filter(Boolean)
+                    .map((kw, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1 rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-sm flex items-center gap-2 text-gray-200 shadow-sm"
+                      >
+                        {kw}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = seoMeta.metaKeywords?.[lang]
+                              ?.split(",")
+                              .map((k) => k.trim())
+                              .filter((k) => k && k !== kw);
+                            setSeoMeta({
+                              ...seoMeta,
+                              metaKeywords: {
+                                ...seoMeta.metaKeywords,
+                                [lang]: updated.join(", "),
+                              },
+                            });
+                          }}
+                          className="text-gray-400 hover:text-red-400 transition"
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
 
-  {/* Input field for new keyword */}
-  <input
-    type="text"
-    placeholder={
-      lang === "vi"
-        ? "Nhập từ khóa và nhấn Enter"
-        : "Type keyword and press Enter"
-    }
-    className="flex-1 min-w-[140px] bg-transparent outline-none border-none text-gray-100 placeholder-gray-500 text-sm px-1"
-    onKeyDown={(e) => {
-      if (e.key === "Enter" && e.target.value.trim()) {
-        e.preventDefault();
-        const newKeyword = e.target.value.trim();
-        const existing =
-          seoMeta.metaKeywords?.[lang]
-            ?.split(",")
-            .map((k) => k.trim())
-            .filter(Boolean) || [];
-        if (!existing.includes(newKeyword)) {
-          const updated = [...existing, newKeyword];
-          setSeoMeta({
-            ...seoMeta,
-            metaKeywords: {
-              ...seoMeta.metaKeywords,
-              [lang]: updated.join(", "),
-            },
-          });
-        }
-        e.target.value = "";
-      }
-    }}
-  />
-</div>
-
+                  {/* Input field for new keyword */}
+                  <input
+                    type="text"
+                    placeholder={
+                      lang === "vi"
+                        ? "Nhập từ khóa và nhấn Enter"
+                        : "Type keyword and press Enter"
+                    }
+                    className="flex-1 min-w-[140px] bg-transparent outline-none border-none text-gray-100 placeholder-gray-500 text-sm px-1"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && e.target.value.trim()) {
+                        e.preventDefault();
+                        const newKeyword = e.target.value.trim();
+                        const existing =
+                          seoMeta.metaKeywords?.[lang]
+                            ?.split(",")
+                            .map((k) => k.trim())
+                            .filter(Boolean) || [];
+                        if (!existing.includes(newKeyword)) {
+                          const updated = [...existing, newKeyword];
+                          setSeoMeta({
+                            ...seoMeta,
+                            metaKeywords: {
+                              ...seoMeta.metaKeywords,
+                              [lang]: updated.join(", "),
+                            },
+                          });
+                        }
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                </div>
               </TabPane>
             ))}
           </Tabs>

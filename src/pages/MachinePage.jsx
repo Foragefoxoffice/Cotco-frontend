@@ -6,6 +6,7 @@ import { getMachinePageBySlug } from "../Api/api";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
+import "react-quill-new/dist/quill.snow.css";
 
 const MachinePageDetail = () => {
   const { pageSlug, categorySlug } = useParams();
@@ -91,15 +92,17 @@ const MachinePageDetail = () => {
   return (
     <div
       key={index}
-      className="my-10 page-width prose prose-invert max-w-none leading-relaxed"
-      // ✅ Securely render formatted HTML content
+      className="my-10 page-width max-w-none leading-relaxed quill-content"
       dangerouslySetInnerHTML={{
         __html: pick(section.richtext)
-          ?.replace(/\n/g, "<br>") // support line breaks if needed
+          ?.replace(/<ol>/g, "<ul>")
+          ?.replace(/<\/ol>/g, "</ul>")
+          ?.replace(/\n/g, "<br>")
           ?.trim() || "",
       }}
     />
   );
+
 
 
       case "list":
@@ -274,34 +277,65 @@ case "imageRight":
 
 
       case "tabs":
-        return (
-          <div key={index} className="my-10">
-            <style>
-              {
-                `
-                :where(.css-dev-only-do-not-override-1odpy5d).ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn{
-                  color:#fff !important;
-                }
-                `
-              }
-            </style>
-            <Tabs
-              defaultActiveKey="0"
-              className="custom-tabs"
-              items={section.tabs?.map((tab, ti) => ({
-                key: String(ti),
-                label: pick(tab.tabTitle) || `Tab ${ti + 1}`,
-                children: (
-                  <div className="mt-4 page-width">
-                    {tab.sections?.map((childSection, ci) =>
-                      renderSection(childSection, `${index}-${ci}`)
-                    )}
-                  </div>
-                ),
-              }))}
-            />
-          </div>
-        );
+  return (
+    <div key={index} className="my-10">
+      <style>
+        {`
+          /* Active tab color fix */
+          :where(.css-dev-only-do-not-override-1odpy5d).ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+            color: #fff !important;
+          }
+            .custom-tabs .ant-tabs-nav-list {
+              display: flex;
+              justify-content:start !important;
+              overflow-x: auto;
+              scrollbar-width: thin;
+              scrollbar-color: #aaa transparent;
+              -webkit-overflow-scrolling: touch;
+            }
+          /* ✅ Make tab headers scrollable on mobile */
+          @media (max-width: 768px) {
+            
+
+            .custom-tabs .ant-tabs-tab {
+              flex-shrink: 0;
+              white-space: nowrap;
+              margin-right: 12px !important;
+            }
+
+            .custom-tabs .ant-tabs-nav {
+              margin: 0 8px;
+            }
+
+            /* Hide scrollbar visually (optional) */
+            .custom-tabs .ant-tabs-nav-list::-webkit-scrollbar {
+              height: 4px;
+            }
+            .custom-tabs .ant-tabs-nav-list::-webkit-scrollbar-thumb {
+              background: #ccc;
+              border-radius: 2px;
+            }
+          }
+        `}
+      </style>
+
+      <Tabs
+        defaultActiveKey="0"
+        className="custom-tabs"
+        items={section.tabs?.map((tab, ti) => ({
+          key: String(ti),
+          label: pick(tab.tabTitle) || `Tab ${ti + 1}`,
+          children: (
+            <div className="mt-4 page-width">
+              {tab.sections?.map((childSection, ci) =>
+                renderSection(childSection, `${index}-${ci}`)
+              )}
+            </div>
+          ),
+        }))}
+      />
+    </div>
+  );
 
       default:
         return null;
@@ -355,6 +389,64 @@ case "imageRight":
       </div>
 
       <Footer />
+
+
+      <style>
+  {`
+    /* ✅ Pure Quill list styling (works without Tailwind prose) */
+    .quill-content ul {
+      list-style-type: disc;
+      margin-left: 1.5rem;
+      padding-left: 1.5rem;
+    }
+
+    .quill-content ol {
+      list-style-type: decimal;
+      margin-left: 1.5rem;
+      padding-left: 1.5rem;
+    }
+
+    .quill-content ul ul,
+    .quill-content ol ul {
+      list-style-type: circle;
+    }
+
+    .quill-content ol ol,
+    .quill-content ul ol {
+      list-style-type: lower-alpha;
+    }
+
+    .quill-content li {
+      margin-bottom: 0.4rem;
+      line-height: 1.6;
+    }
+
+    .quill-content ul li::marker,
+    .quill-content ol li::marker {
+      color: #555;
+    }
+
+    /* Optional: Quill paragraph spacing */
+    .quill-content p {
+      margin-bottom: 1rem;
+      line-height: 1.7;
+    }
+    .quill-content ul {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.quill-content ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem;
+  padding-left: 1.5rem;
+}
+  `}
+</style>
+
+
+
     </div>
   );
 };

@@ -148,14 +148,6 @@ export default function CottonHero() {
   return (
     <section className="relative bg-white hero overflow-hidden">
       {/* ✅ Language Switcher */}
-      <div className="absolute top-6 right-6 z-30">
-        <button
-          onClick={toggleLanguage}
-          className="px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-sm font-medium text-white backdrop-blur-md transition"
-        >
-          {activeLang === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English"}
-        </button>
-      </div>
 
       {/* ---------- Media Section ---------- */}
       <motion.div
@@ -254,7 +246,7 @@ export default function CottonHero() {
           {/* ✅ Right Bubble + Shadow */}
           {(bannerSlides[1] || bannerSlides[0]) && (
             <motion.div
-              initial={{ position: "absolute", right: "-150px", top: "70%" }}
+              initial={{ position: "absolute", right: "-120px", top: "70%" }}
               animate={controls}
               className="hidden md:block"
               style={{ position: "absolute" }}
@@ -263,7 +255,7 @@ export default function CottonHero() {
               <img
                 src={bannerSlides[1] || bannerSlides[0]}
                 alt="Cotton Right"
-                className="rounded-xl w-[240px] sm:w-[200px] md:w-[180px] lg:w-[220px] xl:w-[280px] 2xl:w-[320px]"
+                className="rounded-xl w-[240px] sm:w-[200px] md:w-[200px] lg:w-[260px] xl:w-[280px] 2xl:w-[320px]"
               />
               
             </motion.div>

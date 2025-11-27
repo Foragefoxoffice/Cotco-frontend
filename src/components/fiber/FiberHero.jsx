@@ -13,6 +13,42 @@ export default function FiberHero() {
   const textControls = useAnimation();
   const ref = useRef(null);
   const isInView = useInView(ref, { threshold: 0.4 });
+const safeCleanup = (html = "") => {
+  if (!html) return "";
+
+  let cleaned = html;
+
+  // Remove empty <p>
+  cleaned = cleaned.replace(/<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "");
+
+  // Fix <p> wrapping <ul> or <ol>
+  cleaned = cleaned.replace(/<p>\s*(<(ul|ol)[^>]*>)/gi, "$1");
+  cleaned = cleaned.replace(/(<\/ul>|<\/ol>)\s*<\/p>/gi, "$1");
+
+  // Remove <br> inside lists
+  cleaned = cleaned.replace(/(<ul[^>]*>[\s\S]*?)<br\s*\/?>([\s\S]*?<\/ul>)/gi, "$1$2");
+  cleaned = cleaned.replace(/(<ol[^>]*>[\s\S]*?)<br\s*\/?>([\s\S]*?<\/ol>)/gi, "$1$2");
+
+  // Remove <p> inside <li>
+  cleaned = cleaned.replace(/<li>\s*<p>/gi, "<li>");
+  cleaned = cleaned.replace(/<\/p>\s*<\/li>/gi, "</li>");
+
+  // Clean nested <p><span> combinations inside <li>
+  cleaned = cleaned.replace(/<li>\s*<p>\s*<span>/gi, "<li><span>");
+  cleaned = cleaned.replace(/<\/span>\s*<\/p>\s*<\/li>/gi, "</span></li>");
+
+  // Merge bullet paragraphs into real <ul>
+  cleaned = cleaned.replace(/<p>•\s*(.*?)<\/p>/gi, "<ul><li>$1</li></ul>");
+
+  // Remove double line breaks
+  cleaned = cleaned.replace(/(<br\s*\/?>\s*){2,}/gi, "<br />");
+
+  // Collapse multiple <ul> created by bullet merge
+  cleaned = cleaned.replace(/<\/ul>\s*<ul>/gi, "");
+
+  return cleaned.trim();
+};
+
 
   // ✅ Fetch Fiber Page data
   useEffect(() => {
@@ -134,6 +170,26 @@ export default function FiberHero() {
 
   return (
     <section className="relative bg-white hero overflow-hidden">
+      <style>
+        {`
+        .banner-overview ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin-bottom: 1rem;
+}
+
+.banner-overview ol {
+  list-style-type: decimal;
+  padding-left: 20px;
+  margin-bottom: 1rem;
+}
+
+.banner-overview li {
+  margin-bottom: 6px;
+}
+
+        `}
+      </style>
       {/* ---------- Media Section ---------- */}
       <motion.div
         initial={{ scale: 1, opacity: 1 }}
@@ -206,7 +262,7 @@ export default function FiberHero() {
           {/* ✅ Right Bubble */}
           {bottomImg && (
             <motion.div
-              initial={{ position: "absolute", right: "-170px", top: "30%" }}
+              initial={{ position: "absolute", right: "-170px", bottom: "10%" }}
               animate={controls}
               className="hidden md:block"
               style={{ position: "absolute" }}
@@ -230,21 +286,19 @@ export default function FiberHero() {
         >
           {/* LEFT: Overview Text */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-[#4B4B4B] leading-relaxed md:pr-10"
-          >
-            <div
-              className="banner-overview text-base md:text-[17px] text-justify md:text-left"
-              dangerouslySetInnerHTML={{
-                __html: (overview || "")
-                  .replace(/<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
-                  .replace(/(<br\s*\/?>\s*){2,}/gi, "<br />")
-                  .trim(),
-              }}
-            />
-          </motion.div>
+  initial={{ opacity: 0, y: 20 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8, ease: "easeOut" }}
+  className="text-[#4B4B4B] leading-relaxed md:pr-10"
+>
+  <div
+    className="banner-overview text-base md:text-[17px] text-justify md:text-left"
+    dangerouslySetInnerHTML={{
+      __html: safeCleanup(overview),
+    }}
+  />
+</motion.div>
+
 
           {/* RIGHT: Fiber Image */}
           <motion.div

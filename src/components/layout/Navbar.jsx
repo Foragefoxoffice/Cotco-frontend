@@ -19,15 +19,19 @@ const translations = {
     { label: "Cotton", href: "/cotton" },
     { label: "Fiber", href: "/fiber" },
     { label: "Machines", href: "/machines" },
+    { label: "Login", href: "/login" },
     { label: "Contact", href: "/contact" },
+    
   ],
   vi: [
     { label: "Trang Chủ", href: "/" },
     { label: "Giới Thiệu", href: "/aboutus" },
     { label: "Bông", href: "/cotton" },
-    { label: "Sợi", href: "/fiber" },
+    { label: "Xơ", href: "/fiber" },
     { label: "Máy Móc", href: "/machines" },
+    { label: "Đăng nhập", href: "/login" },
     { label: "Liên Hệ", href: "/contact" },
+    
   ],
 };
 

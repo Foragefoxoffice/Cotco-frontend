@@ -177,7 +177,7 @@ useEffect(() => {
                 {/* Collapsible Members */}
                 <div
                   className={`overflow-hidden transition-all duration-300 ${
-                    isOpen ? "max-h-[1000px] py-3" : "max-h-0"
+                    isOpen ? "h-fit py-3" : "max-h-0"
                   }`}
                 >
                   {section.members.length > 0 ? (

@@ -4,6 +4,9 @@ import { getFooterPage, updateFooterPage } from "../../Api/api";
 import { CommonToaster } from "../../Common/CommonToaster";
 import { DeleteOutlined } from "@ant-design/icons";
 import { RotateCw, X, Trash2 } from "lucide-react";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -13,6 +16,7 @@ const FooterPage = () => {
   const [footerSocials, setFooterSocials] = useState([]);
   const [showImageModal, setShowImageModal] = useState(false); // ✅ Added this
   const [isVietnamese, setIsVietnamese] = useState(false);
+  const [copyrights, setCopyrights] = useState("");
 
   // ✅ Detect global language (using vi-mode class)
   useEffect(() => {
@@ -68,6 +72,7 @@ const FooterPage = () => {
       const data = res.data?.footer || res.data;
       if (data?.footerLogo) setFooterLogo(data.footerLogo);
       if (data?.footerSocials) setFooterSocials(data.footerSocials);
+      if (data?.copyrights) setCopyrights(data.copyrights);
     });
   }, []);
 
@@ -93,8 +98,20 @@ const FooterPage = () => {
 
   // ✅ Add new social item
   const handleAddSocial = () => {
-    setFooterSocials([...footerSocials, { icon: "facebook", link: "" }]);
-  };
+  setFooterSocials([
+    ...footerSocials,
+    { iconImage: "", iconFile: null, link: "" },
+  ]);
+};
+
+const handleIconUpload = (index, file) => {
+  const updated = [...footerSocials];
+  updated[index].iconFile = file;
+  updated[index].iconImage = URL.createObjectURL(file); // preview
+  setFooterSocials(updated);
+};
+
+
 
   // ✅ Remove a social icon and update backend
   const handleRemoveSocial = async (index) => {
@@ -105,6 +122,7 @@ const FooterPage = () => {
       const formData = new FormData();
       formData.append("footerSocials", JSON.stringify(updated));
       if (footerLogoFile) formData.append("footerLogoFile", footerLogoFile);
+      formData.append("copyrights", copyrights);
 
       const res = await updateFooterPage(formData);
       const data = res.data?.footer || res.data;
@@ -119,19 +137,42 @@ const FooterPage = () => {
 
   // ✅ Save changes
   const handleSave = async () => {
-    const formData = new FormData();
-    if (footerLogoFile) formData.append("footerLogoFile", footerLogoFile);
-    formData.append("footerSocials", JSON.stringify(footerSocials));
+  const formData = new FormData();
 
-    const res = await updateFooterPage(formData);
-    const data = res.data?.footer || res.data;
-    if (data?.footerLogo) {
-      setFooterLogo(data.footerLogo);
-      setFooterLogoFile(null);
-      setFooterSocials(data.footerSocials);
-      CommonToaster(t.success, "success");
+  if (footerLogoFile) {
+    formData.append("footerLogoFile", footerLogoFile);
+  }
+
+  footerSocials.forEach((item, i) => {
+    if (item.iconFile) {
+      formData.append(`iconFile_${i}`, item.iconFile);
     }
-  };
+  });
+
+  // Send JSON structure (excluding preview URL)
+  formData.append(
+    "footerSocials",
+    JSON.stringify(
+      footerSocials.map(item => ({
+        link: item.link,
+        iconImage: item.iconFile ? null : item.iconImage // backend will replace file
+      }))
+    )
+  );
+
+  formData.append("copyrights", copyrights);
+
+  const res = await updateFooterPage(formData);
+  const data = res.data?.footer || res.data;
+
+  if (data) {
+    setFooterLogo(data.footerLogo || "");
+    setFooterSocials(data.footerSocials || []);
+    setFooterLogoFile(null);
+    CommonToaster(t.success, "success");
+  }
+};
+
 
   return (
     <div className="mx-auto p-8 mt-8 rounded-xl bg-[#171717] text-white min-h-screen">
@@ -269,98 +310,109 @@ const FooterPage = () => {
 
       <h3 className="text-white !mt-12">{t.socialsTitle}</h3>
 
-      <Alert
-        style={{ marginBottom: 20 }}
-        type="info"
-        showIcon
-        banner
-        closable
-        message={
-          <span className="text-white">
-            {t.info}{" "}
-            <a
-              href="https://lucide.dev/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontWeight: "500", textDecoration: "underline" }}
-            >
-              lucide.dev
-            </a>
-          </span>
-        }
+{footerSocials.map((social, index) => (
+  <div key={index} className="flex items-center gap-4 mb-6">
+
+    {/* ICON UPLOAD BOX */}
+    <label className="w-16 h-16 rounded-lg bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center cursor-pointer hover:bg-[#2A2A2A] transition">
+      {social.iconImage ? (
+        <img
+          src={social.iconImage.startsWith("blob:")
+            ? social.iconImage
+            : `${API_BASE}${social.iconImage}`
+          }
+          alt="social icon"
+          className="w-full h-full object-cover rounded-lg"
+        />
+      ) : (
+        <span className="text-gray-400 text-sm text-center px-2">
+          Upload Icon
+        </span>
+      )}
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleIconUpload(index, e.target.files[0])}
+        className="hidden"
       />
+    </label>
 
-      {footerSocials.map((social, index) => (
-        <div key={index} className="flex gap-4 items-center mb-3">
-          <Input
+    {/* LINK INPUT */}
+    <Input
+      style={{
+        backgroundColor: "#262626",
+        border: "1px solid #2E2F2F",
+        borderRadius: "8px",
+        color: "#fff",
+        padding: "10px 14px",
+        fontSize: "14px",
+        width: "280px",
+      }}
+      placeholder={t.linkPlaceholder}
+      value={social.link}
+      onChange={(e) => handleSocialChange(index, "link", e.target.value)}
+    />
+
+    {/* DELETE BUTTON */}
+    <Button
+      size="small"
+      style={{
+        borderRadius: "999px",
+        fontWeight: 500,
+        background: "#E50000",
+        color: "#fff",
+        border: "none",
+        padding: "10px 18px",
+      }}
+      onClick={() => handleRemoveSocial(index)}
+    >
+      {t.remove}
+    </Button>
+  </div>
+))}
+
+<Button
+  onClick={handleAddSocial}
+  className="mb-4"
+  style={{
+    borderRadius: "9999px",
+    padding: "22px",
+    backgroundColor: "#0284C7",
+    color: "#fff",
+    fontWeight: "600",
+    border: "none",
+  }}
+>
+  {t.addSocial}
+</Button>
+
+
+      {/* 📄 Copyrights Content — Rich Text with ONLY Link Option */}
+      <div className="mt-10">
+        <label className="block text-white text-lg font-semibold mb-2">
+          {isVietnamese ? "Nội dung bản quyền" : "Copyrights Content"}
+        </label>
+
+        <div className="rounded-lg overflow-hidden bg-[#262626]">
+          <ReactQuill
+            theme="snow"
+            value={copyrights}
+            onChange={setCopyrights}
+            modules={{
+              toolbar: [
+                ["link"], // 👉 ONLY LINK BUTTON
+              ],
+            }}
+            formats={["link"]} // 👉 ONLY ALLOW LINKS
             style={{
               backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
+              color: "#fff",
               borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-              fontSize: "14px",
             }}
-            placeholder={t.iconPlaceholder}
-            value={social.icon}
-            onChange={(e) => handleSocialChange(index, "icon", e.target.value)}
           />
-          <Input
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-              fontSize: "14px",
-            }}
-            placeholder={t.linkPlaceholder}
-            value={social.link}
-            onChange={(e) => handleSocialChange(index, "link", e.target.value)}
-          />
-          <Button
-            size="small"
-            icon={
-              <Trash2
-                size={14} // 👈 smaller icon size
-                strokeWidth={2} // slightly thinner for balance
-                className="align-middle" // keeps it centered with text
-              />
-            }
-            style={{
-              borderRadius: "999px",
-              fontWeight: 500,
-              background: "#E50000",
-              color: "#fff",
-              border: "none",
-              padding: "10px 18px", // 👈 slightly smaller padding to match icon
-              height: "auto",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px", // 👈 small space between icon and text
-            }}
-            onClick={() => handleRemoveSocial(index)}
-          >
-            {t.remove}
-          </Button>
         </div>
-      ))}
-
-      <Button
-        onClick={handleAddSocial}
-        className="mb-4"
-        style={{
-          borderRadius: "9999px",
-          padding: "22px",
-          backgroundColor: "#0284C7",
-          color: "#fff",
-          fontWeight: "600",
-          border: "none",
-        }}
-      >
-        {t.addSocial}
-      </Button>
-
+      </div>
       <div className="flex justify-end gap-4 mt-6">
         <Button
           onClick={() => window.location.reload()}
@@ -391,6 +443,82 @@ const FooterPage = () => {
           {t.save}
         </Button>
       </div>
+      <style>
+        {
+          `
+          /* Fix ReactQuill link input alignment */
+            .ql-tooltip {
+              left: 0 !important;
+              transform: translateX(0) !important;
+            }
+
+            /* Make tooltip visible in dark mode */
+            .ql-tooltip {
+              background: #2e2e2e !important;
+              border: 1px solid #444 !important;
+              color: #fff !important;
+            }
+
+            .ql-tooltip input[type="text"] {
+              background: #1f1f1f !important;
+              border: 1px solid #555 !important;
+              color: #fff !important;
+              padding: 6px 10px !important;
+              border-radius: 6px !important;
+            }
+
+            .ql-tooltip a {
+              color: #0ea5e9 !important;
+            }
+            .ql-editor {
+    min-height: 250px;
+  }
+
+  .ql-container.ql-snow {
+    border-radius: 0 0 0.5rem 0.5rem;
+  }
+
+  .ql-container.ql-snow {
+    color: #fff;
+  }
+
+  .ant-collapse>.ant-collapse-item>.ant-collapse-header .ant-collapse-header-text {
+    color:white;
+    font-weight:600;
+    font-size:16px;
+  }
+
+  /* ✅ Sticky Quill toolbar */
+  .ql-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
+    border-radius: 0.5rem 0.5rem 0 0;
+    border-bottom: 1px solid #333;
+  }
+
+  .ql-container {
+    max-height: 350px;
+    overflow-y: auto;
+  }
+    label {
+          color: #fff !important;
+        }
+        .ant-tabs-nav::before{
+          border-bottom:1px solid #2E2F2F !important;
+        }
+        .ant-collapse-header{
+          padding:20px 0 !important;
+        }
+        .ant-modal-close{
+          background-color:red !important;
+          border-radius:50% !important;
+          color:white !important;
+        }
+          `
+        }
+      </style>
     </div>
   );
 };

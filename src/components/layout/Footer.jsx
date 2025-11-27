@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import * as LucideIcons from "lucide-react";
 import { getFooterPage } from "../../Api/api";
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -8,6 +7,7 @@ const Footer = () => {
   const [footerLogo, setFooterLogo] = useState("");
   const [footerSocials, setFooterSocials] = useState([]);
   const [isVietnamese, setIsVietnamese] = useState(false);
+  const [copyrights, setCopyrights] = useState("");
 
   // ✅ Detect language (based on body class)
   useEffect(() => {
@@ -29,17 +29,12 @@ const Footer = () => {
   useEffect(() => {
     getFooterPage().then((res) => {
       const data = res.data?.footer || res.data;
+
       if (data?.footerLogo) setFooterLogo(data.footerLogo);
       if (data?.footerSocials) setFooterSocials(data.footerSocials);
+      if (data?.copyrights) setCopyrights(data.copyrights); // ✅ ADD THIS
     });
   }, []);
-
-  const getLucideIcon = (name) => {
-    if (!name) return LucideIcons.HelpCircle;
-    const formatted =
-      name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-    return LucideIcons[formatted] || LucideIcons.HelpCircle;
-  };
 
   // ✅ Translations for all links
   const links = {
@@ -55,7 +50,7 @@ const Footer = () => {
     vi: {
       about: "Về Chúng Tôi",
       cotton: "Bông",
-      fiber: "Sợi",
+      fiber: "Xơ",
       products: "Sản Phẩm",
       contact: "Liên Hệ",
       privacy: "Chính Sách Bảo Mật",
@@ -85,23 +80,25 @@ const Footer = () => {
 
             <div className="flex gap-4 flex-wrap">
               {footerSocials.length > 0 ? (
-                footerSocials.map((social, idx) => {
-                  const Icon = getLucideIcon(social.icon);
-                  return (
-                    <a
-                      key={idx}
-                      href={social.link || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded border border-gray-500 hover:bg-white group"
-                    >
-                      <Icon
-                        size={20}
-                        className="text-white group-hover:text-[#0A1C2E]"
+                footerSocials.map((social, idx) => (
+                  <a
+                    key={idx}
+                    href={social.link || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded border border-gray-500 hover:bg-white group"
+                  >
+                    {social.iconImage ? (
+                      <img
+                        src={`${API_BASE}${social.iconImage}`}
+                        alt="Social icon"
+                        className="w-6 h-6 object-contain group-hover:brightness-0"
                       />
-                    </a>
-                  );
-                })
+                    ) : (
+                      <span className="text-gray-400 text-xs">No Icon</span>
+                    )}
+                  </a>
+                ))
               ) : (
                 <span className="text-gray-400">
                   {isVietnamese ? "Không có mạng xã hội" : "No Social Icons"}
@@ -175,6 +172,17 @@ const Footer = () => {
             </ul>
           </div>
         </div>
+        {/* Copyrights (Rich Text) */}
+        <div
+          className="mt-16 text-center text-gray-400 text-sm px-4 leading-relaxed"
+          dangerouslySetInnerHTML={{
+            __html:
+              copyrights ||
+              (isVietnamese
+                ? "© <strong>Nội dung bản quyền</strong> đang chờ cập nhật"
+                : "© <strong>Copyright text</strong> pending"),
+          }}
+        ></div>
       </div>
     </footer>
   );

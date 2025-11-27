@@ -253,7 +253,7 @@ const CottonPage = () => {
     cottonMemberImgFiles: [],
   });
 
-  const [cottonTeam, setCottonTeam] = usePersistedState("cottonTeam", {
+  const [cottonTeam, setCottonTeam] = useState({
     aboutTeamIntro: {
       tag: { en: "", vi: "" },
       heading: { en: "", vi: "" },
@@ -352,6 +352,35 @@ const CottonPage = () => {
           }));
         }
 
+              // ✅ TEAM SECTION
+      if (data.cottonTeam && typeof data.cottonTeam === "object") {
+        const teamData = data.cottonTeam;
+
+        // Handle both new and legacy schema
+        setCottonTeam({
+          aboutTeamIntro:
+            teamData.aboutTeamIntro || {
+              tag: { en: "", vi: "" },
+              heading: { en: "", vi: "" },
+              description: { en: "", vi: "" },
+            },
+          aboutTeam: teamData.aboutTeam || {},
+        });
+
+        // 🧹 Clear local cache to ensure fresh data
+        localStorage.removeItem("cottonTeam");
+      } else {
+        setCottonTeam({
+          aboutTeamIntro: {
+            tag: { en: "", vi: "" },
+            heading: { en: "", vi: "" },
+            description: { en: "", vi: "" },
+          },
+          aboutTeam: {},
+        });
+      }
+
+
         // ✅ MEMBER SECTION
         if (data.cottonMember) {
           const member = data.cottonMember;
@@ -363,6 +392,8 @@ const CottonPage = () => {
           }));
         }
       })
+
+      
       .catch((err) => {
         console.error("❌ Failed to fetch cotton page:", err);
       });

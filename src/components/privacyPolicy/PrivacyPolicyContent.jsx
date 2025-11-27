@@ -61,7 +61,7 @@ export default function PrivacyPolicyContent() {
   return (
     <div className="min-h-screen bg-white">
       {/* ===== Banner Section ===== */}
-      {privacy.privacyBanner && (
+      {/* {privacy.privacyBanner && (
         <div className="w-full relative overflow-hidden">
           {privacy.privacyBanner.privacyBannerMedia ? (
             /\.(mp4|webm|ogg)$/i.test(
@@ -97,7 +97,7 @@ export default function PrivacyPolicyContent() {
             </h1>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* ===== Policies Section ===== */}
       <div className="w-10/12 mx-auto px-6 py-16">
@@ -197,6 +197,22 @@ export default function PrivacyPolicyContent() {
         .privacy-collapse .ant-collapse-expand-icon {
           color: black !important;
         }
+
+        .privacy-collapse ul {
+    list-style-type: disc !important;
+    padding-left: 1.5rem !important;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .privacy-collapse ol {
+    list-style-type: decimal !important;
+    padding-left: 1.5rem !important;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .privacy-collapse li {
+    margin-bottom: 0.25rem;
+  }
       `}</style>
     </div>
   );

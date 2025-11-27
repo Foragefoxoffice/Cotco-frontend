@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useState, useEffect } from "react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 
@@ -9,30 +9,37 @@ const CottonTrustSection = lazy(() => import("../components/cotton/CottonTrustSe
 const CertificationSliderSection = lazy(() => import("../components/cotton/CertificationSliderSection"));
 const MeetOurTeam = lazy(() => import("../components/cotton/OurTeam"));
 
-// 💫 Stylish Loader
-const StylishLoader = () => {
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0B0B0B] text-white">
-      <div className="relative">
-        {/* Spinner Ring */}
-        <div className="w-16 h-16 border-4 border-transparent border-t-[#00B0F0] rounded-full animate-spin" />
-        {/* Inner Pulse */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-5 h-5 bg-[#00B0F0] rounded-full animate-ping" />
-        </div>
-      </div>
-      <p className="mt-6 text-lg font-semibold tracking-wide animate-pulse">
-        Loading Cotton Page...
-      </p>
+// 💫 Premium Brand Loader (same as Home & About)
+const PageLoader = () => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+    <div className="relative w-40 h-40 flex items-center justify-center">
+      {/* Center Logo */}
+      <img
+        src="/logo/logo.png"
+        alt="Loading..."
+        className="w-20 h-20 object-contain z-10 animate-pulse"
+      />
+      {/* Spinning Ring */}
+      <div className="absolute inset-0 border-[6px] border-[#e5e7eb] border-t-[#164B8B] rounded-full animate-spin"></div>
     </div>
-  );
-};
+  </div>
+);
 
 const Cotton = () => {
+  const [loading, setLoading] = useState(true);
+
+  // Optional: Preloader delay for smoother feel
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) return <PageLoader />;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <Suspense fallback={<StylishLoader />}>
+      <Suspense fallback={<PageLoader />}>
         <main className="flex-grow">
           <CottonHero />
           <SuppliersSection />

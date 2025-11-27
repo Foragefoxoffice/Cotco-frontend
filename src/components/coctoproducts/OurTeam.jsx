@@ -43,7 +43,7 @@ function MemberCard({ name, role, phone, email, activeLang }) {
 }
 
 export default function MeetOurTeam() {
-  const [openIndex, setOpenIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState(-1);
   const [activeLang, setActiveLang] = useState("en");
   const [teamSection, setTeamSection] = useState(null);
 

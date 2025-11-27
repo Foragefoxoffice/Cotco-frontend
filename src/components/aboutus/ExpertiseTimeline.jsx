@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  useScroll,
-  useTransform,
   motion,
   AnimatePresence,
 } from "framer-motion";
@@ -9,10 +7,6 @@ import { getAboutPage } from "../../Api/api";
 
 export default function PinnedExpertiseTimeline() {
   const sectionRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
 
   const [historyData, setHistoryData] = useState([]);
   const [historyTitle, setHistoryTitle] = useState({ en: "", vi: "" });
@@ -20,26 +14,29 @@ export default function PinnedExpertiseTimeline() {
   const [prevIndex, setPrevIndex] = useState(0);
   const [activeLang, setActiveLang] = useState("en");
 
-  // ✅ Detect active language dynamically via body class
+  // Lock to avoid multiple scroll updates at once
+  const scrollLock = useRef(false);
+
+  // Detect active language
   useEffect(() => {
-    const detectLanguage = () => {
-      if (typeof document === "undefined") return "en";
-      return document.body.classList.contains("vi-mode") ? "vi" : "en";
-    };
+    const detectLanguage = () =>
+      document.body.classList.contains("vi-mode") ? "vi" : "en";
 
     setActiveLang(detectLanguage());
 
     const observer = new MutationObserver(() => {
       setActiveLang(detectLanguage());
     });
+
     observer.observe(document.body, {
       attributes: true,
       attributeFilter: ["class"],
     });
+
     return () => observer.disconnect();
   }, []);
 
-  // ✅ API base
+  // API base
   const API_BASE = import.meta.env.VITE_API_URL;
   const getFullUrl = (path) => {
     if (!path) return "";
@@ -47,11 +44,12 @@ export default function PinnedExpertiseTimeline() {
     return `${API_BASE}${path}`;
   };
 
-  // ✅ Fetch History Data
+  // Fetch History Data
   useEffect(() => {
     getAboutPage()
       .then((res) => {
         const section = res.data?.aboutHistorySection;
+
         if (section?.aboutHistory?.length) {
           const sorted = [...section.aboutHistory].sort(
             (a, b) => Number(a.year) - Number(b.year)
@@ -63,31 +61,36 @@ export default function PinnedExpertiseTimeline() {
       .catch((err) => console.error("❌ Failed to load history:", err));
   }, []);
 
-  // ✅ Helper to pick correct language safely
   const pick = (obj) =>
     typeof obj === "object"
       ? obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? ""
       : obj ?? "";
 
-  // ✅ Scroll-driven step index
-  const stepCount = historyData.length;
-
-  const scrollSteps = useTransform(scrollYProgress, (progress) => {
-    if (stepCount === 0) return 0;
-    return Math.min(Math.floor(progress * stepCount), stepCount - 1);
-  });
-
+  // ⭐ One-scroll = one-step logic
   useEffect(() => {
-    const unsubscribe = scrollSteps.on("change", (latest) => {
-      if (latest !== currentIndex) {
-        setPrevIndex(currentIndex);
-        setCurrentIndex(latest);
-      }
-    });
-    return unsubscribe;
-  }, [scrollSteps, currentIndex]);
+    const handleWheel = (e) => {
+      if (scrollLock.current || historyData.length === 0) return;
 
-  // 🔒 Guard if no data yet
+      if (e.deltaY > 0 && currentIndex < historyData.length - 1) {
+        scrollLock.current = true;
+        setPrevIndex(currentIndex);
+        setCurrentIndex((prev) => prev + 1);
+      } else if (e.deltaY < 0 && currentIndex > 0) {
+        scrollLock.current = true;
+        setPrevIndex(currentIndex);
+        setCurrentIndex((prev) => prev - 1);
+      }
+
+      setTimeout(() => {
+        scrollLock.current = false;
+      }, 800); // matches your animation speed
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, [currentIndex, historyData.length]);
+
+  // Guard
   if (!historyData.length) {
     return (
       <section
@@ -101,28 +104,28 @@ export default function PinnedExpertiseTimeline() {
     );
   }
 
-  // ✅ Use dynamic heading (fallback if empty)
   const headingText =
     pick(historyTitle) ||
     (activeLang === "vi" ? "Lịch sử công ty" : "Our History");
 
   return (
     <section
-      ref={sectionRef}
-      style={{ height: `${100 * (historyData.length + 1)}vh` }}
-      className="relative bg-[#E7EDF5]"
-    >
-      {/* ---------- Desktop Layout ---------- */}
-      <div className="hidden md:grid sticky top-0 h-screen grid-cols-1 md:grid-cols-2 gap-20 justify-center w-full px-6 md:pr-0 md:px-20">
-        {/* Left: Years + Description */}
+  ref={sectionRef}
+  style={{ height: `${historyData.length * 100}vh` }}
+  className="relative bg-[#E7EDF5] mb-[1px]"
+>
+
+  <div className="hidden md:grid sticky top-0 h-screen grid-cols-1 md:grid-cols-2 gap-20 justify-center w-full px-6 md:pr-0 md:px-20">
+
+        {/* LEFT SIDE */}
         <div className="flex flex-col justify-center space-y-4 h-full py-20 relative">
           <h3
-  className={`absolute top-1/2 -translate-y-1/2 text-[#19191940] z-2 rotate-[270deg] text-6xl font-bold text-center uppercase transition-all duration-300
-    ${activeLang === "vi" ? "left-[-150px] w-[400px]" : "left-[-150px]"}
-  `}
->
-  {headingText}
-</h3>
+            className={`absolute top-1/2 -translate-y-1/2 text-[#19191940] z-2 rotate-[270deg] text-6xl font-bold text-center uppercase transition-all duration-300
+              ${activeLang === "vi" ? "left-[-150px] w-[400px]" : "left-[-150px]"}
+            `}
+          >
+            {headingText}
+          </h3>
 
           <div className="space-y-4">
             {historyData.slice(0, currentIndex + 1).map((item, i) => (
@@ -153,7 +156,7 @@ export default function PinnedExpertiseTimeline() {
           </motion.p>
         </div>
 
-        {/* Right: Static + Animated Image */}
+        {/* RIGHT SIDE */}
         <div className="relative h-full w-full overflow-hidden">
           {historyData[prevIndex]?.image && (
             <img
@@ -182,7 +185,6 @@ export default function PinnedExpertiseTimeline() {
 
       {/* ---------- Mobile Layout ---------- */}
       <div className="md:hidden sticky top-0 h-screen w-full overflow-hidden">
-        {/* Background image transition */}
         {historyData[prevIndex]?.image && (
           <img
             src={getFullUrl(historyData[prevIndex].image)}
@@ -206,7 +208,6 @@ export default function PinnedExpertiseTimeline() {
           )}
         </AnimatePresence>
 
-        {/* Gradient overlay for readability */}
         <motion.div
           key={`overlay-${currentIndex}`}
           initial={{ opacity: 0 }}
@@ -215,7 +216,6 @@ export default function PinnedExpertiseTimeline() {
           className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 z-20"
         />
 
-        {/* Top Left Heading */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -227,7 +227,6 @@ export default function PinnedExpertiseTimeline() {
           </p>
         </motion.div>
 
-        {/* Top Right Year */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -239,7 +238,6 @@ export default function PinnedExpertiseTimeline() {
           </p>
         </motion.div>
 
-        {/* Bottom Description */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

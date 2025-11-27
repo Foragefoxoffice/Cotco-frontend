@@ -81,8 +81,7 @@ const SustainabilitySection = () => {
           <div className="h-full">
             <img
               src={
-                getFullUrl(data.fiberSustainabilityImg) ||
-                "/img/fiber/eco.jpg"
+                getFullUrl(data.fiberSustainabilityImg) || "/img/fiber/eco.jpg"
               }
               alt="Eco Fabrics"
               className="rounded-lg shadow-lg w-full h-full object-cover"
@@ -91,54 +90,60 @@ const SustainabilitySection = () => {
 
           {/* Cards (Subtitles + Descriptions) */}
           <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-100 p-6 rounded-lg text-left flex items-start gap-4 hover:shadow-sm hover:border hover:border-[#9ABFE1]">
-              <div className="bg-blue-200 h-12 md:w-15 w-30 rounded-full grid place-content-center">
-                <FaRecycle className="text-blue-500 text-xl mt-1" />
-              </div>              
-              <div>
-                <h4 className="font-semibold text-lg text-gray-900">
-                  {pick(data.fiberSustainabilitySubTitle1) || "Biodegradable"}
-                </h4>
-                <p className="text-gray-600 text-sm">
-                  {pick(data.fiberSustainabilitySubDes1) ||
-                    "Naturally breaks down without leaving microplastics in the environment after disposal."}
-                </p>
-              </div>
-            </div>
 
-            <div className="bg-blue-50 border border-blue-100 p-6 rounded-lg shadow-sm text-left flex items-start gap-4 hover:shadow-sm hover:border hover:border-[#9ABFE1]">
-              <div className="bg-blue-200 h-12 md:w-20 w-36 rounded-full grid place-content-center">
-                <FaDroplet className="text-blue-500 text-xl" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-lg text-gray-900">
-                  {pick(data.fiberSustainabilitySubTitle2) ||
-                    "Efficient Production"}
-                </h4>
-                <p className="text-gray-600 text-sm">
-                  {pick(data.fiberSustainabilitySubDes2) ||
-                    "Manufactured using increasingly energy- and water-efficient processes to minimize environmental impact."}
-                </p>
-              </div>
-            </div>
+  {/* Card 1 */}
+  <div className="bg-blue-50 border border-blue-100 p-6 rounded-lg text-left flex items-start gap-4 hover:shadow-sm hover:border hover:border-[#9ABFE1]">
+    <div className="w-12 h-12 rounded-full bg-blue-200 flex justify-center items-center shrink-0">
+      <FaRecycle className="text-blue-500 text-xl" />
+    </div>
 
-            <div className="bg-blue-50 border border-blue-100 p-6 rounded-lg shadow-sm text-left flex items-start gap-4 hover:shadow-sm hover:border hover:border-[#9ABFE1]">
-              <div className="bg-blue-200 h-12 md:w-17 w-32 rounded-full grid place-content-center">
-                <FaEarthAmericas className="text-blue-500 text-xl mt-1" />
-              </div>
-              
-              <div>
-                <h4 className="font-semibold text-lg text-gray-900">
-                  {pick(data.fiberSustainabilitySubTitle3) ||
-                    "Sustainable Fashion"}
-                </h4>
-                <p className="text-gray-600 text-sm">
-                  {pick(data.fiberSustainabilitySubDes3) ||
-                    "Supports the global shift towards greener fashion alternatives without compromising quality."}
-                </p>
-              </div>
-            </div>
-          </div>
+    <div>
+      <h4 className="font-semibold text-lg text-gray-900">
+        {pick(data.fiberSustainabilitySubTitle1) || "Biodegradable"}
+      </h4>
+      <p className="text-gray-600 text-sm">
+        {pick(data.fiberSustainabilitySubDes1) ||
+          "Naturally breaks down without leaving microplastics in the environment after disposal."}
+      </p>
+    </div>
+  </div>
+
+  {/* Card 2 */}
+  <div className="bg-blue-50 border border-blue-100 p-6 rounded-lg text-left flex items-start gap-4 hover:shadow-sm hover:border hover:border-[#9ABFE1]">
+    <div className="w-12 h-12 rounded-full bg-blue-200 flex justify-center items-center shrink-0">
+      <FaDroplet className="text-blue-500 text-xl" />
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg text-gray-900">
+        {pick(data.fiberSustainabilitySubTitle2) || "Efficient Production"}
+      </h4>
+      <p className="text-gray-600 text-sm">
+        {pick(data.fiberSustainabilitySubDes2) ||
+          "Manufactured using increasingly energy- and water-efficient processes to minimize environmental impact."}
+      </p>
+    </div>
+  </div>
+
+  {/* Card 3 */}
+  <div className="bg-blue-50 border border-blue-100 p-6 rounded-lg text-left flex items-start gap-4 hover:shadow-sm hover:border hover:border-[#9ABFE1]">
+    <div className="w-12 h-12 rounded-full bg-blue-200 flex justify-center items-center shrink-0">
+      <FaEarthAmericas className="text-blue-500 text-xl" />
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg text-gray-900">
+        {pick(data.fiberSustainabilitySubTitle3) || "Sustainable Fashion"}
+      </h4>
+      <p className="text-gray-600 text-sm">
+        {pick(data.fiberSustainabilitySubDes3) ||
+          "Supports the global shift towards greener fashion alternatives without compromising quality."}
+      </p>
+    </div>
+  </div>
+
+</div>
+
         </div>
       </div>
     </section>

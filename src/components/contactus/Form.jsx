@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getContactPage, submitContactForm } from "../../Api/api";
+import { RiArrowDropDownLine } from "react-icons/ri";
 
 export default function ContactSection() {
   const [contactFormData, setContactFormData] = useState(null);
   const [isVietnamese, setIsVietnamese] = useState(false);
+
   const API_BASE = import.meta.env.VITE_API_URL;
 
   // ✅ Detect language (body class)
@@ -13,7 +15,10 @@ export default function ContactSection() {
     checkLang();
 
     const observer = new MutationObserver(checkLang);
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -75,7 +80,8 @@ export default function ContactSection() {
             <ContactForm
               heading={
                 isVietnamese
-                  ? contactFormData?.contactForm?.vi || "Gửi tin nhắn cho chúng tôi"
+                  ? contactFormData?.contactForm?.vi ||
+                    "Gửi tin nhắn cho chúng tôi"
                   : contactFormData?.contactForm?.en || "Send Us a Message"
               }
               isVietnamese={isVietnamese}
@@ -89,6 +95,7 @@ export default function ContactSection() {
 
 /** ---------- Contact Form Component (with API submit) ---------- */
 function ContactForm({ heading, isVietnamese }) {
+  const [openProduct, setOpenProduct] = useState(false);
   const [values, setValues] = useState({
     name: "",
     company: "",
@@ -104,6 +111,24 @@ function ContactForm({ heading, isVietnamese }) {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState("");
   const firstErrorRef = useRef(null);
+  const productRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (productRef.current && !productRef.current.contains(event.target)) {
+        setOpenProduct(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
 
   const t = (en, vi) => (isVietnamese ? vi : en);
 
@@ -121,9 +146,16 @@ function ContactForm({ heading, isVietnamese }) {
   const validateName = (v) => {
     const val = v.trim();
     if (!val) return t("Name is required.", "Tên là bắt buộc.");
-    if (val.length < 2) return t("Name must be at least 2 characters.", "Tên phải có ít nhất 2 ký tự.");
+    if (val.length < 2)
+      return t(
+        "Name must be at least 2 characters.",
+        "Tên phải có ít nhất 2 ký tự."
+      );
     if (!/^[a-zA-Z\s.'-]+$/.test(val))
-      return t("Only letters, spaces, (.'-) allowed.", "Chỉ cho phép chữ cái và dấu (.'-).");
+      return t(
+        "Only letters, spaces, (.'-) allowed.",
+        "Chỉ cho phép chữ cái và dấu (.'-)."
+      );
     return "";
   };
   const validateEmail = (v) => {
@@ -150,7 +182,10 @@ function ContactForm({ heading, isVietnamese }) {
     const val = v.trim();
     if (!val) return t("Message is required.", "Nội dung là bắt buộc.");
     if (val.length < 20)
-      return t("Message must be at least 20 characters.", "Nội dung phải có ít nhất 20 ký tự.");
+      return t(
+        "Message must be at least 20 characters.",
+        "Nội dung phải có ít nhất 20 ký tự."
+      );
     return "";
   };
   const validateFile = (file) => {
@@ -164,7 +199,10 @@ function ContactForm({ heading, isVietnamese }) {
       "image/jpeg",
     ];
     if (!okTypes.includes(file.type))
-      return t("Allowed: PDF, DOC, DOCX, PNG, JPG.", "Cho phép: PDF, DOC, DOCX, PNG, JPG.");
+      return t(
+        "Allowed: PDF, DOC, DOCX, PNG, JPG.",
+        "Cho phép: PDF, DOC, DOCX, PNG, JPG."
+      );
     if (file.size > maxSize)
       return t("File must be ≤ 5 MB.", "Tệp phải nhỏ hơn hoặc bằng 5 MB.");
     return "";
@@ -247,7 +285,9 @@ function ContactForm({ heading, isVietnamese }) {
       }
       await submitContactForm(formData);
 
-      setSuccess(t("✅ Message sent successfully.", "✅ Gửi tin nhắn thành công."));
+      setSuccess(
+        t("✅ Message sent successfully.", "✅ Gửi tin nhắn thành công.")
+      );
       setValues({
         name: "",
         company: "",
@@ -261,7 +301,9 @@ function ContactForm({ heading, isVietnamese }) {
       setErrors({});
     } catch (err) {
       console.error(err);
-      setSuccess(t("❌ Something went wrong.", "❌ Đã xảy ra lỗi. Vui lòng thử lại."));
+      setSuccess(
+        t("❌ Something went wrong.", "❌ Đã xảy ra lỗi. Vui lòng thử lại.")
+      );
     } finally {
       setSubmitting(false);
     }
@@ -287,7 +329,7 @@ function ContactForm({ heading, isVietnamese }) {
         {/* Name + Company */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm text-slate-700">
+            <label className="block text-sm !text-slate-700">
               {t("Name", "Tên")} <span className="text-red-500">*</span>
             </label>
             <input
@@ -304,7 +346,7 @@ function ContactForm({ heading, isVietnamese }) {
             )}
           </div>
           <div>
-            <label className="block text-sm text-slate-700">
+            <label className="block text-sm !text-slate-700">
               {t("Company", "Công ty")}
             </label>
             <input
@@ -321,7 +363,7 @@ function ContactForm({ heading, isVietnamese }) {
         {/* Email + Phone */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm text-slate-700">
+            <label className="block text-sm !text-slate-700">
               {t("Email", "Email")} <span className="text-red-500">*</span>
             </label>
             <input
@@ -338,8 +380,9 @@ function ContactForm({ heading, isVietnamese }) {
             )}
           </div>
           <div>
-            <label className="block text-sm text-slate-700">
-              {t("Phone", "Số điện thoại")} <span className="text-red-500">*</span>
+            <label className="block text-sm !text-slate-700">
+              {t("Phone", "Số điện thoại")}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
@@ -348,7 +391,10 @@ function ContactForm({ heading, isVietnamese }) {
               onChange={handleChange}
               onBlur={handleBlur}
               className={getFieldClass("phone")}
-              placeholder={t("Enter your phone number", "Nhập số điện thoại của bạn")}
+              placeholder={t(
+                "Enter your phone number",
+                "Nhập số điện thoại của bạn"
+              )}
             />
             {errors.phone && touched.phone && (
               <p className="mt-2 text-xs text-red-600">{errors.phone}</p>
@@ -357,23 +403,63 @@ function ContactForm({ heading, isVietnamese }) {
         </div>
 
         {/* Product */}
-        <div>
-          <label className="block text-sm text-slate-700">
-            {t("Product Interest", "Sản phẩm quan tâm")}{" "}
+        <div className="relative" ref={productRef}>
+          <label className="block text-sm !text-slate-700">
+            {t("Product Interest", "Sản phẩm quan tâm")}
             <span className="text-red-500">*</span>
           </label>
-          <select
-            name="product"
-            value={values.product}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className={`${getFieldClass("product")} h-12`}
+
+          {/* Trigger box */}
+          <div
+            className="h-12 mt-1 w-full bg-white border border-slate-300 rounded-xl px-4 flex items-center justify-between cursor-pointer"
+            onClick={() => setOpenProduct(!openProduct)}
           >
-            <option value="">{t("Select an option", "Chọn một tùy chọn")}</option>
-            <option value="cotton">{t("Cotton", "Bông")}</option>
-            <option value="Fiber">{t("Fiber", "chất xơ")}</option>
-            <option value="machinery">{t("Machinery", "Máy móc")}</option>
-          </select>
+            <span className="text-sm text-slate-700">
+              {values.product
+                ? {
+                    cotton: t("Cotton", "Bông"),
+                    Fiber: t("Fiber", "Xơ"),
+                    machinery: t("Machinery", "Máy móc"),
+                  }[values.product]
+                : t("Select an option", "Chọn một tuỳ chọn")}
+            </span>
+
+            <span className="text-slate-500">
+              <RiArrowDropDownLine className="text-4xl" />
+            </span>
+          </div>
+
+          {/* Dropdown panel */}
+          {openProduct && (
+            <div className="absolute mt-2 w-full bg-white shadow-xl rounded-xl border border-slate-200 py-2 z-20">
+              {[
+                { value: "cotton", label: t("Cotton", "Bông") },
+                { value: "Fiber", label: t("Fiber", "Xơ") },
+                { value: "machinery", label: t("Machinery", "Máy móc") },
+              ].map((opt) => (
+                <div
+                  key={opt.value}
+                  className={`
+            px-4 py-2 text-sm cursor-pointer
+            ${
+              values.product === opt.value
+                ? "bg-slate-100 text-black rounded-md"
+                : "hover:bg-slate-100"
+            }
+          `}
+                  onClick={() => {
+                    handleChange({
+                      target: { name: "product", value: opt.value },
+                    });
+                    setOpenProduct(false);
+                  }}
+                >
+                  {opt.label}
+                </div>
+              ))}
+            </div>
+          )}
+
           {errors.product && touched.product && (
             <p className="mt-2 text-xs text-red-600">{errors.product}</p>
           )}
@@ -381,7 +467,7 @@ function ContactForm({ heading, isVietnamese }) {
 
         {/* Message */}
         <div>
-          <label className="block text-sm text-slate-700">
+          <label className="block text-sm !text-slate-700 mb-1">
             {t("Message / Inquiry Details", "Tin nhắn / Nội dung yêu cầu")}{" "}
             <span className="text-red-500">*</span>
           </label>
@@ -390,7 +476,7 @@ function ContactForm({ heading, isVietnamese }) {
             value={values.message}
             onChange={handleChange}
             onBlur={handleBlur}
-            className={`${getFieldClass("message")} h-36 resize-none`}
+            className={`${getFieldClass("message")} h-36 resize-none py-2`}
             placeholder={t(
               "Write your message...",
               "Nhập nội dung yêu cầu của bạn..."
@@ -403,7 +489,7 @@ function ContactForm({ heading, isVietnamese }) {
 
         {/* File Upload */}
         <div>
-          <label className="block text-sm text-slate-700">
+          <label className="block text-sm !text-slate-700">
             {t("Upload Specifications (Optional)", "Tải lên tệp (tùy chọn)")}
           </label>
           <input
@@ -412,7 +498,7 @@ function ContactForm({ heading, isVietnamese }) {
             onChange={handleChange}
             onBlur={handleBlur}
             accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-            className="mt-3 block w-full text-sm text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
+            className="mt-3 block w-full text-sm !text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
           />
           {errors.file && touched.file && (
             <p className="mt-2 text-xs text-red-600">{errors.file}</p>

@@ -1,52 +1,45 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, lazy, Suspense } from "react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
-
-import HeroSection from "../components/aboutus/HeroSection";
-import AboutUsSection from "../components/aboutus/about";
-import FounderSection from "../components/aboutus/FounderSection";
-import VissionMission from "../components/aboutus/VissionMission";
-import CoreStrengthSection from "../components/aboutus/CoreStrengthSection";
-import ExpertiseTimeline from "../components/aboutus/ExpertiseTimeline";
-import OurTeam from "../components/aboutus/OurTeam";
-import Certification from "../components/aboutus/Certification";
-import Partner from "../components/aboutus/Partners";
-
 import { getAboutPage } from "../Api/api";
 
-// 🌈 Stylish Loader Component
-const StylishLoader = () => {
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0B0B0B] text-white">
-      <div className="relative">
-        {/* Spinner Ring */}
-        <div className="w-16 h-16 border-4 border-transparent border-t-[#00B0F0] rounded-full animate-spin" />
-        {/* Inner Pulse */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-5 h-5 bg-[#00B0F0] rounded-full animate-ping" />
-        </div>
-      </div>
-      <p className="mt-6 text-lg font-semibold tracking-wide animate-pulse">
-        Loading About Page...
-      </p>
+// ✅ Lazy load components
+const HeroSection = lazy(() => import("../components/aboutus/HeroSection"));
+const AboutUsSection = lazy(() => import("../components/aboutus/about"));
+const FounderSection = lazy(() => import("../components/aboutus/FounderSection"));
+const VissionMission = lazy(() => import("../components/aboutus/VissionMission"));
+const CoreStrengthSection = lazy(() => import("../components/aboutus/CoreStrengthSection"));
+const ExpertiseTimeline = lazy(() => import("../components/aboutus/ExpertiseTimeline"));
+const OurTeam = lazy(() => import("../components/aboutus/OurTeam"));
+const Certification = lazy(() => import("../components/aboutus/Certification"));
+const Partner = lazy(() => import("../components/aboutus/Partners"));
+
+// ✅ Shared Page Loader
+const PageLoader = () => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+    <div className="relative w-40 h-40 flex items-center justify-center">
+      <img
+        src="/logo/logo.png"
+        alt="Loading..."
+        className="w-20 h-20 object-contain z-10"
+      />
+      <div className="absolute inset-0 border-[6px] border-[#e5e7eb] border-t-[#164B8B] rounded-full animate-spin"></div>
     </div>
-  );
-};
+  </div>
+);
 
 const Aboutus = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch all About page data once
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await getAboutPage();
-        if (res.data) {
-          setData(res.data);
-        }
+        console.log("✅ About Page Data:", res.data);
+        if (res.data) setData(res.data);
       } catch (err) {
-        console.error("Failed to load About Page:", err);
+        console.error("❌ Failed to load About Page:", err);
       } finally {
         setLoading(false);
       }
@@ -54,23 +47,28 @@ const Aboutus = () => {
     fetchData();
   }, []);
 
-  if (loading) return <StylishLoader />;
+  // ✅ Loader while waiting for API
+  if (loading || !data) return <PageLoader />;
 
+  // ✅ Safely pass props only if they exist
   return (
     <div>
       <Navbar />
-
-      {/* Pass each section's data as props */}
-      <HeroSection data={data.aboutHero} />
-      <AboutUsSection data={data.aboutOverview} />
-      <FounderSection data={data.aboutFounder} />
-      <VissionMission data={data.aboutMissionVission} />
-      <CoreStrengthSection data={data.aboutCore} />
-      <ExpertiseTimeline data={data.aboutHistorySection} />
-      <OurTeam data={data.aboutTeam} />
-      <Certification data={data.aboutAlliances} />
-      <Partner data={data.aboutAlliances} />
-
+      <Suspense fallback={<PageLoader />}>
+        {data.aboutHero && <HeroSection data={data.aboutHero} />}
+        {data.aboutOverview && <AboutUsSection data={data.aboutOverview} />}
+        {data.aboutFounder && <FounderSection data={data.aboutFounder} />}
+        {data.aboutMissionVission && (
+          <VissionMission data={data.aboutMissionVission} />
+        )}
+        {data.aboutCore && <CoreStrengthSection data={data.aboutCore} />}
+        {data.aboutHistorySection && (
+          <ExpertiseTimeline data={data.aboutHistorySection} />
+        )}
+        {data.aboutTeam && <OurTeam data={data.aboutTeam} />}
+        {data.aboutAlliances && <Certification data={data.aboutAlliances} />}
+        {data.aboutAlliances && <Partner data={data.aboutAlliances} />}
+      </Suspense>
       <Footer />
     </div>
   );

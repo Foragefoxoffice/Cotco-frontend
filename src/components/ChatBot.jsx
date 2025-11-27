@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState, useRef, useEffect } from "react";
-import { FiSend, FiX, FiMessageCircle } from "react-icons/fi";
+import { FiSend, FiX, FiMessageCircle, FiMinimize2 } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,31 +15,29 @@ const ChatBot = () => {
   // 🧠 Multi-language translations
   const t = {
     en: {
-      greeting: `Hello! I'm your AI assistant 
-
-I can help you find information instantly.  
+      greeting: `Hello! I'm your AI assistant.
+      
+I can help you find information instantly.
 If my answers aren’t helpful, I can connect you with our team.
 
-How can I help you today?  
-Please share as much detail as possible.`,
-      placeholder: "Ask a question...",
-      typing: "Bot is typing...",
-      team: "The team can also help",
+How can I help you today?`,
+      placeholder: "Type your question...",
+      typing: "Thinking...",
+      team: "Online Support",
       title: "AI Assistant",
       networkError: "⚠️ Network error, please try again later.",
       noAnswer: "Sorry, I couldn’t find an answer.",
     },
     vi: {
-      greeting: `Xin chào! Tôi là trợ lý AI
+      greeting: `Xin chào! Tôi là trợ lý AI.
 
-Tôi có thể giúp bạn tìm thông tin ngay lập tức.  
+Tôi có thể giúp bạn tìm thông tin ngay lập tức.
 Nếu câu trả lời của tôi chưa chính xác, tôi có thể kết nối bạn với đội ngũ hỗ trợ.
 
-Tôi có thể giúp gì cho bạn hôm nay?  
-Vui lòng chia sẻ càng chi tiết càng tốt.`,
-      placeholder: "Đặt câu hỏi...",
-      typing: "Bot đang trả lời...",
-      team: "Đội ngũ hỗ trợ luôn sẵn sàng",
+Tôi có thể giúp gì cho bạn hôm nay?`,
+      placeholder: "Nhập câu hỏi của bạn...",
+      typing: "Đang suy nghĩ...",
+      team: "Hỗ trợ trực tuyến",
       title: "Trợ Lý AI",
       networkError: "⚠️ Lỗi mạng, vui lòng thử lại sau.",
       noAnswer: "Xin lỗi, tôi không tìm thấy câu trả lời.",
@@ -70,7 +71,9 @@ Vui lòng chia sẻ càng chi tiết càng tốt.`,
 
   // 🟢 Initialize messages
   useEffect(() => {
-    setMessages([{ from: "bot", text: t[lang].greeting }]);
+    if (messages.length === 0) {
+      setMessages([{ from: "bot", text: t[lang].greeting }]);
+    }
   }, [lang]);
 
   const sendMessage = async () => {
@@ -113,93 +116,133 @@ Vui lòng chia sẻ càng chi tiết càng tốt.`,
   // Scroll to bottom on new message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, isOpen]);
 
   return (
     <>
       {/* Floating Button */}
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-5 right-5 bg-[#0A1C2E] text-white p-4 rounded-full shadow-md shadow-white hover:bg-gray-800 transition-all duration-300 z-[999]"
-        >
-          <FiMessageCircle size={22} color="#fff" />
-        </button>
-      )}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsOpen(true)}
+            className="fixed bottom-6 right-6 bg-[#0A1C2E] !text-white p-4 rounded-full shadow-lg shadow-[#0A1C2E]/30 hover:shadow-[#0A1C2E]/50 transition-shadow z-[999] flex items-center justify-center"
+          >
+            <FiMessageCircle size={28} />
+            {/* Pulse Effect */}
+            <span className="absolute inset-0 rounded-full animate-ping bg-[#0A1C2E] opacity-20"></span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Chat Window */}
-      {isOpen && (
-        <div className="fixed bottom-5 right-5 md:w-full w-[90%] max-w-sm h-[600px] z-[9999] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-fade-in">
-          {/* Header */}
-          <div className="flex items-center justify-between bg-gray-100 px-4 py-3 border-b border-gray-200">
-            <div className="flex items-center gap-2">
-              <div>
-                <img src="/logo/logo.png" alt="Logo" className="w-12" />
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800">
-                  {t[lang].title}
-                </h4>
-                <p className="text-xs text-gray-500 !mb-0">{t[lang].team}</p>
-              </div>
-            </div>
-            <button
-              className="text-gray-400 hover:text-gray-600"
-              onClick={() => setIsOpen(false)}
-            >
-              <FiX size={18} />
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 p-4 overflow-y-auto bg-[#f9fafb] space-y-3">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${
-                  msg.from === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`rounded-2xl px-4 py-2 max-w-[80%] text-sm whitespace-pre-line ${
-                    msg.from === "user"
-                      ? "bg-black text-white rounded-br-none"
-                      : "bg-gray-200 text-gray-800 rounded-bl-none"
-                  }`}
-                >
-                  {msg.text}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed md:bottom-6 bottom-0 md:right-6 right-0 md:w-[380px] w-[100%] h-[600px] max-h-[80vh] z-[9999] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col font-sans border border-gray-100"
+          >
+            {/* Header */}
+            <div className="bg-[#0A1C2E] px-6 py-4 flex items-center justify-between shadow-md relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
+                    <img src="/logo/logo.png" alt="Bot" className="w-6 h-6 object-contain" />
+                  </div>
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-[#0A1C2E] rounded-full"></span>
+                </div>
+                <div>
+                  <h4 className="text-white font-bold text-base tracking-wide">
+                    {t[lang].title}
+                  </h4>
+                  <p className="text-white/70 text-xs font-medium">
+                    {t[lang].team}
+                  </p>
                 </div>
               </div>
-            ))}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="!text-white hover:bg-white/10 p-2 rounded-full transition-colors"
+              >
+                <FiMinimize2 size={20} />
+              </button>
+            </div>
 
-            {loading && (
-              <div className="text-gray-400 text-xs italic">
-                {t[lang].typing}
+            {/* Messages Area */}
+            <div className="flex-1 p-5 overflow-y-auto bg-slate-50 space-y-4 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+              {messages.map((msg, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"
+                    }`}
+                >
+                  <div
+                    className={`max-w-[85%] px-4 py-3 text-[14px] leading-relaxed shadow-sm ${msg.from === "user"
+                      ? "bg-[#0A1C2E] text-white rounded-2xl rounded-tr-sm"
+                      : "bg-white text-slate-700 border border-gray-100 rounded-2xl rounded-tl-sm"
+                      }`}
+                  >
+                    {msg.text}
+                  </div>
+                </motion.div>
+              ))}
+
+              {loading && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-start"
+                >
+                  <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-[#0A1C2E]/60 rounded-full animate-bounce" style={{ animationDelay: "0s" }}></span>
+                    <span className="w-1.5 h-1.5 bg-[#0A1C2E]/60 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></span>
+                    <span className="w-1.5 h-1.5 bg-[#0A1C2E]/60 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></span>
+                  </div>
+                </motion.div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <div className="p-4 bg-white border-t border-gray-100">
+              <div className="flex items-center gap-2 bg-slate-50 rounded-full px-2 py-2 border border-gray-200 focus-within:border-[#0A1C2E] focus-within:ring-1 focus-within:ring-[#0A1C2E]/20 transition-all">
+                <input
+                  type="text"
+                  value={input}
+                  placeholder={t[lang].placeholder}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1 bg-transparent px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                />
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={sendMessage}
+                  disabled={loading || !input.trim()}
+                  className={`p-3 rounded-full transition-colors ${input.trim()
+                    ? "bg-[#0A1C2E] !text-white shadow-md shadow-[#0A1C2E]/20"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    }`}
+                >
+                  <FiSend size={18} className={input.trim() ? "ml-0.5" : ""} />
+                </motion.button>
               </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="flex items-center gap-2 border-t border-gray-200 p-3 bg-white">
-            <input
-              type="text"
-              value={input}
-              placeholder={t[lang].placeholder}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="flex-1 text-sm px-3 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-1 focus:ring-black"
-            />
-            <button
-              onClick={sendMessage}
-              disabled={loading}
-              className="p-2 bg-[#0A1C2E] text-white rounded-full hover:bg-gray-800"
-            >
-              <FiSend size={16} color="#fff" />
-            </button>
-          </div>
-        </div>
-      )}
+              <div className="text-center mt-2">
+                <p className="text-[10px] text-gray-400">Powered by Cotco AI</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

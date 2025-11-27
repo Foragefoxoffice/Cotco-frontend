@@ -81,7 +81,7 @@ const HeroSection = () => {
         className=" !text-[100px] max-md:!text-6xl z-20 absolute bottom-24 left-24 text-[#fff]  !font-[700] tracking-wider uppercase"
         style={{ y: yTitle }}
       >
-        {pick(mainCategory?.name) || "Resources"}
+        {pick(mainCategory?.name) || ""}
       </h3>
       <div className="absolute inset-0 bg-black/20 z-10" />
     </motion.div>

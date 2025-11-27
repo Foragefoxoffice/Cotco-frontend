@@ -126,11 +126,11 @@ export default function SuppliersSection() {
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
-            className="mt-14 max-w-2xl md:mt-0"
+            className="mt-5 max-w-2xl md:mt-0"
           >
             <TitleAnimation
               text={pick(suppliers[index].cottonSupplierTitle) || "Supplier"}
-              className="mb-8 text-3xl font-bold tracking-wide text-white md:text-4xl"
+              className="!mb-0 text-3xl font-bold tracking-wide text-white md:text-4xl"
               align="left"
               delay={0.05}
               stagger={0.05}
@@ -147,7 +147,7 @@ export default function SuppliersSection() {
               <img
                 src={getFullUrl(suppliers[index].cottonSupplierLogo)}
                 alt="Logo"
-                className="mb-6 bg-white p-4 rounded-md h-auto w-40 md:hidden"
+                className="mb-6 bg-white p-4 rounded-md h-auto w-30 md:hidden"
               />
             ) : null}
 
@@ -156,9 +156,9 @@ export default function SuppliersSection() {
             {/* Descriptions */}
             {Array.isArray(suppliers[index].cottonSupplierDes) &&
               suppliers[index].cottonSupplierDes.length > 0 && (
-                <ul className="pt-4 list-disc text-base leading-relaxed text-white/90 md:text-lg">
+                <ul className="pt-0 list-disc text-base leading-relaxed text-white/90 md:text-lg">
                   {suppliers[index].cottonSupplierDes.map((desc, dIdx) => (
-                    <li className="ml-3 text-[18px] mb-3" key={dIdx}>
+                    <li className="ml-3 text-[16px] mb-3" key={dIdx}>
                       {pick(desc)}
                     </li>
                   ))}
@@ -202,7 +202,7 @@ export default function SuppliersSection() {
           </div>
 
           {/* ---------- Mobile dots ---------- */}
-          <div className="absolute bottom-4 left-0 right-0 z-10 mx-auto flex justify-center gap-2 md:hidden">
+          {/* <div className="absolute bottom-4 left-0 right-0 z-10 mx-auto flex justify-center gap-2 md:hidden">
             {suppliers.map((_, i) => (
               <button
                 key={i}
@@ -221,7 +221,7 @@ export default function SuppliersSection() {
                 )}
               />
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
     </section>
