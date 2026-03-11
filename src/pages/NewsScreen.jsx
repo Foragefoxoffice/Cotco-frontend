@@ -50,7 +50,7 @@ const NewsScreen = () => {
     const checkLang = () => {
       setIsVietnamese(
         typeof document !== "undefined" &&
-          document.body.classList.contains("vi-mode")
+        document.body.classList.contains("vi-mode")
       );
     };
     checkLang();
@@ -66,8 +66,8 @@ const NewsScreen = () => {
   const t = {
     title: isVietnamese ? "Tin tức & Sự kiện" : "Resources",
     subtitle: isVietnamese
-      ? "Quản lý tất cả bài đăng tin tức và sự kiện"
-      : "Manage all news and events posts",
+      ? "Quản lý toàn bộ nội dung Tài nguyên"
+      : "Manage all Resources content",
     create: isVietnamese ? "Tạo tin tức" : "Create Content",
     search: isVietnamese ? "Tìm kiếm..." : "Search...",
     sortBy: isVietnamese ? "Sắp xếp theo" : "Sort by",
@@ -141,25 +141,49 @@ const NewsScreen = () => {
   };
 
   // ✅ Fetch blogs
-  const fetchBlogs = async () => {
-    try {
-      const res = await getBlogs();
-      const raw = res.data?.data || res.data || [];
-      const blogs = raw.map((b) => normalizeBlog(b));
+  // ✅ Fetch ALL blogs (no pagination)
+const fetchBlogs = async () => {
+  try {
+    const res = await getBlogs({
+      page: 1,
+      limit: 99999, // <-- THIS FIXES MISSING BLOGS
+    });
 
-      // Ensure newest first
-      const sorted = blogs.sort(
-        (a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)
-      );
+    const raw = res.data?.data || res.data || [];
+    const blogs = raw.map((b) => normalizeBlog(b));
 
-      setNewsArticles(sorted);
-    } catch (err) {
-      console.error("Error fetching blogs:", err);
-      CommonToaster(t.loadFail, "error");
-    } finally {
-      setLoading(false);
-    }
+    // Ensure newest first
+    const sorted = blogs.sort(
+      (a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)
+    );
+
+    setNewsArticles(sorted);
+  } catch (err) {
+    console.error("Error fetching blogs:", err);
+    CommonToaster(t.loadFail, "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".dropdown-container")) {
+        closeAllDropdowns();
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+  const closeAllDropdowns = () => {
+    setShowSortDropdown(false);
+    setShowStatusDropdown(false);
+    setShowMainCatDropdown(false);
+    setShowCategoryDropdown(false);
   };
+
 
   useEffect(() => {
     fetchBlogs();
@@ -234,10 +258,10 @@ const NewsScreen = () => {
             .map((p) =>
               p._id === updated._id
                 ? {
-                    ...updated,
-                    publishedAt:
-                      updated.publishedAt || updated.createdAt || p.publishedAt,
-                  }
+                  ...updated,
+                  publishedAt:
+                    updated.publishedAt || updated.createdAt || p.publishedAt,
+                }
                 : p
             )
             .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
@@ -278,33 +302,30 @@ const NewsScreen = () => {
 
   // 🔹 Unique categories (derived from current list)
   const uniqueMainCategories = Array.from(
-    new Map(
-      newsArticles
-        .filter((a) => a.mainCategoryId)
-        .map((a) => [
-          a.mainCategoryId,
-          {
-            id: a.mainCategoryId,
-            name: a.mainCategoryName || { en: "", vi: "" },
-          },
-        ])
-    ).values()
-  );
+  new Map(
+    newsArticles.map((a) => [
+      a.mainCategoryId || "uncategorized-main",
+      {
+        id: a.mainCategoryId || "uncategorized-main",
+        name: a.mainCategoryName || { en: "Uncategorized", vi: "Chưa phân loại" },
+      },
+    ])
+  ).values()
+);
+
 
   const uniqueCategories = Array.from(
-    new Map(
-      newsArticles
-        .filter((a) => a.categoryId)
-        .map((a) => [
-          a.categoryId,
-          {
-            id: a.categoryId,
-            name: a.categoryName || { en: "", vi: "" },
-            main: a.mainCategoryId,
-          },
-        ])
-    ).values()
-  );
+  new Map(
+    newsArticles.map((a) => [
+      a.categoryId || "uncategorized",
+      {
+        id: a.categoryId || "uncategorized",
+        name: a.categoryName || { en: "Uncategorized", vi: "Chưa phân loại" },
+        main: a.mainCategoryId || "uncategorized-main",
+      },
+    ])
+  ).values()
+);
 
   // 🔹 Sorted according to selected sort option
   const sortedArticles = [...newsArticles].sort((a, b) => {
@@ -328,7 +349,8 @@ const NewsScreen = () => {
 
     const matchesMain =
       mainCategoryFilter === "all" ||
-      article.mainCategoryId === mainCategoryFilter;
+      (article.mainCategoryId && article.mainCategoryId === mainCategoryFilter);
+
     const matchesCat =
       categoryFilter === "all" || article.categoryId === categoryFilter;
     const matchesStatus =
@@ -400,20 +422,24 @@ const NewsScreen = () => {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto px-6">
         {/* Sort Dropdown */}
-        <div className="relative">
+        <div className="relative dropdown-container">
           <button
-            onClick={() => setShowSortDropdown((prev) => !prev)}
+            onClick={(e) => {
+              e.stopPropagation();
+              closeAllDropdowns();
+              setShowSortDropdown(true);
+            }}
+
             className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 focus:border-[#3A3A3A] transition-all cursor-pointer"
           >
             {sortOption === "oldest"
               ? t.oldest
               : sortOption === "newest"
-              ? t.newest
-              : t.titleSort}
+                ? t.newest
+                : t.titleSort}
             <svg
-              className={`ml-2 w-4 h-4 transform transition-transform ${
-                showSortDropdown ? "rotate-180" : ""
-              }`}
+              className={`ml-2 w-4 h-4 transform transition-transform ${showSortDropdown ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -445,11 +471,10 @@ const NewsScreen = () => {
                     setShowSortDropdown(false);
                     setCurrentPage(1);
                   }}
-                  className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
-                    sortOption === option.value
-                      ? "bg-[#2E2F2F] text-white rounded-lg"
-                      : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
-                  }`}
+                  className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${sortOption === option.value
+                    ? "bg-[#2E2F2F] text-white rounded-lg"
+                    : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                    }`}
                 >
                   {option.label}
                 </button>
@@ -460,20 +485,25 @@ const NewsScreen = () => {
         </div>
 
         {/* Status Filter */}
-        <div className="relative">
+        <div className="relative dropdown-container">
           <button
-            onClick={() => setShowStatusDropdown((prev) => !prev)}
+            onClick={(e) => {
+              e.stopPropagation();
+              closeAllDropdowns();
+              setShowStatusDropdown(true);
+            }}
+
+
             className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 focus:border-[#3A3A3A] transition-all cursor-pointer"
           >
             {statusFilter === "published"
               ? t.published
               : statusFilter === "draft"
-              ? t.draft
-              : `${t.all} Status`}
+                ? t.draft
+                : `${t.all} Status`}
             <svg
-              className={`ml-2 w-4 h-4 transform transition-transform ${
-                showStatusDropdown ? "rotate-180" : ""
-              }`}
+              className={`ml-2 w-4 h-4 transform transition-transform ${showStatusDropdown ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -505,11 +535,10 @@ const NewsScreen = () => {
                     setShowStatusDropdown(false);
                     setCurrentPage(1);
                   }}
-                  className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
-                    statusFilter === option.value
-                      ? "bg-[#2E2F2F] text-white rounded-lg"
-                      : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
-                  }`}
+                  className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${statusFilter === option.value
+                    ? "bg-[#2E2F2F] text-white rounded-lg"
+                    : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                    }`}
                 >
                   {option.label}
                 </button>
@@ -520,25 +549,30 @@ const NewsScreen = () => {
         </div>
 
         {/* Main Category Filter */}
-        <div className="relative">
+        <div className="relative dropdown-container">
           <button
-            onClick={() => setShowMainCatDropdown((prev) => !prev)}
+            onClick={(e) => {
+              e.stopPropagation();
+              closeAllDropdowns();
+              setShowMainCatDropdown(true);
+            }}
+
+
             className="flex items-center justify-between w-56 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 focus:border-[#3A3A3A] transition-all cursor-pointer"
           >
             {mainCategoryFilter === "all"
               ? `${t.all} ${t.filterMain}`
               : uniqueMainCategories.find((mc) => mc.id === mainCategoryFilter)
-                  ?.name[isVietnamese ? "vi" : "en"] ||
-                uniqueMainCategories.find((mc) => mc.id === mainCategoryFilter)
-                  ?.name.en ||
-                uniqueMainCategories.find((mc) => mc.id === mainCategoryFilter)
-                  ?.name ||
-                `${t.all} ${t.filterMain}`}
+                ?.name[isVietnamese ? "vi" : "en"] ||
+              uniqueMainCategories.find((mc) => mc.id === mainCategoryFilter)
+                ?.name.en ||
+              uniqueMainCategories.find((mc) => mc.id === mainCategoryFilter)
+                ?.name ||
+              `${t.all} ${t.filterMain}`}
 
             <svg
-              className={`ml-2 w-4 h-4 transform transition-transform ${
-                showMainCatDropdown ? "rotate-180" : ""
-              }`}
+              className={`ml-2 w-4 h-4 transform transition-transform ${showMainCatDropdown ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -566,11 +600,10 @@ const NewsScreen = () => {
                   setCurrentPage(1);
                   setShowMainCatDropdown(false);
                 }}
-                className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
-                  mainCategoryFilter === "all"
-                    ? "bg-[#2E2F2F] text-white rounded-lg"
-                    : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
-                }`}
+                className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${mainCategoryFilter === "all"
+                  ? "bg-[#2E2F2F] text-white rounded-lg"
+                  : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                  }`}
               >
                 {`${t.all} ${t.filterMain}`}
               </button>
@@ -584,11 +617,10 @@ const NewsScreen = () => {
                     setCurrentPage(1);
                     setShowMainCatDropdown(false);
                   }}
-                  className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
-                    mainCategoryFilter === mc.id
-                      ? "bg-[#2E2F2F] text-white rounded-lg"
-                      : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
-                  }`}
+                  className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${mainCategoryFilter === mc.id
+                    ? "bg-[#2E2F2F] text-white rounded-lg"
+                    : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                    }`}
                 >
                   {mc.name[isVietnamese ? "vi" : "en"] || mc.name.en || mc.name}
                 </button>
@@ -599,25 +631,30 @@ const NewsScreen = () => {
         </div>
 
         {/* Category Filter */}
-        <div className="relative">
+        <div className="relative dropdown-container">
           <button
-            onClick={() => setShowCategoryDropdown((prev) => !prev)}
+            onClick={(e) => {
+              e.stopPropagation();
+              closeAllDropdowns();
+              setShowCategoryDropdown(true);
+            }}
+
+
             className="flex items-center justify-between w-56 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 focus:border-[#3A3A3A] transition-all cursor-pointer"
           >
             {categoryFilter === "all"
               ? `${t.all} ${t.filterCategory}`
               : uniqueCategories.find((c) => c.id === categoryFilter)?.name[
-                  isVietnamese ? "vi" : "en"
-                ] ||
-                uniqueCategories.find((c) => c.id === categoryFilter)?.name
-                  .en ||
-                uniqueCategories.find((c) => c.id === categoryFilter)?.name ||
-                `${t.all} ${t.filterCategory}`}
+              isVietnamese ? "vi" : "en"
+              ] ||
+              uniqueCategories.find((c) => c.id === categoryFilter)?.name
+                .en ||
+              uniqueCategories.find((c) => c.id === categoryFilter)?.name ||
+              `${t.all} ${t.filterCategory}`}
 
             <svg
-              className={`ml-2 w-4 h-4 transform transition-transform ${
-                showCategoryDropdown ? "rotate-180" : ""
-              }`}
+              className={`ml-2 w-4 h-4 transform transition-transform ${showCategoryDropdown ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -647,11 +684,10 @@ const NewsScreen = () => {
                   setCurrentPage(1);
                   setShowCategoryDropdown(false);
                 }}
-                className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
-                  categoryFilter === "all"
-                    ? "bg-[#2E2F2F] text-white rounded-lg"
-                    : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
-                }`}
+                className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${categoryFilter === "all"
+                  ? "bg-[#2E2F2F] text-white rounded-lg"
+                  : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                  }`}
               >
                 {`${t.all} ${t.filterCategory}`}
               </button>
@@ -671,11 +707,10 @@ const NewsScreen = () => {
                       setCurrentPage(1);
                       setShowCategoryDropdown(false);
                     }}
-                    className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
-                      categoryFilter === c.id
-                        ? "bg-[#2E2F2F] text-white rounded-lg"
-                        : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
-                    }`}
+                    className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${categoryFilter === c.id
+                      ? "bg-[#2E2F2F] text-white rounded-lg"
+                      : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                      }`}
                   >
                     {c.name[isVietnamese ? "vi" : "en"] || c.name.en || c.name}
                   </button>
@@ -726,11 +761,10 @@ const NewsScreen = () => {
                   </div>
 
                   <span
-                    className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
-                      article.status === "published"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
+                    className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${article.status === "published"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                      }`}
                   >
                     {article.status === "published" ? t.published : t.draft}
                   </span>
@@ -741,10 +775,10 @@ const NewsScreen = () => {
                     <Tag size={14} className="mr-1" />
                     {safeText(
                       article.categoryName?.[isVietnamese ? "vi" : "en"] ||
-                        article.category?.name?.[isVietnamese ? "vi" : "en"] ||
-                        article.category?.name ||
-                        article.categoryName?.en ||
-                        article.category
+                      article.category?.name?.[isVietnamese ? "vi" : "en"] ||
+                      article.category?.name ||
+                      article.categoryName?.en ||
+                      article.category
                     )}
                   </span>
 
@@ -793,11 +827,10 @@ const NewsScreen = () => {
           disabled={currentPage === 1}
           onClick={() => setCurrentPage((p) => p - 1)}
           className={`px-4 py-2 rounded-full border text-sm transition-all duration-200
-      ${
-        currentPage === 1
-          ? "opacity-40 cursor-not-allowed"
-          : "hover:bg-[#2A2A2A] cursor-pointer"
-      } text-gray-200`}
+      ${currentPage === 1
+              ? "opacity-40 cursor-not-allowed"
+              : "hover:bg-[#2A2A2A] cursor-pointer"
+            } text-gray-200`}
         >
           {isVietnamese ? "Trước" : "Prev"}
         </button>
@@ -812,11 +845,10 @@ const NewsScreen = () => {
           disabled={currentPage === totalPages || totalPages === 0}
           onClick={() => setCurrentPage((p) => p + 1)}
           className={`px-4 py-2 rounded-full border text-sm transition-all duration-200
-      ${
-        currentPage === totalPages || totalPages === 0
-          ? "opacity-40 cursor-not-allowed"
-          : "hover:bg-[#2A2A2A] cursor-pointer"
-      } text-gray-200`}
+      ${currentPage === totalPages || totalPages === 0
+              ? "opacity-40 cursor-not-allowed"
+              : "hover:bg-[#2A2A2A] cursor-pointer"
+            } text-gray-200`}
         >
           {isVietnamese ? "Tiếp" : "Next"}
         </button>
@@ -845,14 +877,12 @@ const NewsScreen = () => {
 
             <p className="text-gray-400 text-sm mb-6">
               {isVietnamese
-                ? `Bạn có chắc muốn xóa “${
-                    deleteTarget?.title?.vi ||
-                    deleteTarget?.title?.en ||
-                    "bài viết này"
-                  }”? Hành động này không thể hoàn tác.`
-                : `Are you sure you want to delete “${
-                    deleteTarget?.title?.en || "this blog"
-                  }”? This action cannot be undone.`}
+                ? `Bạn có chắc muốn xóa “${deleteTarget?.title?.vi ||
+                deleteTarget?.title?.en ||
+                "bài viết này"
+                }”? Hành động này không thể hoàn tác.`
+                : `Are you sure you want to delete “${deleteTarget?.title?.en || "this blog"
+                }”? This action cannot be undone.`}
             </p>
 
             <div className="flex justify-end gap-3">

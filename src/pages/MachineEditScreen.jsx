@@ -26,7 +26,7 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import { ReloadOutlined } from "@ant-design/icons";
-import { Trash2 } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { getMachineCategories, createMachinePage } from "../Api/api";
 import RichTextEditor from "../components/RichTextEditor";
@@ -570,20 +570,20 @@ const SectionEditor = ({ basePath, section, control }) => {
                     fileList={
                       block.image
                         ? [
-                            {
-                              uid: `block-${bi}`,
-                              name: block.image.name || "image.png",
-                              status: "done",
-                              url:
-                                typeof block.image === "string"
-                                  ? block.image
-                                  : undefined,
-                              originFileObj:
-                                block.image instanceof File
-                                  ? block.image
-                                  : block.image?.originFileObj,
-                            },
-                          ]
+                          {
+                            uid: `block-${bi}`,
+                            name: block.image.name || "image.png",
+                            status: "done",
+                            url:
+                              typeof block.image === "string"
+                                ? block.image
+                                : undefined,
+                            originFileObj:
+                              block.image instanceof File
+                                ? block.image
+                                : block.image?.originFileObj,
+                          },
+                        ]
                         : []
                     }
                     onChange={({ fileList }) => {
@@ -677,20 +677,20 @@ const SectionEditor = ({ basePath, section, control }) => {
                 fileList={
                   field.value
                     ? [
-                        {
-                          uid: "-1",
-                          name: field.value.name || "image.png",
-                          status: "done",
-                          url:
-                            typeof field.value === "string"
-                              ? field.value
-                              : undefined,
-                          originFileObj:
-                            field.value instanceof File
-                              ? field.value
-                              : field.value?.originFileObj,
-                        },
-                      ]
+                      {
+                        uid: "-1",
+                        name: field.value.name || "image.png",
+                        status: "done",
+                        url:
+                          typeof field.value === "string"
+                            ? field.value
+                            : undefined,
+                        originFileObj:
+                          field.value instanceof File
+                            ? field.value
+                            : field.value?.originFileObj,
+                      },
+                    ]
                     : []
                 }
                 onChange={({ fileList }) => {
@@ -1099,6 +1099,7 @@ const MachinePageCreate = ({
   const [categories, setCategories] = useState([]);
   const [bannerFile, setBannerFile] = useState([]);
   const [showBannerModal, setShowBannerModal] = useState(false);
+  const [keywordInput, setKeywordInput] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -1143,12 +1144,12 @@ const MachinePageCreate = ({
             ...tab,
             sections: Array.isArray(tab.sections)
               ? tab.sections.map((subSection) => ({
-                  ...subSection,
-                  image:
-                    subSection.image && !subSection.image.startsWith("http")
-                      ? `${API_BASE}${subSection.image}`
-                      : subSection.image,
-                }))
+                ...subSection,
+                image:
+                  subSection.image && !subSection.image.startsWith("http")
+                    ? `${API_BASE}${subSection.image}`
+                    : subSection.image,
+              }))
               : [],
           }));
         }
@@ -1372,9 +1373,8 @@ const MachinePageCreate = ({
                           ?.en || "Select category"}
                       </span>
                       <svg
-                        className={`ml-2 w-4 h-4 transform transition-transform ${
-                          showDropdown ? "rotate-180" : ""
-                        }`}
+                        className={`ml-2 w-4 h-4 transform transition-transform ${showDropdown ? "rotate-180" : ""
+                          }`}
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
@@ -1394,11 +1394,10 @@ const MachinePageCreate = ({
                               field.onChange(cat._id);
                               setShowDropdown(false);
                             }}
-                            className={`block w-full text-left px-4 py-2 rounded-md transition ${
-                              field.value === cat._id
-                                ? "bg-[#2E2F2F] !text-white"
-                                : "!text-gray-300 hover:bg-[#2A2A2A]"
-                            }`}
+                            className={`block w-full text-left px-4 py-2 rounded-md transition ${field.value === cat._id
+                              ? "bg-[#2E2F2F] !text-white"
+                              : "!text-gray-300 hover:bg-[#2A2A2A]"
+                              }`}
                           >
                             {cat.name?.en}
                           </button>
@@ -1481,8 +1480,8 @@ const MachinePageCreate = ({
                     file instanceof File
                       ? URL.createObjectURL(file)
                       : typeof file === "string"
-                      ? file
-                      : bannerFile[0]?.url || "";
+                        ? file
+                        : bannerFile[0]?.url || "";
 
                   return (
                     <>
@@ -1712,20 +1711,71 @@ const MachinePageCreate = ({
                 name="keywords"
                 control={control}
                 render={({ field }) => (
-                  <Input
-                    className="custom-dark-input"
-                    style={{
-                      backgroundColor: "#262626",
-                      border: "1px solid #2E2F2F",
-                      borderRadius: "8px",
-                      color: "#fff",
-                      padding: "10px 14px",
-                      fontSize: "14px",
-                      transition: "all 0.3s ease",
-                    }}
-                    {...field}
-                    placeholder="Keywords (comma separated)"
-                  />
+                  <>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {field.value
+                        ?.split(",")
+                        .map((kw) => kw.trim())
+                        .filter((kw) => kw)
+                        .map((kw, i) => (
+                          <span
+                            key={i}
+                            className="px-3 py-1 rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-sm flex items-center gap-2 text-gray-200 shadow-sm"
+                          >
+                            {kw}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const existing =
+                                  field.value
+                                    ?.split(",")
+                                    .map((k) => k.trim()) || [];
+                                const updated = existing.filter(
+                                  (k) => k !== kw
+                                );
+                                field.onChange(updated.join(", "));
+                              }}
+                              className="text-gray-400 hover:text-red-400 transition"
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                    </div>
+
+                    <Input
+                      className="custom-dark-input"
+                      style={{
+                        backgroundColor: "#262626",
+                        border: "1px solid #2E2F2F",
+                        borderRadius: "8px",
+                        color: "#fff",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        transition: "all 0.3s ease",
+                      }}
+                      placeholder="Type keyword and press Enter"
+                      value={keywordInput}
+                      onChange={(e) => setKeywordInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && keywordInput.trim()) {
+                          e.preventDefault();
+                          const newKeyword = keywordInput.trim();
+                          const existing =
+                            field.value
+                              ?.split(",")
+                              .map((k) => k.trim())
+                              .filter((k) => k) || [];
+
+                          if (!existing.includes(newKeyword)) {
+                            const updated = [...existing, newKeyword];
+                            field.onChange(updated.join(", "));
+                          }
+                          setKeywordInput("");
+                        }
+                      }}
+                    />
+                  </>
                 )}
               />
             </div>
@@ -1749,12 +1799,12 @@ const MachinePageCreate = ({
                   transition: "all 0.3s ease",
                 }}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.background =
-                    "linear-gradient(135deg, #0a66e5, #2563eb)")
+                (e.currentTarget.style.background =
+                  "linear-gradient(135deg, #0a66e5, #2563eb)")
                 }
                 onMouseLeave={(e) =>
-                  (e.currentTarget.style.background =
-                    "linear-gradient(135deg, #1677ff, #3b82f6)")
+                (e.currentTarget.style.background =
+                  "linear-gradient(135deg, #1677ff, #3b82f6)")
                 }
               >
                 {isEdit ? "Update Page" : "Create Page"}
@@ -1868,7 +1918,7 @@ const MachinePageCreate = ({
     }
   `}
       </style>
-    </div>
+    </div >
   );
 };
 

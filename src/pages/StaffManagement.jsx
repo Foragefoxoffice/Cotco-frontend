@@ -25,9 +25,8 @@ const StaffManagement = () => {
   // ✅ Filter + Sort + Paginate Staff List
   const filteredStaff = staff
     .filter((s) => {
-      const fullName = `${s.firstName?.en || ""} ${s.middleName?.en || ""} ${
-        s.lastName?.en || ""
-      }`.toLowerCase();
+      const fullName = `${s.firstName?.en || ""} ${s.middleName?.en || ""} ${s.lastName?.en || ""
+        }`.toLowerCase();
       const email = s.email?.toLowerCase() || "";
       const roleName =
         typeof s.role?.name === "object"
@@ -41,12 +40,10 @@ const StaffManagement = () => {
       );
     })
     .sort((a, b) => {
-      const nameA = `${a.firstName?.en || ""} ${
-        a.lastName?.en || ""
-      }`.toLowerCase();
-      const nameB = `${b.firstName?.en || ""} ${
-        b.lastName?.en || ""
-      }`.toLowerCase();
+      const nameA = `${a.firstName?.en || ""} ${a.lastName?.en || ""
+        }`.toLowerCase();
+      const nameB = `${b.firstName?.en || ""} ${b.lastName?.en || ""
+        }`.toLowerCase();
 
       if (sortOption === "az") return nameA.localeCompare(nameB);
       if (sortOption === "za") return nameB.localeCompare(nameA);
@@ -227,14 +224,23 @@ const StaffManagement = () => {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".dropdown-container")) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
   const payload = {
     employeeId: formData.employeeId,
-    nameEn: `${formData.firstNameEn} ${formData.middleNameEn || ""} ${
-      formData.lastNameEn || ""
-    }`.trim(),
-    nameVi: `${formData.firstNameVi} ${formData.middleNameVi || ""} ${
-      formData.lastNameVi || ""
-    }`.trim(),
+    nameEn: `${formData.firstNameEn} ${formData.middleNameEn || ""} ${formData.lastNameEn || ""
+      }`.trim(),
+    nameVi: `${formData.firstNameVi} ${formData.middleNameVi || ""} ${formData.lastNameVi || ""
+      }`.trim(),
     email: formData.email,
     phone: formData.phone,
     role: formData.role,
@@ -338,7 +344,7 @@ const StaffManagement = () => {
           />
 
           {/* Sort Dropdown */}
-          <div className="relative">
+          <div className="relative dropdown-container">
             <button
               onClick={() => setShowDropdown((prev) => !prev)}
               className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 transition-all cursor-pointer"
@@ -346,14 +352,13 @@ const StaffManagement = () => {
               {sortOption === "oldest"
                 ? "Oldest"
                 : sortOption === "newest"
-                ? "Newest"
-                : sortOption === "az"
-                ? "A → Z"
-                : "Z → A"}
+                  ? "Newest"
+                  : sortOption === "az"
+                    ? "A → Z"
+                    : "Z → A"}
               <svg
-                className={`ml-2 w-4 h-4 transform transition-transform ${
-                  showDropdown ? "rotate-180" : ""
-                }`}
+                className={`ml-2 w-4 h-4 transform transition-transform ${showDropdown ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -382,11 +387,10 @@ const StaffManagement = () => {
                       setShowDropdown(false);
                       setCurrentPage(1);
                     }}
-                    className={`block w-full text-left px-4 py-2 text-sm ${
-                      sortOption === option.value
+                    className={`block w-full text-left px-4 py-2 text-sm ${sortOption === option.value
                         ? "bg-[#2E2F2F] text-white"
                         : "text-gray-300 hover:bg-[#2E2F2F] hover:text-white"
-                    }`}
+                      }`}
                   >
                     {option.label}
                   </button>
@@ -414,29 +418,29 @@ const StaffManagement = () => {
             <tr>
               {(isVietnamese
                 ? [
-                    "STT", // Sl
-                    "Mã nhân viên", // Employee ID
-                    "Họ và tên", // Name
-                    "Email", // Email
-                    "Số điện thoại", // Mobile
-                    "Chức vụ", // Role
-                    "Phòng ban", // Department
-                    "Chức danh", // Designation
-                    "Trạng thái", // Status
-                    "Hành động", // Action
-                  ]
+                  "STT", // Sl
+                  "Mã nhân viên", // Employee ID
+                  "Họ và tên", // Name
+                  "Email", // Email
+                  "Số điện thoại", // Mobile
+                  "Chức vụ", // Role
+                  "Phòng ban", // Department
+                  "Chức danh", // Designation
+                  "Trạng thái", // Status
+                  "Hành động", // Action
+                ]
                 : [
-                    "Sl",
-                    "Employee ID",
-                    "Name",
-                    "Email",
-                    "Mobile",
-                    "Role",
-                    "Department",
-                    "Designation",
-                    "Status",
-                    "Action",
-                  ]
+                  "Sl",
+                  "Employee ID",
+                  "Name",
+                  "Email",
+                  "Mobile",
+                  "Role",
+                  "Department",
+                  "Designation",
+                  "Status",
+                  "Action",
+                ]
               ).map((h) => (
                 <th
                   key={h}
@@ -459,12 +463,10 @@ const StaffManagement = () => {
                   <td className="p-3 text-gray-200">{s.employeeId}</td>
                   <td className="p-3">
                     {isVietnamese
-                      ? `${s.firstName?.vi || "-"} ${s.middleName?.vi || ""} ${
-                          s.lastName?.vi || "-"
-                        }`
-                      : `${s.firstName?.en || "-"} ${s.middleName?.en || ""} ${
-                          s.lastName?.en || "-"
-                        }`}
+                      ? `${s.firstName?.vi || "-"} ${s.middleName?.vi || ""} ${s.lastName?.vi || "-"
+                      }`
+                      : `${s.firstName?.en || "-"} ${s.middleName?.en || ""} ${s.lastName?.en || "-"
+                      }`}
                   </td>
                   <td className="p-3">{s.email}</td>
                   <td className="p-3">{s.phone}</td>
@@ -487,11 +489,10 @@ const StaffManagement = () => {
                   </td>
                   <td className="p-3">
                     <span
-                      className={`px-2 py-1 rounded text-sm ${
-                        s.status === "Active"
+                      className={`px-2 py-1 rounded text-sm ${s.status === "Active"
                           ? "bg-green-700/30 text-green-400"
                           : "bg-red-700/30 text-red-400"
-                      }`}
+                        }`}
                     >
                       {s.status}
                     </span>
@@ -500,11 +501,10 @@ const StaffManagement = () => {
                     <button
                       disabled={!isSuperAdmin || s.role?.name === "Super Admin"}
                       onClick={() => handleEdit(s)}
-                      className={`flex items-center gap-1 px-3 py-1 text-sm rounded-md transition ${
-                        !isSuperAdmin || s.role?.name === "Super Admin"
+                      className={`flex items-center gap-1 px-3 py-1 text-sm rounded-md transition ${!isSuperAdmin || s.role?.name === "Super Admin"
                           ? "bg-gray-600 cursor-not-allowed text-gray-300"
                           : "bg-[#0085C8] hover:bg-[#009FE3] text-white"
-                      }`}
+                        }`}
                     >
                       <Edit2 size={14} />
                     </button>
@@ -524,14 +524,13 @@ const StaffManagement = () => {
                             : s.role?.name
                         )
                       }
-                      className={`flex items-center gap-1 px-3 py-1 text-sm rounded-md transition ${
-                        !isSuperAdmin ||
-                        s.role?.name === "Super Admin" ||
-                        s.role?.name?.en === "Super Admin" ||
-                        s.role?.name?.vi === "Quản trị viên cao cấp"
+                      className={`flex items-center gap-1 px-3 py-1 text-sm rounded-md transition ${!isSuperAdmin ||
+                          s.role?.name === "Super Admin" ||
+                          s.role?.name?.en === "Super Admin" ||
+                          s.role?.name?.vi === "Quản trị viên cao cấp"
                           ? "bg-gray-600 cursor-not-allowed text-gray-300"
                           : "bg-[#E74C3C] hover:bg-[#FF6B5C] text-white"
-                      }`}
+                        }`}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -547,31 +546,31 @@ const StaffManagement = () => {
             )}
           </tbody>
         </table>
-       
+
 
       </div>
- {/* Pagination */}
-{totalPages > 1 && (
-  <div className="flex justify-center items-center mt-6 gap-3">
-    <button
-      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-      disabled={currentPage === 1}
-      className="px-4 py-2 bg-[#2E2F2F] rounded-full disabled:opacity-40 cursor-pointer"
-    >
-      Prev
-    </button>
-    <span className="text-sm text-gray-400">
-      Page {currentPage} / {totalPages}
-    </span>
-    <button
-      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-      disabled={currentPage === totalPages}
-      className="px-4 py-2 bg-[#2E2F2F] rounded-full disabled:opacity-40 cursor-pointer"
-    >
-      Next
-    </button>
-  </div>
-)}
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center mt-6 gap-3">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-[#2E2F2F] rounded-full disabled:opacity-40 cursor-pointer"
+          >
+            Prev
+          </button>
+          <span className="text-sm text-gray-400">
+            Page {currentPage} / {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-[#2E2F2F] rounded-full disabled:opacity-40 cursor-pointer"
+          >
+            Next
+          </button>
+        </div>
+      )}
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 overflow-auto">
@@ -582,8 +581,8 @@ const StaffManagement = () => {
                   ? "Chỉnh sửa nhân viên"
                   : "Thêm nhân viên"
                 : editId
-                ? "Edit Staff"
-                : "Add Staff"}
+                  ? "Edit Staff"
+                  : "Add Staff"}
             </h3>
 
             {/* 🌐 Language Toggle */}
@@ -596,11 +595,10 @@ const StaffManagement = () => {
                   key={lang.code}
                   type="button"
                   onClick={() => setLanguageTab(lang.code)}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
-                    languageTab === lang.code
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${languageTab === lang.code
                       ? "bg-white !text-black shadow-md"
                       : "bg-transparent text-gray-300 hover:text-white"
-                  }`}
+                    }`}
                 >
                   {lang.label}
                 </button>
@@ -648,7 +646,7 @@ const StaffManagement = () => {
                   {languageTab === "en"
                     ? "Last Name (English)"
                     : "Tên (Tiếng Việt)"}{" "}
-                  
+
                 </label>
                 <input
                   type="text"
@@ -798,7 +796,7 @@ const StaffManagement = () => {
 
               <div>
                 <label className="block mb-1 text-gray-300">
-                  Date of Joining 
+                  Date of Joining
                 </label>
                 <input
                   type="date"
@@ -838,11 +836,10 @@ const StaffManagement = () => {
                 <button
                   type="submit"
                   disabled={!isSuperAdmin}
-                  className={`px-6 py-4 rounded-full transition cursor-pointer ${
-                    isSuperAdmin
+                  className={`px-6 py-4 rounded-full transition cursor-pointer ${isSuperAdmin
                       ? "bg-[#0085C8] text-white hover:bg-[#009FE3]"
                       : "bg-gray-600 text-gray-300 cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   {editId ? "Update Staff" : "Create Staff"}
                 </button>

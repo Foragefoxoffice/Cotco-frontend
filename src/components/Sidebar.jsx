@@ -91,7 +91,7 @@ const Sidebar = () => {
     privacy: isVietnamese ? "Chính sách bảo mật" : "Privacy Policy",
     terms: isVietnamese ? "Điều khoản sử dụng" : "Terms & Conditions",
     machines: isVietnamese ? "Máy móc" : "Machines",
-    machineCategories: isVietnamese ? "Danh mục máy móc" : "Categories",
+    machineCategories: isVietnamese ? "Danh mục máy móc" : "Machine Categories",
     machineList: isVietnamese ? "Danh sách máy móc" : "List",
     roleManagement: isVietnamese ? "Quản lý Vai trò" : "Manage Staffs",
     roles: isVietnamese ? "Vai trò" : "Roles",
@@ -227,7 +227,6 @@ const Sidebar = () => {
           src="/img/home/footerLogo.png"
           className="h-20 mb-2 transition filter brightness-100"
         />
-        <p className="text-lg font-bold text-gray-200">COTCO Admin</p>
       </div>
 
       {/* ---------- Navigation ---------- */}

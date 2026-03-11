@@ -125,28 +125,28 @@ export default function BlogsSection() {
           {/* ---------- Left column ---------- */}
           <div className="col-span-12 md:col-span-3 h-full grid place-content-center">
             {blogInfo && (
-  <>
-    <TitleAnimation
-      text={pick(blogInfo.blogTitle, activeLang)}
-      className="heading"
-      align="heading text-center md:text-left"
-      delay={0.05}
-      stagger={0.05}
-      once={true}
-    />
+              <>
+                <TitleAnimation
+                  text={pick(blogInfo.blogTitle, activeLang)}
+                  className="heading"
+                  align="heading text-center md:text-left"
+                  delay={0.05}
+                  stagger={0.05}
+                  once={true}
+                />
 
-    <p className="mt-4 text-slate-600 text-center md:text-left leading-relaxed max-w-sm">
-      {pick(blogInfo.blogDescription, activeLang)}
-    </p>
-  </>
-)}
+                <p className="mt-4 text-slate-600 text-center md:text-left leading-relaxed max-w-sm">
+                  {pick(blogInfo.blogDescription, activeLang)}
+                </p>
+              </>
+            )}
 
 
           </div>
 
           {/* ---------- Right column ---------- */}
           <div className="col-span-12 md:col-span-9 relative md:mt-0 mt-6">
-            <div className="absolute inset-y-0 right-0 w-[92%] bg-[#0E2F47] rounded-[36px] md:rounded-l-[48px]" />
+            <div className="absolute inset-y-0 right-0 !w-[10px] bg-[#0E2F47] rounded-[36px] md:rounded-l-[48px]" />
 
             <div className="relative pt-20 pb-10 px-4 md:px-6">
               <article className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden p-6 shadow-md relative z-20">
@@ -222,30 +222,30 @@ export default function BlogsSection() {
       >
         {/* ---------- Left column ---------- */}
         <div className="col-span-12 md:col-span-3 h-full grid place-content-center">
-         {blogInfo && (
-  <>
-    <TitleAnimation
-      text={pick(blogInfo.blogTitle, activeLang)}
-      className="heading"
-      align="heading text-center md:text-left"
-      delay={0.05}
-      stagger={0.05}
-      once={true}
-    />
+          {blogInfo && (
+            <>
+              <TitleAnimation
+                text={pick(blogInfo.blogTitle, activeLang)}
+                className="heading"
+                align="heading text-center md:text-left"
+                delay={0.05}
+                stagger={0.05}
+                once={true}
+              />
 
-    <p className="mt-4 text-slate-600 text-center md:text-left leading-relaxed max-w-sm">
-      {pick(blogInfo.blogDescription, activeLang)}
-    </p>
-  </>
-)}
+              <p className="mt-4 text-slate-600 text-center md:text-left leading-relaxed max-w-sm">
+                {pick(blogInfo.blogDescription, activeLang)}
+              </p>
+            </>
+          )}
 
         </div>
 
         {/* ---------- Right column: Carousel ---------- */}
         <div className="col-span-12 md:col-span-9 overflow-x-hidden relative md:mt-0 mt-6">
-          <div className="absolute inset-y-0 right-0 w-[92%] bg-[#0E2F47] rounded-[36px] md:rounded-l-[48px]" />
+          <div className="absolute inset-y-0 left-[50%] right-[50%] translate-x-[-50%] w-[90%] bg-[#0E2F47] rounded-[16px] md:rounded-l-[48px] max-md:w-[100%]" />
 
-          <div className="relative pt-20 pb-10 pl-2 pr-2 md:pl-6 md:pr-6 overflow-hidden">
+          <div className="relative pt-2 pb-3 md:pt-20 md:pb-10 md:pl-2 md:pr-2 overflow-hidden">
 
             {/* Carousel */}
             <div ref={emblaRef}>
@@ -262,7 +262,7 @@ export default function BlogsSection() {
                   return (
                     <div
                       key={b._id || i}
-                      className="flex-none basis-8/12 lg:basis-1/3 px-2"
+                      className="flex-none basis-12/12 lg:basis-1/3 max-md:px-2"
                     >
                       <article
                         className={[
@@ -276,9 +276,10 @@ export default function BlogsSection() {
                           className="h-44 w-full rounded-xl object-cover md:h-56 lg:h-60"
                         />
                         <div className="py-4">
-                          <h3 className="text-[18px] font-semibold leading-snug text-slate-900">
+                          <h3 className="text-[18px] max-md:text-[14px] font-semibold leading-snug text-slate-900 line-clamp-2">
                             {title}
                           </h3>
+
                           <p className="mt-2 line-clamp-2 text-sm text-slate-600">
                             {excerpt}
                           </p>
@@ -305,8 +306,8 @@ export default function BlogsSection() {
             {/* Arrows - Moved to bottom center */}
             <div className="mt-6 flex justify-center gap-3">
               <button
-                onClick={scrollPrev}
-                disabled={!canPrev}
+                onClick={scrollNext}
+                disabled={!canNext}
                 className={`grid h-10 w-10 place-items-center rounded-full bg-white ring-1 ring-black/5 shadow ${!canPrev ? "cursor-not-allowed opacity-40" : "hover:shadow-md"
                   }`}
                 aria-label="Previous"
@@ -314,8 +315,9 @@ export default function BlogsSection() {
                 <HiOutlineChevronLeft className="text-xl" />
               </button>
               <button
-                onClick={scrollNext}
-                disabled={!canNext}
+
+                onClick={scrollPrev}
+                disabled={!canPrev}
                 className={`grid h-10 w-10 place-items-center rounded-full bg-white ring-1 ring-black/5 shadow ${!canNext ? "cursor-not-allowed opacity-40" : "hover:shadow-md"
                   }`}
                 aria-label="Next"

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Collapse, Input, Button, Tabs, Modal } from "antd";
-import { Plus, Minus, RotateCw, X, Trash2,Eye } from "lucide-react";
+import { Plus, Minus, RotateCw, X, Trash2, Eye } from "lucide-react";
 // import { useTheme } from "../../contexts/ThemeContext";
 import { CommonToaster } from "../../Common/CommonToaster";
 import usePersistedState from "../../hooks/usePersistedState";
@@ -699,8 +699,8 @@ const AboutPage = () => {
           // ✅ Sort history items chronologically (optional)
           const sorted = Array.isArray(section.aboutHistory)
             ? [...section.aboutHistory].sort(
-                (a, b) => Number(a.year) - Number(b.year)
-              )
+              (a, b) => Number(a.year) - Number(b.year)
+            )
             : [];
 
           setAboutHistory(sorted);
@@ -1126,7 +1126,7 @@ const AboutPage = () => {
             <div className="flex flex-wrap gap-4 mt-2">
               {/* --- Upload Box (Empty) --- */}
               {!aboutOverview.aboutOverviewFile &&
-              !aboutOverview.aboutOverviewImg ? (
+                !aboutOverview.aboutOverviewImg ? (
                 <label
                   htmlFor="aboutOverviewUpload"
                   className="flex flex-col items-center justify-center w-48 h-48 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -1533,14 +1533,14 @@ const AboutPage = () => {
               <div key={i} className="relative group w-40 h-56">
                 {/* --- Image Preview --- */}
                 {aboutFounder[`founderImg${i}File`] ||
-                aboutFounder[`founderImg${i}`] ? (
+                  aboutFounder[`founderImg${i}`] ? (
                   <>
                     <img
                       src={
                         aboutFounder[`founderImg${i}File`]
                           ? URL.createObjectURL(
-                              aboutFounder[`founderImg${i}File`]
-                            )
+                            aboutFounder[`founderImg${i}File`]
+                          )
                           : getFullUrl(aboutFounder[`founderImg${i}`])
                       }
                       alt={`Founder ${i}`}
@@ -1682,11 +1682,11 @@ const AboutPage = () => {
                 src={
                   aboutFounder[`founderImg${activeFounderModal}File`]
                     ? URL.createObjectURL(
-                        aboutFounder[`founderImg${activeFounderModal}File`]
-                      )
+                      aboutFounder[`founderImg${activeFounderModal}File`]
+                    )
                     : getFullUrl(
-                        aboutFounder[`founderImg${activeFounderModal}`]
-                      )
+                      aboutFounder[`founderImg${activeFounderModal}`]
+                    )
                 }
                 alt={`Founder ${activeFounderModal} Full`}
                 className="w-full h-auto rounded-lg"
@@ -1928,7 +1928,7 @@ const AboutPage = () => {
                         type="number"
                         value={
                           aboutMissionVission[
-                            `aboutMissionVissionBoxCount${i}`
+                          `aboutMissionVissionBoxCount${i}`
                           ] ?? 0
                         }
                         onChange={(e) =>
@@ -1954,7 +1954,7 @@ const AboutPage = () => {
                       <Input.TextArea
                         value={
                           aboutMissionVission[`aboutMissionBoxDes${i}`]?.[
-                            lang
+                          lang
                           ] || ""
                         }
                         onChange={(e) =>
@@ -2133,14 +2133,14 @@ const AboutPage = () => {
             {[1, 2, 3].map((i) => (
               <div key={i} className="relative group w-48 h-48">
                 {aboutCore[`aboutCoreBg${i}File`] ||
-                aboutCore[`aboutCoreBg${i}`] ? (
+                  aboutCore[`aboutCoreBg${i}`] ? (
                   <>
                     <img
                       src={
                         aboutCore[`aboutCoreBg${i}File`]
                           ? URL.createObjectURL(
-                              aboutCore[`aboutCoreBg${i}File`]
-                            )
+                            aboutCore[`aboutCoreBg${i}File`]
+                          )
                           : getFullUrl(aboutCore[`aboutCoreBg${i}`])
                       }
                       alt={`Core ${i}`}
@@ -2253,8 +2253,8 @@ const AboutPage = () => {
                 src={
                   aboutCore[`aboutCoreBg${activeCoreModal}File`]
                     ? URL.createObjectURL(
-                        aboutCore[`aboutCoreBg${activeCoreModal}File`]
-                      )
+                      aboutCore[`aboutCoreBg${activeCoreModal}File`]
+                    )
                     : getFullUrl(aboutCore[`aboutCoreBg${activeCoreModal}`])
                 }
                 alt={`Core ${activeCoreModal} Full`}
@@ -2585,86 +2585,86 @@ const AboutPage = () => {
                   </Button>
 
                   <Button
-  type="primary"
-  onClick={async () => {
-    try {
-      const formData = new FormData();
-      formData.append("section", "aboutHistory");
-      formData.append(
-        "aboutHistoryTitle",
-        JSON.stringify(aboutHistoryTitle)
-      );
+                    type="primary"
+                    onClick={async () => {
+                      try {
+                        const formData = new FormData();
+                        formData.append("section", "aboutHistory");
+                        formData.append(
+                          "aboutHistoryTitle",
+                          JSON.stringify(aboutHistoryTitle)
+                        );
 
-      // ✅ Clean up history data before saving
-      const cleanedHistory = aboutHistory.map((item) => ({
-        year: item.year?.trim() || "",
-        content: {
-          en: item.content?.en?.trim() || "",
-          vi: item.content?.vi?.trim() || "",
-        },
-        // Explicitly clear the image field if removed
-        image: item.imageFile ? "" : item.image || "",
-      }));
+                        // ✅ Clean up history data before saving
+                        const cleanedHistory = aboutHistory.map((item) => ({
+                          year: item.year?.trim() || "",
+                          content: {
+                            en: item.content?.en?.trim() || "",
+                            vi: item.content?.vi?.trim() || "",
+                          },
+                          // Explicitly clear the image field if removed
+                          image: item.imageFile ? "" : item.image || "",
+                        }));
 
-      formData.append("aboutHistory", JSON.stringify(cleanedHistory));
+                        formData.append("aboutHistory", JSON.stringify(cleanedHistory));
 
-      // ✅ Attach only actual files
-      aboutHistory.forEach((item, i) => {
-        if (item.imageFile instanceof File) {
-          formData.append(`historyImage${i}`, item.imageFile);
-        }
-      });
+                        // ✅ Attach only actual files
+                        aboutHistory.forEach((item, i) => {
+                          if (item.imageFile instanceof File) {
+                            formData.append(`historyImage${i}`, item.imageFile);
+                          }
+                        });
 
-      const res = await updateAboutPage(formData);
+                        const res = await updateAboutPage(formData);
 
-      // ✅ Immediately refetch updated data from backend
-      if (res.data?.about?.aboutHistorySection) {
-        const refreshed = await getAboutPage();
-        const section = refreshed.data?.aboutHistorySection;
-        if (section) {
-          const sorted = Array.isArray(section.aboutHistory)
-            ? [...section.aboutHistory].sort(
-                (a, b) => Number(a.year) - Number(b.year)
-              )
-            : [];
-          setAboutHistory(sorted);
-          setAboutHistoryTitle(section.aboutHistoryTitle || { en: "", vi: "" });
-        }
+                        // ✅ Immediately refetch updated data from backend
+                        if (res.data?.about?.aboutHistorySection) {
+                          const refreshed = await getAboutPage();
+                          const section = refreshed.data?.aboutHistorySection;
+                          if (section) {
+                            const sorted = Array.isArray(section.aboutHistory)
+                              ? [...section.aboutHistory].sort(
+                                (a, b) => Number(a.year) - Number(b.year)
+                              )
+                              : [];
+                            setAboutHistory(sorted);
+                            setAboutHistoryTitle(section.aboutHistoryTitle || { en: "", vi: "" });
+                          }
 
-        CommonToaster(
-          isVietnamese
-            ? "Lưu lịch sử thành công!"
-            : "History saved successfully!",
-          "success"
-        );
-      } else {
-        CommonToaster(
-          isVietnamese
-            ? "Không thể lưu lịch sử!"
-            : "Failed to save history",
-          "error"
-        );
-      }
-    } catch (err) {
-      console.error("❌ Save failed:", err);
-      CommonToaster(
-        isVietnamese
-          ? "Có lỗi xảy ra khi lưu!"
-          : "Something went wrong while saving!",
-        "error"
-      );
-    }
-  }}
-  style={{
-    backgroundColor: "#10B981",
-    color: "#fff",
-    borderRadius: "9999px",
-    padding: "18px 28px",
-    fontWeight: "600",
-  }}
->
-  {translations[activeTabLang].saveHistory}
-</Button>
+                          CommonToaster(
+                            isVietnamese
+                              ? "Lưu lịch sử thành công!"
+                              : "History saved successfully!",
+                            "success"
+                          );
+                        } else {
+                          CommonToaster(
+                            isVietnamese
+                              ? "Không thể lưu lịch sử!"
+                              : "Failed to save history",
+                            "error"
+                          );
+                        }
+                      } catch (err) {
+                        console.error("❌ Save failed:", err);
+                        CommonToaster(
+                          isVietnamese
+                            ? "Có lỗi xảy ra khi lưu!"
+                            : "Something went wrong while saving!",
+                          "error"
+                        );
+                      }
+                    }}
+                    style={{
+                      backgroundColor: "#10B981",
+                      color: "#fff",
+                      borderRadius: "9999px",
+                      padding: "18px 28px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {translations[activeTabLang].saveHistory}
+                  </Button>
 
                 </div>
               </TabPane>
@@ -3456,15 +3456,15 @@ const AboutPage = () => {
                       src={
                         activeAllianceModal.type === "saved"
                           ? getFullUrl(
-                              aboutAlliances.aboutAlliancesImg[
-                                activeAllianceModal.index
-                              ]
-                            )
+                            aboutAlliances.aboutAlliancesImg[
+                            activeAllianceModal.index
+                            ]
+                          )
                           : URL.createObjectURL(
-                              aboutAlliances.aboutAlliancesFiles[
-                                activeAllianceModal.index
-                              ]
-                            )
+                            aboutAlliances.aboutAlliancesFiles[
+                            activeAllianceModal.index
+                            ]
+                          )
                       }
                       alt="Alliance Preview"
                       className="w-full h-auto rounded-lg"
@@ -3636,7 +3636,7 @@ const AboutPage = () => {
                     {lang === "vi" ? "Từ khóa Meta" : "Meta Keywords"}
                   </label>
 
-                  <div className="flex flex-wrap gap-2 mb-3 p-2 rounded-lg bg-[#1C1C1C] border border-[#2E2F2F] min-h-[48px] focus-within:ring-1 focus-within:ring-[#0284C7] transition-all">
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {seoMeta.metaKeywords?.[lang]
                       ?.split(",")
                       .map((kw) => kw.trim())
@@ -3668,38 +3668,38 @@ const AboutPage = () => {
                           </button>
                         </span>
                       ))}
-
-                    <input
-                      type="text"
-                      placeholder={
-                        lang === "vi"
-                          ? "Nhập từ khóa và nhấn Enter"
-                          : "Type keyword and press Enter"
-                      }
-                      className="flex-1 min-w-[140px] bg-transparent outline-none border-none !text-gray-100 placeholder-gray-500 text-sm px-1"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && e.target.value.trim()) {
-                          e.preventDefault();
-                          const newKeyword = e.target.value.trim();
-                          const existing =
-                            seoMeta.metaKeywords?.[lang]
-                              ?.split(",")
-                              .map((k) => k.trim()) || [];
-                          const updated = [
-                            ...new Set([...existing, newKeyword]),
-                          ];
-                          setSeoMeta({
-                            ...seoMeta,
-                            metaKeywords: {
-                              ...seoMeta.metaKeywords,
-                              [lang]: updated.join(", "),
-                            },
-                          });
-                          e.target.value = "";
-                        }
-                      }}
-                    />
                   </div>
+
+                  <input
+                    type="text"
+                    placeholder={
+                      lang === "vi"
+                        ? "Nhập từ khóa và nhấn Enter"
+                        : "Type keyword and press Enter"
+                    }
+                    className="w-full bg-[#262626] border border-[#2E2F2F] rounded-lg !text-white px-3 py-2 text-sm focus:outline-none focus:border-[#0284C7] transition-all placeholder-gray-400"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && e.target.value.trim()) {
+                        e.preventDefault();
+                        const newKeyword = e.target.value.trim();
+                        const existing =
+                          seoMeta.metaKeywords?.[lang]
+                            ?.split(",")
+                            .map((k) => k.trim()) || [];
+                        const updated = [
+                          ...new Set([...existing, newKeyword]),
+                        ];
+                        setSeoMeta({
+                          ...seoMeta,
+                          metaKeywords: {
+                            ...seoMeta.metaKeywords,
+                            [lang]: updated.join(", "),
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
                 </div>
               </TabPane>
             ))}

@@ -6,6 +6,10 @@ import { FiChevronRight } from "react-icons/fi";
 import Header from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { FaShare } from "react-icons/fa6";
+import { Title, Meta, Link as MetaLink } from "react-head";
+
+
+
 
 export default function BlogOverview() {
   const { slug } = useParams();
@@ -25,7 +29,69 @@ export default function BlogOverview() {
     });
   };
 
-  // ✅ Detect language mode
+  // Helper: pick multilingual or fallback values
+  const pick = (obj, key) => {
+    // If obj is falsy, return empty string
+    if (!obj) return "";
+    // If key is provided (we expect obj to be a parent containing language keys)
+    if (key && typeof obj === "object" && key in obj) {
+      const val = obj[key];
+      // If the value itself is object with language keys
+      if (typeof val === "object" && val !== null) {
+        return val[activeLang] ?? val.en ?? val.vi ?? "";
+      }
+      return val ?? "";
+    }
+
+    // If obj itself is a multilingual object { en, vi }
+    if (typeof obj === "object" && obj !== null) {
+      return obj[activeLang] ?? obj.en ?? obj.vi ?? "";
+    }
+
+    // Otherwise obj is likely a plain string
+    return String(obj);
+  };
+
+  // Universal SEO extractor that handles multiple formats:
+  // - seo: { title: { en: "...", vi: "..." } }
+  // - seo: { title: "plain string" }
+  // - seo: { title_en: "...", title_vi: "..." }
+  // - seo: { keywords: ["a","b"] } or keywords: "a,b"
+  // const getSEOValue = (seoObj, key, lang = "en") => {
+  //   if (!seoObj) return "";
+
+  //   // Direct multilingual nested object: seoObj[key] -> { en, vi }
+  //   if (seoObj[key] && typeof seoObj[key] === "object" && !Array.isArray(seoObj[key])) {
+  //     return seoObj[key][lang] ?? seoObj[key].en ?? seoObj[key].vi ?? "";
+  //   }
+
+  //   // Direct string: seoObj[key] is string
+  //   if (typeof seoObj[key] === "string") return seoObj[key];
+
+  //   // Flattened keys like title_en / title_vi
+  //   const keyLang = `${key}_${lang}`;
+  //   if (seoObj[keyLang]) return seoObj[keyLang];
+
+  //   // If keywords can be an array
+  //   if (key === "keywords") {
+  //     const kw = seoObj[key];
+  //     if (Array.isArray(kw)) return kw;
+  //     if (typeof kw === "object" && kw !== null) {
+  //       // maybe { en: [...], vi: [...] }
+  //       if (Array.isArray(kw[lang])) return kw[lang];
+  //       if (Array.isArray(kw.en)) return kw.en;
+  //     }
+  //     if (typeof kw === "string") return kw;
+  //   }
+
+  //   // Finally, sometimes seo values are stored as seo.title or seoTitle
+  //   const altKey = `seo${key.charAt(0).toUpperCase() + key.slice(1)}`; // seoTitle
+  //   if (seoObj[altKey]) return seoObj[altKey];
+
+  //   return "";
+  // };
+
+  // Detect language mode (en / vi)
   useEffect(() => {
     const detectLanguage = () =>
       document.body.classList.contains("vi-mode") ? "vi" : "en";
@@ -43,17 +109,22 @@ export default function BlogOverview() {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Fetch blog + recent blogs
+  // Fetch blog + recent blogs
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
+        setLoading(true);
+
         const res = await getBlogBySlug(slug);
-        const blogData = res.data?.data || res.data;
+        // support both res.data.data (common) and res.data (sometimes)
+        const blogData = res.data?.data ?? res.data ?? null;
+
         if (mounted) setBlog(blogData);
 
+        // fetch recent blogs (global recent, exclude current slug)
         const recRes = await getBlogs({ limit: 6, sort: "-createdAt" });
-        const allBlogs = recRes.data?.data || recRes.data || [];
+        const allBlogs = recRes.data?.data ?? recRes.data ?? [];
         const filtered = allBlogs.filter((b) => b.slug !== slug).slice(0, 5);
         if (mounted) setRecentBlogs(filtered);
       } catch (err) {
@@ -65,14 +136,14 @@ export default function BlogOverview() {
     return () => (mounted = false);
   }, [slug]);
 
-  // ✅ Custom Loader with logo + spinning ring
+  // Custom Loader with logo + spinning ring
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen bg-white relative">
         <div className="relative w-40 h-40 flex items-center justify-center">
           {/* Logo in center */}
           <img
-            src="/logo/logo.png" // ✅ change to your actual logo path
+            src="/logo/logo.png" // change to your actual logo path if needed
             alt="Loading..."
             className="w-20 h-20 object-contain z-10"
           />
@@ -86,18 +157,59 @@ export default function BlogOverview() {
   if (!blog)
     return <p className="text-center text-red-500 py-20">Blog not found.</p>;
 
-  const pick = (obj, key) => obj?.[key] ?? obj?.en ?? obj?.vi ?? "";
-
-  const title = pick(blog.title, activeLang);
+  // helpers to extract text
+  const title = pick(blog.title, activeLang) || pick(blog.name, activeLang) || "";
   const coverImage = blog.coverImage?.url || "/img/blog/blog-img.png";
-  const rawDate = new Date(blog.publishedAt || blog.createdAt);
-  const publishedAt = rawDate.toLocaleDateString("en-GB"); // ✅ DD/MM/YYYY
+  const rawDate = new Date(blog.publishedAt || blog.createdAt || Date.now());
+  const publishedAt = rawDate.toLocaleDateString("en-GB");
 
   const mainCategory = blog.mainCategory;
   const category = blog.category;
 
+  // ✅ SIMPLE + CORRECT SEO EXTRACTION (paste here)
+  const seoTitle =
+    blog.seo?.title?.[activeLang] ||
+    blog.seo?.title?.en ||
+    title;
+
+  const seoDescription =
+    blog.seo?.description?.[activeLang] ||
+    blog.seo?.description?.en ||
+    blog.excerpt?.[activeLang] ||
+    "";
+
+  let seoKeywords =
+    blog.seo?.keywords?.[activeLang] ||
+    blog.seo?.keywords?.en ||
+    "";
+
+  if (Array.isArray(seoKeywords)) {
+    seoKeywords = seoKeywords.join(", ");
+  }
+
+  const ogImage = coverImage;
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+
+
   return (
     <>
+      {/* SEO + OG TAGS */}
+      <>
+        <Title>{seoTitle}</Title>
+        <Meta name="description" content={seoDescription} />
+        <Meta name="keywords" content={seoKeywords} />
+        <Meta property="og:type" content="article" />
+        <Meta property="og:title" content={seoTitle} />
+        <Meta property="og:description" content={seoDescription} />
+        <Meta property="og:image" content={ogImage} />
+        <Meta property="og:url" content={currentUrl} />
+        <Meta name="twitter:card" content="summary_large_image" />
+        <Meta name="twitter:title" content={seoTitle} />
+        <Meta name="twitter:description" content={seoDescription} />
+        <Meta name="twitter:image" content={ogImage} />
+      </>
+
+
       <style>{`
         header, nav {
           background-color: #0A1C2E !important;
@@ -108,7 +220,7 @@ export default function BlogOverview() {
       <Header />
 
       <section className="max-w-7xl mx-auto px-4 md:px-6 py-10 mt-24">
-        {/* ---------- ✅ BREADCRUMB ---------- */}
+        {/* BREADCRUMB */}
         <div className="text-sm text-gray-500 mb-6 flex flex-wrap items-center gap-1">
           <Link to="/" className="hover:text-[#1276BD]">
             Home
@@ -120,7 +232,7 @@ export default function BlogOverview() {
               <Link
                 to={`/${encodeURIComponent(
                   mainCategory.slug ||
-                    mainCategory?.name?.en?.toLowerCase().replace(/\s+/g, "-")
+                  mainCategory?.name?.en?.toLowerCase().replace(/\s+/g, "-")
                 )}`}
                 className="hover:text-[#1276BD] capitalize"
               >
@@ -138,10 +250,10 @@ export default function BlogOverview() {
               <Link
                 to={`/${encodeURIComponent(
                   mainCategory?.slug ||
-                    mainCategory?.name?.en?.toLowerCase().replace(/\s+/g, "-")
+                  mainCategory?.name?.en?.toLowerCase().replace(/\s+/g, "-")
                 )}?category=${encodeURIComponent(
                   category.slug ||
-                    category?.name?.en?.toLowerCase().replace(/\s+/g, "-")
+                  category?.name?.en?.toLowerCase().replace(/\s+/g, "-")
                 )}`}
                 className="hover:text-[#1276BD] capitalize"
               >
@@ -159,7 +271,7 @@ export default function BlogOverview() {
           </span>
         </div>
 
-        {/* ---------- GRID ---------- */}
+        {/* GRID */}
         <div className="grid lg:grid-cols-[2fr_1fr] gap-10">
           {/* LEFT: ARTICLE */}
           <div>
@@ -178,7 +290,7 @@ export default function BlogOverview() {
               className="w-full rounded-lg mb-8 shadow-sm"
             />
 
-            {/* ---------- Content Blocks ---------- */}
+            {/* Content Blocks */}
             <div
               className="prose prose-lg max-w-none text-gray-800
               prose-p:leading-relaxed prose-img:rounded-lg prose-img:shadow-sm
@@ -230,9 +342,30 @@ export default function BlogOverview() {
                 return null;
               })}
             </div>
+            <p className="text-gray-500 mb-6 text-sm">{publishedAt}</p>
+
+            {/* SHARE BUTTON */}
+            <div className="text-right">
+              <div className="relative inline-block">
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full shadow-sm hover:bg-gray-200 transition cursor-pointer"
+                >
+                  <FaShare />
+                  <span className="font-medium text-gray-800">Share</span>
+                </button>
+
+                {/* Tooltip */}
+                {copyTooltip && (
+                  <div className="absolute left-1/2 -translate-x-1/2 mt-2 bg-black text-white text-xs px-3 py-1 rounded-full whitespace-nowrap">
+                    Link copied!
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* ---------- RIGHT: RECENT BLOGS ---------- */}
+          {/* RIGHT: RECENT BLOGS */}
           <aside className="space-y-6">
             <h3 className="text-[#164B8B] font-bold uppercase text-lg border-b border-gray-200 pb-2">
               Recent
@@ -240,14 +373,14 @@ export default function BlogOverview() {
             <div className="space-y-4">
               {recentBlogs.map((b) => (
                 <div
-                  key={b._id}
+                  key={b._id || b.id || b.slug}
                   className="flex gap-3 items-start cursor-pointer group"
                   onClick={() =>
                     navigate(`/${b.category?.slug || "general"}/${b.slug}`)
                   }
                 >
                   <img
-                    src={b.coverImage?.url || "/img/blog/blog-img.png"}
+                    src={b.coverImage?.url || b.coverImage || "/img/blog/blog-img.png"}
                     alt={pick(b.title, activeLang)}
                     className="w-20 h-16 object-cover rounded-md"
                   />
@@ -256,34 +389,13 @@ export default function BlogOverview() {
                       {pick(b.title, activeLang)}
                     </h4>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(
-                        b.publishedAt || b.createdAt
-                      ).toLocaleDateString()}
+                      {new Date(b.publishedAt || b.createdAt || Date.now()).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
           </aside>
-        </div>
-        <p className="text-gray-500 mb-6 text-sm">{publishedAt}</p>
-
-        {/* SHARE BUTTON */}
-        <div className="relative inline-block">
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full shadow-sm hover:bg-gray-200 transition cursor-pointer"
-          >
-            <FaShare />
-            <span className="font-medium text-gray-800">Share</span>
-          </button>
-
-          {/* Tooltip */}
-          {copyTooltip && (
-            <div className="absolute left-1/2 -translate-x-1/2 mt-2 bg-black text-white text-xs px-3 py-1 rounded-full whitespace-nowrap">
-              Link copied!
-            </div>
-          )}
         </div>
       </section>
       <Footer />

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Collapse, Button, Modal, Input, Tabs, Spin } from "antd";
 import { Plus, Minus, RotateCw, Trash2 } from "lucide-react";
-import axios from "axios";
+import { getKnowledge, updateKnowledge } from "../../Api/api";
 import { toast } from "react-toastify"; // ✅ Use your existing global toast setup
 
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
-const API_BASE = import.meta.env.VITE_API_URL;
 
 const KnowledgeManagementPage = () => {
   const [topics, setTopics] = useState([]);
@@ -83,8 +82,8 @@ const KnowledgeManagementPage = () => {
   const fetchContent = async () => {
     try {
       const [enRes, viRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/v1/knowledge?lang=en`),
-        axios.get(`${API_BASE}/api/v1/knowledge?lang=vi`),
+        getKnowledge({ lang: "en" }),
+        getKnowledge({ lang: "vi" }),
       ]);
 
       const enText = enRes.data.content || "";
@@ -205,11 +204,11 @@ const KnowledgeManagementPage = () => {
       const viText = compileText("vi");
 
       const [enRes, viRes] = await Promise.all([
-        axios.post(`${API_BASE}/api/v1/knowledge`, {
+        updateKnowledge({
           lang: "en",
           content: enText,
         }),
-        axios.post(`${API_BASE}/api/v1/knowledge`, {
+        updateKnowledge({
           lang: "vi",
           content: viText,
         }),
@@ -298,6 +297,18 @@ const KnowledgeManagementPage = () => {
           :where(.css-dev-only-do-not-override-1odpy5d).ant-collapse>.ant-collapse-item >.ant-collapse-header{
            color:#fff;
           }
+           :where(.css-dev-only-do-not-override-198drv2).ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn{
+            color:#000;
+           }
+            :where(.css-dev-only-do-not-override-198drv2).ant-modal .ant-modal-header{
+              background-color:transparent;
+            }
+            :where(.css-dev-only-do-not-override-198drv2).ant-modal .ant-modal-title{
+              color:#fff !important;
+            }
+            :where(.css-dev-only-do-not-override-198drv2).ant-modal .ant-modal-body{
+              color:#fff !important;
+            }
       `}</style>
 
       <h2 className="text-3xl font-bold mb-8 text-center">{t[lang].pageTitle}</h2>
@@ -345,7 +356,7 @@ const KnowledgeManagementPage = () => {
             <Panel
               header={
                 <div className="flex items-center justify-between w-full">
-                  <span>{topic.title.en || topic.title.vi}</span>
+                  <span className="text-white">{topic.title.en || topic.title.vi}</span>
                   <Button
                     danger
                     size="small"
@@ -437,7 +448,6 @@ const KnowledgeManagementPage = () => {
                         color: "#fff",
                         borderRadius: "6px",
                         marginTop: "5px",
-                        padding: "22px",
                         borderRadius: "999px",
                       }}
                     >

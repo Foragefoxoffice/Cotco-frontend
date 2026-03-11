@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { Plus, X, RotateCw } from "lucide-react";
 import TranslationTabs from "../TranslationTabs";
 import { slugify } from "../../utils/helpers";
 import { createBlogMainCategory, updateBlogMainCategory } from "../../Api/api";
@@ -281,20 +281,7 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
                 htmlFor="file-upload"
                 className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2"
-                  stroke="currentColor"
-                  className="w-6 h-6 text-gray-400"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
+                <Plus size={24} className="text-gray-400" />
                 <span className="mt-2 text-sm text-gray-400">Upload Image</span>
                 <input
                   id="file-upload"
@@ -351,20 +338,7 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
                     onChange={handleFileChange}
                     style={{ display: "none" }}
                   />
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-4 h-4"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9M20 20v-5h-.581m-15.357-2a8.001 8.001 0 0115.357 2"
-                    />
-                  </svg>
+                  <RotateCw size={14} className="text-white" />
                 </label>
 
                 {/* ❌ Remove */}
@@ -377,7 +351,7 @@ const MainCategoryForm = ({ mainCategory, onClose, onSave }) => {
                     }));
                     setPreview("");
                   }}
-                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white p-1 rounded-full transition"
+                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white p-1 rounded-full transition cursor-pointer"
                   title="Remove image"
                 >
                   <X size={14} />

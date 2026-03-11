@@ -232,13 +232,31 @@ const MachineCategoryCreate = ({ onSuccess }) => {
 
   return (
     <div
+      className="custom-scrollbar"
       style={{
         backgroundColor: "#171717",
         borderRadius: "12px",
         padding: "4px",
         color: "white",
+        maxHeight: "70vh",
+        overflowY: "auto",
       }}
     >
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 2px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #444;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+      `}</style>
       <div className="mt-4 mb-4">
         <TranslationTabs
           activeLanguage={activeLanguage}

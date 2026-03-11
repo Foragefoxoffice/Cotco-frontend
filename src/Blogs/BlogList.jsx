@@ -17,6 +17,12 @@ export default function BlogLists({ onLoaded }) {
   const [activeCategoryName, setActiveCategoryName] = useState("All");
   const [recentBlogs, setRecentBlogs] = useState([]);
   const [searchText, setSearchText] = useState("");
+  // ⭐ Pagination
+  const [page, setPage] = useState(1);
+  const [limit] = useState(8);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalBlogs, setTotalBlogs] = useState(0);
+
 
   const location = useLocation();
 
@@ -69,31 +75,52 @@ export default function BlogLists({ onLoaded }) {
     const fetchData = async () => {
       try {
         const mainRes = await getMainBlogCategories();
-        const mainCategory = mainRes.data.data.find(
-          (mc) => mc.slug === mainCategorySlug
-        );
+        const mainData = mainRes.data?.data || mainRes.data || [];
+        const mainCategory = Array.isArray(mainData)
+          ? mainData.find((mc) => mc.slug === mainCategorySlug)
+          : null;
         if (!mainCategory) return setLoading(false);
 
         const catRes = await getCategories();
-        const blogRes = await getBlogs();
-        const allBlogs = blogRes.data.data || [];
+        // 1️⃣ Fetch paginated blogs based on selected category
+        const blogRes = await getBlogs({
+          status: "published",
+          mainCategory: mainCategory._id,
+          ...(selectedCategory !== "all" && { category: selectedCategory }),
+          page,
+          limit,
+        });
+        const pagination = blogRes.data.pagination || {};
+        setTotalPages(pagination.totalPages || 1);
+        setTotalBlogs(pagination.total || 0);
 
-        const filteredBlogs = allBlogs.filter(
-          (b) =>
-            b.status === "published" && b.mainCategory?._id === mainCategory._id
-        );
+        // 2️⃣ Fetch ALL blogs in this main category (NO category filter)
+        const allBlogsRes = await getBlogs({
+          status: "published",
+          mainCategory: mainCategory._id
+        });
+        const allBlogs = allBlogsRes.data.data || [];
 
+
+        const filteredBlogs = allBlogs; // backend already filtered
+
+
+        // Find all category IDs used by blogs under this main category
         const blogCategoryIds = new Set(
-          filteredBlogs.map((b) => String(b.category?._id || b.category))
+          allBlogs.map((b) => String(b.category?._id || b.category))
         );
 
-        const matchedCategories = catRes.data.data.filter(
-          (cat) =>
-            cat.mainCategory?._id === mainCategory._id &&
-            blogCategoryIds.has(String(cat._id))
+        // Filter categories that belong to this main category (because they appear in blogs)
+        const matchedCategories = catRes.data.data.filter((cat) =>
+          blogCategoryIds.has(String(cat._id)) &&
+          (cat.name?.en || cat.name)?.trim().toLowerCase() !== "common"
         );
 
-        const formatted = filteredBlogs.map((b) => ({
+
+
+
+
+        const formatted = blogRes.data.data.map((b) => ({
           id: b._id,
           title:
             b.title?.[language] ||
@@ -129,7 +156,7 @@ export default function BlogLists({ onLoaded }) {
     };
 
     fetchData();
-  }, [mainCategorySlug, language]);
+  }, [mainCategorySlug, language, page, selectedCategory]);
 
   // Fetch recent blogs
   useEffect(() => {
@@ -167,6 +194,7 @@ export default function BlogLists({ onLoaded }) {
   const handleCategoryChange = (catId, name) => {
     setSelectedCategory(catId);
     setActiveCategoryName(name);
+    setPage(1);
   };
 
   if (loading)
@@ -236,35 +264,34 @@ export default function BlogLists({ onLoaded }) {
   return (
     <section className="max-w-[1300px] mx-auto px-4 md:px-6 py-10 text-[#1a1a1a]">
       <div className="lg:hidden flex items-center bg-white border border-gray-300 rounded-full px-4 py-2 shadow-sm">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="flex-1 outline-none text-sm"
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                />
-                <svg
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="#555"
-                  strokeWidth="2"
-                >
-                  <circle cx="8" cy="8" r="6" />
-                  <line x1="12" y1="12" x2="16" y2="16" />
-                </svg>
-              </div>
+        <input
+          type="text"
+          placeholder="Search..."
+          className="flex-1 outline-none text-sm"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+        <svg
+          width="18"
+          height="18"
+          fill="none"
+          stroke="#555"
+          strokeWidth="2"
+        >
+          <circle cx="8" cy="8" r="6" />
+          <line x1="12" y1="12" x2="16" y2="16" />
+        </svg>
+      </div>
       {/* ---------- MOBILE CATEGORY BAR ---------- */}
       <div className="block lg:hidden sticky top-0 bg-white z-30 py-3 mb-8 border-b border-gray-200 overflow-x-auto">
         <div className="flex gap-4 space-x-3 w-max px-2">
           {/* ALL button */}
           <button
             onClick={() => handleCategoryChange("all", "All")}
-            className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-              selectedCategory === "all"
-                ? "!bg-[#164B8B] !text-white shadow-md"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+            className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${selectedCategory === "all"
+              ? "!bg-[#164B8B] !text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
           >
             All
           </button>
@@ -279,11 +306,10 @@ export default function BlogLists({ onLoaded }) {
                   cat.name?.[language] || cat.name?.en || cat.name
                 )
               }
-              className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                selectedCategory === String(cat._id)
-                  ? "!bg-[#164B8B] !text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${selectedCategory === String(cat._id)
+                ? "!bg-[#164B8B] !text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               {cat.name?.[language] || cat.name?.en || cat.name}
             </button>
@@ -407,7 +433,7 @@ export default function BlogLists({ onLoaded }) {
                   {remaining.map((b) => (
                     <div
                       key={b.id}
-                      className="grid md:grid-cols-[260px_1fr] gap-6 border-b pb-6 cursor-pointer hover:bg-gray-50"
+                      className="grid md:grid-cols-[260px_1fr] gap-6 border-b border-gray-200 pb-6 cursor-pointer hover:bg-gray-50"
                       onClick={() => navigate(`/${mainCategorySlug}/${b.slug}`)}
                     >
                       <img
@@ -433,7 +459,70 @@ export default function BlogLists({ onLoaded }) {
               )}
             </>
           )}
+          {!isSearching && totalPages > 1 && (
+            <div className="flex justify-center mt-12">
+              <div className="flex items-center gap-3 px-6 py-3 rounded-2xl 
+        bg-white/40 backdrop-blur-md shadow-lg border border-white/60">
+
+                {/* Prev */}
+                <button
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                  className={`
+          w-10 h-10 flex items-center justify-center rounded-xl 
+          font-bold text-gray-600 transition-all duration-200 cursor-pointer
+          ${page === 1
+                      ? "opacity-30 cursor-not-allowed"
+                      : "hover:bg-white/70 hover:shadow-md active:scale-95"
+                    }
+        `}
+                >
+                  ←
+                </button>
+
+                {/* Pages */}
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  const n = i + 1;
+                  return (
+                    <button
+                      key={n}
+                      onClick={() => setPage(n)}
+                      className={`
+              min-w-[40px] h-10 rounded-xl px-3 font-semibold transition-all duration-200 cursor-pointer
+              ${page === n
+                          ? "bg-[#164B8B] !text-white shadow-xl scale-105"
+                          : "bg-white/60 text-gray-800 hover:bg-white hover:shadow-md"
+                        }
+            `}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
+
+                {/* Next */}
+                <button
+                  onClick={() => setPage(page + 1)}
+                  disabled={page === totalPages}
+                  className={`
+          w-10 h-10 flex items-center justify-center rounded-xl 
+          font-bold text-gray-600 transition-all duration-200 cursor-pointer
+          ${page === totalPages
+                      ? "opacity-30 cursor-not-allowed"
+                      : "hover:bg-white/70 hover:shadow-md active:scale-95"
+                    }
+        `}
+                >
+                  →
+                </button>
+              </div>
+            </div>
+          )}
+
+
+
         </div>
+
 
         {/* RIGHT SIDEBAR */}
         <aside className="lg:block space-y-6">
@@ -475,11 +564,10 @@ export default function BlogLists({ onLoaded }) {
             <div className="flex flex-col gap-2">
               <div
                 onClick={() => handleCategoryChange("all", "All")}
-                className={`px-4 py-2 rounded-md border font-medium cursor-pointer ${
-                  selectedCategory === "all"
-                    ? "bg-[#164B8B] !text-white border-[#164B8B]"
-                    : "text-gray-800 hover:bg-gray-100 border-gray-200"
-                }`}
+                className={`px-4 py-2 rounded-md border font-medium cursor-pointer ${selectedCategory === "all"
+                  ? "bg-[#164B8B] !text-white border-[#164B8B]"
+                  : "text-gray-800 hover:bg-gray-100 border-gray-200"
+                  }`}
               >
                 All
               </div>
@@ -493,11 +581,10 @@ export default function BlogLists({ onLoaded }) {
                       cat.name?.[language] || cat.name?.en || cat.name
                     )
                   }
-                  className={`px-4 py-2 rounded-md border font-medium cursor-pointer ${
-                    selectedCategory === String(cat._id)
-                      ? "bg-[#164B8B] !text-white border-[#164B8B]"
-                      : "text-gray-800 hover:bg-gray-100 border-gray-200"
-                  }`}
+                  className={`px-4 py-2 rounded-md border font-medium cursor-pointer ${selectedCategory === String(cat._id)
+                    ? "bg-[#164B8B] !text-white border-[#164B8B]"
+                    : "text-gray-800 hover:bg-gray-100 border-gray-200"
+                    }`}
                 >
                   {cat.name?.[language] || cat.name?.en || cat.name}
                 </div>

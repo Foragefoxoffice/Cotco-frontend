@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { FiSend, FiX, FiMessageCircle, FiMinimize2 } from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +11,7 @@ const ChatBot = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
+  const dragControls = useDragControls();
 
   // 🧠 Multi-language translations
   const t = {
@@ -147,10 +148,25 @@ Tôi có thể giúp gì cho bạn hôm nay?`,
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed md:bottom-6 bottom-0 md:right-6 right-0 md:w-[380px] w-[100%] h-[600px] max-h-[80vh] z-[9999] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col font-sans border border-gray-100"
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0 }}
+            dragSnapToOrigin
+            onDragEnd={(event, info) => {
+              if (info.offset.y > 100 || info.velocity.y > 500) {
+                setIsOpen(false);
+              }
+            }}
+            className="fixed md:bottom-6 bottom-0 md:right-6 right-0 md:w-[380px] w-[100%] h-[600px] max-h-[80vh] z-[9999] bg-white rounded-t-2xl md:rounded-2xl shadow-2xl overflow-hidden flex flex-col font-sans border border-gray-100"
           >
             {/* Header */}
-            <div className="bg-[#0A1C2E] px-6 py-4 flex items-center justify-between shadow-md relative z-10">
+            <div
+              onPointerDown={(e) => dragControls.start(e)}
+              className="bg-[#0A1C2E] px-6 py-4 flex items-center justify-between shadow-md relative z-10 cursor-grab active:cursor-grabbing touch-none"
+            >
+              {/* Mobile Drag Handle */}
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-white/20 rounded-full md:hidden"></div>
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">

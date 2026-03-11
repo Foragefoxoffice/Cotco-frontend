@@ -8,6 +8,8 @@ const Footer = () => {
   const [footerSocials, setFooterSocials] = useState([]);
   const [isVietnamese, setIsVietnamese] = useState(false);
   const [copyrights, setCopyrights] = useState("");
+  const [footerLogoTitle, setFooterLogoTitle] = useState({ en: "", vi: "" });
+
 
   // ✅ Detect language (based on body class)
   useEffect(() => {
@@ -31,6 +33,13 @@ const Footer = () => {
       const data = res.data?.footer || res.data;
 
       if (data?.footerLogo) setFooterLogo(data.footerLogo);
+      if (data?.footerLogoTitle) {
+        setFooterLogoTitle({
+          en: data.footerLogoTitle.en || "",
+          vi: data.footerLogoTitle.vi || ""
+        });
+      }
+
       if (data?.footerSocials) setFooterSocials(data.footerSocials);
       if (data?.copyrights) setCopyrights(data.copyrights); // ✅ ADD THIS
     });
@@ -61,7 +70,14 @@ const Footer = () => {
   const t = links[lang];
 
   return (
-    <footer className="bg-[#0A1C2E] text-white pt-40 pb-20 footer-section">
+    <footer className="bg-[#0A1C2E] text-white pt-16 pb-20 footer-section">
+      {/* Footer Logo Title */}
+      {(footerLogoTitle[lang] && footerLogoTitle[lang].trim() !== "") && (
+        <h3 className="text-center text-white max-md:text-2xl text-5xl font-bold tracking-wide pb-14">
+          {footerLogoTitle[lang]}
+        </h3>
+      )}
+
       <div className="page-width mx-auto">
         <div className="grid md:grid-cols-2 gap-10">
           {/* Left: Logo + Socials */}

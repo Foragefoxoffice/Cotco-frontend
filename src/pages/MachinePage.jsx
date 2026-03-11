@@ -6,6 +6,7 @@ import { getMachinePageBySlug } from "../Api/api";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
+import { Title, Meta } from "react-head";
 import "react-quill-new/dist/quill.snow.css";
 
 const MachinePageDetail = () => {
@@ -77,6 +78,15 @@ const MachinePageDetail = () => {
   // ✅ Helper to pick correct language
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
+  // ✅ SEO values with fallbacks
+  const seoTitle = machine.seo?.metaTitle || pick(machine.title);
+  const seoDescription = machine.seo?.metaDescription || pick(machine.description) || "";
+  const seoKeywords = Array.isArray(machine.seo?.keywords)
+    ? machine.seo.keywords.join(", ")
+    : "";
+  const ogImage = machine.seo?.ogImage || bannerUrl;
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+
   // ✅ Render section dynamically (language-aware)
   const renderSection = (section, index) => {
     switch (section.type) {
@@ -89,19 +99,19 @@ const MachinePageDetail = () => {
         );
 
       case "richtext":
-  return (
-    <div
-      key={index}
-      className="my-10 page-width max-w-none leading-relaxed quill-content"
-      dangerouslySetInnerHTML={{
-        __html: pick(section.richtext)
-          ?.replace(/<ol>/g, "<ul>")
-          ?.replace(/<\/ol>/g, "</ul>")
-          ?.replace(/\n/g, "<br>")
-          ?.trim() || "",
-      }}
-    />
-  );
+        return (
+          <div
+            key={index}
+            className="my-10 page-width max-w-none leading-relaxed quill-content"
+            dangerouslySetInnerHTML={{
+              __html: pick(section.richtext)
+                ?.replace(/<ol>/g, "<ul>")
+                ?.replace(/<\/ol>/g, "</ul>")
+                ?.replace(/\n/g, "<br>")
+                ?.trim() || "",
+            }}
+          />
+        );
 
 
 
@@ -126,13 +136,12 @@ const MachinePageDetail = () => {
         return (
           <div
             key={index}
-            className={`my-12 page-width flex ${
-              section.button?.align === "left"
-                ? "justify-start"
-                : section.button?.align === "right"
+            className={`my-12 page-width flex ${section.button?.align === "left"
+              ? "justify-start"
+              : section.button?.align === "right"
                 ? "justify-end"
                 : "justify-center"
-            }`}
+              }`}
           >
             <button
               style={{ color: "white" }}
@@ -187,100 +196,99 @@ const MachinePageDetail = () => {
         );
 
       case "image":
-  return (
-    <div key={index} className="page-width my-10 flex flex-col items-center text-center">
-      {/* ✅ Title (render HTML safely) */}
-      {section.title && (
-        <div
-          className="text-2xl font-bold !text-black mb-3"
-          dangerouslySetInnerHTML={{ __html: pick(section.title) }}
-        />
-      )}
+        return (
+          <div key={index} className="page-width my-10 flex flex-col items-center text-center">
+            {/* ✅ Title (render HTML safely) */}
+            {section.title && (
+              <div
+                className="text-2xl font-bold !text-black mb-3"
+                dangerouslySetInnerHTML={{ __html: pick(section.title) }}
+              />
+            )}
 
-      {/* ✅ Description (render HTML safely) */}
-      {section.description && (
-        <div
-          className="text-black max-w-3xl mb-6 prose prose-invert leading-relaxed"
-          dangerouslySetInnerHTML={{
-            __html: pick(section.description)
-              ?.replace(/\n/g, "<br>")
-              ?.trim() || "",
-          }}
-        />
-      )}
+            {/* ✅ Description (render HTML safely) */}
+            {section.description && (
+              <div
+                className="text-black max-w-3xl mb-6 prose prose-invert leading-relaxed"
+                dangerouslySetInnerHTML={{
+                  __html: pick(section.description)
+                    ?.replace(/\n/g, "<br>")
+                    ?.trim() || "",
+                }}
+              />
+            )}
 
-      {/* ✅ Image */}
-      {section.image && (
-        <img
-          className="rounded-2xl shadow-lg max-w-full"
-          src={
-            typeof section.image === "string"
-              ? section.image.startsWith("/uploads")
-                ? `${API_URL}${section.image}`
-                : section.image
-              : ""
-          }
-          alt={pick(section.title) || "section image"}
-        />
-      )}
-    </div>
-  );
+            {/* ✅ Image */}
+            {section.image && (
+              <img
+                className="rounded-2xl shadow-lg max-w-full"
+                src={
+                  typeof section.image === "string"
+                    ? section.image.startsWith("/uploads")
+                      ? `${API_URL}${section.image}`
+                      : section.image
+                    : ""
+                }
+                alt={pick(section.title) || "section image"}
+              />
+            )}
+          </div>
+        );
 
 
       case "imageLeft":
-case "imageRight":
-  return (
-    <div
-      key={index}
-      className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-center my-14 page-width ${
-        section.type === "imageRight" ? "md:[direction:rtl]" : ""
-      }`}
-    >
-      {/* ✅ Text Side */}
-      <div className="text-left space-y-4">
-        {section.title && (
+      case "imageRight":
+        return (
           <div
-            className="text-2xl font-bold text-black"
-            dangerouslySetInnerHTML={{ __html: pick(section.title) }}
-          />
-        )}
-        {section.description && (
-          <div
-            className="text-baack prose prose-invert leading-relaxed"
-            dangerouslySetInnerHTML={{
-              __html: pick(section.description)
-                ?.replace(/\n/g, "<br>")
-                ?.trim() || "",
-            }}
-          />
-        )}
-      </div>
+            key={index}
+            className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-center my-14 page-width ${section.type === "imageRight" ? "md:[direction:rtl]" : ""
+              }`}
+          >
+            {/* ✅ Text Side */}
+            <div className="text-left space-y-4">
+              {section.title && (
+                <div
+                  className="text-2xl font-bold text-black"
+                  dangerouslySetInnerHTML={{ __html: pick(section.title) }}
+                />
+              )}
+              {section.description && (
+                <div
+                  className="text-baack prose prose-invert leading-relaxed"
+                  dangerouslySetInnerHTML={{
+                    __html: pick(section.description)
+                      ?.replace(/\n/g, "<br>")
+                      ?.trim() || "",
+                  }}
+                />
+              )}
+            </div>
 
-      {/* ✅ Image Side */}
-      <div className="flex justify-center">
-        {section.image && (
-          <img
-            src={
-              typeof section.image === "string"
-                ? section.image.startsWith("/uploads")
-                  ? `${API_URL}${section.image}`
-                  : section.image
-                : ""
-            }
-            alt={pick(section.title)}
-            className="rounded-xl shadow-lg max-w-full"
-          />
-        )}
-      </div>
-    </div>
-  );
+            {/* ✅ Image Side */}
+            <div className="flex justify-center">
+              {section.image && (
+                <img
+                  src={
+                    typeof section.image === "string"
+                      ? section.image.startsWith("/uploads")
+                        ? `${API_URL}${section.image}`
+                        : section.image
+                      : ""
+                  }
+                  alt={pick(section.title)}
+                  className="rounded-xl shadow-lg max-w-full"
+                />
+              )}
+            </div>
+          </div>
+        );
 
 
       case "tabs":
-  return (
-    <div key={index} className="my-10">
-      <style>
-        {`
+        return (
+          <div key={index} className="my-10">
+            <style>
+              {`
           /* Active tab color fix */
           :where(.css-dev-only-do-not-override-1odpy5d).ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
             color: #fff !important;
@@ -317,25 +325,25 @@ case "imageRight":
             }
           }
         `}
-      </style>
+            </style>
 
-      <Tabs
-        defaultActiveKey="0"
-        className="custom-tabs"
-        items={section.tabs?.map((tab, ti) => ({
-          key: String(ti),
-          label: pick(tab.tabTitle) || `Tab ${ti + 1}`,
-          children: (
-            <div className="mt-4 page-width">
-              {tab.sections?.map((childSection, ci) =>
-                renderSection(childSection, `${index}-${ci}`)
-              )}
-            </div>
-          ),
-        }))}
-      />
-    </div>
-  );
+            <Tabs
+              defaultActiveKey="0"
+              className="custom-tabs"
+              items={section.tabs?.map((tab, ti) => ({
+                key: String(ti),
+                label: pick(tab.tabTitle) || `Tab ${ti + 1}`,
+                children: (
+                  <div className="mt-4 page-width">
+                    {tab.sections?.map((childSection, ci) =>
+                      renderSection(childSection, `${index}-${ci}`)
+                    )}
+                  </div>
+                ),
+              }))}
+            />
+          </div>
+        );
 
       default:
         return null;
@@ -344,6 +352,28 @@ case "imageRight":
 
   return (
     <div>
+      {/* ✅ SEO + OG TAGS */}
+      <Title>{seoTitle}</Title>
+      {seoDescription && <Meta name="description" content={seoDescription} />}
+      {seoKeywords && <Meta name="keywords" content={seoKeywords} />}
+
+      {/* Open Graph */}
+      <Meta property="og:type" content="article" />
+      <Meta property="og:title" content={seoTitle} />
+      {seoDescription && (
+        <Meta property="og:description" content={seoDescription} />
+      )}
+      <Meta property="og:image" content={ogImage} />
+      {currentUrl && <Meta property="og:url" content={currentUrl} />}
+
+      {/* Twitter Cards */}
+      <Meta name="twitter:card" content="summary_large_image" />
+      <Meta name="twitter:title" content={seoTitle} />
+      {seoDescription && (
+        <Meta name="twitter:description" content={seoDescription} />
+      )}
+      <Meta name="twitter:image" content={ogImage} />
+
       <Navbar />
 
       {/* ================= HERO SECTION ================= */}
@@ -356,9 +386,8 @@ case "imageRight":
         initial={{ scale: 1, opacity: 1 }}
         animate={scrolled ? { scale: 0.93, opacity: 0.95 } : { scale: 1, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className={`relative h-[70vh] md:min-h-[80vh] overflow-hidden hero transition-all duration-500 ease-out ${
-          scrolled ? "rounded-2xl" : ""
-        }`}
+        className={`relative h-[70vh] md:min-h-[80vh] overflow-hidden hero transition-all duration-500 ease-out ${scrolled ? "rounded-2xl" : ""
+          }`}
       >
         <div className="absolute inset-0 bg-black/30 z-10" />
         <motion.div
@@ -392,7 +421,7 @@ case "imageRight":
 
 
       <style>
-  {`
+        {`
     /* ✅ Pure Quill list styling (works without Tailwind prose) */
     .quill-content ul {
       list-style-type: disc;
@@ -443,7 +472,7 @@ case "imageRight":
   padding-left: 1.5rem;
 }
   `}
-</style>
+      </style>
 
 
 

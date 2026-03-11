@@ -12,7 +12,7 @@ const NewsCategoriesScreen = () => {
   const [isVietnamese, setIsVietnamese] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [categoriesPerPage] = useState(8);
+  const [categoriesPerPage, setCategoriesPerPage] = useState(10);
   const [sortOption, setSortOption] = useState("oldest");
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -96,6 +96,7 @@ const NewsCategoriesScreen = () => {
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+
 
   const confirmDelete = (id) => {
     setDeleteId(id);
@@ -200,14 +201,13 @@ const NewsCategoriesScreen = () => {
               {sortOption === "oldest"
                 ? t.oldest
                 : sortOption === "newest"
-                ? t.newest
-                : sortOption === "az"
-                ? t.az
-                : t.za}
+                  ? t.newest
+                  : sortOption === "az"
+                    ? t.az
+                    : t.za}
               <svg
-                className={`ml-2 w-4 h-4 transform transition-transform ${
-                  showDropdown ? "rotate-180" : ""
-                }`}
+                className={`ml-2 w-4 h-4 transform transition-transform ${showDropdown ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -240,11 +240,10 @@ const NewsCategoriesScreen = () => {
                       setShowDropdown(false);
                       setCurrentPage(1);
                     }}
-                    className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${
-                      sortOption === option.value
+                    className={`block w-full text-left px-4 py-2 text-sm transition-all duration-150 cursor-pointer ${sortOption === option.value
                         ? "bg-[#2E2F2F] text-white rounded-lg"
                         : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
-                    }`}
+                      }`}
                   >
                     {option.label}
                   </button>
@@ -316,7 +315,7 @@ const NewsCategoriesScreen = () => {
                       {category.mainCategory
                         ? isVietnamese
                           ? category.mainCategory.name?.vi ||
-                            category.mainCategory.name?.en
+                          category.mainCategory.name?.en
                           : category.mainCategory.name?.en
                         : "-"}
                     </td>
@@ -372,27 +371,91 @@ const NewsCategoriesScreen = () => {
       )}
 
       {/* Pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 my-6">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            className="px-3 py-1 rounded border border-[#2E2F2F] disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span className="text-gray-300">
-            {currentPage} / {totalPages}
-          </span>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="px-3 py-1 rounded border border-[#2E2F2F] disabled:opacity-50"
-          >
-            Next
-          </button>
+      {/* Pagination */}
+      {!loading && sortedCategories.length > 0 && (
+        <div className="flex flex-col sm:flex-row justify-end w-full bg-[#171717] items-center gap-4 py-2 px-4 rounded-br-lg rounded-bl-lg border border-t-0 border-[#2E2F2F]">
+
+          {/* Rows per page */}
+          <div className="flex items-center gap-3">
+            <span className="text-gray-400 text-sm">Rows per page:</span>
+
+            <select
+              value={categoriesPerPage}
+              onChange={(e) => {
+                setCategoriesPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-3 py-1.5 bg-[#1F1F1F] border border-[#2E2F2F] rounded-lg text-white text-sm focus:ring-2 focus:ring-[#0085C8] outline-none cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={30}>30</option>
+            </select>
+          </div>
+
+          {/* Page info + navigation */}
+          <div className="flex items-center gap-4">
+            <span className="text-gray-400 text-sm">
+              {indexOfFirst + 1}–
+              {Math.min(indexOfLast, sortedCategories.length)} of{" "}
+              {sortedCategories.length}
+            </span>
+
+            <div className="flex items-center gap-2">
+
+              {/* First page */}
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300
+          hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />
+                </svg>
+              </button>
+
+              {/* Previous */}
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 
+          hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+
+              {/* Next */}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 
+          hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
+
+              {/* Last page */}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 
+          hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       )}
+
 
       {/* Form Modal */}
       {showForm && (

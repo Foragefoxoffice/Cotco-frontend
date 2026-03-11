@@ -86,53 +86,53 @@ const MachineCMSPage = () => {
   };
 
   // 💾 Save changes
- const handleSave = async () => {
-  setLoading(true);
-  try {
-    const formData = new FormData();
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
 
-    // Include the full machine object & SEO data
-    formData.append("machinePage", JSON.stringify({ ...machine, seoMeta }));
+      // Include the full machine object & SEO data
+      formData.append("machinePage", JSON.stringify({ ...machine, seoMeta }));
 
-    // ✅ Attach benefit image if a new file was selected
-    if (tempBenefitFile) {
-      formData.append("benefitImage", tempBenefitFile);
-    }
-
-    // ✅ You can also attach other pending files if needed later (e.g., hero video)
-    // if (tempHeroVideo) formData.append("heroVideo", tempHeroVideo);
-
-    const res = await updateMachineCMSPage(formData);
-
-    if (res.data?.success) {
-      const updatedPage = res.data.machinePage;
-      const API_BASE = import.meta.env.VITE_API_URL;
-
-      // Normalize backend image URL (ensures correct display)
-      if (
-        updatedPage.benefitsSection?.benefitImage &&
-        !updatedPage.benefitsSection.benefitImage.startsWith("http")
-      ) {
-        updatedPage.benefitsSection.benefitImage = `${API_BASE}/${updatedPage.benefitsSection.benefitImage.replace(
-          /^\/+/,
-          ""
-        )}`;
+      // ✅ Attach benefit image if a new file was selected
+      if (tempBenefitFile) {
+        formData.append("benefitImage", tempBenefitFile);
       }
 
-      setMachine(updatedPage);
-      setTempBenefitFile(null); // ✅ clear after successful save
+      // ✅ You can also attach other pending files if needed later (e.g., hero video)
+      // if (tempHeroVideo) formData.append("heroVideo", tempHeroVideo);
 
-      CommonToaster("Machine page updated successfully", "success");
-    } else {
+      const res = await updateMachineCMSPage(formData);
+
+      if (res.data?.success) {
+        const updatedPage = res.data.machinePage;
+        const API_BASE = import.meta.env.VITE_API_URL;
+
+        // Normalize backend image URL (ensures correct display)
+        if (
+          updatedPage.benefitsSection?.benefitImage &&
+          !updatedPage.benefitsSection.benefitImage.startsWith("http")
+        ) {
+          updatedPage.benefitsSection.benefitImage = `${API_BASE}/${updatedPage.benefitsSection.benefitImage.replace(
+            /^\/+/,
+            ""
+          )}`;
+        }
+
+        setMachine(updatedPage);
+        setTempBenefitFile(null); // ✅ clear after successful save
+
+        CommonToaster("Machine page updated successfully", "success");
+      } else {
+        CommonToaster("Failed to update machine page", "error");
+      }
+    } catch (error) {
+      console.error("❌ Save failed:", error);
       CommonToaster("Failed to update machine page", "error");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("❌ Save failed:", error);
-    CommonToaster("Failed to update machine page", "error");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   if (!machine) return null;
 
@@ -604,117 +604,117 @@ const MachineCMSPage = () => {
           <Divider />
 
           {/* 🖼 Benefit Image Upload */}
-<div style={{ marginBottom: "30px" }}>
-  <label className="block text-white text-lg font-semibold mb-2">
-    {activeTabLang === "vi" ? "Hình ảnh lợi ích" : "Benefit Image"}
-  </label>
+          <div style={{ marginBottom: "30px" }}>
+            <label className="block text-white text-lg font-semibold mb-2">
+              {activeTabLang === "vi" ? "Hình ảnh lợi ích" : "Benefit Image"}
+            </label>
 
-  {!machine.benefitsSection.benefitImage ? (
-    <label
-      htmlFor="benefitImageUpload"
-      className="flex flex-col items-center justify-center w-44 h-44 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer bg-[#1F1F1F] hover:bg-[#2A2A2A] transition-all duration-200"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth="2"
-        stroke="currentColor"
-        className="w-8 h-8 text-gray-400"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-      </svg>
-      <span className="mt-2 text-sm text-gray-400 text-center px-2">
-        {activeTabLang === "vi"
-          ? "Tải lên hình ảnh lợi ích"
-          : "Upload Benefit Image"}
-      </span>
-      <input
-        id="benefitImageUpload"
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          const previewUrl = URL.createObjectURL(file);
-          handleChange("benefitsSection.benefitImage", previewUrl);
-          setTempBenefitFile(file); // 🔹 keep file for later save
-        }}
-        style={{ display: "none" }}
-      />
-    </label>
-  ) : (
-    <div className="relative group w-44 h-44 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
-      <img
-        src={getFullUrl(machine.benefitsSection.benefitImage)}
-        alt="Benefit Preview"
-        className="w-full h-full object-cover"
-      />
+            {!machine.benefitsSection.benefitImage ? (
+              <label
+                htmlFor="benefitImageUpload"
+                className="flex flex-col items-center justify-center w-44 h-44 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer bg-[#1F1F1F] hover:bg-[#2A2A2A] transition-all duration-200"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                  className="w-8 h-8 text-gray-400"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                <span className="mt-2 text-sm text-gray-400 text-center px-2">
+                  {activeTabLang === "vi"
+                    ? "Tải lên hình ảnh lợi ích"
+                    : "Upload Benefit Image"}
+                </span>
+                <input
+                  id="benefitImageUpload"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const previewUrl = URL.createObjectURL(file);
+                    handleChange("benefitsSection.benefitImage", previewUrl);
+                    setTempBenefitFile(file); // 🔹 keep file for later save
+                  }}
+                  style={{ display: "none" }}
+                />
+              </label>
+            ) : (
+              <div className="relative group w-44 h-44 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
+                <img
+                  src={getFullUrl(machine.benefitsSection.benefitImage)}
+                  alt="Benefit Preview"
+                  className="w-full h-full object-cover"
+                />
 
-      {/* 👁 Preview Button */}
-      <button
-        type="button"
-        onClick={() => setShowBenefitImageModal(true)}
-        className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
-      >
-        👁
-      </button>
+                {/* 👁 Preview Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowBenefitImageModal(true)}
+                  className="absolute bottom-1 left-1 bg-black/60 hover:bg-black/80 !text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                >
+                  👁
+                </button>
 
-      {/* 🔁 Change */}
-      <label
-        htmlFor="benefitImageChange"
-        className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition"
-      >
-        <input
-          id="benefitImageChange"
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const previewUrl = URL.createObjectURL(file);
-            handleChange("benefitsSection.benefitImage", previewUrl);
-            setTempBenefitFile(file); // 🔹 store file to upload later
-          }}
-          style={{ display: "none" }}
-        />
-        <ReloadOutlined size={14} />
-      </label>
+                {/* 🔁 Change */}
+                <label
+                  htmlFor="benefitImageChange"
+                  className="absolute bottom-1 right-1 bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition"
+                >
+                  <input
+                    id="benefitImageChange"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const previewUrl = URL.createObjectURL(file);
+                      handleChange("benefitsSection.benefitImage", previewUrl);
+                      setTempBenefitFile(file); // 🔹 store file to upload later
+                    }}
+                    style={{ display: "none" }}
+                  />
+                  <ReloadOutlined size={14} />
+                </label>
 
-      {/* ❌ Remove */}
-      <button
-        type="button"
-        onClick={() => {
-          handleChange("benefitsSection.benefitImage", "");
-          setTempBenefitFile(null);
-        }}
-        className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition"
-      >
-        ✖
-      </button>
-    </div>
-  )}
+                {/* ❌ Remove */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleChange("benefitsSection.benefitImage", "");
+                    setTempBenefitFile(null);
+                  }}
+                  className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 !text-white p-1 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition"
+                >
+                  ✖
+                </button>
+              </div>
+            )}
 
-  {/* 🪟 Popup Preview Modal */}
-  {showBenefitImageModal && (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="relative w-[90vw] max-w-4xl">
-        <button
-          type="button"
-          onClick={() => setShowBenefitImageModal(false)}
-          className="absolute z-50 -top-2 -right-2 bg-red-600 !text-white p-2 rounded-full cursor-pointer"
-        >
-          <X size={20} />
-        </button>
-        <img
-          src={machine.benefitsSection.benefitImage}
-          alt="Benefit Full Preview"
-          className="w-full rounded-lg"
-        />
-      </div>
-    </div>
-  )}
-</div>
+            {/* 🪟 Popup Preview Modal */}
+            {showBenefitImageModal && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+                <div className="relative w-[90vw] max-w-4xl">
+                  <button
+                    type="button"
+                    onClick={() => setShowBenefitImageModal(false)}
+                    className="absolute z-50 -top-2 -right-2 bg-red-600 !text-white p-2 rounded-full cursor-pointer"
+                  >
+                    <X size={20} />
+                  </button>
+                  <img
+                    src={machine.benefitsSection.benefitImage}
+                    alt="Benefit Full Preview"
+                    className="w-full rounded-lg"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
         </Panel>
 
@@ -781,7 +781,7 @@ const MachineCMSPage = () => {
                   <Input
                     value={
                       machine.machineTeamSection?.aboutTeamIntro?.heading?.[
-                        lang
+                      lang
                       ] || ""
                     }
                     onChange={(e) =>
@@ -813,7 +813,7 @@ const MachineCMSPage = () => {
                     rows={4}
                     value={
                       machine.machineTeamSection?.aboutTeamIntro?.description?.[
-                        lang
+                      lang
                       ] || ""
                     }
                     onChange={(e) =>
@@ -1191,7 +1191,7 @@ const MachineCMSPage = () => {
                     {lang === "vi" ? "Từ khóa Meta" : "Meta Keywords"}
                   </label>
 
-                  <div className="flex flex-wrap gap-2 mb-3 p-2 rounded-lg bg-[#1C1C1C] border border-[#2E2F2F] min-h-[48px] focus-within:ring-1 focus-within:ring-[#0284C7] transition-all">
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {/* Display each keyword as a tag */}
                     {seoMeta.metaKeywords?.[lang]
                       ?.split(",")
@@ -1224,40 +1224,40 @@ const MachineCMSPage = () => {
                           </button>
                         </span>
                       ))}
-
-                    {/* Input to add new keyword */}
-                    <input
-                      type="text"
-                      placeholder={
-                        lang === "vi"
-                          ? "Nhập từ khóa và nhấn Enter"
-                          : "Type keyword and press Enter"
-                      }
-                      className="flex-1 min-w-[140px] bg-transparent outline-none border-none !text-gray-100 placeholder-gray-500 text-sm px-1"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && e.target.value.trim()) {
-                          e.preventDefault();
-                          const newKeyword = e.target.value.trim();
-                          const existing =
-                            seoMeta.metaKeywords?.[lang]
-                              ?.split(",")
-                              .map((k) => k.trim())
-                              .filter(Boolean) || [];
-                          const updated = [
-                            ...new Set([...existing, newKeyword]),
-                          ];
-                          setSeoMeta({
-                            ...seoMeta,
-                            metaKeywords: {
-                              ...seoMeta.metaKeywords,
-                              [lang]: updated.join(", "),
-                            },
-                          });
-                          e.target.value = "";
-                        }
-                      }}
-                    />
                   </div>
+
+                  {/* Input to add new keyword */}
+                  <input
+                    type="text"
+                    placeholder={
+                      lang === "vi"
+                        ? "Nhập từ khóa và nhấn Enter"
+                        : "Type keyword and press Enter"
+                    }
+                    className="w-full bg-[#262626] border border-[#2E2F2F] rounded-lg !text-white px-3 py-2 text-sm focus:outline-none focus:border-[#0284C7] transition-all placeholder-gray-400"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && e.target.value.trim()) {
+                        e.preventDefault();
+                        const newKeyword = e.target.value.trim();
+                        const existing =
+                          seoMeta.metaKeywords?.[lang]
+                            ?.split(",")
+                            .map((k) => k.trim())
+                            .filter(Boolean) || [];
+                        const updated = [
+                          ...new Set([...existing, newKeyword]),
+                        ];
+                        setSeoMeta({
+                          ...seoMeta,
+                          metaKeywords: {
+                            ...seoMeta.metaKeywords,
+                            [lang]: updated.join(", "),
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
                 </div>
               </TabPane>
             ))}

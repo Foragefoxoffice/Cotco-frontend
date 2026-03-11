@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { FiArrowDownRight, FiChevronDown } from "react-icons/fi";
-import {ArrowUpRight} from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import TranslateToggle from "../TranslateToggle";
@@ -19,9 +19,9 @@ const translations = {
     { label: "Cotton", href: "/cotton" },
     { label: "Fiber", href: "/fiber" },
     { label: "Machines", href: "/machines" },
-    { label: "Login", href: "/login" },
+    { label: "Login", href: "/admin" },
     { label: "Contact", href: "/contact" },
-    
+
   ],
   vi: [
     { label: "Trang Chủ", href: "/" },
@@ -29,9 +29,9 @@ const translations = {
     { label: "Bông", href: "/cotton" },
     { label: "Xơ", href: "/fiber" },
     { label: "Máy Móc", href: "/machines" },
-    { label: "Đăng nhập", href: "/login" },
+    { label: "Đăng nhập", href: "/admin" },
     { label: "Liên Hệ", href: "/contact" },
-    
+
   ],
 };
 
@@ -114,17 +114,15 @@ const Navbar = () => {
 
   const toggleMenu = () => setIsOpen((s) => !s);
 
-  const navClasses = `top-0 left-0 w-full z-50 transition-all duration-300 ${
-    showNavbar ? "translate-y-0" : "-translate-y-full"
-  } ${scrolled ? "bg-[#0A1C2E] shadow-md fixed" : "bg-transparent fixed"}`;
+  const navClasses = `top-0 left-0 w-full z-50 transition-all duration-300 ${showNavbar ? "translate-y-0" : "-translate-y-full"
+    } ${scrolled ? "bg-[#0A1C2E] shadow-md fixed" : "bg-transparent fixed"}`;
 
   const getLinkClass = (href) =>
     `relative transition-colors duration-300 font-medium 
-     ${
-       location.pathname === href
-         ? "text-white font-semibold after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[3px] after:w-full after:bg-white after:scale-x-100 after:origin-left after:transition-transform after:duration-300"
-         : "text-[#fff] hover:text-[#fff] after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[3px] after:w-full after:bg-white after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-300"
-     }`;
+     ${location.pathname === href
+      ? "text-white font-semibold after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[3px] after:w-full after:bg-white after:scale-x-100 after:origin-left after:transition-transform after:duration-300"
+      : "text-[#fff] hover:text-[#fff] after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[3px] after:w-full after:bg-white after:scale-x-0 hover:after:scale-x-100 after:origin-left after:transition-transform after:duration-300"
+    }`;
 
   const contactClasses = (active = false) =>
     [
@@ -192,9 +190,8 @@ const Navbar = () => {
                         >
                           {isVietnamese ? "Tài Nguyên" : "Resources"}
                           <FiChevronDown
-                            className={`transition-transform duration-300 ${
-                              isResourcesOpen ? "rotate-180" : ""
-                            }`}
+                            className={`transition-transform duration-300 ${isResourcesOpen ? "rotate-180" : ""
+                              }`}
                           />
                         </button>
 
@@ -292,9 +289,9 @@ const Navbar = () => {
               <FaTimes />
             </button>
 
-            <div className="mb-10">
+            {/* <div className="mb-10">
               <TranslateToggle />
-            </div>
+            </div> */}
 
             <div className="space-y-6 grid text-center w-full px-6">
               {staticLinks.map(({ label, href }, index) => {
@@ -334,9 +331,8 @@ const Navbar = () => {
                         >
                           {isVietnamese ? "Tài Nguyên" : "Resources"}
                           <FiChevronDown
-                            className={`transition-transform ${
-                              openSubmenu === "Resources" ? "rotate-180" : ""
-                            }`}
+                            className={`transition-transform ${openSubmenu === "Resources" ? "rotate-180" : ""
+                              }`}
                           />
                         </button>
 
@@ -388,9 +384,8 @@ const Navbar = () => {
                     <Link
                       to={href}
                       onClick={toggleMenu}
-                      className={`text-2xl font-semibold ${
-                        isActive ? "text-blue-600" : "hover:text-blue-400"
-                      }`}
+                      className={`text-2xl font-semibold ${isActive ? "text-blue-600" : "hover:text-blue-400"
+                        }`}
                     >
                       {label}
                     </Link>

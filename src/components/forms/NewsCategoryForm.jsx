@@ -61,6 +61,17 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
   const [mainCategories, setMainCategories] = useState([]);
   const isCreating = !category;
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".dropdown-container")) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
   // ✅ Auto-generate slug when creating
   useEffect(() => {
     if (isCreating && formData.name.en) {
@@ -230,7 +241,7 @@ const NewsCategoryForm = ({ category, onClose, onSave }) => {
   </label>
 
   {/* Custom Floating Dropdown */}
-  <div className="relative mt-2">
+  <div className="relative dropdown-container mt-2">
     <button
       type="button"
       onClick={() => setShowDropdown((prev) => !prev)}

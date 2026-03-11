@@ -1,9 +1,6 @@
 import axios from "axios";
-
-// ✅ Setup axios instance
 const API = axios.create({
-  // baseURL: " http://localhost:5000/api/v1",
-  baseURL: "https://api.cotco-vn.com/api/v1", 
+  baseURL: `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}/api/v1`,
   withCredentials: true, // if you use cookies
 });
 
@@ -27,8 +24,10 @@ export const getMe = () => API.get("/auth/me");
 export const updateDetails = (data) => API.put("/auth/updatedetails", data);
 export const updatePassword = (data) => API.put("/auth/update-password", data);
 export const logoutUser = () => API.get("/auth/logout");
-export const forgotPassword = (data) => API.post("/auth/forgotpassword", data);
-export const resetPassword = (data) => API.post("/auth/resetpassword", data);
+export const forgotPassword = (data) => API.post("/auth/forgot-password", data);
+export const resetPassword = (data) =>
+  API.post("/auth/resetpassword", data);  // ✅ correct endpoint
+
 export const resendVerification = (data) =>
   API.post("/auth/resend-verification", data);
 
@@ -97,6 +96,8 @@ export const getMachinePagesByCategorySlug = (categorySlug) =>
 
 export const getMachinePageById = (id) => API.get(`/machines/pages/${id}`);
 
+
+
 /* =========================================================
    BLOGS
 ========================================================= */
@@ -105,6 +106,8 @@ export const getBlogBySlug = (slug) => API.get(`/blogs/${slug}`);
 export const createBlog = (data) => API.post("/blogs", data);
 export const updateBlog = (id, data) => API.put(`/blogs/${id}`, data);
 export const deleteBlog = (id) => API.delete(`/blogs/${id}`);
+
+
 
 // ================= CATEGORIES ================= //
 export const createCategory = (data) => API.post("/categories", data);
@@ -288,9 +291,8 @@ export const updateMachineCMSPage = (formData) =>
   });
 
 
-export const getKnowledge = async () => axios.get("/api/v1/knowledge");
-export const updateKnowledge = async (content) =>
-  axios.post("/api/v1/knowledge", { content });
+export const getKnowledge = (params = {}) => API.get("/knowledge", { params });
+export const updateKnowledge = (data) => API.post("/knowledge", data);
 
 
 // Get all contact entries (admin)

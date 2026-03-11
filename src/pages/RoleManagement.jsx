@@ -16,6 +16,9 @@ const RoleManagement = () => {
   const [editId, setEditId] = useState(null);
   const [isVietnamese, setIsVietnamese] = useState(false);
   const [modalLang, setModalLang] = useState("en");
+  const [statusDropdown, setStatusDropdown] = useState(false);
+  const [status, setStatus] = useState("Active"); // default selected
+
 
   // 🌐 Translation helper
   const t = {
@@ -39,58 +42,71 @@ const RoleManagement = () => {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".dropdown-container")) {
+        setStatusDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   // ✅ Sidebar Menu (matches actual Sidebar.jsx)
-const sidebarMenu = [
-  {
-    key: "dashboard",
-    label: { en: "Dashboard", vi: "Bảng điều khiển" },
-  },
-  {
-    key: "resources",
-    label: { en: "Resources", vi: "Tài nguyên" },
-    subItems: [
-      { key: "maincategories", label: { en: "Main Categories", vi: "Danh mục chính" } },
-      { key: "categories", label: { en: "Categories", vi: "Danh mục" } },
-      { key: "resources", label: { en: "All Resources", vi: "Tất cả tài nguyên" } },
-    ],
-  },
-  {
-    key: "machines",
-    label: { en: "Machines", vi: "Máy móc" },
-    subItems: [
-      { key: "machineCategories", label: { en: "Machine Categories", vi: "Danh mục máy móc" } },
-      { key: "machineList", label: { en: "Machine List", vi: "Danh sách máy móc" } },
-    ],
-  },
-  {
-    key: "cms",
-    label: { en: "CMS Settings", vi: "Cài đặt CMS" },
-    subItems: [
-      { key: "header", label: { en: "Header", vi: "Đầu trang" } },
-      { key: "footer", label: { en: "Footer", vi: "Chân trang" } },
-      { key: "home", label: { en: "Home", vi: "Trang chủ" } },
-      { key: "about", label: { en: "About", vi: "Giới thiệu" } },
-      { key: "cotton", label: { en: "Cotton", vi: "Bông" } },
-      { key: "fiber", label: { en: "Fiber", vi: "Sợi" } },
-      { key: "contact", label: { en: "Contact", vi: "Liên hệ" } },
-      { key: "privacy", label: { en: "Privacy Policy", vi: "Chính sách bảo mật" } },
-      { key: "terms", label: { en: "Terms & Conditions", vi: "Điều khoản sử dụng" } },
-    ],
-  },
-  {
-    key: "users",
-    label: { en: "User Management", vi: "Quản lý người dùng" },
-    subItems: [
-      { key: "roles", label: { en: "Roles", vi: "Vai trò" } },
-      { key: "staff", label: { en: "Staff", vi: "Nhân viên" } },
-    ],
-  },
-  {
-    key: "enquiry",
-    label: { en: "Enquiry Details", vi: "Chi tiết liên hệ" },
-  },
-];
+  const sidebarMenu = [
+    {
+      key: "dashboard",
+      label: { en: "Dashboard", vi: "Bảng điều khiển" },
+    },
+    {
+      key: "resources",
+      label: { en: "Resources", vi: "Tài nguyên" },
+      subItems: [
+        { key: "maincategories", label: { en: "Main Categories", vi: "Danh mục chính" } },
+        { key: "categories", label: { en: "Categories", vi: "Danh mục" } },
+        { key: "resources", label: { en: "All Resources", vi: "Tất cả tài nguyên" } },
+      ],
+    },
+    {
+      key: "machines",
+      label: { en: "Machines", vi: "Máy móc" },
+      subItems: [
+        { key: "machineCategories", label: { en: "Machine Categories", vi: "Danh mục máy móc" } },
+        { key: "machineList", label: { en: "Machine List", vi: "Danh sách máy móc" } },
+      ],
+    },
+    {
+      key: "cms",
+      label: { en: "CMS Settings", vi: "Cài đặt CMS" },
+      subItems: [
+        { key: "header", label: { en: "Header", vi: "Đầu trang" } },
+        { key: "footer", label: { en: "Footer", vi: "Chân trang" } },
+        { key: "home", label: { en: "Home", vi: "Trang chủ" } },
+        { key: "about", label: { en: "About", vi: "Giới thiệu" } },
+        { key: "cotton", label: { en: "Cotton", vi: "Bông" } },
+        { key: "fiber", label: { en: "Fiber", vi: "Sợi" } },
+        { key: "machine", label: { en: "Machine", vi: "Máy móc" } },
+        { key: "contact", label: { en: "Contact", vi: "Liên hệ" } },
+        { key: "privacy", label: { en: "Privacy Policy", vi: "Chính sách bảo mật" } },
+        { key: "terms", label: { en: "Terms & Conditions", vi: "Điều khoản sử dụng" } },
+        { key: "chatbot", label: { en: "Chatbot", vi: "Quản lý Chatbot" } },
+      ],
+    },
+    {
+      key: "users",
+      label: { en: "User Management", vi: "Quản lý người dùng" },
+      subItems: [
+        { key: "roles", label: { en: "Roles", vi: "Vai trò" } },
+        { key: "staff", label: { en: "Staff", vi: "Nhân viên" } },
+      ],
+    },
+    {
+      key: "enquiry",
+      label: { en: "Enquiry Details", vi: "Chi tiết liên hệ" },
+    },
+  ];
+
 
 
   const generateDefaultPermissions = () => {
@@ -118,6 +134,17 @@ const sidebarMenu = [
       CommonToaster("Failed to load roles ❌", "error");
     }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".dropdown-container")) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   // useEffect(() => {
   //   const userData = localStorage.getItem("user");
@@ -243,7 +270,7 @@ const sidebarMenu = [
           />
 
           {/* 🧭 Sort Dropdown */}
-          <div className="relative">
+          <div className="relative dropdown-container">
             <button
               onClick={() => setShowDropdown((prev) => !prev)}
               className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 transition-all cursor-pointer"
@@ -251,14 +278,13 @@ const sidebarMenu = [
               {sortOption === "oldest"
                 ? t.oldest
                 : sortOption === "newest"
-                ? t.newest
-                : sortOption === "az"
-                ? t.az
-                : t.za}
+                  ? t.newest
+                  : sortOption === "az"
+                    ? t.az
+                    : t.za}
               <svg
-                className={`ml-2 w-4 h-4 transform transition-transform ${
-                  showDropdown ? "rotate-180" : ""
-                }`}
+                className={`ml-2 w-4 h-4 transform transition-transform ${showDropdown ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -288,11 +314,10 @@ const sidebarMenu = [
                       setShowDropdown(false);
                       setCurrentPage(1);
                     }}
-                    className={`block w-full text-left px-4 py-2 text-sm cursor-pointer ${
-                      sortOption === option.value
-                        ? "bg-[#2E2F2F] text-white rounded-xl"
-                        : "text-gray-300 hover:bg-[#2E2F2F] hover:text-white rounded-xl"
-                    }`}
+                    className={`block w-full text-left px-4 py-2 text-sm cursor-pointer ${sortOption === option.value
+                      ? "bg-[#2E2F2F] text-white rounded-xl"
+                      : "text-gray-300 hover:bg-[#2E2F2F] hover:text-white rounded-xl"
+                      }`}
                   >
                     {option.label}
                   </button>
@@ -360,11 +385,10 @@ const sidebarMenu = [
                   </td>
                   <td className="p-3">
                     <span
-                      className={`px-2 py-1 rounded text-sm ${
-                        role.status === "Active"
-                          ? "bg-green-700/30 text-green-400"
-                          : "bg-red-700/30 text-red-400"
-                      }`}
+                      className={`px-2 py-1 rounded text-sm ${role.status === "Active"
+                        ? "bg-green-700/30 text-green-400"
+                        : "bg-red-700/30 text-red-400"
+                        }`}
                     >
                       {document.body.classList.contains("vi-mode")
                         ? role.status === "Active"
@@ -383,13 +407,12 @@ const sidebarMenu = [
                         role.name?.en === "Super Admin" ||
                         role.name?.vi === "Quản trị viên cao cấp"
                       }
-                      className={`px-3 py-1 text-sm rounded-md ${
-                        role.name === "Super Admin" ||
+                      className={`px-3 py-1 text-sm rounded-md ${role.name === "Super Admin" ||
                         role.name?.en === "Super Admin" ||
                         role.name?.vi === "Quản trị viên cao cấp"
-                          ? "bg-gray-600 cursor-not-allowed opacity-60"
-                          : "bg-[#0085C8] hover:bg-[#009FE3]"
-                      }`}
+                        ? "bg-gray-600 cursor-not-allowed opacity-60"
+                        : "bg-[#0085C8] hover:bg-[#009FE3]"
+                        }`}
                     >
                       <Edit2 size={14} />
                     </button>
@@ -409,13 +432,12 @@ const sidebarMenu = [
                         role.name?.en === "Super Admin" ||
                         role.name?.vi === "Quản trị viên cao cấp"
                       }
-                      className={`px-3 py-1 text-sm rounded-md ${
-                        role.name === "Super Admin" ||
+                      className={`px-3 py-1 text-sm rounded-md ${role.name === "Super Admin" ||
                         role.name?.en === "Super Admin" ||
                         role.name?.vi === "Quản trị viên cao cấp"
-                          ? "bg-gray-600 cursor-not-allowed opacity-60"
-                          : "bg-[#E74C3C] hover:bg-[#FF6B5C]"
-                      }`}
+                        ? "bg-gray-600 cursor-not-allowed opacity-60"
+                        : "bg-[#E74C3C] hover:bg-[#FF6B5C]"
+                        }`}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -466,11 +488,10 @@ const sidebarMenu = [
                   key={lang.code}
                   type="button"
                   onClick={() => setModalLang(lang.code)}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
-                    modalLang === lang.code
-                      ? "bg-white !text-black shadow-md"
-                      : "bg-transparent text-gray-300 hover:text-white"
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${modalLang === lang.code
+                    ? "bg-white !text-black shadow-md"
+                    : "bg-transparent text-gray-300 hover:text-white"
+                    }`}
                 >
                   {lang.label}
                 </button>
@@ -483,8 +504,8 @@ const sidebarMenu = [
                   ? "Chỉnh sửa vai trò"
                   : "Edit Role"
                 : modalLang === "vi"
-                ? "Thêm vai trò"
-                : "Add Role"}
+                  ? "Thêm vai trò"
+                  : "Add Role"}
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -526,19 +547,70 @@ const sidebarMenu = [
                 <label className="block text-sm mb-1 text-gray-300">
                   {modalLang === "vi" ? "Trạng thái" : "Status"} *
                 </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="w-full bg-[#262626] border border-[#2E2F2F] rounded-lg text-white p-2"
-                >
-                  <option value="Active">
-                    {modalLang === "vi" ? "Hoạt động" : "Active"}
-                  </option>
-                  <option value="Inactive">
-                    {modalLang === "vi" ? "Không hoạt động" : "Inactive"}
-                  </option>
-                </select>
+                <div className="relative status-dropdown-container">
+                  {/* Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStatusDropdown((prev) => !prev);
+                    }}
+                    className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full
+               bg-[#1F1F1F] border border-[#2E2F2F] text-white
+               hover:border-gray-500 transition-all cursor-pointer w-full"
+                  >
+                    {status}
+
+                    <svg
+                      className={`ml-2 w-4 h-4 transform transition-transform ${statusDropdown ? "rotate-180" : ""
+                        }`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Dropdown */}
+                  {statusDropdown && (
+                    <div
+                      className="absolute right-0 mt-2 w-48 rounded-xl bg-[#1F1F1F]
+                 border border-[#2E2F2F] shadow-lg z-10 animate-fadeIn w-full"
+                    >
+                      {/* Active */}
+                      <button
+                        onClick={() => {
+                          setStatus("Active");
+                          setStatusDropdown(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2 text-sm
+          ${status === "Active"
+                            ? "bg-[#2E2F2F] text-white rounded-xl"
+                            : "text-gray-300 hover:bg-[#2E2F2F] hover:text-white rounded-xl"
+                          }`}
+                      >
+                        Active
+                      </button>
+
+                      {/* Inactive */}
+                      <button
+                        onClick={() => {
+                          setStatus("Inactive");
+                          setStatusDropdown(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2 text-sm 
+          ${status === "Inactive"
+                            ? "bg-[#2E2F2F] text-white rounded-xl"
+                            : "text-gray-300 hover:bg-[#2E2F2F] hover:text-white rounded-xl"
+                          }`}
+                      >
+                        Inactive
+                      </button>
+                    </div>
+                  )}
+                </div>
+
               </div>
 
               {/* Sidebar Access */}
@@ -610,8 +682,8 @@ const sidebarMenu = [
                       ? "Cập nhật vai trò"
                       : "Update Role"
                     : modalLang === "vi"
-                    ? "Tạo vai trò"
-                    : "Create Role"}
+                      ? "Tạo vai trò"
+                      : "Create Role"}
                 </button>
               </div>
             </form>

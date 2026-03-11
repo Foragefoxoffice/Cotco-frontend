@@ -99,6 +99,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
       title: { en: "", vi: "" },
       description: { en: "", vi: "" },
       keywords: { en: "", vi: "" },
+      ogImage: "",
     },
     blocks: [],
   });
@@ -210,6 +211,52 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
       reader.readAsDataURL(file);
     }
   };
+
+  const handleOgImageUpload = async (file) => {
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      CommonToaster(
+        activeLanguage === "vi"
+          ? "Kích thước ảnh OG vượt quá 2MB"
+          : "OG image exceeds 2MB limit",
+        "error"
+      );
+      return;
+    }
+
+    const form = new FormData();
+    form.append("image", file);
+
+    try {
+      const res = await fetch("/api/upload/og-image", {
+        method: "POST",
+        body: form,
+      });
+
+      const data = await res.json();
+
+      if (!data.success) throw new Error("Upload failed");
+
+      setFormData((prev) => ({
+        ...prev,
+        seo: {
+          ...prev.seo,
+          ogImage: data.url, // ✅ STORE SERVER URL
+        },
+      }));
+
+      CommonToaster(
+        activeLanguage === "vi"
+          ? "Ảnh OG đã được tải lên"
+          : "OG image uploaded successfully",
+        "success"
+      );
+    } catch (err) {
+      CommonToaster("OG image upload failed", "error");
+    }
+  };
+
 
   const handleTagKeyDown = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
@@ -447,15 +494,11 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           <label className={labelClasses}>{labels[activeLanguage].slug}</label>
           <input
             type="text"
-            className={inputClasses}
+            className={`${inputClasses} opacity-60 cursor-not-allowed`}
             value={formData.slug}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                slug: e.target.value.toLowerCase().replace(/\s+/g, "-"),
-              }))
-            }
+            readOnly
           />
+
         </div>
 
         {/* Cover Image Upload with Preview Modal */}
@@ -870,9 +913,8 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
 
                 {["list", "quote", "code"].includes(block.type) && (
                   <textarea
-                    className={`${inputClasses} ${
-                      block.type === "code" ? "font-mono" : ""
-                    }`}
+                    className={`${inputClasses} ${block.type === "code" ? "font-mono" : ""
+                      }`}
                     rows={block.type === "quote" ? 2 : 4}
                     placeholder={`Enter ${block.type}`}
                     value={block.content[activeLanguage] || ""}
@@ -905,7 +947,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
           {/* ✅ Author Input (auto-filled, not editable) */}
           <div>
             <label className={labelClasses}>
-              {activeLanguage === "vi" ? "Tác giả" : "Author"}
+              {activeLanguage === "vi" ? "Tên" : "First Name"}
             </label>
             <input
               type="text"
@@ -973,9 +1015,8 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                   : labels[activeLanguage].mainCategory;
               })()}
               <svg
-                className={`ml-2 w-4 h-4 transform transition-transform ${
-                  showMainDropdown ? "rotate-180" : ""
-                }`}
+                className={`ml-2 w-4 h-4 transform transition-transform ${showMainDropdown ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -998,14 +1039,13 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                       }));
                       setShowMainDropdown(false);
                     }}
-                    className={`block w-full text-left px-4 py-2 rounded-md transition ${
-                      (typeof formData.mainCategory === "object"
-                        ? formData.mainCategory._id ||
-                          formData.mainCategory.$oid
-                        : formData.mainCategory) === m._id
-                        ? "bg-[#2E2F2F] text-white"
-                        : "text-gray-300 hover:bg-[#2A2A2A]"
-                    }`}
+                    className={`block w-full text-left px-4 py-2 rounded-md transition ${(typeof formData.mainCategory === "object"
+                      ? formData.mainCategory._id ||
+                      formData.mainCategory.$oid
+                      : formData.mainCategory) === m._id
+                      ? "bg-[#2E2F2F] text-white"
+                      : "text-gray-300 hover:bg-[#2A2A2A]"
+                      }`}
                   >
                     {m.name[activeLanguage] || m.name.en}
                   </button>
@@ -1032,11 +1072,10 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
               type="button"
               onClick={() => setShowSubDropdown((p) => !p)}
               disabled={!formData.mainCategory}
-              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg border transition-all ${
-                formData.mainCategory
-                  ? "bg-[#171717] border-[#3A3A3A] text-gray-200 hover:border-gray-500"
-                  : "bg-[#111] border-[#2E2F2F] text-gray-500 cursor-not-allowed"
-              }`}
+              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg border transition-all ${formData.mainCategory
+                ? "bg-[#171717] border-[#3A3A3A] text-gray-200 hover:border-gray-500"
+                : "bg-[#111] border-[#2E2F2F] text-gray-500 cursor-not-allowed"
+                }`}
             >
               {(() => {
                 const catId =
@@ -1049,9 +1088,8 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                   : labels[activeLanguage].category;
               })()}
               <svg
-                className={`ml-2 w-4 h-4 transform transition-transform ${
-                  showSubDropdown ? "rotate-180" : ""
-                }`}
+                className={`ml-2 w-4 h-4 transform transition-transform ${showSubDropdown ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -1068,7 +1106,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                     const mainCatId =
                       typeof formData.mainCategory === "object"
                         ? formData.mainCategory._id ||
-                          formData.mainCategory.$oid
+                        formData.mainCategory.$oid
                         : formData.mainCategory;
                     return c.mainCategory?._id === mainCatId;
                   })
@@ -1079,13 +1117,12 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                         setFormData((p) => ({ ...p, category: c._id }));
                         setShowSubDropdown(false);
                       }}
-                      className={`block w-full text-left px-4 py-2 rounded-md transition ${
-                        (typeof formData.category === "object"
-                          ? formData.category._id || formData.category.$oid
-                          : formData.category) === c._id
-                          ? "bg-[#2E2F2F] text-white"
-                          : "text-gray-300 hover:bg-[#2A2A2A]"
-                      }`}
+                      className={`block w-full text-left px-4 py-2 rounded-md transition ${(typeof formData.category === "object"
+                        ? formData.category._id || formData.category.$oid
+                        : formData.category) === c._id
+                        ? "bg-[#2E2F2F] text-white"
+                        : "text-gray-300 hover:bg-[#2A2A2A]"
+                        }`}
                     >
                       {c.name[activeLanguage] || c.name.en}
                     </button>
@@ -1111,9 +1148,8 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                 ? labels[activeLanguage].draft
                 : labels[activeLanguage].published}
               <svg
-                className={`ml-2 w-4 h-4 transform transition-transform ${
-                  showStatusDropdown ? "rotate-180" : ""
-                }`}
+                className={`ml-2 w-4 h-4 transform transition-transform ${showStatusDropdown ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -1132,11 +1168,10 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
                       setFormData((p) => ({ ...p, status: s }));
                       setShowStatusDropdown(false);
                     }}
-                    className={`block w-full text-left px-4 py-2 rounded-md transition ${
-                      formData.status === s
-                        ? "bg-[#2E2F2F] text-white"
-                        : "text-gray-300 hover:bg-[#2A2A2A]"
-                    }`}
+                    className={`block w-full text-left px-4 py-2 rounded-md transition ${formData.status === s
+                      ? "bg-[#2E2F2F] text-white"
+                      : "text-gray-300 hover:bg-[#2A2A2A]"
+                      }`}
                   >
                     {labels[activeLanguage][s]}
                   </button>
@@ -1201,6 +1236,71 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
               }
             />
           </div>
+
+          {/* OG Image Upload */}
+          <div className="mt-6">
+            <label className={labelClasses}>
+              Open Graph Image (OG Image)
+              <span className="text-red-500 text-lg">*</span>
+            </label>
+
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              id="og-image-upload"
+              onChange={(e) => handleOgImageUpload(e.target.files[0])}
+            />
+
+            <div className="flex gap-4 mt-2">
+              {!formData.seo.ogImage && (
+                <label
+                  htmlFor="og-image-upload"
+                  className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer bg-[#1F1F1F]"
+                >
+                  <Upload className="w-5 h-5 text-gray-400" />
+                  <span className="mt-2 text-sm text-gray-400">Upload OG</span>
+                </label>
+              )}
+
+              {formData.seo.ogImage && (
+                <div className="relative w-32 h-32 group">
+                  <img
+                    src={formData.seo.ogImage}
+                    alt="OG Preview"
+                    className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
+                  />
+
+                  {/* Replace */}
+                  <label
+                    htmlFor="og-image-upload"
+                    className="absolute bottom-1 right-1 bg-blue-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer"
+                  >
+                    <Upload size={14} />
+                  </label>
+
+                  {/* Delete */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((p) => ({
+                        ...p,
+                        seo: { ...p.seo, ogImage: "" },
+                      }))
+                    }
+                    className="absolute top-1 right-1 bg-black/70 text-white p-1 rounded-full"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-gray-500 mt-2">
+              Recommended size: 1200×630 (JPG/PNG/WebP)
+            </p>
+          </div>
+
 
           {/* ✅ Meta Keywords as Tag Input */}
           <div>

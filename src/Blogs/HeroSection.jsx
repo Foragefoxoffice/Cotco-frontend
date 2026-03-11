@@ -42,7 +42,8 @@ const HeroSection = () => {
     const fetchCategory = async () => {
       try {
         const res = await getMainBlogCategories();
-        const found = res.data.data.find((mc) => mc.slug === mainCategorySlug);
+        const data = res.data?.data || res.data || [];
+        const found = Array.isArray(data) ? data.find((mc) => mc.slug === mainCategorySlug) : null;
         setMainCategory(found || null);
       } catch (err) {
         console.error("❌ Error fetching main category:", err);
@@ -73,9 +74,8 @@ const HeroSection = () => {
         scrolled ? { scale: 0.93, opacity: 0.95 } : { scale: 1, opacity: 1 }
       }
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`relative h-[90vh] rounded-br-2xl bg-gradient-to-br overflow-hidden hero transition-all duration-500 ease-out ${
-        scrolled ? "rounded-2xl" : ""
-      }`}
+      className={`relative h-[90vh] rounded-br-2xl bg-gradient-to-br overflow-hidden hero transition-all duration-500 ease-out ${scrolled ? "rounded-2xl" : ""
+        }`}
     >
       <h3
         className=" !text-[100px] max-md:!text-6xl z-20 absolute bottom-24 left-24 text-[#fff]  !font-[700] tracking-wider uppercase"

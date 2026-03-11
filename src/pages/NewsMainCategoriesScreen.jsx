@@ -12,7 +12,7 @@ const NewsMainCategoriesScreen = () => {
   const [isVietnamese, setIsVietnamese] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [categoriesPerPage] = useState(8);
+  const [categoriesPerPage, setCategoriesPerPage] = useState(10);
   const [sortOption, setSortOption] = useState("oldest");
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -39,8 +39,8 @@ const NewsMainCategoriesScreen = () => {
   const t = {
     title: isVietnamese ? "Danh mục Chính" : "Main Categories",
     subtitle: isVietnamese
-      ? "Quản lý danh mục chính cho tin tức"
-      : "Manage main categories for news",
+      ? "Quản lý danh mục chính cho Bài viết"
+      : "Manage main categories for Articles",
     create: isVietnamese ? "Tạo danh mục chính" : "Create Main Category",
     edit: isVietnamese ? "Chỉnh sửa" : "Edit",
     sno: isVietnamese ? "STT" : "S.No",
@@ -73,6 +73,8 @@ const NewsMainCategoriesScreen = () => {
     loadFail: isVietnamese
       ? "Không thể tải danh mục chính"
       : "Failed to load main categories",
+    rowsPerPage: isVietnamese ? "Hàng mỗi trang" : "Rows per page",
+    of: isVietnamese ? "của" : "of",
   };
 
   // ✅ Fetch main categories
@@ -96,6 +98,17 @@ const NewsMainCategoriesScreen = () => {
     setEditingCategory(null);
     setShowForm(true);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".dropdown-container")) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   const handleEdit = (category) => {
     setEditingCategory(category);
@@ -191,7 +204,7 @@ const NewsMainCategoriesScreen = () => {
           </div>
 
           {/* Sort Dropdown */}
-          <div className="relative">
+          <div className="relative dropdown-container">
             <button
               onClick={() => setShowDropdown((prev) => !prev)}
               className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 transition-all cursor-pointer"
@@ -199,14 +212,13 @@ const NewsMainCategoriesScreen = () => {
               {sortOption === "oldest"
                 ? t.oldest
                 : sortOption === "newest"
-                ? t.newest
-                : sortOption === "az"
-                ? t.az
-                : t.za}
+                  ? t.newest
+                  : sortOption === "az"
+                    ? t.az
+                    : t.za}
               <svg
-                className={`ml-2 w-4 h-4 transform transition-transform ${
-                  showDropdown ? "rotate-180" : ""
-                }`}
+                className={`ml-2 w-4 h-4 transform transition-transform ${showDropdown ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -232,11 +244,10 @@ const NewsMainCategoriesScreen = () => {
                       setShowDropdown(false);
                       setCurrentPage(1);
                     }}
-                    className={`block w-full text-left px-4 py-2 text-sm cursor-pointer ${
-                      sortOption === option.value
-                        ? "bg-[#2E2F2F] text-white rounded-xl"
-                        : "text-gray-300 hover:bg-[#2E2F2F] hover:text-white rounded-xl"
-                    }`}
+                    className={`block w-full text-left px-4 py-2 text-sm cursor-pointer ${sortOption === option.value
+                      ? "bg-[#2E2F2F] text-white rounded-xl"
+                      : "text-gray-300 hover:bg-[#2E2F2F] hover:text-white rounded-xl"
+                      }`}
                   >
                     {option.label}
                   </button>
@@ -257,98 +268,183 @@ const NewsMainCategoriesScreen = () => {
       </div>
 
       {/* Table */}
-      {/* Table */}
-{loading ? (
-  <p className="p-4">{t.loading}</p>
-) : (
-  <div className="rounded-lg border border-[#2E2F2F] shadow-sm overflow-hidden">
-    <table className="min-w-full divide-y divide-[#2E2F2F]">
-      <thead>
-        <tr>
-          <th className="px-6 py-3 text-left text-md uppercase font-medium text-[#fff]">
-            {t.sno}
-          </th>
-          <th className="px-6 py-3 text-left text-md uppercase font-medium text-[#fff]">
-            {t.name}
-          </th>
-          <th className="px-6 py-3 text-right text-md uppercase font-medium text-[#fff]  tracking-wider">
-            {t.actions}
-          </th>
-        </tr>
-      </thead>
+      {loading ? (
+        <p className="p-4">{t.loading}</p>
+      ) : (
+        <div className="rounded-tl-lg rounded-tr-lg border border-[#2E2F2F] shadow-sm overflow-hidden">
+          <table className="min-w-full divide-y divide-[#2E2F2F]">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 text-left text-md uppercase font-medium text-[#fff]">
+                  {t.sno}
+                </th>
+                <th className="px-6 py-3 text-left text-md uppercase font-medium text-[#fff]">
+                  {t.name}
+                </th>
+                <th className="px-6 py-3 text-right text-md uppercase font-medium text-[#fff]  tracking-wider">
+                  {t.actions}
+                </th>
+              </tr>
+            </thead>
 
-      <tbody>
-        {currentCategories.length === 0 ? (
-          <tr>
-            <td colSpan="3" className="text-center py-6 text-gray-400">
-              {t.empty}
-            </td>
-          </tr>
-        ) : (
-          currentCategories.map((category, index) => (
-            <tr
-              key={category._id}
-              className="transition-colors hover:bg-[#1F1F1F]"
-            >
-              <td className="px-6 py-4 text-sm text-gray-400">
-                {(indexOfFirst + index + 1).toString().padStart(2, "0")}
-              </td>
-
-              <td className="px-6 py-4 text-sm font-medium text-white">
-                {/* ✅ Corrected language switch (uses .vi not .vn) */}
-                {isVietnamese
-                  ? category.name?.vi || category.name?.en
-                  : category.name?.en}
-              </td>
-
-              <td className="px-6 py-4 text-sm font-medium text-right">
-                <div className="flex justify-end gap-4">
-                  <button
-                    onClick={() => handleEdit(category)}
-                    className="text-blue-500 hover:opacity-80 p-1 transition cursor-pointer"
-                    title={t.edit}
+            <tbody>
+              {currentCategories.length === 0 ? (
+                <tr>
+                  <td colSpan="3" className="text-center py-6 text-gray-400">
+                    {t.empty}
+                  </td>
+                </tr>
+              ) : (
+                currentCategories.map((category, index) => (
+                  <tr
+                    key={category._id}
+                    className="transition-colors hover:bg-[#1F1F1F]"
                   >
-                    <Pencil size={18} />
-                  </button>
+                    <td className="px-6 py-4 text-sm text-gray-400">
+                      {(indexOfFirst + index + 1).toString().padStart(2, "0")}
+                    </td>
 
-                  <button
-                    onClick={() => confirmDelete(category)}
-                    className="!text-red-500 hover:opacity-80 p-1 transition cursor-pointer"
-                    title={t.delete}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))
-        )}
-      </tbody>
-    </table>
-  </div>
-)}
+                    <td className="px-6 py-4 text-sm font-medium text-white">
+                      {/* ✅ Corrected language switch (uses .vi not .vn) */}
+                      {isVietnamese
+                        ? category.name?.vi || category.name?.en
+                        : category.name?.en}
+                    </td>
+
+                    <td className="px-6 py-4 text-sm font-medium text-right">
+                      <div className="flex justify-end gap-4">
+                        <button
+                          onClick={() => handleEdit(category)}
+                          className="text-blue-500 hover:opacity-80 p-1 transition cursor-pointer"
+                          title={t.edit}
+                        >
+                          <Pencil size={18} />
+                        </button>
+
+                        <button
+                          onClick={() => confirmDelete(category)}
+                          className="!text-red-500 hover:opacity-80 p-1 transition cursor-pointer"
+                          title={t.delete}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
 
       {/* Pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 my-6">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            className="px-3 py-1 rounded border border-[#2E2F2F] disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span className="text-gray-300">
-            {currentPage} / {totalPages}
-          </span>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="px-3 py-1 rounded border border-[#2E2F2F] disabled:opacity-50"
-          >
-            Next
-          </button>
+      {!loading && sortedCategories.length > 0 && (
+        <div className="flex flex-col sm:flex-row justify-end w-full bg-[#171717] items-center gap-4 py-2 px-4 rounded-br-lg rounded-bl-lg border border-t-0 border-[#2E2F2F]">
+          {/* Rows per page dropdown */}
+          <div className="flex items-center gap-3">
+            <span className="text-gray-400 text-sm">{t.rowsPerPage}:</span>
+            <select
+              value={categoriesPerPage}
+              onChange={(e) => {
+                setCategoriesPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-3 py-1.5 bg-[#1F1F1F] border border-[#2E2F2F] rounded-lg !text-white text-sm focus:ring-2 focus:ring-[#0085C8] outline-none cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={30}>30</option>
+            </select>
+          </div>
+
+          {/* Page info and navigation */}
+          <div className="flex items-center gap-4">
+            <span className="text-gray-400 text-sm">
+              {indexOfFirst + 1}-{Math.min(indexOfLast, sortedCategories.length)} {t.of}{" "}
+              {sortedCategories.length}
+            </span>
+
+            <div className="flex items-center gap-2">
+              {/* First page */}
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="First page"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />
+                </svg>
+              </button>
+
+              {/* Previous page */}
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="Previous page"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+
+              {/* Next page */}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="Next page"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
+
+              {/* Last page */}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="Last page"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -327,8 +327,8 @@ const CottonPage = () => {
             cottonBannerSlideImg: Array.isArray(banner?.cottonBannerSlideImg)
               ? banner.cottonBannerSlideImg
               : banner?.cottonBannerSlideImg
-              ? [banner.cottonBannerSlideImg]
-              : [],
+                ? [banner.cottonBannerSlideImg]
+                : [],
 
             cottonBannerImgFile: prev.cottonBannerImgFile || null,
             cottonBannerSlideImgFiles: prev.cottonBannerSlideImgFiles || [],
@@ -352,33 +352,33 @@ const CottonPage = () => {
           }));
         }
 
-              // ✅ TEAM SECTION
-      if (data.cottonTeam && typeof data.cottonTeam === "object") {
-        const teamData = data.cottonTeam;
+        // ✅ TEAM SECTION
+        if (data.cottonTeam && typeof data.cottonTeam === "object") {
+          const teamData = data.cottonTeam;
 
-        // Handle both new and legacy schema
-        setCottonTeam({
-          aboutTeamIntro:
-            teamData.aboutTeamIntro || {
+          // Handle both new and legacy schema
+          setCottonTeam({
+            aboutTeamIntro:
+              teamData.aboutTeamIntro || {
+                tag: { en: "", vi: "" },
+                heading: { en: "", vi: "" },
+                description: { en: "", vi: "" },
+              },
+            aboutTeam: teamData.aboutTeam || {},
+          });
+
+          // 🧹 Clear local cache to ensure fresh data
+          localStorage.removeItem("cottonTeam");
+        } else {
+          setCottonTeam({
+            aboutTeamIntro: {
               tag: { en: "", vi: "" },
               heading: { en: "", vi: "" },
               description: { en: "", vi: "" },
             },
-          aboutTeam: teamData.aboutTeam || {},
-        });
-
-        // 🧹 Clear local cache to ensure fresh data
-        localStorage.removeItem("cottonTeam");
-      } else {
-        setCottonTeam({
-          aboutTeamIntro: {
-            tag: { en: "", vi: "" },
-            heading: { en: "", vi: "" },
-            description: { en: "", vi: "" },
-          },
-          aboutTeam: {},
-        });
-      }
+            aboutTeam: {},
+          });
+        }
 
 
         // ✅ MEMBER SECTION
@@ -393,7 +393,7 @@ const CottonPage = () => {
         }
       })
 
-      
+
       .catch((err) => {
         console.error("❌ Failed to fetch cotton page:", err);
       });
@@ -640,7 +640,7 @@ const CottonPage = () => {
 
             <div className="flex flex-wrap gap-4 mt-2">
               {!cottonBanner.cottonBannerImgFile &&
-              !cottonBanner.cottonBannerImg ? (
+                !cottonBanner.cottonBannerImg ? (
                 <label
                   htmlFor="cottonBannerUpload"
                   className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -708,8 +708,8 @@ const CottonPage = () => {
                       />
                     )
                   ) : cottonBanner.cottonBannerImg?.match(
-                      /\.(mp4|webm|ogg)$/i
-                    ) ? (
+                    /\.(mp4|webm|ogg)$/i
+                  ) ? (
                     <video
                       src={getFullUrl(cottonBanner.cottonBannerImg)}
                       className="w-full h-full object-cover rounded-lg border border-[#2E2F2F]"
@@ -1357,7 +1357,7 @@ const CottonPage = () => {
               <div className="flex flex-wrap gap-4 mt-3">
                 {/* --- If an image exists (from DB or local) --- */}
                 {s.cottonSupplierBgFile instanceof File ||
-                s.cottonSupplierBg ? (
+                  s.cottonSupplierBg ? (
                   <div className="relative group w-40 h-40 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
                     <img
                       src={
@@ -1525,7 +1525,7 @@ const CottonPage = () => {
               <div className="flex flex-wrap gap-4 mt-3">
                 {/* --- If a logo exists (from DB or local) --- */}
                 {s.cottonSupplierLogoFile instanceof File ||
-                s.cottonSupplierLogo ? (
+                  s.cottonSupplierLogo ? (
                   <div className="relative group w-32 h-32 rounded-lg overflow-hidden bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center">
                     <img
                       src={
@@ -2116,11 +2116,11 @@ const CottonPage = () => {
                 src={
                   trustLogoModal.type === "saved"
                     ? getFullUrl(
-                        cottonTrust.cottonTrustLogo[trustLogoModal.index]
-                      )
+                      cottonTrust.cottonTrustLogo[trustLogoModal.index]
+                    )
                     : URL.createObjectURL(
-                        cottonTrust.cottonTrustLogoFiles[trustLogoModal.index]
-                      )
+                      cottonTrust.cottonTrustLogoFiles[trustLogoModal.index]
+                    )
                 }
                 alt="Trust Logo Preview"
                 className="w-full h-auto rounded-lg"
@@ -2581,11 +2581,11 @@ const CottonPage = () => {
                 src={
                   memberImgModal.type === "saved"
                     ? getFullUrl(
-                        cottonMember.cottonMemberImg[memberImgModal.index]
-                      )
+                      cottonMember.cottonMemberImg[memberImgModal.index]
+                    )
                     : URL.createObjectURL(
-                        cottonMember.cottonMemberImgFiles[memberImgModal.index]
-                      )
+                      cottonMember.cottonMemberImgFiles[memberImgModal.index]
+                    )
                 }
                 alt="Member Preview"
                 className="w-full h-auto rounded-lg"
@@ -2780,7 +2780,6 @@ const CottonPage = () => {
                       borderRadius: "6px",
                       fontWeight: "500",
                       padding: "22px",
-                      borderRadius: "999px",
                     }}
                   >
                     {lang === "en" ? "Add Team" : "Thêm Nhóm"}
@@ -3296,7 +3295,7 @@ const CottonPage = () => {
                   {lang === "vi" ? "Từ khóa Meta" : "Meta Keywords"}
                 </label>
 
-                <div className="flex flex-wrap gap-2 mb-3 p-2 rounded-lg bg-[#171717] border border-[#2d2d2d] min-h-[48px] focus-within:ring-1 focus-within:ring-[#0284C7] transition-all">
+                <div className="flex flex-wrap gap-2 mb-2">
                   {seoMeta.metaKeywords?.[lang]
                     ?.split(",")
                     .map((kw) => kw.trim())
@@ -3328,37 +3327,37 @@ const CottonPage = () => {
                         </button>
                       </span>
                     ))}
-
-                  {/* Tag Input */}
-                  <input
-                    type="text"
-                    placeholder={
-                      lang === "vi"
-                        ? "Nhập từ khóa và nhấn Enter"
-                        : "Type keyword and press Enter"
-                    }
-                    className="flex-1 min-w-[140px] bg-transparent outline-none border-none !text-gray-100 placeholder-gray-500 text-sm px-1"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && e.target.value.trim()) {
-                        e.preventDefault();
-                        const newKeyword = e.target.value.trim();
-                        const existing =
-                          seoMeta.metaKeywords?.[lang]
-                            ?.split(",")
-                            .map((k) => k.trim()) || [];
-                        const updated = [...new Set([...existing, newKeyword])];
-                        setSeoMeta({
-                          ...seoMeta,
-                          metaKeywords: {
-                            ...seoMeta.metaKeywords,
-                            [lang]: updated.join(", "),
-                          },
-                        });
-                        e.target.value = "";
-                      }
-                    }}
-                  />
                 </div>
+
+                {/* Tag Input */}
+                <input
+                  type="text"
+                  placeholder={
+                    lang === "vi"
+                      ? "Nhập từ khóa và nhấn Enter"
+                      : "Type keyword and press Enter"
+                  }
+                  className="w-full bg-[#171717] border border-[#2d2d2d] rounded-lg !text-white px-3 py-2 text-sm focus:outline-none focus:border-[#0284C7] transition-all placeholder-gray-400"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.target.value.trim()) {
+                      e.preventDefault();
+                      const newKeyword = e.target.value.trim();
+                      const existing =
+                        seoMeta.metaKeywords?.[lang]
+                          ?.split(",")
+                          .map((k) => k.trim()) || [];
+                      const updated = [...new Set([...existing, newKeyword])];
+                      setSeoMeta({
+                        ...seoMeta,
+                        metaKeywords: {
+                          ...seoMeta.metaKeywords,
+                          [lang]: updated.join(", "),
+                        },
+                      });
+                      e.target.value = "";
+                    }
+                  }}
+                />
               </TabPane>
             ))}
           </Tabs>

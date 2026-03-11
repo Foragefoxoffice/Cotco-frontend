@@ -9,8 +9,9 @@ const MachinePagesList = () => {
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState("newest");
+  const [sortOption, setSortOption] = useState("oldest");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
 
   // ✅ Language detection (no extra file)
@@ -28,32 +29,47 @@ const MachinePagesList = () => {
     return () => observer.disconnect();
   }, []);
 
-  const itemsPerPage = 10;
+  // ✅ Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".dropdown-container")) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // ✅ Translations
   const t = {
-    title: isVietnamese ? "Trang Máy Móc" : "Machine Pages",
+    title: isVietnamese ? "Danh sách máy móc" : "Machine List",
     subtitle: isVietnamese
       ? "Quản lý và chỉnh sửa tất cả các trang máy dưới đây"
-      : "Manage and edit all machine pages below",
-    create: isVietnamese ? "Tạo Trang" : "Create Page",
+      : "Manage and edit all machine list below",
+    create: isVietnamese ? "Thêm máy móc" : "Add Machine",
     searchPlaceholder: isVietnamese
-      ? "Tìm kiếm theo tiêu đề hoặc slug..."
-      : "Search by title or slug...",
+      ? "Tìm kiếm theo tiêu đề..."
+      : "Search by title...",
     newest: isVietnamese ? "Mới nhất" : "Newest",
     oldest: isVietnamese ? "Cũ nhất" : "Oldest",
     az: "A → Z",
     za: "Z → A",
     headers: isVietnamese
-      ? ["Tiêu đề", "Slug", "Danh mục", "Tiêu đề SEO", "Hành động"]
-      : ["Title", "Slug", "Category", "SEO Title", "Actions"],
+      ? ["STT", "Tiêu đề", "Danh mục", "Hành động"]
+      : ["S.No", "Title", "Category", "Actions"],
     loading: isVietnamese ? "Đang tải trang..." : "Loading pages...",
     noData: isVietnamese
       ? "Không tìm thấy trang máy nào."
-      : "No machine pages found.",
+      : "No machine list found.",
     prev: isVietnamese ? "Trước" : "Prev",
     next: isVietnamese ? "Tiếp" : "Next",
     pageText: isVietnamese ? "Trang" : "Page",
+    sortBy: isVietnamese ? "Sắp xếp theo" : "Sort by",
+    rowsPerPage: isVietnamese ? "Hàng mỗi trang" : "Rows per page",
+    of: isVietnamese ? "của" : "of",
   };
 
   // ✅ Fetch machine pages
@@ -64,7 +80,7 @@ const MachinePagesList = () => {
         const res = await getMachinePages();
         setPages(res.data.data || []);
       } catch {
-        message.error("❌ Failed to load machine pages");
+        message.error("❌ Failed to load machine list");
       } finally {
         setLoading(false);
       }
@@ -89,7 +105,7 @@ const MachinePagesList = () => {
       const query = searchQuery.toLowerCase();
       const title =
         (isVietnamese ? p.title?.vi || p.title?.en : p.title?.en)?.toLowerCase() || "";
-      return title.includes(query) || p.slug?.toLowerCase().includes(query);
+      return title.includes(query);
     })
     .sort((a, b) => {
       const titleA = isVietnamese ? a.title?.vi || a.title?.en : a.title?.en;
@@ -109,6 +125,24 @@ const MachinePagesList = () => {
 
   return (
     <div className="p-6 bg-[#0A0A0A] min-h-screen text-white">
+      <style>{`
+        /* Dropdown animation */
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out;
+        }
+      `}</style>
+
       {/* ---------- HEADER ---------- */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
@@ -134,7 +168,7 @@ const MachinePagesList = () => {
             placeholder={t.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-3 py-4 bg-[#1F1F1F] border border-[#2E2F2F] rounded-full text-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-[#0085C8] outline-none"
+            className="w-full pl-10 pr-3 py-4 bg-[#1F1F1F] border border-[#2E2F2F] rounded-full text-sm !text-white placeholder-gray-400 focus:ring-2 focus:ring-[#0085C8] outline-none"
           />
           <svg
             className="absolute left-3 top-4 text-gray-400"
@@ -155,32 +189,64 @@ const MachinePagesList = () => {
         </div>
 
         {/* Sort Dropdown */}
-        <div className="relative">
-          <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            className="appearance-none px-5 py-3 text-sm bg-[#1F1F1F] text-white border border-[#2E2F2F] rounded-full w-52 focus:ring-2 focus:ring-[#0085C8] focus:border-[#0085C8] transition-all duration-200 outline-none cursor-pointer hover:border-gray-500"
+        <div className="relative dropdown-container w-full sm:w-auto">
+          <button
+            onClick={() => setShowDropdown((prev) => !prev)}
+            className="flex items-center justify-between w-full sm:w-52 px-5 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] !text-white hover:border-gray-500 transition-all cursor-pointer"
           >
-            <option value="newest">{t.newest}</option>
-            <option value="oldest">{t.oldest}</option>
-            <option value="az">{t.az}</option>
-            <option value="za">{t.za}</option>
-          </select>
+            {sortOption === "newest"
+              ? t.newest
+              : sortOption === "oldest"
+                ? t.oldest
+                : sortOption === "az"
+                  ? t.az
+                  : t.za}
+            <svg
+              className={`ml-2 w-4 h-4 transform transition-transform ${showDropdown ? "rotate-180" : ""
+                }`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
 
-          <svg
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          {showDropdown && (
+            <div className="absolute right-0 mt-2 w-full sm:w-52 rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-10 animate-fadeIn">
+              <p className="px-4 py-2 !text-gray-400 text-xs">{t.sortBy}</p>
+              {[
+                { value: "oldest", label: t.oldest },
+                { value: "newest", label: t.newest },
+                { value: "az", label: t.az },
+                { value: "za", label: t.za },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    setSortOption(option.value);
+                    setShowDropdown(false);
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm cursor-pointer ${sortOption === option.value
+                    ? "bg-[#2E2F2F] !text-white rounded-xl"
+                    : "!text-gray-300 hover:bg-[#2E2F2F] hover:text-white rounded-xl"
+                    }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* ---------- TABLE ---------- */}
-      <div className="bg-[#171717] rounded-lg shadow-xl border border-[#2E2F2F] overflow-hidden">
+      <div className="bg-[#171717] rounded-tl-lg rounded-tr-lg shadow-xl border border-[#2E2F2F] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-[#1F1F1F] border-b border-[#2E2F2F]">
@@ -199,35 +265,34 @@ const MachinePagesList = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-10 text-center text-gray-400">
+                  <td colSpan={4} className="py-10 text-center text-gray-400">
                     {t.loading}
                   </td>
                 </tr>
               ) : currentPages.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-10 text-center text-gray-400">
+                  <td colSpan={4} className="py-10 text-center text-gray-400">
                     {t.noData}
                   </td>
                 </tr>
               ) : (
-                currentPages.map((page) => (
+                currentPages.map((page, index) => (
                   <tr
                     key={page._id}
                     className="border-b border-[#2E2F2F] hover:bg-[#222] transition-colors"
                   >
+                    <td className="px-6 py-4 text-gray-400">
+                      {(indexOfFirst + index + 1).toString().padStart(2, "0")}
+                    </td>
                     <td className="px-6 py-4 text-gray-200">
                       {isVietnamese
                         ? page.title?.vi || page.title?.en
                         : page.title?.en}
                     </td>
-                    <td className="px-6 py-4 text-gray-400">{page.slug}</td>
                     <td className="px-6 py-4 text-gray-300">
                       {isVietnamese
                         ? page.category?.name?.vi || page.category?.name?.en
                         : page.category?.name?.en}
-                    </td>
-                    <td className="px-6 py-4 text-gray-300">
-                      {page.seo?.metaTitle || "-"}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -251,25 +316,113 @@ const MachinePagesList = () => {
       </div>
 
       {/* ---------- PAGINATION ---------- */}
-      <div className="flex justify-center items-center gap-3 mt-6">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage((p) => p - 1)}
-          className="px-4 py-1.5 rounded-full border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-50 cursor-pointer"
-        >
-          {t.prev}
-        </button>
-        <span className="text-gray-400 text-sm">
-          {t.pageText} {currentPage} / {totalPages || 1}
-        </span>
-        <button
-          disabled={currentPage === totalPages || totalPages === 0}
-          onClick={() => setCurrentPage((p) => p + 1)}
-          className="px-4 py-1.5 rounded-full border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-50 cursor-pointer"
-        >
-          {t.next}
-        </button>
-      </div>
+      {!loading && filteredPages.length > 0 && (
+        <div className="flex flex-col sm:flex-row justify-end w-full bg-[#171717] items-center gap-4 py-2 px-4 rounded-br-lg rounded-bl-lg">
+          {/* Rows per page dropdown */}
+          <div className="flex items-center gap-3">
+            <span className="text-gray-400 text-sm">{t.rowsPerPage}:</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-3 py-1.5 bg-[#1F1F1F] border border-[#2E2F2F] rounded-lg !text-white text-sm focus:ring-2 focus:ring-[#0085C8] outline-none cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={30}>30</option>
+            </select>
+          </div>
+
+          {/* Page info and navigation */}
+          <div className="flex items-center gap-4">
+            <span className="text-gray-400 text-sm">
+              {indexOfFirst + 1}-{Math.min(indexOfLast, filteredPages.length)} {t.of}{" "}
+              {filteredPages.length}
+            </span>
+
+            <div className="flex items-center gap-2">
+              {/* First page */}
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="First page"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />
+                </svg>
+              </button>
+
+              {/* Previous page */}
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="Previous page"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+
+              {/* Next page */}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="Next page"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
+
+              {/* Last page */}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+                className="p-1.5 rounded border border-[#2E2F2F] text-gray-300 hover:bg-[#2E2F2F] disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="Last page"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

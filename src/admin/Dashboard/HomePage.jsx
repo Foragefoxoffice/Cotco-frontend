@@ -440,131 +440,131 @@ const HomePage = () => {
     return true;
   };
 
-const handleSave = async (sectionName, formState, files = []) => {
-  try {
-    const formData = new FormData();
+  const handleSave = async (sectionName, formState, files = []) => {
+    try {
+      const formData = new FormData();
 
-    /* ====================== 🧱 SPECIAL HANDLING ====================== */
-    if (sectionName === "companyLogosSection") {
-      // 🧩 Clean up logo array
-      const cleanLogos = formState.logos.map((logo) => ({
-        url: logo.url || "",
-      }));
+      /* ====================== 🧱 SPECIAL HANDLING ====================== */
+      if (sectionName === "companyLogosSection") {
+        // 🧩 Clean up logo array
+        const cleanLogos = formState.logos.map((logo) => ({
+          url: logo.url || "",
+        }));
 
-      formData.append(
-        sectionName,
-        JSON.stringify({
-          ...formState,
-          logos: cleanLogos,
-        })
-      );
+        formData.append(
+          sectionName,
+          JSON.stringify({
+            ...formState,
+            logos: cleanLogos,
+          })
+        );
 
-      // 🖼️ Upload partner logos
-      formState.logos.forEach((logo, i) => {
-        if (logo.file instanceof File) {
-          formData.append(`partnerLogo${i}`, logo.file);
-        }
-      });
-    } 
-    
-    else if (sectionName === "seoMeta") {
-      formData.append(sectionName, JSON.stringify(formState));
-    } 
-    
-    else {
-      // ✅ Normal sections
-      formData.append(sectionName, JSON.stringify(formState));
-
-      // ✅ Correct file key handling for all sections
-      files.forEach((fileKey) => {
-        const fileValue = formState[fileKey];
-        if (fileValue instanceof File) {
-          let uploadKey = `${sectionName}${fileKey}File`; // default pattern
-
-          // ✅ Special case for banner section (backend expects different key)
-          if (sectionName === "bannerSection" && fileKey === "bannerBackgroundImage") {
-            uploadKey = "bannerBackgroundImageFile";
+        // 🖼️ Upload partner logos
+        formState.logos.forEach((logo, i) => {
+          if (logo.file instanceof File) {
+            formData.append(`partnerLogo${i}`, logo.file);
           }
-
-          formData.append(uploadKey, fileValue);
-        }
-      });
-    }
-
-    /* ====================== 🚀 API CALL ====================== */
-    const res = await updateHomepage(formData);
-    const updatedData = res.data?.homepage;
-
-    if (updatedData && updatedData[sectionName]) {
-      const updatedSection = updatedData[sectionName];
-
-      switch (sectionName) {
-        case "companyLogosSection":
-          setCompanyLogosForm({
-            ...updatedSection,
-            logos: updatedSection.logos.map((logo) => ({
-              ...logo,
-              file: null,
-            })),
-          });
-          break;
-
-        case "heroSection":
-          setHeroForm({ ...updatedSection, bgFile: null });
-          break;
-
-        case "whoWeAreSection":
-          setWhoWeAreForm({ ...updatedSection, whoWeAreFile: null });
-          break;
-
-        case "whatWeDoSection":
-          setWhatWeDoForm({
-            ...updatedSection,
-            whatWeDoIcon1File: null,
-            whatWeDoIcon2File: null,
-            whatWeDoIcon3File: null,
-            whatWeDoImg1File: null,
-            whatWeDoImg2File: null,
-            whatWeDoImg3File: null,
-          });
-          break;
-
-        case "definedUsSection":
-          setDefinedUsForm({
-            ...updatedSection,
-            definedUsLogo1File: null,
-            definedUsLogo2File: null,
-            definedUsLogo3File: null,
-            definedUsLogo4File: null,
-            definedUsLogo5File: null,
-            definedUsLogo6File: null,
-          });
-          break;
-
-        case "coreValuesSection":
-          setCoreValuesForm({ ...updatedSection, coreImageFile: null });
-          break;
-
-        case "bannerSection":
-          setBannerForm({
-            ...updatedSection,
-            bannerBackgroundImagePreview: getFullUrl(updatedSection.bannerBackgroundImage),
-          });
-          break;
-
-        default:
-          break;
+        });
       }
 
-      CommonToaster(`${sectionName} saved successfully!`, "success");
-    } else {
-      CommonToaster(`Failed to save ${sectionName}.`, "error");
+      else if (sectionName === "seoMeta") {
+        formData.append(sectionName, JSON.stringify(formState));
+      }
+
+      else {
+        // ✅ Normal sections
+        formData.append(sectionName, JSON.stringify(formState));
+
+        // ✅ Correct file key handling for all sections
+        files.forEach((fileKey) => {
+          const fileValue = formState[fileKey];
+          if (fileValue instanceof File) {
+            let uploadKey = `${sectionName}${fileKey}File`; // default pattern
+
+            // ✅ Special case for banner section (backend expects different key)
+            if (sectionName === "bannerSection" && fileKey === "bannerBackgroundImage") {
+              uploadKey = "bannerBackgroundImageFile";
+            }
+
+            formData.append(uploadKey, fileValue);
+          }
+        });
+      }
+
+      /* ====================== 🚀 API CALL ====================== */
+      const res = await updateHomepage(formData);
+      const updatedData = res.data?.homepage;
+
+      if (updatedData && updatedData[sectionName]) {
+        const updatedSection = updatedData[sectionName];
+
+        switch (sectionName) {
+          case "companyLogosSection":
+            setCompanyLogosForm({
+              ...updatedSection,
+              logos: updatedSection.logos.map((logo) => ({
+                ...logo,
+                file: null,
+              })),
+            });
+            break;
+
+          case "heroSection":
+            setHeroForm({ ...updatedSection, bgFile: null });
+            break;
+
+          case "whoWeAreSection":
+            setWhoWeAreForm({ ...updatedSection, whoWeAreFile: null });
+            break;
+
+          case "whatWeDoSection":
+            setWhatWeDoForm({
+              ...updatedSection,
+              whatWeDoIcon1File: null,
+              whatWeDoIcon2File: null,
+              whatWeDoIcon3File: null,
+              whatWeDoImg1File: null,
+              whatWeDoImg2File: null,
+              whatWeDoImg3File: null,
+            });
+            break;
+
+          case "definedUsSection":
+            setDefinedUsForm({
+              ...updatedSection,
+              definedUsLogo1File: null,
+              definedUsLogo2File: null,
+              definedUsLogo3File: null,
+              definedUsLogo4File: null,
+              definedUsLogo5File: null,
+              definedUsLogo6File: null,
+            });
+            break;
+
+          case "coreValuesSection":
+            setCoreValuesForm({ ...updatedSection, coreImageFile: null });
+            break;
+
+          case "bannerSection":
+            setBannerForm({
+              ...updatedSection,
+              bannerBackgroundImagePreview: getFullUrl(updatedSection.bannerBackgroundImage),
+            });
+            break;
+
+          default:
+            break;
+        }
+
+        CommonToaster(`${sectionName} saved successfully!`, "success");
+      } else {
+        CommonToaster(`Failed to save ${sectionName}.`, "error");
+      }
+    } catch (error) {
+      console.error("❌ Save failed:", error);
+      CommonToaster("Error", error.message || "Something went wrong!");
     }
-  } catch (error) {
-    console.error("❌ Save failed:", error);
-    CommonToaster("Error", error.message || "Something went wrong!");
-  }
-};
+  };
 
 
 
@@ -1107,7 +1107,7 @@ const handleSave = async (sectionName, formState, files = []) => {
             <div className="flex flex-wrap gap-4 mt-2">
               {/* --- Upload Box (if no image) --- */}
               {!whoWeAreForm.whoWeAreFile &&
-              !whoWeAreForm.whoWeArebannerImage ? (
+                !whoWeAreForm.whoWeArebannerImage ? (
                 <label
                   htmlFor="whoWeAreUpload"
                   className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -1435,7 +1435,7 @@ const handleSave = async (sectionName, formState, files = []) => {
                       <div className="flex flex-wrap gap-4 mt-2">
                         {/* --- Upload Box (Empty State) --- */}
                         {!whatWeDoForm[`whatWeDoIcon${i}File`] &&
-                        !whatWeDoForm[`whatWeDoIcon${i}`] ? (
+                          !whatWeDoForm[`whatWeDoIcon${i}`] ? (
                           <label
                             htmlFor={`whatWeDoIcon${i}Upload`}
                             className="flex flex-col items-center justify-center w-28 h-28 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -1482,8 +1482,8 @@ const handleSave = async (sectionName, formState, files = []) => {
                               src={
                                 whatWeDoForm[`whatWeDoIcon${i}File`]
                                   ? URL.createObjectURL(
-                                      whatWeDoForm[`whatWeDoIcon${i}File`]
-                                    )
+                                    whatWeDoForm[`whatWeDoIcon${i}File`]
+                                  )
                                   : getFullUrl(whatWeDoForm[`whatWeDoIcon${i}`])
                               }
                               alt={`Icon ${i}`}
@@ -1574,8 +1574,8 @@ const handleSave = async (sectionName, formState, files = []) => {
                           src={
                             whatWeDoForm[`whatWeDoIcon${i}File`]
                               ? URL.createObjectURL(
-                                  whatWeDoForm[`whatWeDoIcon${i}File`]
-                                )
+                                whatWeDoForm[`whatWeDoIcon${i}File`]
+                              )
                               : getFullUrl(whatWeDoForm[`whatWeDoIcon${i}`])
                           }
                           alt={`Full Icon ${i}`}
@@ -1599,7 +1599,7 @@ const handleSave = async (sectionName, formState, files = []) => {
                       <div className="flex flex-wrap gap-4 mt-2">
                         {/* --- Upload Box (if empty) --- */}
                         {!whatWeDoForm[`whatWeDoImg${i}File`] &&
-                        !whatWeDoForm[`whatWeDoImg${i}`] ? (
+                          !whatWeDoForm[`whatWeDoImg${i}`] ? (
                           <label
                             htmlFor={`whatWeDoImg${i}Upload`}
                             className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -1646,8 +1646,8 @@ const handleSave = async (sectionName, formState, files = []) => {
                               src={
                                 whatWeDoForm[`whatWeDoImg${i}File`]
                                   ? URL.createObjectURL(
-                                      whatWeDoForm[`whatWeDoImg${i}File`]
-                                    )
+                                    whatWeDoForm[`whatWeDoImg${i}File`]
+                                  )
                                   : getFullUrl(whatWeDoForm[`whatWeDoImg${i}`])
                               }
                               alt={`Image ${i}`}
@@ -1736,8 +1736,8 @@ const handleSave = async (sectionName, formState, files = []) => {
                           src={
                             whatWeDoForm[`whatWeDoImg${i}File`]
                               ? URL.createObjectURL(
-                                  whatWeDoForm[`whatWeDoImg${i}File`]
-                                )
+                                whatWeDoForm[`whatWeDoImg${i}File`]
+                              )
                               : getFullUrl(whatWeDoForm[`whatWeDoImg${i}`])
                           }
                           alt={`Full Image ${i}`}
@@ -2632,7 +2632,7 @@ const handleSave = async (sectionName, formState, files = []) => {
 
                 <div className="flex flex-wrap gap-4 mt-2">
                   {!bannerForm.bannerBackgroundImage &&
-                  !bannerForm.bannerBackgroundImagePreview ? (
+                    !bannerForm.bannerBackgroundImagePreview ? (
                     // 📁 Upload Placeholder
                     <label
                       htmlFor="bannerBackgroundImageUpload"
@@ -2933,7 +2933,8 @@ const handleSave = async (sectionName, formState, files = []) => {
                   </label>
 
                   {/* Tags container */}
-                  <div className="flex flex-wrap gap-2 mb-3 p-2 rounded-lg bg-[#1C1C1C] border border-[#2E2F2F] min-h-[48px] focus-within:ring-1 focus-within:ring-[#0284C7] transition-all">
+                  {/* Tags container */}
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {metaForm.metaKeywords?.[lang]
                       ?.split(",")
                       .map((kw) => kw.trim())
@@ -2966,39 +2967,39 @@ const handleSave = async (sectionName, formState, files = []) => {
                           </button>
                         </span>
                       ))}
-
-                    {/* Input field for adding new keywords */}
-                    <input
-                      type="text"
-                      placeholder={
-                        lang === "vi"
-                          ? "Nhập từ khóa và nhấn Enter"
-                          : "Type keyword and press Enter"
-                      }
-                      className="flex-1 min-w-[140px] bg-transparent outline-none border-none !text-gray-100 placeholder-gray-500 text-sm px-1"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && e.target.value.trim()) {
-                          e.preventDefault();
-                          const newKeyword = e.target.value.trim();
-                          const existing =
-                            metaForm.metaKeywords?.[lang]
-                              ?.split(",")
-                              .map((k) => k.trim()) || [];
-                          const updated = [
-                            ...new Set([...existing, newKeyword]),
-                          ]; // no duplicates
-                          setMetaForm({
-                            ...metaForm,
-                            metaKeywords: {
-                              ...metaForm.metaKeywords,
-                              [lang]: updated.join(", "),
-                            },
-                          });
-                          e.target.value = "";
-                        }
-                      }}
-                    />
                   </div>
+
+                  {/* Input field for adding new keywords */}
+                  <input
+                    type="text"
+                    placeholder={
+                      lang === "vi"
+                        ? "Nhập từ khóa và nhấn Enter"
+                        : "Type keyword and press Enter"
+                    }
+                    className="w-full bg-[#262626] border border-[#2E2F2F] rounded-lg !text-white px-3 py-2 text-sm focus:outline-none focus:border-[#0284C7] transition-all placeholder-gray-400"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && e.target.value.trim()) {
+                        e.preventDefault();
+                        const newKeyword = e.target.value.trim();
+                        const existing =
+                          metaForm.metaKeywords?.[lang]
+                            ?.split(",")
+                            .map((k) => k.trim()) || [];
+                        const updated = [
+                          ...new Set([...existing, newKeyword]),
+                        ]; // no duplicates
+                        setMetaForm({
+                          ...metaForm,
+                          metaKeywords: {
+                            ...metaForm.metaKeywords,
+                            [lang]: updated.join(", "),
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
                 </div>
               </TabPane>
             ))}

@@ -12,6 +12,19 @@ const ContactEntriesScreen = () => {
   const [contactsPerPage] = useState(10);
   const [selectedContact, setSelectedContact] = useState(null);
   const [isVietnamese, setIsVietnamese] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (!e.target.closest(".dropdown-container")) {
+      setShowDropdown(false);
+    }
+  };
+
+  document.addEventListener("click", handleClickOutside);
+  return () => document.removeEventListener("click", handleClickOutside);
+}, []);
+
 
   // 🌐 Detect language mode from navbar toggle (vi-mode)
   useEffect(() => {
@@ -157,34 +170,63 @@ const ContactEntriesScreen = () => {
         {/* Sort dropdown */}
         <div className="flex items-center gap-2">
           <span className="text-gray-400 text-sm">{t.sortBy}</span>
-          <div className="relative">
-            <select
-              value={sortOption}
-              onChange={(e) => {
-                setSortOption(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="appearance-none px-5 py-2.5 text-sm bg-[#1F1F1F] text-white border border-[#2E2F2F] rounded-full w-48 focus:ring-2 focus:ring-[#0085C8] focus:border-[#0085C8] transition-all duration-200 outline-none cursor-pointer hover:border-gray-500"
-            >
-              <option value="newest">{t.newest}</option>
-              <option value="oldest">{t.oldest}</option>
-              <option value="az">{t.az}</option>
-              <option value="za">{t.za}</option>
-            </select>
-            <svg
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </div>
+          <div className="relative dropdown-container">
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      setShowDropdown((prev) => !prev);
+    }}
+    className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 transition-all cursor-pointer"
+  >
+    {sortOption === "oldest"
+      ? t.oldest
+      : sortOption === "newest"
+      ? t.newest
+      : sortOption === "az"
+      ? t.az
+      : t.za}
+
+    <svg
+      className={`ml-2 w-4 h-4 transform transition-transform ${
+        showDropdown ? "rotate-180" : ""
+      }`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  </button>
+
+  {showDropdown && (
+    <div className="absolute right-0 mt-2 w-48 rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-10 animate-fadeIn">
+      {[
+        { value: "newest", label: t.newest },
+        { value: "oldest", label: t.oldest },
+        { value: "az", label: t.az },
+        { value: "za", label: t.za },
+      ].map((option) => (
+        <button
+          key={option.value}
+          onClick={() => {
+            setSortOption(option.value);
+            setShowDropdown(false);
+            setCurrentPage(1);
+          }}
+          className={`block w-full text-left px-4 py-2 text-sm ${
+            sortOption === option.value
+              ? "bg-[#2E2F2F] text-white rounded-lg"
+              : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  )}
+</div>
+
         </div>
       </div>
 

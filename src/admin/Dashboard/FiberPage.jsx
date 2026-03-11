@@ -261,7 +261,7 @@ export default function FiberPage() {
 
   const [fiberProducts, setFiberProducts] = usePersistedState("fiberProducts", {
     fiberProductSectionTitle: { en: "", vi: "" },
-  fiberProductSectionSubtitle: { en: "", vi: "" },
+    fiberProductSectionSubtitle: { en: "", vi: "" },
     fiberProduct: [],
     fiberProductBottomCon: { en: "", vi: "" },
     fiberProductButtonText: { en: "", vi: "" },
@@ -699,7 +699,7 @@ export default function FiberPage() {
             </label>
 
             {!fiberBanner.fiberBannerMedia &&
-            !fiberBanner.fiberBannerMediaPreview ? (
+              !fiberBanner.fiberBannerMediaPreview ? (
               <label
                 htmlFor="fiberBannerVideoUpload"
                 className="flex flex-col items-center justify-center w-44 h-44 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer bg-[#1F1F1F] hover:bg-[#2A2A2A] transition-all duration-200"
@@ -828,7 +828,7 @@ export default function FiberPage() {
             </label>
 
             {!fiberBanner.fiberBannerImg &&
-            !fiberBanner.fiberBannerImgPreview ? (
+              !fiberBanner.fiberBannerImgPreview ? (
               <label
                 htmlFor="fiberBannerImgUpload"
                 className="flex flex-col items-center justify-center w-44 h-44 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer bg-[#1F1F1F] hover:bg-[#2A2A2A] transition-all duration-200"
@@ -1152,7 +1152,7 @@ export default function FiberPage() {
 
             <div className="flex flex-wrap gap-4 mt-2">
               {!fiberSustainability.fiberSustainabilityImg &&
-              !fiberSustainability.fiberSustainabilityImgPreview ? (
+                !fiberSustainability.fiberSustainabilityImgPreview ? (
                 <label
                   htmlFor="fiberSustainabilityUpload"
                   className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -1353,7 +1353,7 @@ export default function FiberPage() {
                 placeholder={`Subtitle ${i}`}
                 value={
                   fiberSustainability[`fiberSustainabilitySubTitle${i}`]?.[
-                    activeTabLang
+                  activeTabLang
                   ] || ""
                 }
                 onChange={(e) =>
@@ -1381,7 +1381,7 @@ export default function FiberPage() {
                 placeholder={`SubDesc ${i}`}
                 value={
                   fiberSustainability[`fiberSustainabilitySubDes${i}`]?.[
-                    activeTabLang
+                  activeTabLang
                   ] || ""
                 }
                 onChange={(e) =>
@@ -1505,7 +1505,7 @@ export default function FiberPage() {
 
                 <div className="flex flex-wrap gap-4 mt-2">
                   {!box.fiberChooseUsBoxBg &&
-                  !box.fiberChooseUsBoxBg?.preview ? (
+                    !box.fiberChooseUsBoxBg?.preview ? (
                     <label
                       htmlFor={`fiberChooseUsBgUpload-${idx}`}
                       className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -2040,8 +2040,8 @@ export default function FiberPage() {
                       img?.preview
                         ? img.preview
                         : typeof img === "string"
-                        ? getFullUrl(img)
-                        : ""
+                          ? getFullUrl(img)
+                          : ""
                     }
                     alt={`supplier-${idx}`}
                     className="w-full h-full object-cover"
@@ -2186,15 +2186,15 @@ export default function FiberPage() {
               bodyStyle={{ background: "#000", padding: "0" }}
             >
               {showSupplierModal !== null &&
-              fiberSupplier.fiberSupplierImg[showSupplierModal] ? (
+                fiberSupplier.fiberSupplierImg[showSupplierModal] ? (
                 <img
                   src={
                     fiberSupplier.fiberSupplierImg[showSupplierModal]?.preview
                       ? fiberSupplier.fiberSupplierImg[showSupplierModal]
-                          .preview
+                        .preview
                       : getFullUrl(
-                          fiberSupplier.fiberSupplierImg[showSupplierModal]
-                        )
+                        fiberSupplier.fiberSupplierImg[showSupplierModal]
+                      )
                   }
                   alt="Supplier Full Preview"
                   className="w-full h-auto rounded-lg"
@@ -2252,68 +2252,68 @@ export default function FiberPage() {
                 key={lang}
               >
                 {/* 🏷 PRODUCT SECTION MAIN TITLE */}
-<label className="block text-white font-semibold mb-1">
-  {activeTabLang === "vi" ? "Tiêu đề mục sản phẩm" : "Product Section Title"}
-</label>
+                <label className="block text-white font-semibold mb-1">
+                  {activeTabLang === "vi" ? "Tiêu đề mục sản phẩm" : "Product Section Title"}
+                </label>
 
-<Input
-  style={{
-    backgroundColor: "#262626",
-    border: "1px solid #2E2F2F",
-    borderRadius: "8px",
-    color: "#fff",
-    padding: "10px 14px",
-    fontSize: "14px",
-    marginBottom: "12px",
-  }}
-  placeholder={
-    activeTabLang === "vi"
-      ? "Nhập tiêu đề mục"
-      : "Enter Section Title"
-  }
-  value={fiberProducts.fiberProductSectionTitle?.[activeTabLang] || ""}
-  onChange={(e) =>
-    setFiberProducts({
-      ...fiberProducts,
-      fiberProductSectionTitle: {
-        ...fiberProducts.fiberProductSectionTitle,
-        [activeTabLang]: e.target.value,
-      },
-    })
-  }
-/>
+                <Input
+                  style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    marginBottom: "12px",
+                  }}
+                  placeholder={
+                    activeTabLang === "vi"
+                      ? "Nhập tiêu đề mục"
+                      : "Enter Section Title"
+                  }
+                  value={fiberProducts.fiberProductSectionTitle?.[activeTabLang] || ""}
+                  onChange={(e) =>
+                    setFiberProducts({
+                      ...fiberProducts,
+                      fiberProductSectionTitle: {
+                        ...fiberProducts.fiberProductSectionTitle,
+                        [activeTabLang]: e.target.value,
+                      },
+                    })
+                  }
+                />
 
-{/* 📝 PRODUCT SECTION SUBTITLE */}
-<label className="block text-white font-semibold mb-1">
-  {activeTabLang === "vi" ? "Tiêu đề phụ" : "Product Section Subtitle"}
-</label>
+                {/* 📝 PRODUCT SECTION SUBTITLE */}
+                <label className="block text-white font-semibold mb-1">
+                  {activeTabLang === "vi" ? "Tiêu đề phụ" : "Product Section Subtitle"}
+                </label>
 
-<Input
-  style={{
-    backgroundColor: "#262626",
-    border: "1px solid #2E2F2F",
-    borderRadius: "8px",
-    color: "#fff",
-    padding: "10px 14px",
-    fontSize: "14px",
-    marginBottom: "20px",
-  }}
-  placeholder={
-    activeTabLang === "vi"
-      ? "Nhập tiêu đề phụ"
-      : "Enter Subtitle"
-  }
-  value={fiberProducts.fiberProductSectionSubtitle?.[activeTabLang] || ""}
-  onChange={(e) =>
-    setFiberProducts({
-      ...fiberProducts,
-      fiberProductSectionSubtitle: {
-        ...fiberProducts.fiberProductSectionSubtitle,
-        [activeTabLang]: e.target.value,
-      },
-    })
-  }
-/>
+                <Input
+                  style={{
+                    backgroundColor: "#262626",
+                    border: "1px solid #2E2F2F",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    padding: "10px 14px",
+                    fontSize: "14px",
+                    marginBottom: "20px",
+                  }}
+                  placeholder={
+                    activeTabLang === "vi"
+                      ? "Nhập tiêu đề phụ"
+                      : "Enter Subtitle"
+                  }
+                  value={fiberProducts.fiberProductSectionSubtitle?.[activeTabLang] || ""}
+                  onChange={(e) =>
+                    setFiberProducts({
+                      ...fiberProducts,
+                      fiberProductSectionSubtitle: {
+                        ...fiberProducts.fiberProductSectionSubtitle,
+                        [activeTabLang]: e.target.value,
+                      },
+                    })
+                  }
+                />
 
                 {fiberProducts.fiberProduct.map((p, idx) => (
                   <div
@@ -2321,7 +2321,7 @@ export default function FiberPage() {
                     className="p-4 mb-4 rounded-md border border-[#2E2F2F] bg-[#1F1F1F]"
                   >
                     {/* ❌ Delete Product */}
-                    
+
 
                     {/* 🏷 Product Title */}
                     <label className="block text-white font-semibold mb-1">
@@ -2618,17 +2618,17 @@ export default function FiberPage() {
             bodyStyle={{ background: "#000", padding: "0" }}
           >
             {showProductModal !== null &&
-            fiberProducts.fiberProduct[showProductModal]?.fiberProductImg ? (
+              fiberProducts.fiberProduct[showProductModal]?.fiberProductImg ? (
               <img
                 src={
                   fiberProducts.fiberProduct[showProductModal].fiberProductImg
                     ?.preview
                     ? fiberProducts.fiberProduct[showProductModal]
-                        .fiberProductImg.preview
+                      .fiberProductImg.preview
                     : getFullUrl(
-                        fiberProducts.fiberProduct[showProductModal]
-                          .fiberProductImg
-                      )
+                      fiberProducts.fiberProduct[showProductModal]
+                        .fiberProductImg
+                    )
                 }
                 alt="Product Full Preview"
                 className="w-full h-auto rounded-lg"
@@ -2757,8 +2757,8 @@ export default function FiberPage() {
                       img?.preview
                         ? img.preview
                         : typeof img === "string"
-                        ? getFullUrl(img)
-                        : ""
+                          ? getFullUrl(img)
+                          : ""
                     }
                     alt={`cert-${idx}`}
                     className="w-full h-full object-cover"
@@ -2911,18 +2911,18 @@ export default function FiberPage() {
               bodyStyle={{ background: "#000", padding: "0" }}
             >
               {showCertModal !== null &&
-              fiberCertification.fiberCertificationImg[showCertModal] ? (
+                fiberCertification.fiberCertificationImg[showCertModal] ? (
                 <img
                   src={
                     fiberCertification.fiberCertificationImg[showCertModal]
                       ?.preview
                       ? fiberCertification.fiberCertificationImg[showCertModal]
-                          .preview
+                        .preview
                       : getFullUrl(
-                          fiberCertification.fiberCertificationImg[
-                            showCertModal
-                          ]
-                        )
+                        fiberCertification.fiberCertificationImg[
+                        showCertModal
+                        ]
+                      )
                   }
                   alt="Certification Preview"
                   className="w-full h-auto rounded-lg"
@@ -3596,7 +3596,7 @@ export default function FiberPage() {
                     {lang === "vi" ? "Từ khóa Meta" : "Meta Keywords"}
                   </label>
 
-                  <div className="flex flex-wrap gap-2 mb-3 p-2 rounded-lg bg-[#1C1C1C] border border-[#2E2F2F] min-h-[48px] focus-within:ring-1 focus-within:ring-[#0284C7] transition-all">
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {/* Display each keyword as a tag */}
                     {seoMeta.metaKeywords?.[lang]
                       ?.split(",")
@@ -3629,40 +3629,40 @@ export default function FiberPage() {
                           </button>
                         </span>
                       ))}
-
-                    {/* Input field to add new keyword */}
-                    <input
-                      type="text"
-                      placeholder={
-                        lang === "vi"
-                          ? "Nhập từ khóa và nhấn Enter"
-                          : "Type keyword and press Enter"
-                      }
-                      className="flex-1 min-w-[140px] bg-transparent outline-none border-none !text-gray-100 placeholder-gray-500 text-sm px-1"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && e.target.value.trim()) {
-                          e.preventDefault();
-                          const newKeyword = e.target.value.trim();
-                          const existing =
-                            seoMeta.metaKeywords?.[lang]
-                              ?.split(",")
-                              .map((k) => k.trim())
-                              .filter(Boolean) || [];
-                          const updated = [
-                            ...new Set([...existing, newKeyword]),
-                          ]; // avoid duplicates
-                          setSeoMeta({
-                            ...seoMeta,
-                            metaKeywords: {
-                              ...seoMeta.metaKeywords,
-                              [lang]: updated.join(", "),
-                            },
-                          });
-                          e.target.value = "";
-                        }
-                      }}
-                    />
                   </div>
+
+                  {/* Input field to add new keyword */}
+                  <input
+                    type="text"
+                    placeholder={
+                      lang === "vi"
+                        ? "Nhập từ khóa và nhấn Enter"
+                        : "Type keyword and press Enter"
+                    }
+                    className="w-full bg-[#262626] border border-[#2E2F2F] rounded-lg !text-white px-3 py-2 text-sm focus:outline-none focus:border-[#0284C7] transition-all placeholder-gray-400"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && e.target.value.trim()) {
+                        e.preventDefault();
+                        const newKeyword = e.target.value.trim();
+                        const existing =
+                          seoMeta.metaKeywords?.[lang]
+                            ?.split(",")
+                            .map((k) => k.trim())
+                            .filter(Boolean) || [];
+                        const updated = [
+                          ...new Set([...existing, newKeyword]),
+                        ]; // avoid duplicates
+                        setSeoMeta({
+                          ...seoMeta,
+                          metaKeywords: {
+                            ...seoMeta.metaKeywords,
+                            [lang]: updated.join(", "),
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
                 </div>
               </TabPane>
             ))}

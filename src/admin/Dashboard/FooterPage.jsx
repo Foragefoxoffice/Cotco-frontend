@@ -17,6 +17,11 @@ const FooterPage = () => {
   const [showImageModal, setShowImageModal] = useState(false); // ✅ Added this
   const [isVietnamese, setIsVietnamese] = useState(false);
   const [copyrights, setCopyrights] = useState("");
+  const [footerLogoTitle, setFooterLogoTitle] = useState({
+    en: "",
+    vi: ""
+  });
+
 
   // ✅ Detect global language (using vi-mode class)
   useEffect(() => {
@@ -71,8 +76,16 @@ const FooterPage = () => {
     getFooterPage().then((res) => {
       const data = res.data?.footer || res.data;
       if (data?.footerLogo) setFooterLogo(data.footerLogo);
+      if (data?.footerLogoTitle) {
+        setFooterLogoTitle({
+          en: data.footerLogoTitle.en || "",
+          vi: data.footerLogoTitle.vi || ""
+        });
+      }
+
       if (data?.footerSocials) setFooterSocials(data.footerSocials);
       if (data?.copyrights) setCopyrights(data.copyrights);
+
     });
   }, []);
 
@@ -98,18 +111,18 @@ const FooterPage = () => {
 
   // ✅ Add new social item
   const handleAddSocial = () => {
-  setFooterSocials([
-    ...footerSocials,
-    { iconImage: "", iconFile: null, link: "" },
-  ]);
-};
+    setFooterSocials([
+      ...footerSocials,
+      { iconImage: "", iconFile: null, link: "" },
+    ]);
+  };
 
-const handleIconUpload = (index, file) => {
-  const updated = [...footerSocials];
-  updated[index].iconFile = file;
-  updated[index].iconImage = URL.createObjectURL(file); // preview
-  setFooterSocials(updated);
-};
+  const handleIconUpload = (index, file) => {
+    const updated = [...footerSocials];
+    updated[index].iconFile = file;
+    updated[index].iconImage = URL.createObjectURL(file); // preview
+    setFooterSocials(updated);
+  };
 
 
 
@@ -123,6 +136,7 @@ const handleIconUpload = (index, file) => {
       formData.append("footerSocials", JSON.stringify(updated));
       if (footerLogoFile) formData.append("footerLogoFile", footerLogoFile);
       formData.append("copyrights", copyrights);
+      formData.append("footerLogoTitle", JSON.stringify(footerLogoTitle));
 
       const res = await updateFooterPage(formData);
       const data = res.data?.footer || res.data;
@@ -137,49 +151,109 @@ const handleIconUpload = (index, file) => {
 
   // ✅ Save changes
   const handleSave = async () => {
-  const formData = new FormData();
+    const formData = new FormData();
 
-  if (footerLogoFile) {
-    formData.append("footerLogoFile", footerLogoFile);
-  }
-
-  footerSocials.forEach((item, i) => {
-    if (item.iconFile) {
-      formData.append(`iconFile_${i}`, item.iconFile);
+    if (footerLogoFile) {
+      formData.append("footerLogoFile", footerLogoFile);
     }
-  });
 
-  // Send JSON structure (excluding preview URL)
-  formData.append(
-    "footerSocials",
-    JSON.stringify(
-      footerSocials.map(item => ({
-        link: item.link,
-        iconImage: item.iconFile ? null : item.iconImage // backend will replace file
-      }))
-    )
-  );
+    footerSocials.forEach((item, i) => {
+      if (item.iconFile) {
+        formData.append(`iconFile_${i}`, item.iconFile);
+      }
+    });
 
-  formData.append("copyrights", copyrights);
+    formData.append(
+      "footerSocials",
+      JSON.stringify(
+        footerSocials.map(item => ({
+          link: item.link,
+          iconImage: item.iconFile ? null : item.iconImage
+        }))
+      )
+    );
 
-  const res = await updateFooterPage(formData);
-  const data = res.data?.footer || res.data;
+    formData.append("copyrights", copyrights);
 
-  if (data) {
-    setFooterLogo(data.footerLogo || "");
-    setFooterSocials(data.footerSocials || []);
-    setFooterLogoFile(null);
-    CommonToaster(t.success, "success");
-  }
-};
+    // ✅ FIX — THIS WAS MISSING
+    formData.append("footerLogoTitle", JSON.stringify(footerLogoTitle));
+
+    const res = await updateFooterPage(formData);
+    const data = res.data?.footer || res.data;
+
+    if (data) {
+      setFooterLogo(data.footerLogo || "");
+      setFooterSocials(data.footerSocials || []);
+      setFooterLogoFile(null);
+
+      CommonToaster(t.success, "success");
+    }
+  };
+
 
 
   return (
     <div className="mx-auto p-8 mt-8 rounded-xl bg-[#171717] text-white min-h-screen">
       <h2 className="text-3xl font-bold mb-8 text-center">{t.title}</h2>
 
+      {/* 🔤 Footer Logo Title (EN + VI) */}
+      <div className="mt-6">
+        <label className="block text-white text-lg font-semibold mb-3">
+          {isVietnamese ? "Tiêu đề Logo Footer" : "Footer Logo Title"}
+        </label>
+
+        {/* English Title */}
+        <div className="mb-4">
+          <label className="block text-gray-300 text-sm mb-1">
+            English Title
+          </label>
+
+          <Input
+            value={footerLogoTitle.en}
+            onChange={(e) =>
+              setFooterLogoTitle({ ...footerLogoTitle, en: e.target.value })
+            }
+            placeholder="Enter footer logo title (EN)..."
+            style={{
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "12px 14px",
+              fontSize: "14px",
+              width: "100%",
+            }}
+          />
+        </div>
+
+        {/* Vietnamese Title */}
+        <div>
+          <label className="block text-gray-300 text-sm mb-1">
+            Tiêu đề Tiếng Việt
+          </label>
+
+          <Input
+            value={footerLogoTitle.vi}
+            onChange={(e) =>
+              setFooterLogoTitle({ ...footerLogoTitle, vi: e.target.value })
+            }
+            placeholder="Nhập tiêu đề logo (VI)..."
+            style={{
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "12px 14px",
+              fontSize: "14px",
+              width: "100%",
+            }}
+          />
+        </div>
+      </div>
+
+
       {/* 🖼️ Footer Logo Upload (Same as HeaderPage style) */}
-      <div>
+      <div className="mt-12">
         <label className="block text-white text-lg font-semibold mb-2">
           {t.footerLogo} <span className="text-red-500">*</span>
         </label>
@@ -310,82 +384,82 @@ const handleIconUpload = (index, file) => {
 
       <h3 className="text-white !mt-12">{t.socialsTitle}</h3>
 
-{footerSocials.map((social, index) => (
-  <div key={index} className="flex items-center gap-4 mb-6">
+      {footerSocials.map((social, index) => (
+        <div key={index} className="flex items-center gap-4 mb-6">
 
-    {/* ICON UPLOAD BOX */}
-    <label className="w-16 h-16 rounded-lg bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center cursor-pointer hover:bg-[#2A2A2A] transition">
-      {social.iconImage ? (
-        <img
-          src={social.iconImage.startsWith("blob:")
-            ? social.iconImage
-            : `${API_BASE}${social.iconImage}`
-          }
-          alt="social icon"
-          className="w-full h-full object-cover rounded-lg"
-        />
-      ) : (
-        <span className="text-gray-400 text-sm text-center px-2">
-          Upload Icon
-        </span>
-      )}
+          {/* ICON UPLOAD BOX */}
+          <label className="w-16 h-16 rounded-lg bg-[#1F1F1F] border border-[#2E2F2F] flex items-center justify-center cursor-pointer hover:bg-[#2A2A2A] transition">
+            {social.iconImage ? (
+              <img
+                src={social.iconImage.startsWith("blob:")
+                  ? social.iconImage
+                  : `${API_BASE}${social.iconImage}`
+                }
+                alt="social icon"
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <span className="text-gray-400 text-sm text-center px-2">
+                Upload Icon
+              </span>
+            )}
 
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => handleIconUpload(index, e.target.files[0])}
-        className="hidden"
-      />
-    </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleIconUpload(index, e.target.files[0])}
+              className="hidden"
+            />
+          </label>
 
-    {/* LINK INPUT */}
-    <Input
-      style={{
-        backgroundColor: "#262626",
-        border: "1px solid #2E2F2F",
-        borderRadius: "8px",
-        color: "#fff",
-        padding: "10px 14px",
-        fontSize: "14px",
-        width: "280px",
-      }}
-      placeholder={t.linkPlaceholder}
-      value={social.link}
-      onChange={(e) => handleSocialChange(index, "link", e.target.value)}
-    />
+          {/* LINK INPUT */}
+          <Input
+            style={{
+              backgroundColor: "#262626",
+              border: "1px solid #2E2F2F",
+              borderRadius: "8px",
+              color: "#fff",
+              padding: "10px 14px",
+              fontSize: "14px",
+              width: "280px",
+            }}
+            placeholder={t.linkPlaceholder}
+            value={social.link}
+            onChange={(e) => handleSocialChange(index, "link", e.target.value)}
+          />
 
-    {/* DELETE BUTTON */}
-    <Button
-      size="small"
-      style={{
-        borderRadius: "999px",
-        fontWeight: 500,
-        background: "#E50000",
-        color: "#fff",
-        border: "none",
-        padding: "10px 18px",
-      }}
-      onClick={() => handleRemoveSocial(index)}
-    >
-      {t.remove}
-    </Button>
-  </div>
-))}
+          {/* DELETE BUTTON */}
+          <Button
+            size="small"
+            style={{
+              borderRadius: "999px",
+              fontWeight: 500,
+              background: "#E50000",
+              color: "#fff",
+              border: "none",
+              padding: "10px 18px",
+            }}
+            onClick={() => handleRemoveSocial(index)}
+          >
+            {t.remove}
+          </Button>
+        </div>
+      ))}
 
-<Button
-  onClick={handleAddSocial}
-  className="mb-4"
-  style={{
-    borderRadius: "9999px",
-    padding: "22px",
-    backgroundColor: "#0284C7",
-    color: "#fff",
-    fontWeight: "600",
-    border: "none",
-  }}
->
-  {t.addSocial}
-</Button>
+      <Button
+        onClick={handleAddSocial}
+        className="mb-4"
+        style={{
+          borderRadius: "9999px",
+          padding: "22px",
+          backgroundColor: "#0284C7",
+          color: "#fff",
+          fontWeight: "600",
+          border: "none",
+        }}
+      >
+        {t.addSocial}
+      </Button>
 
 
       {/* 📄 Copyrights Content — Rich Text with ONLY Link Option */}

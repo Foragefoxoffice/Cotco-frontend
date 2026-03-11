@@ -46,16 +46,16 @@ const ContactPage = () => {
   };
 
   const [contactTeam, setContactTeam] = useState({
-  teamIntro: {
-    tag: { en: "", vi: "" },
-    heading: { en: "", vi: "" },
-    description: { en: "", vi: "" },
-  },
-  teamList: {},
-});
+    teamIntro: {
+      tag: { en: "", vi: "" },
+      heading: { en: "", vi: "" },
+      description: { en: "", vi: "" },
+    },
+    teamList: {},
+  });
 
-const [addContactTeamModal, setAddContactTeamModal] = useState(false);
-const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "" });
+  const [addContactTeamModal, setAddContactTeamModal] = useState(false);
+  const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "" });
 
   // ✅ Language switching for form text etc.
   const [currentLang, setCurrentLang] = useState("en");
@@ -203,44 +203,44 @@ const [tempContactTeamTitle, setTempContactTeamTitle] = useState({ en: "", vi: "
       if (res.data?.contactMap) setContactMap(res.data.contactMap);
 
       // ✅ CONTACT TEAM SECTION
-if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
-  const teamData = res.data.contactTeam;
+      if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
+        const teamData = res.data.contactTeam;
 
-  // ✅ Normalize team list and members structure
-  const normalizedTeamList = {};
-  for (const [teamKey, teamVal] of Object.entries(teamData.teamList || {})) {
-    const normalizedMembers = (teamVal.members || []).map((m) => ({
-      teamName: m.teamName || m.name || { en: "", vi: "" },
-      teamDesgn: m.teamDesgn || m.role || { en: "", vi: "" },
-      teamEmail: m.teamEmail || m.email || "",
-      teamPhone: m.teamPhone || m.phone || "",
-    }));
+        // ✅ Normalize team list and members structure
+        const normalizedTeamList = {};
+        for (const [teamKey, teamVal] of Object.entries(teamData.teamList || {})) {
+          const normalizedMembers = (teamVal.members || []).map((m) => ({
+            teamName: m.teamName || m.name || { en: "", vi: "" },
+            teamDesgn: m.teamDesgn || m.role || { en: "", vi: "" },
+            teamEmail: m.teamEmail || m.email || "",
+            teamPhone: m.teamPhone || m.phone || "",
+          }));
 
-    normalizedTeamList[teamKey] = {
-      teamLabel: teamVal.teamLabel || { en: "", vi: "" },
-      members: normalizedMembers,
-    };
-  }
+          normalizedTeamList[teamKey] = {
+            teamLabel: teamVal.teamLabel || { en: "", vi: "" },
+            members: normalizedMembers,
+          };
+        }
 
-  setContactTeam({
-    teamIntro: {
-      tag: teamData.teamIntro?.tag || { en: "", vi: "" },
-      heading: teamData.teamIntro?.heading || { en: "", vi: "" },
-      description: teamData.teamIntro?.description || { en: "", vi: "" },
-    },
-    teamList: normalizedTeamList,
-  });
-} else {
-  // 🧩 Fallback when no team data exists yet
-  setContactTeam({
-    teamIntro: {
-      tag: { en: "", vi: "" },
-      heading: { en: "", vi: "" },
-      description: { en: "", vi: "" },
-    },
-    teamList: {},
-  });
-}
+        setContactTeam({
+          teamIntro: {
+            tag: teamData.teamIntro?.tag || { en: "", vi: "" },
+            heading: teamData.teamIntro?.heading || { en: "", vi: "" },
+            description: teamData.teamIntro?.description || { en: "", vi: "" },
+          },
+          teamList: normalizedTeamList,
+        });
+      } else {
+        // 🧩 Fallback when no team data exists yet
+        setContactTeam({
+          teamIntro: {
+            tag: { en: "", vi: "" },
+            heading: { en: "", vi: "" },
+            description: { en: "", vi: "" },
+          },
+          teamList: {},
+        });
+      }
 
 
       // ✅ NEW: load SEO Meta from DB
@@ -375,19 +375,19 @@ if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
             // ✅ Properly update SEO state after saving
             setSeoMeta(res.data.contact.seoMeta || formState);
             break;
-            case "contactTeam":
-  if (res.data.contact.contactTeam) {
-    const teamData = res.data.contact.contactTeam;
-    setContactTeam({
-      teamIntro: {
-        tag: teamData.teamIntro?.tag || { en: "", vi: "" },
-        heading: teamData.teamIntro?.heading || { en: "", vi: "" },
-        description: teamData.teamIntro?.description || { en: "", vi: "" },
-      },
-      teamList: teamData.teamList || {},
-    });
-  }
-  break;
+          case "contactTeam":
+            if (res.data.contact.contactTeam) {
+              const teamData = res.data.contact.contactTeam;
+              setContactTeam({
+                teamIntro: {
+                  tag: teamData.teamIntro?.tag || { en: "", vi: "" },
+                  heading: teamData.teamIntro?.heading || { en: "", vi: "" },
+                  description: teamData.teamIntro?.description || { en: "", vi: "" },
+                },
+                teamList: teamData.teamList || {},
+              });
+            }
+            break;
 
         }
         CommonToaster(`${sectionName} saved successfully!`, "success");
@@ -510,7 +510,7 @@ if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
             <div className="flex flex-wrap gap-4 mt-2">
               {/* --- If no media uploaded yet --- */}
               {!contactBanner.contactBannerBg &&
-              !contactBanner.contactBannerBgFile ? (
+                !contactBanner.contactBannerBgFile ? (
                 <label
                   htmlFor="contactBannerUpload"
                   className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -559,8 +559,8 @@ if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
                       />
                     )
                   ) : /\.(mp4|webm|ogg)$/i.test(
-                      contactBanner.contactBannerBg
-                    ) ? (
+                    contactBanner.contactBannerBg
+                  ) ? (
                     <video
                       src={getFullUrl(contactBanner.contactBannerBg)}
                       className="w-full h-full object-cover"
@@ -818,7 +818,7 @@ if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
             <div className="flex flex-wrap gap-4 mt-2">
               {/* --- If no image uploaded yet --- */}
               {!contactForm.contactFormImg &&
-              !contactForm.contactFormImgFile ? (
+                !contactForm.contactFormImgFile ? (
                 <label
                   htmlFor="contactFormUpload"
                   className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -1511,505 +1511,505 @@ if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
           </div>
         </Panel>
 
-<Panel
-  header={
-    <span className="font-semibold text-lg flex items-center text-white gap-2">
-      {isVietnamese ? "Đội Liên Hệ" : "Contact Team"}
-    </span>
-  }
-  key="6"
->
-  {/* 🌐 Language Tabs */}
-  <Tabs
-    activeKey={currentLang}
-    onChange={setCurrentLang}
-    className="pill-tabs mb-6"
-  >
-    {["en", "vi"].map((lang) => (
-      <TabPane
-        tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
-        key={lang}
-      >
-        {/* TEAM INTRO */}
-        <div className="mb-8">
-          <h3 className="text-white text-lg font-semibold mb-4">
-            {lang === "en" ? "Team Section Intro" : "Phần Giới Thiệu Đội Liên Hệ"}
-          </h3>
+        <Panel
+          header={
+            <span className="font-semibold text-lg flex items-center text-white gap-2">
+              {isVietnamese ? "Đội Liên Hệ" : "Contact Team"}
+            </span>
+          }
+          key="6"
+        >
+          {/* 🌐 Language Tabs */}
+          <Tabs
+            activeKey={currentLang}
+            onChange={setCurrentLang}
+            className="pill-tabs mb-6"
+          >
+            {["en", "vi"].map((lang) => (
+              <TabPane
+                tab={lang === "en" ? "English (EN)" : "Tiếng Việt (VN)"}
+                key={lang}
+              >
+                {/* TEAM INTRO */}
+                <div className="mb-8">
+                  <h3 className="text-white text-lg font-semibold mb-4">
+                    {lang === "en" ? "Team Section Intro" : "Phần Giới Thiệu Đội Liên Hệ"}
+                  </h3>
 
-          {/* Tag */}
-          <label className="block font-medium mb-2 text-white">
-            {lang === "en" ? "Small Tag" : "Thẻ tiêu đề nhỏ"}
-          </label>
-          <Input
-            value={contactTeam.teamIntro?.tag?.[lang] || ""}
-            onChange={(e) =>
-              setContactTeam((prev) => ({
-                ...prev,
-                teamIntro: {
-                  ...prev.teamIntro,
-                  tag: {
-                    ...prev.teamIntro?.tag,
-                    [lang]: e.target.value,
-                  },
-                },
-              }))
-            }
-            placeholder={lang === "en" ? "Our People" : "Đội ngũ của chúng tôi"}
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-            }}
-            className="!placeholder-gray-400"
-          />
+                  {/* Tag */}
+                  <label className="block font-medium mb-2 text-white">
+                    {lang === "en" ? "Small Tag" : "Thẻ tiêu đề nhỏ"}
+                  </label>
+                  <Input
+                    value={contactTeam.teamIntro?.tag?.[lang] || ""}
+                    onChange={(e) =>
+                      setContactTeam((prev) => ({
+                        ...prev,
+                        teamIntro: {
+                          ...prev.teamIntro,
+                          tag: {
+                            ...prev.teamIntro?.tag,
+                            [lang]: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    placeholder={lang === "en" ? "Our People" : "Đội ngũ của chúng tôi"}
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                    className="!placeholder-gray-400"
+                  />
 
-          {/* Heading */}
-          <label className="block font-medium mt-5 mb-2 text-white">
-            {lang === "en" ? "Main Heading" : "Tiêu đề chính"}
-          </label>
-          <Input
-            value={contactTeam.teamIntro?.heading?.[lang] || ""}
-            onChange={(e) =>
-              setContactTeam((prev) => ({
-                ...prev,
-                teamIntro: {
-                  ...prev.teamIntro,
-                  heading: {
-                    ...prev.teamIntro?.heading,
-                    [lang]: e.target.value,
-                  },
-                },
-              }))
-            }
-            placeholder={
-              lang === "en" ? "Meet Our Team" : "Gặp gỡ đội ngũ của chúng tôi"
-            }
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-            }}
-            className="!placeholder-gray-400"
-          />
+                  {/* Heading */}
+                  <label className="block font-medium mt-5 mb-2 text-white">
+                    {lang === "en" ? "Main Heading" : "Tiêu đề chính"}
+                  </label>
+                  <Input
+                    value={contactTeam.teamIntro?.heading?.[lang] || ""}
+                    onChange={(e) =>
+                      setContactTeam((prev) => ({
+                        ...prev,
+                        teamIntro: {
+                          ...prev.teamIntro,
+                          heading: {
+                            ...prev.teamIntro?.heading,
+                            [lang]: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    placeholder={
+                      lang === "en" ? "Meet Our Team" : "Gặp gỡ đội ngũ của chúng tôi"
+                    }
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                    className="!placeholder-gray-400"
+                  />
 
-          {/* Description */}
-          <label className="block font-medium mt-5 mb-2 text-white">
-            {lang === "en" ? "Description" : "Mô tả"}
-          </label>
-          <Input.TextArea
-            rows={4}
-            value={contactTeam.teamIntro?.description?.[lang] || ""}
-            onChange={(e) =>
-              setContactTeam((prev) => ({
-                ...prev,
-                teamIntro: {
-                  ...prev.teamIntro,
-                  description: {
-                    ...prev.teamIntro?.description,
-                    [lang]: e.target.value,
-                  },
-                },
-              }))
-            }
-            placeholder={
-              lang === "en"
-                ? "Our dedicated team provides excellent support..."
-                : "Đội ngũ tận tâm của chúng tôi cung cấp hỗ trợ xuất sắc..."
-            }
-            style={{
-              backgroundColor: "#262626",
-              border: "1px solid #2E2F2F",
-              borderRadius: "8px",
-              color: "#fff",
-              padding: "10px 14px",
-            }}
-            className="!placeholder-gray-400"
-          />
-        </div>
+                  {/* Description */}
+                  <label className="block font-medium mt-5 mb-2 text-white">
+                    {lang === "en" ? "Description" : "Mô tả"}
+                  </label>
+                  <Input.TextArea
+                    rows={4}
+                    value={contactTeam.teamIntro?.description?.[lang] || ""}
+                    onChange={(e) =>
+                      setContactTeam((prev) => ({
+                        ...prev,
+                        teamIntro: {
+                          ...prev.teamIntro,
+                          description: {
+                            ...prev.teamIntro?.description,
+                            [lang]: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    placeholder={
+                      lang === "en"
+                        ? "Our dedicated team provides excellent support..."
+                        : "Đội ngũ tận tâm của chúng tôi cung cấp hỗ trợ xuất sắc..."
+                    }
+                    style={{
+                      backgroundColor: "#262626",
+                      border: "1px solid #2E2F2F",
+                      borderRadius: "8px",
+                      color: "#fff",
+                      padding: "10px 14px",
+                    }}
+                    className="!placeholder-gray-400"
+                  />
+                </div>
 
-        {/* TEAM GROUPS */}
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-white text-lg font-semibold">
-            {lang === "en" ? "Team Groups" : "Nhóm Đội Ngũ"}
-          </h3>
-          <Button
-            type="primary"
-            onClick={() => setAddContactTeamModal(true)}
-            style={{
-              backgroundColor: "#0284C7",
-              borderRadius: "999px",
-              fontWeight: "500",
-              padding: "22px",
+                {/* TEAM GROUPS */}
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-white text-lg font-semibold">
+                    {lang === "en" ? "Team Groups" : "Nhóm Đội Ngũ"}
+                  </h3>
+                  <Button
+                    type="primary"
+                    onClick={() => setAddContactTeamModal(true)}
+                    style={{
+                      backgroundColor: "#0284C7",
+                      borderRadius: "999px",
+                      fontWeight: "500",
+                      padding: "22px",
+                    }}
+                  >
+                    {lang === "en" ? "Add Team" : "Thêm Nhóm"}
+                  </Button>
+                </div>
+
+                <Tabs
+                  className="mb-6 pill-tabs"
+                  defaultActiveKey={Object.keys(contactTeam.teamList || {})[0]}
+                >
+                  {Object.entries(contactTeam.teamList || {}).map(
+                    ([teamKey, teamData]) => (
+                      <TabPane
+                        key={teamKey}
+                        tab={
+                          <div className="flex items-center gap-2">
+                            <span>{teamData.teamLabel?.[lang] || "Untitled Team"}</span>
+                            <Trash2
+                              size={16}
+                              className="cursor-pointer text-red-500 hover:text-red-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const updatedTeams = { ...contactTeam.teamList };
+                                delete updatedTeams[teamKey];
+                                setContactTeam({
+                                  ...contactTeam,
+                                  teamList: updatedTeams,
+                                });
+                              }}
+                            />
+                          </div>
+                        }
+                      >
+                        {(teamData.members || []).map((member, idx) => (
+                          <div key={idx} className="mb-6 text-white border-b pb-4">
+                            {/* Name */}
+                            <label className="block font-medium mt-5 mb-2">
+                              {lang === "en" ? "Name" : "Tên"}
+                            </label>
+                            <Input
+                              value={member.teamName?.[lang] || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamName: {
+                                    ...member.teamName,
+                                    [lang]: e.target.value,
+                                  },
+                                };
+                                setContactTeam((prev) => ({
+                                  ...prev,
+                                  teamList: {
+                                    ...prev.teamList,
+                                    [teamKey]: { ...teamData, members: updated },
+                                  },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                              className="!placeholder-gray-400"
+                            />
+
+                            {/* Designation */}
+                            <label className="block font-medium mt-5 mb-2">
+                              {lang === "en" ? "Designation" : "Chức danh"}
+                            </label>
+                            <Input
+                              value={member.teamDesgn?.[lang] || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamDesgn: {
+                                    ...member.teamDesgn,
+                                    [lang]: e.target.value,
+                                  },
+                                };
+                                setContactTeam((prev) => ({
+                                  ...prev,
+                                  teamList: {
+                                    ...prev.teamList,
+                                    [teamKey]: { ...teamData, members: updated },
+                                  },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                              className="!placeholder-gray-400"
+                            />
+
+                            {/* Email */}
+                            <label className="block font-medium mt-5 mb-2">Email</label>
+                            <Input
+                              value={member.teamEmail || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamEmail: e.target.value,
+                                };
+                                setContactTeam((prev) => ({
+                                  ...prev,
+                                  teamList: {
+                                    ...prev.teamList,
+                                    [teamKey]: { ...teamData, members: updated },
+                                  },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                              className="!placeholder-gray-400"
+                            />
+
+                            {/* Phone */}
+                            <label className="block font-medium mt-5 mb-2">
+                              {lang === "en" ? "Phone Number" : "Số điện thoại"}
+                            </label>
+                            <Input
+                              value={member.teamPhone || ""}
+                              onChange={(e) => {
+                                const updated = [...teamData.members];
+                                updated[idx] = {
+                                  ...member,
+                                  teamPhone: e.target.value.replace(/[^0-9+]/g, ""),
+                                };
+                                setContactTeam((prev) => ({
+                                  ...prev,
+                                  teamList: {
+                                    ...prev.teamList,
+                                    [teamKey]: { ...teamData, members: updated },
+                                  },
+                                }));
+                              }}
+                              placeholder={
+                                lang === "en"
+                                  ? "Enter phone number"
+                                  : "Nhập số điện thoại"
+                              }
+                              style={{
+                                backgroundColor: "#262626",
+                                border: "1px solid #2E2F2F",
+                                borderRadius: "8px",
+                                color: "#fff",
+                                padding: "10px 14px",
+                              }}
+                              className="!placeholder-gray-400"
+                            />
+
+                            {/* 🗑 Remove Member */}
+                            <Button
+                              danger
+                              size="small"
+                              onClick={() => {
+                                const updated = teamData.members.filter(
+                                  (_, i) => i !== idx
+                                );
+                                setContactTeam((prev) => ({
+                                  ...prev,
+                                  teamList: {
+                                    ...prev.teamList,
+                                    [teamKey]: { ...teamData, members: updated },
+                                  },
+                                }));
+                              }}
+                              style={{
+                                backgroundColor: "#FB2C36",
+                                color: "#fff",
+                                borderRadius: "9999px",
+                                padding: "22px 30px",
+                                marginTop: "20px",
+                              }}
+                            >
+                              <Trash2 size={16} />
+                              {lang === "en" ? "Remove Member" : "Xóa thành viên"}
+                            </Button>
+                          </div>
+                        ))}
+
+                        {/* ➕ Add Member */}
+                        <Button
+                          type="dashed"
+                          onClick={() => {
+                            const newMember = {
+                              teamName: { en: "", vi: "" },
+                              teamDesgn: { en: "", vi: "" },
+                              teamEmail: "",
+                              teamPhone: "",
+                            };
+                            const updated = [...(teamData.members || []), newMember];
+                            setContactTeam((prev) => ({
+                              ...prev,
+                              teamList: {
+                                ...prev.teamList,
+                                [teamKey]: { ...teamData, members: updated },
+                              },
+                            }));
+                          }}
+                          style={{
+                            backgroundColor: "#0284C7",
+                            color: "#fff",
+                            borderRadius: "9999px",
+                            padding: "22px 30px",
+                            marginTop: "20px",
+                            width: "fit-content",
+                          }}
+                        >
+                          <Plus />
+                          {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
+                        </Button>
+                      </TabPane>
+                    )
+                  )}
+                </Tabs>
+              </TabPane>
+            ))}
+          </Tabs>
+
+          {/* Footer Buttons */}
+          <div className="flex justify-end gap-4 mt-6">
+            <Button
+              onClick={() => window.location.reload()}
+              style={{
+                backgroundColor: "transparent",
+                color: "#fff",
+                border: "1px solid #333",
+                padding: "22px 30px",
+                borderRadius: "9999px",
+                fontWeight: "500",
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              onClick={() => handleSave("contactTeam", contactTeam)}
+              style={{
+                backgroundColor: "#0284C7",
+                color: "#fff",
+                border: "none",
+                padding: "22px 30px",
+                borderRadius: "9999px",
+                fontWeight: "500",
+              }}
+            >
+              {isVietnamese ? "Lưu Đội Liên Hệ" : "Save Team"}
+            </Button>
+          </div>
+
+          {/* ➕ Add Team Modal */}
+          <Modal
+            open={addContactTeamModal}
+            onCancel={() => setAddContactTeamModal(false)}
+            footer={null}
+            centered
+            width={450}
+            bodyStyle={{
+              background: "#1a1a1a",
+              borderRadius: "10px",
+              padding: "24px",
             }}
           >
-            {lang === "en" ? "Add Team" : "Thêm Nhóm"}
-          </Button>
-        </div>
+            <h3 className="text-white text-lg font-semibold mb-4">
+              {isVietnamese ? "Thêm Nhóm Mới" : "Add New Team"}
+            </h3>
 
-        <Tabs
-          className="mb-6 pill-tabs"
-          defaultActiveKey={Object.keys(contactTeam.teamList || {})[0]}
-        >
-          {Object.entries(contactTeam.teamList || {}).map(
-            ([teamKey, teamData]) => (
-              <TabPane
-                key={teamKey}
-                tab={
-                  <div className="flex items-center gap-2">
-                    <span>{teamData.teamLabel?.[lang] || "Untitled Team"}</span>
-                    <Trash2
-                      size={16}
-                      className="cursor-pointer text-red-500 hover:text-red-700"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const updatedTeams = { ...contactTeam.teamList };
-                        delete updatedTeams[teamKey];
-                        setContactTeam({
-                          ...contactTeam,
-                          teamList: updatedTeams,
-                        });
-                      }}
-                    />
-                  </div>
-                }
+            {/* English */}
+            <label className="block font-medium mb-2 text-white">Team Title (EN)</label>
+            <Input
+              value={tempContactTeamTitle?.en || ""}
+              onChange={(e) =>
+                setTempContactTeamTitle((prev) => ({ ...prev, en: e.target.value }))
+              }
+              placeholder="Enter English team title"
+              style={{
+                backgroundColor: "#262626",
+                border: "1px solid #2E2F2F",
+                borderRadius: "8px",
+                color: "#fff",
+                padding: "10px 14px",
+                marginBottom: "16px",
+              }}
+              className="!placeholder-gray-400"
+            />
+
+            {/* Vietnamese */}
+            <label className="block font-medium mb-2 text-white">Team Title (VI)</label>
+            <Input
+              value={tempContactTeamTitle?.vi || ""}
+              onChange={(e) =>
+                setTempContactTeamTitle((prev) => ({ ...prev, vi: e.target.value }))
+              }
+              placeholder="Nhập tên nhóm (Tiếng Việt)"
+              style={{
+                backgroundColor: "#262626",
+                border: "1px solid #2E2F2F",
+                borderRadius: "8px",
+                color: "#fff",
+                padding: "10px 14px",
+              }}
+              className="!placeholder-gray-400"
+            />
+
+            {/* Footer */}
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                onClick={() => setAddContactTeamModal(false)}
+                style={{
+                  backgroundColor: "transparent",
+                  color: "#fff",
+                  border: "1px solid #333",
+                  padding: "22px",
+                  borderRadius: "999px",
+                }}
               >
-                {(teamData.members || []).map((member, idx) => (
-                  <div key={idx} className="mb-6 text-white border-b pb-4">
-                    {/* Name */}
-                    <label className="block font-medium mt-5 mb-2">
-                      {lang === "en" ? "Name" : "Tên"}
-                    </label>
-                    <Input
-                      value={member.teamName?.[lang] || ""}
-                      onChange={(e) => {
-                        const updated = [...teamData.members];
-                        updated[idx] = {
-                          ...member,
-                          teamName: {
-                            ...member.teamName,
-                            [lang]: e.target.value,
-                          },
-                        };
-                        setContactTeam((prev) => ({
-                          ...prev,
-                          teamList: {
-                            ...prev.teamList,
-                            [teamKey]: { ...teamData, members: updated },
-                          },
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                      }}
-                      className="!placeholder-gray-400"
-                    />
-
-                    {/* Designation */}
-                    <label className="block font-medium mt-5 mb-2">
-                      {lang === "en" ? "Designation" : "Chức danh"}
-                    </label>
-                    <Input
-                      value={member.teamDesgn?.[lang] || ""}
-                      onChange={(e) => {
-                        const updated = [...teamData.members];
-                        updated[idx] = {
-                          ...member,
-                          teamDesgn: {
-                            ...member.teamDesgn,
-                            [lang]: e.target.value,
-                          },
-                        };
-                        setContactTeam((prev) => ({
-                          ...prev,
-                          teamList: {
-                            ...prev.teamList,
-                            [teamKey]: { ...teamData, members: updated },
-                          },
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                      }}
-                      className="!placeholder-gray-400"
-                    />
-
-                    {/* Email */}
-                    <label className="block font-medium mt-5 mb-2">Email</label>
-                    <Input
-                      value={member.teamEmail || ""}
-                      onChange={(e) => {
-                        const updated = [...teamData.members];
-                        updated[idx] = {
-                          ...member,
-                          teamEmail: e.target.value,
-                        };
-                        setContactTeam((prev) => ({
-                          ...prev,
-                          teamList: {
-                            ...prev.teamList,
-                            [teamKey]: { ...teamData, members: updated },
-                          },
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                      }}
-                      className="!placeholder-gray-400"
-                    />
-
-                    {/* Phone */}
-                    <label className="block font-medium mt-5 mb-2">
-                      {lang === "en" ? "Phone Number" : "Số điện thoại"}
-                    </label>
-                    <Input
-                      value={member.teamPhone || ""}
-                      onChange={(e) => {
-                        const updated = [...teamData.members];
-                        updated[idx] = {
-                          ...member,
-                          teamPhone: e.target.value.replace(/[^0-9+]/g, ""),
-                        };
-                        setContactTeam((prev) => ({
-                          ...prev,
-                          teamList: {
-                            ...prev.teamList,
-                            [teamKey]: { ...teamData, members: updated },
-                          },
-                        }));
-                      }}
-                      placeholder={
-                        lang === "en"
-                          ? "Enter phone number"
-                          : "Nhập số điện thoại"
-                      }
-                      style={{
-                        backgroundColor: "#262626",
-                        border: "1px solid #2E2F2F",
-                        borderRadius: "8px",
-                        color: "#fff",
-                        padding: "10px 14px",
-                      }}
-                      className="!placeholder-gray-400"
-                    />
-
-                    {/* 🗑 Remove Member */}
-                    <Button
-                      danger
-                      size="small"
-                      onClick={() => {
-                        const updated = teamData.members.filter(
-                          (_, i) => i !== idx
-                        );
-                        setContactTeam((prev) => ({
-                          ...prev,
-                          teamList: {
-                            ...prev.teamList,
-                            [teamKey]: { ...teamData, members: updated },
-                          },
-                        }));
-                      }}
-                      style={{
-                        backgroundColor: "#FB2C36",
-                        color: "#fff",
-                        borderRadius: "9999px",
-                        padding: "22px 30px",
-                        marginTop: "20px",
-                      }}
-                    >
-                      <Trash2 size={16} />
-                      {lang === "en" ? "Remove Member" : "Xóa thành viên"}
-                    </Button>
-                  </div>
-                ))}
-
-                {/* ➕ Add Member */}
-                <Button
-                  type="dashed"
-                  onClick={() => {
-                    const newMember = {
-                      teamName: { en: "", vi: "" },
-                      teamDesgn: { en: "", vi: "" },
-                      teamEmail: "",
-                      teamPhone: "",
-                    };
-                    const updated = [...(teamData.members || []), newMember];
-                    setContactTeam((prev) => ({
-                      ...prev,
-                      teamList: {
-                        ...prev.teamList,
-                        [teamKey]: { ...teamData, members: updated },
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                style={{
+                  backgroundColor: "#0284C7",
+                  border: "none",
+                  color: "#fff",
+                  padding: "22px",
+                  borderRadius: "999px",
+                }}
+                onClick={() => {
+                  if (!tempContactTeamTitle.en && !tempContactTeamTitle.vi) return;
+                  const newKey = `team_${Date.now()}`;
+                  setContactTeam((prev) => ({
+                    ...prev,
+                    teamList: {
+                      ...prev.teamList,
+                      [newKey]: {
+                        teamLabel: {
+                          en: tempContactTeamTitle.en || "New Team",
+                          vi: tempContactTeamTitle.vi || "Nhóm Mới",
+                        },
+                        members: [],
                       },
-                    }));
-                  }}
-                  style={{
-                    backgroundColor: "#0284C7",
-                    color: "#fff",
-                    borderRadius: "9999px",
-                    padding: "22px 30px",
-                    marginTop: "20px",
-                    width: "fit-content",
-                  }}
-                >
-                  <Plus />
-                  {lang === "en" ? "Add Member" : "Thêm Thành Viên"}
-                </Button>
-              </TabPane>
-            )
-          )}
-        </Tabs>
-      </TabPane>
-    ))}
-  </Tabs>
-
-  {/* Footer Buttons */}
-  <div className="flex justify-end gap-4 mt-6">
-    <Button
-      onClick={() => window.location.reload()}
-      style={{
-        backgroundColor: "transparent",
-        color: "#fff",
-        border: "1px solid #333",
-        padding: "22px 30px",
-        borderRadius: "9999px",
-        fontWeight: "500",
-      }}
-    >
-      Cancel
-    </Button>
-
-    <Button
-      onClick={() => handleSave("contactTeam", contactTeam)}
-      style={{
-        backgroundColor: "#0284C7",
-        color: "#fff",
-        border: "none",
-        padding: "22px 30px",
-        borderRadius: "9999px",
-        fontWeight: "500",
-      }}
-    >
-      {isVietnamese ? "Lưu Đội Liên Hệ" : "Save Team"}
-    </Button>
-  </div>
-
-  {/* ➕ Add Team Modal */}
-  <Modal
-    open={addContactTeamModal}
-    onCancel={() => setAddContactTeamModal(false)}
-    footer={null}
-    centered
-    width={450}
-    bodyStyle={{
-      background: "#1a1a1a",
-      borderRadius: "10px",
-      padding: "24px",
-    }}
-  >
-    <h3 className="text-white text-lg font-semibold mb-4">
-      {isVietnamese ? "Thêm Nhóm Mới" : "Add New Team"}
-    </h3>
-
-    {/* English */}
-    <label className="block font-medium mb-2 text-white">Team Title (EN)</label>
-    <Input
-      value={tempContactTeamTitle?.en || ""}
-      onChange={(e) =>
-        setTempContactTeamTitle((prev) => ({ ...prev, en: e.target.value }))
-      }
-      placeholder="Enter English team title"
-      style={{
-        backgroundColor: "#262626",
-        border: "1px solid #2E2F2F",
-        borderRadius: "8px",
-        color: "#fff",
-        padding: "10px 14px",
-        marginBottom: "16px",
-      }}
-      className="!placeholder-gray-400"
-    />
-
-    {/* Vietnamese */}
-    <label className="block font-medium mb-2 text-white">Team Title (VI)</label>
-    <Input
-      value={tempContactTeamTitle?.vi || ""}
-      onChange={(e) =>
-        setTempContactTeamTitle((prev) => ({ ...prev, vi: e.target.value }))
-      }
-      placeholder="Nhập tên nhóm (Tiếng Việt)"
-      style={{
-        backgroundColor: "#262626",
-        border: "1px solid #2E2F2F",
-        borderRadius: "8px",
-        color: "#fff",
-        padding: "10px 14px",
-      }}
-      className="!placeholder-gray-400"
-    />
-
-    {/* Footer */}
-    <div className="flex justify-end gap-3 mt-6">
-      <Button
-        onClick={() => setAddContactTeamModal(false)}
-        style={{
-          backgroundColor: "transparent",
-          color: "#fff",
-          border: "1px solid #333",
-          padding: "22px",
-          borderRadius: "999px",
-        }}
-      >
-        Cancel
-      </Button>
-      <Button
-        type="primary"
-        style={{
-          backgroundColor: "#0284C7",
-          border: "none",
-          color: "#fff",
-          padding: "22px",
-          borderRadius: "999px",
-        }}
-        onClick={() => {
-          if (!tempContactTeamTitle.en && !tempContactTeamTitle.vi) return;
-          const newKey = `team_${Date.now()}`;
-          setContactTeam((prev) => ({
-            ...prev,
-            teamList: {
-              ...prev.teamList,
-              [newKey]: {
-                teamLabel: {
-                  en: tempContactTeamTitle.en || "New Team",
-                  vi: tempContactTeamTitle.vi || "Nhóm Mới",
-                },
-                members: [],
-              },
-            },
-          }));
-          setTempContactTeamTitle({ en: "", vi: "" });
-          setAddContactTeamModal(false);
-        }}
-      >
-        {isVietnamese ? "Thêm Nhóm" : "Add Team"}
-      </Button>
-    </div>
-  </Modal>
-</Panel>
+                    },
+                  }));
+                  setTempContactTeamTitle({ en: "", vi: "" });
+                  setAddContactTeamModal(false);
+                }}
+              >
+                {isVietnamese ? "Thêm Nhóm" : "Add Team"}
+              </Button>
+            </div>
+          </Modal>
+        </Panel>
 
 
         {/* SEO META SECTION */}
@@ -2083,7 +2083,7 @@ if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
                     padding: "10px 14px",
                     fontSize: "14px",
                     marginBottom: "12px",
-                    
+
                   }}
                   value={seoMeta.metaDescription?.[lang] || ""}
                   onChange={(e) =>
@@ -2102,7 +2102,7 @@ if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
                   {lang === "vi" ? "Từ khóa Meta" : "Meta Keywords"}
                 </label>
 
-                <div className="flex flex-wrap gap-2 mb-3 p-2 rounded-lg bg-[#1C1C1C] border border-[#2E2F2F] min-h-[48px] focus-within:ring-1 focus-within:ring-[#0284C7] transition-all">
+                <div className="flex flex-wrap gap-2 mb-2">
                   {/* Show existing keywords as tags */}
                   {seoMeta.metaKeywords?.[lang]
                     ?.split(",")
@@ -2135,40 +2135,40 @@ if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
                         </button>
                       </span>
                     ))}
-
-                  {/* Keyword input */}
-                  <input
-                    type="text"
-                    placeholder={
-                      lang === "vi"
-                        ? "Nhập từ khóa và nhấn Enter"
-                        : "Type keyword and press Enter"
-                    }
-                    className="flex-1 min-w-[140px] bg-transparent outline-none border-none !text-gray-100 placeholder-gray-500 text-sm px-1"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && e.target.value.trim()) {
-                        e.preventDefault();
-                        const newKeyword = e.target.value.trim();
-                        const existing =
-                          seoMeta.metaKeywords?.[lang]
-                            ?.split(",")
-                            .map((k) => k.trim())
-                            .filter(Boolean) || [];
-                        if (!existing.includes(newKeyword)) {
-                          const updated = [...existing, newKeyword];
-                          setSeoMeta({
-                            ...seoMeta,
-                            metaKeywords: {
-                              ...seoMeta.metaKeywords,
-                              [lang]: updated.join(", "),
-                            },
-                          });
-                        }
-                        e.target.value = "";
-                      }
-                    }}
-                  />
                 </div>
+
+                {/* Keyword input */}
+                <input
+                  type="text"
+                  placeholder={
+                    lang === "vi"
+                      ? "Nhập từ khóa và nhấn Enter"
+                      : "Type keyword and press Enter"
+                  }
+                  className="w-full bg-[#262626] border border-[#2E2F2F] rounded-lg !text-white px-3 py-2 text-sm focus:outline-none focus:border-[#0284C7] transition-all placeholder-gray-400"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.target.value.trim()) {
+                      e.preventDefault();
+                      const newKeyword = e.target.value.trim();
+                      const existing =
+                        seoMeta.metaKeywords?.[lang]
+                          ?.split(",")
+                          .map((k) => k.trim())
+                          .filter(Boolean) || [];
+                      const updated = [
+                        ...new Set([...existing, newKeyword]),
+                      ];
+                      setSeoMeta({
+                        ...seoMeta,
+                        metaKeywords: {
+                          ...seoMeta.metaKeywords,
+                          [lang]: updated.join(", "),
+                        },
+                      });
+                      e.target.value = "";
+                    }
+                  }}
+                />
               </TabPane>
             ))}
           </Tabs>
@@ -2212,7 +2212,7 @@ if (res.data?.contactTeam && typeof res.data.contactTeam === "object") {
           </div>
         </Panel>
       </Collapse>
-    </div>
+    </div >
   );
 };
 

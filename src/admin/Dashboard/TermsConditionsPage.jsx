@@ -345,7 +345,7 @@ const TermsConditionsPage = () => {
             <div className="flex flex-wrap gap-4 mt-2">
               {/* --- If no media uploaded --- */}
               {!termsBanner.termsBannerMedia &&
-              !termsBanner.termsBannerMediaFile ? (
+                !termsBanner.termsBannerMediaFile ? (
                 <label
                   htmlFor="termsBannerUpload"
                   className="flex flex-col items-center justify-center w-48 h-48 border-2 border-dashed border-gray-600 hover:border-gray-400 rounded-lg cursor-pointer transition-all duration-200 bg-[#1F1F1F] hover:bg-[#2A2A2A]"
@@ -394,8 +394,8 @@ const TermsConditionsPage = () => {
                       />
                     )
                   ) : /\.(mp4|webm|ogg)$/i.test(
-                      termsBanner.termsBannerMedia
-                    ) ? (
+                    termsBanner.termsBannerMedia
+                  ) ? (
                     <video
                       src={`${API_BASE}${termsBanner.termsBannerMedia}`}
                       className="w-full h-full object-cover"
@@ -769,7 +769,7 @@ const TermsConditionsPage = () => {
                   {lang === "vi" ? "Từ khóa Meta" : "Meta Keywords"}
                 </label>
 
-                <div className="flex flex-wrap gap-2 mb-3 p-2 rounded-lg bg-[#1C1C1C] border border-[#2E2F2F] min-h-[48px] focus-within:ring-1 focus-within:ring-[#0284C7] transition-all">
+                <div className="flex flex-wrap gap-2 mb-2">
                   {/* Existing tags */}
                   {seoMeta.metaKeywords?.[lang]
                     ?.split(",")
@@ -815,40 +815,40 @@ const TermsConditionsPage = () => {
                         </button>
                       </span>
                     ))}
-
-                  {/* Input field for new keyword */}
-                  <input
-                    type="text"
-                    placeholder={
-                      lang === "vi"
-                        ? "Nhập từ khóa và nhấn Enter"
-                        : "Type keyword and press Enter"
-                    }
-                    className="flex-1 min-w-[140px] bg-transparent outline-none border-none !text-gray-100 !placeholder-gray-500 text-sm px-1"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && e.target.value.trim()) {
-                        e.preventDefault();
-                        const newKeyword = e.target.value.trim();
-                        const existing =
-                          seoMeta.metaKeywords?.[lang]
-                            ?.split(",")
-                            .map((k) => k.trim())
-                            .filter(Boolean) || [];
-                        if (!existing.includes(newKeyword)) {
-                          const updated = [...existing, newKeyword];
-                          setSeoMeta({
-                            ...seoMeta,
-                            metaKeywords: {
-                              ...seoMeta.metaKeywords,
-                              [lang]: updated.join(", "),
-                            },
-                          });
-                        }
-                        e.target.value = "";
-                      }
-                    }}
-                  />
                 </div>
+
+                {/* Input field for new keyword */}
+                <input
+                  type="text"
+                  placeholder={
+                    lang === "vi"
+                      ? "Nhập từ khóa và nhấn Enter"
+                      : "Type keyword and press Enter"
+                  }
+                  className="w-full bg-[#262626] border border-[#2E2F2F] rounded-lg !text-white px-3 py-2 text-sm focus:outline-none focus:border-[#0284C7] transition-all placeholder-gray-400"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.target.value.trim()) {
+                      e.preventDefault();
+                      const newKeyword = e.target.value.trim();
+                      const existing =
+                        seoMeta.metaKeywords?.[lang]
+                          ?.split(",")
+                          .map((k) => k.trim())
+                          .filter(Boolean) || [];
+                      if (!existing.includes(newKeyword)) {
+                        const updated = [...existing, newKeyword];
+                        setSeoMeta({
+                          ...seoMeta,
+                          metaKeywords: {
+                            ...seoMeta.metaKeywords,
+                            [lang]: updated.join(", "),
+                          },
+                        });
+                      }
+                      e.target.value = "";
+                    }
+                  }}
+                />
               </TabPane>
             ))}
           </Tabs>
