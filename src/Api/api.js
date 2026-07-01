@@ -111,7 +111,13 @@ export const deleteBlog = (id) => API.delete(`/blogs/${id}`);
 
 // ================= CATEGORIES ================= //
 export const createCategory = (data) => API.post("/categories", data);
-export const getCategories = () => API.get("/categories");
+let categoriesPromise = null;
+export const getCategories = () => {
+  if (!categoriesPromise) {
+    categoriesPromise = API.get("/categories").finally(() => setTimeout(() => categoriesPromise = null, 5000));
+  }
+  return categoriesPromise;
+};
 export const getCategory = (id) => API.get(`/categories/${id}`);
 export const updateCategory = (id, data) => API.put(`/categories/${id}`, data);
 export const deleteCategory = (id) => API.delete(`/categories/${id}`);
@@ -137,7 +143,13 @@ export const updateBlogMainCategory = (id, data, isFormData = false) =>
     headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
   });
 
-export const getMainBlogCategories = () => API.get("/maincategories");
+let mainBlogCategoriesPromise = null;
+export const getMainBlogCategories = () => {
+  if (!mainBlogCategoriesPromise) {
+    mainBlogCategoriesPromise = API.get("/maincategories").finally(() => setTimeout(() => mainBlogCategoriesPromise = null, 5000));
+  }
+  return mainBlogCategoriesPromise;
+};
 
 export const getMainBlogCategory = (id) => API.get(`/maincategories/${id}`);
 
@@ -162,7 +174,19 @@ export const deletePage = (id) => API.delete(`/pages/${id}`);
 ========================================================= */
 
 // ✅ Correct
-export const getHomepage = () => API.get("/homepage");
+let homepagePromise = null;
+
+export const getHomepage = () => {
+  if (!homepagePromise) {
+    homepagePromise = API.get("/homepage").finally(() => {
+      setTimeout(() => {
+        homepagePromise = null;
+      }, 5000);
+    });
+  }
+  return homepagePromise;
+};
+
 // Update homepage with file upload
 export const updateHomepage = (formData) =>
   API.post("/homepage", formData, {
@@ -172,7 +196,7 @@ export const updateHomepage = (formData) =>
 // ✅ Get Homepage Blog Section
 export const getHomepageBlogSection = async () => {
   try {
-    const res = await API.get("/homepage");
+    const res = await getHomepage();
     // Adjust depending on backend response structure
     return res.data?.homepage?.blogSection || res.data?.blogSection || {};
   } catch (error) {
@@ -183,7 +207,7 @@ export const getHomepageBlogSection = async () => {
 
 export const getHomepageBannerSection = async () => {
   try {
-    const res = await API.get("/homepage");
+    const res = await getHomepage();
     return res.data?.homepage?.bannerSection || res.data?.bannerSection || {};
   } catch (error) {
     console.error("❌ Error fetching homepage banner section:", error);
@@ -197,7 +221,18 @@ export const getHomepageBannerSection = async () => {
 ========================================================= */
 
 // ✅ Get About Page content
-export const getAboutPage = () => API.get("/aboutpage");
+let aboutPagePromise = null;
+
+export const getAboutPage = () => {
+  if (!aboutPagePromise) {
+    aboutPagePromise = API.get("/aboutpage").finally(() => {
+      setTimeout(() => {
+        aboutPagePromise = null;
+      }, 5000);
+    });
+  }
+  return aboutPagePromise;
+};
 
 // ✅ Update About Page (supports file upload)
 export const updateAboutPage = (formData) =>
@@ -208,7 +243,13 @@ export const updateAboutPage = (formData) =>
 /* =========================================================
  COTTON PAGE
 ========================================================= */
-export const getCottonPage = () => API.get("/cottonpage");
+let cottonPagePromise = null;
+export const getCottonPage = () => {
+  if (!cottonPagePromise) {
+    cottonPagePromise = API.get("/cottonpage").finally(() => setTimeout(() => cottonPagePromise = null, 5000));
+  }
+  return cottonPagePromise;
+};
 
 export const updateCottonPage = (formData) =>
   API.post("/cottonpage", formData, {
@@ -218,7 +259,13 @@ export const updateCottonPage = (formData) =>
 /* =========================================================
    FIBER PAGE
 ========================================================= */
-export const getFiberPage = () => API.get("/fiberpage");
+let fiberPagePromise = null;
+export const getFiberPage = () => {
+  if (!fiberPagePromise) {
+    fiberPagePromise = API.get("/fiberpage").finally(() => setTimeout(() => fiberPagePromise = null, 5000));
+  }
+  return fiberPagePromise;
+};
 
 export const updateFiberPage = (formData) =>
   API.post("/fiberpage", formData, {
@@ -228,7 +275,13 @@ export const updateFiberPage = (formData) =>
 /* =========================================================
    CONTACT PAGE
 ========================================================= */
-export const getContactPage = () => API.get("/contactpage");
+let contactPagePromise = null;
+export const getContactPage = () => {
+  if (!contactPagePromise) {
+    contactPagePromise = API.get("/contactpage").finally(() => setTimeout(() => contactPagePromise = null, 5000));
+  }
+  return contactPagePromise;
+};
 
 export const updateContactPage = (formData) =>
   API.post("/contactpage", formData, {
@@ -238,7 +291,13 @@ export const updateContactPage = (formData) =>
 /* =========================================================
  PRIVACY PAGE
 ========================================================= */
-export const getPrivacyPage = () => API.get("/privacypage");
+let privacyPagePromise = null;
+export const getPrivacyPage = () => {
+  if (!privacyPagePromise) {
+    privacyPagePromise = API.get("/privacypage").finally(() => setTimeout(() => privacyPagePromise = null, 5000));
+  }
+  return privacyPagePromise;
+};
 
 export const updatePrivacyPage = (formData) =>
   API.post("/privacypage", formData, {
@@ -248,7 +307,13 @@ export const updatePrivacyPage = (formData) =>
 /* =========================================================
  TERMS & CONDITIONS PAGE
 ========================================================= */
-export const getTermsPage = () => API.get("/termspage");
+let termsPagePromise = null;
+export const getTermsPage = () => {
+  if (!termsPagePromise) {
+    termsPagePromise = API.get("/termspage").finally(() => setTimeout(() => termsPagePromise = null, 5000));
+  }
+  return termsPagePromise;
+};
 
 export const updateTermsPage = (formData) =>
   API.post("/termspage", formData, {

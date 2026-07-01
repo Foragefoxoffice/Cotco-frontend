@@ -196,7 +196,6 @@ const HomePage = () => {
       bannerButtonLink: "Liên kết nút",
       bannerBackgroundImage: "Hình nền",
       saveBanner: "Lưu Banner",
-      cancel: "Hủy",
     },
   };
 

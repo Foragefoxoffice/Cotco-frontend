@@ -94,28 +94,11 @@ export default function BlogLists({ onLoaded }) {
         setTotalPages(pagination.totalPages || 1);
         setTotalBlogs(pagination.total || 0);
 
-        // 2️⃣ Fetch ALL blogs in this main category (NO category filter)
-        const allBlogsRes = await getBlogs({
-          status: "published",
-          mainCategory: mainCategory._id
+        // 2️⃣ Filter categories that belong to this main category directly using the mainCategory reference
+        const matchedCategories = catRes.data.data.filter((cat) => {
+          const catMainId = typeof cat.mainCategory === 'object' ? (cat.mainCategory?._id || cat.mainCategory) : cat.mainCategory;
+          return catMainId === String(mainCategory._id) && (cat.name?.en || cat.name)?.trim().toLowerCase() !== "common";
         });
-        const allBlogs = allBlogsRes.data.data || [];
-
-
-        const filteredBlogs = allBlogs; // backend already filtered
-
-
-        // Find all category IDs used by blogs under this main category
-        const blogCategoryIds = new Set(
-          allBlogs.map((b) => String(b.category?._id || b.category))
-        );
-
-        // Filter categories that belong to this main category (because they appear in blogs)
-        const matchedCategories = catRes.data.data.filter((cat) =>
-          blogCategoryIds.has(String(cat._id)) &&
-          (cat.name?.en || cat.name)?.trim().toLowerCase() !== "common"
-        );
-
 
 
 

@@ -28,13 +28,13 @@ const PageLoader = () => (
   </div>
 );
 
+import { getHomepage } from "../Api/api";
+
 const Home = () => {
   const [loading, setLoading] = useState(true);
 
-  // ✅ Simulate a minimal preloader (1–1.5s) for smoother UX
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
+    getHomepage().finally(() => setLoading(false));
   }, []);
 
   if (loading) return <PageLoader />;

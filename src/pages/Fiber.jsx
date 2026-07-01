@@ -27,13 +27,13 @@ const PageLoader = () => (
   </div>
 );
 
+import { getFiberPage } from "../Api/api";
+
 const Fiber = () => {
   const [loading, setLoading] = useState(true);
 
-  // Add slight preloader delay for premium smoothness
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
+    getFiberPage().finally(() => setLoading(false));
   }, []);
 
   if (loading) return <PageLoader />;

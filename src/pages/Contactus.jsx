@@ -26,13 +26,13 @@ const PageLoader = () => (
   </div>
 );
 
+import { getContactPage } from "../Api/api";
+
 const Contactus = () => {
   const [loading, setLoading] = useState(true);
 
-  // Add slight preloader delay for premium smoothness
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
+    getContactPage().finally(() => setLoading(false));
   }, []);
 
   if (loading) return <PageLoader />;

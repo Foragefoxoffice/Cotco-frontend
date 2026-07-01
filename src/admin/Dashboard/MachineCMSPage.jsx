@@ -589,7 +589,6 @@ const MachineCMSPage = () => {
                     backgroundColor: "#0284C7",
                     color: "#fff",
                     border: "none",
-                    borderRadius: "8px",
                     marginTop: "10px",
                     padding: "22px",
                     borderRadius: "999px",

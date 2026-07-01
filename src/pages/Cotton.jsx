@@ -25,13 +25,13 @@ const PageLoader = () => (
   </div>
 );
 
+import { getCottonPage } from "../Api/api";
+
 const Cotton = () => {
   const [loading, setLoading] = useState(true);
 
-  // Optional: Preloader delay for smoother feel
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
+    getCottonPage().finally(() => setLoading(false));
   }, []);
 
   if (loading) return <PageLoader />;

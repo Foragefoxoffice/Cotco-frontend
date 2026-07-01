@@ -80,8 +80,7 @@ const MachinesMain = () => {
       } catch (err) {
         console.error("❌ Error fetching machine categories:", err);
       } finally {
-        // ✅ Add a short delay for a smooth loader transition
-        setTimeout(() => setLoading(false), 1200);
+        setLoading(false);
       }
     })();
   }, []);
