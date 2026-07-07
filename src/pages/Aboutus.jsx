@@ -16,12 +16,12 @@ const Partner = lazy(() => import("../components/aboutus/Partners"));
 
 // ✅ Shared Page Loader
 const PageLoader = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
     <div className="relative w-40 h-40 flex items-center justify-center">
       <img
         src="/logo/logo.png"
         alt="Loading..."
-        className="w-20 h-20 object-contain z-10"
+        className="w-20 h-20 object-contain z-10 animate-pulse"
       />
       <div className="absolute inset-0 border-[6px] border-[#e5e7eb] border-t-[#164B8B] rounded-full animate-spin"></div>
     </div>
@@ -36,11 +36,34 @@ const Aboutus = () => {
     const fetchData = async () => {
       try {
         const res = await getAboutPage();
-        console.log("✅ About Page Data:", res.data);
         if (res.data) setData(res.data);
+
+        const bannerImg = res.data?.aboutHero?.aboutBanner;
+        if (bannerImg) {
+          const url = bannerImg.startsWith("http")
+            ? bannerImg
+            : `${import.meta.env.VITE_API_URL}${bannerImg}`;
+
+          const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
+          if (isVideo) {
+            const video = document.createElement("video");
+            video.muted = true;
+            video.playsInline = true;
+            video.oncanplaythrough = () => setLoading(false);
+            video.onerror = () => setLoading(false);
+            video.src = url;
+            video.load();
+          } else {
+            const img = new Image();
+            img.onload = () => setLoading(false);
+            img.onerror = () => setLoading(false);
+            img.src = url;
+          }
+        } else {
+          setLoading(false);
+        }
       } catch (err) {
         console.error("❌ Failed to load About Page:", err);
-      } finally {
         setLoading(false);
       }
     };

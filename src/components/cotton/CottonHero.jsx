@@ -177,7 +177,7 @@ export default function CottonHero() {
               muted
               loop
               playsInline
-              preload="none"
+              preload="auto"
               className={`w-full hidden md:block ${
                 scrolled ? "rounded-3xl" : "rounded-none"
               }`}
@@ -209,7 +209,7 @@ export default function CottonHero() {
       muted
       loop
       playsInline
-      preload="none"
+      preload="auto"
       className="absolute top-0 left-0 w-screen h-screen object-cover rounded-b-2xl"
     >
       <source

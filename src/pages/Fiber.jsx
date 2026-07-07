@@ -13,7 +13,7 @@ const WhyChooseViscose = lazy(() => import("../components/fiber/WhyChooseViscose
 
 // 💫 Premium Brand Loader (unified with Home, About & Cotton)
 const PageLoader = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-700 ease-in-out">
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-700 ease-in-out">
     <div className="relative w-40 h-40 flex items-center justify-center">
       {/* Center Logo */}
       <img
@@ -33,7 +33,35 @@ const Fiber = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getFiberPage().finally(() => setLoading(false));
+    getFiberPage()
+      .then((res) => {
+        const banner = res.data?.fiberBanner;
+        const bannerMedia = banner?.fiberBannerMedia || banner?.fiberBannerImg;
+        if (bannerMedia) {
+          const apiBase = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
+          const path = bannerMedia.startsWith("/") ? bannerMedia : `/${bannerMedia}`;
+          const url = bannerMedia.startsWith("http") ? bannerMedia : `${apiBase}${path}`;
+
+          const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
+          if (isVideo) {
+            const video = document.createElement("video");
+            video.muted = true;
+            video.playsInline = true;
+            video.oncanplaythrough = () => setLoading(false);
+            video.onerror = () => setLoading(false);
+            video.src = url;
+            video.load();
+          } else {
+            const img = new Image();
+            img.onload = () => setLoading(false);
+            img.onerror = () => setLoading(false);
+            img.src = url;
+          }
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   if (loading) return <PageLoader />;

@@ -12,9 +12,9 @@ const WhatDefineUs = lazy(() => import("../components/home/WhatDefineUs"));
 const CoreValues = lazy(() => import("../components/aboutus/CoreValues"));
 const NewSection = lazy(() => import("../components/home/NewSection"));
 
-// ✅ Shared Premium Page Loader
+// ✅ Shared Premium Page Loader (Full screen blocking)
 const PageLoader = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
     <div className="relative w-40 h-40 flex items-center justify-center">
       {/* Center Logo */}
       <img
@@ -28,13 +28,14 @@ const PageLoader = () => (
   </div>
 );
 
-import { getHomepage } from "../Api/api";
+import { getHomepage, getBlogs } from "../Api/api";
 
 const Home = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getHomepage().finally(() => setLoading(false));
+    // Wait for critical data to load before rendering the layout
+    Promise.all([getHomepage(), getBlogs()]).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <PageLoader />;
@@ -42,8 +43,8 @@ const Home = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <Suspense fallback={<PageLoader />}>
-        <main className="flex-grow">
+      <main className="flex-grow flex flex-col">
+        <Suspense fallback={<PageLoader />}>
           <HeroSection />
           <WhoWeAreSection />
           <ProductShowcase />
@@ -52,8 +53,8 @@ const Home = () => {
           <CoreValues />
           <NewSection />
           <ContactToday />
-        </main>
-      </Suspense>
+        </Suspense>
+      </main>
       <Footer />
     </div>
   );

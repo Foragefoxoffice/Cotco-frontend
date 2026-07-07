@@ -349,7 +349,13 @@ export const submitContactForm = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-export const getMachineCMSPage = () => API.get("/machinescms");
+let machineCMSPromise = null;
+export const getMachineCMSPage = () => {
+  if (!machineCMSPromise) {
+    machineCMSPromise = API.get("/machinescms").finally(() => setTimeout(() => machineCMSPromise = null, 5000));
+  }
+  return machineCMSPromise;
+};
 export const updateMachineCMSPage = (formData) =>
   API.post("/machinescms", formData, {
     headers: { "Content-Type": "multipart/form-data" },

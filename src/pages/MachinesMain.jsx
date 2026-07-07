@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col } from "antd";
 import { Link } from "react-router-dom";
-import { getMachineCategories } from "../Api/api";
+import { getMachineCategories, getMachineCMSPage } from "../Api/api";
 import MachineBenifie from "../components/machines/MachinesBenifite";
 import Machines from "../components/machines/Machines";
 import Navbar from "../components/layout/Navbar";
@@ -11,7 +11,7 @@ import OurTeam from "../components/coctoproducts/OurTeam";
 
 // 💫 Premium Brand Loader (unified across all pages)
 const PageLoader = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-700 ease-in-out">
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-700 ease-in-out">
     <div className="relative w-40 h-40 flex items-center justify-center">
       {/* Center Logo */}
       <img
@@ -61,12 +61,16 @@ const MachinesMain = () => {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Fetch machine categories with proper image URLs
+  // ✅ Fetch machine categories and hero banner
   useEffect(() => {
     (async () => {
       try {
-        const res = await getMachineCategories();
-        const fetched = res.data.data || [];
+        const [catRes, cmsRes] = await Promise.all([
+          getMachineCategories(),
+          getMachineCMSPage(),
+        ]);
+        
+        const fetched = catRes.data?.data || [];
 
         // Normalize image URLs
         const fixed = fetched.map((cat) => ({
@@ -75,11 +79,35 @@ const MachinesMain = () => {
           icon: getFullImageURL(cat.icon),
           createMachineCatBgImage: getFullImageURL(cat.createMachineCatBgImage),
         }));
-
         setCategories(fixed);
+
+        // Preload hero video
+        const heroVideoPath = cmsRes.data?.machinePage?.heroSection?.heroVideo;
+        if (heroVideoPath) {
+          const apiBase = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
+          const path = heroVideoPath.startsWith("/") ? heroVideoPath : `/${heroVideoPath}`;
+          const url = heroVideoPath.startsWith("http") ? heroVideoPath : `${apiBase}${path}`;
+
+          const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
+          if (isVideo) {
+            const video = document.createElement("video");
+            video.muted = true;
+            video.playsInline = true;
+            video.oncanplaythrough = () => setLoading(false);
+            video.onerror = () => setLoading(false);
+            video.src = url;
+            video.load();
+          } else {
+            const img = new Image();
+            img.onload = () => setLoading(false);
+            img.onerror = () => setLoading(false);
+            img.src = url;
+          }
+        } else {
+          setLoading(false);
+        }
       } catch (err) {
-        console.error("❌ Error fetching machine categories:", err);
-      } finally {
+        console.error("❌ Error fetching machine data:", err);
         setLoading(false);
       }
     })();
