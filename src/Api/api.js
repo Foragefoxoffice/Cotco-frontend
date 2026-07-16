@@ -48,7 +48,7 @@ export const createMachineCategory = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-export const getMachineCategories = () => API.get("/machines/categories");
+export const getMachineCategories = (params = {}) => API.get("/machines/categories", { params });
 
 export const getMachineCategory = (id) =>
   API.get(`/machines/categories/${id}`);
@@ -81,7 +81,7 @@ export const createMachinePage = (formData) =>
   API.post("/machines/pages", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-export const getMachinePages = () => API.get("/machines/pages");
+export const getMachinePages = (params = {}) => API.get("/machines/pages", { params });
 export const getMachinePageBySlug = (slug) =>
   API.get(`/machines/pages/${slug}`);
 export const updateMachinePage = (id, formData) =>
@@ -101,7 +101,16 @@ export const getMachinePageById = (id) => API.get(`/machines/pages/${id}`);
 /* =========================================================
    BLOGS
 ========================================================= */
-export const getBlogs = (params = {}) => API.get("/blogs", { params });
+let blogsPromise = null;
+export const getBlogs = (params = {}) => {
+  if (Object.keys(params).length === 0) {
+    if (!blogsPromise) {
+      blogsPromise = API.get("/blogs", { params }).finally(() => setTimeout(() => blogsPromise = null, 5000));
+    }
+    return blogsPromise;
+  }
+  return API.get("/blogs", { params });
+};
 export const getBlogBySlug = (slug) => API.get(`/blogs/${slug}`);
 export const createBlog = (data) => API.post("/blogs", data);
 export const updateBlog = (id, data) => API.put(`/blogs/${id}`, data);

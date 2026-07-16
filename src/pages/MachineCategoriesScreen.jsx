@@ -27,6 +27,17 @@ const MachineCategoriesScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("oldest");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
 
   // ✅ Detect language mode (linked to TranslateToggle)
@@ -58,9 +69,19 @@ const MachineCategoriesScreen = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const res = await getMachineCategories();
+      
+      const params = {
+        page: currentPage,
+        limit: itemsPerPage,
+        sortOption: sortOption
+      };
+      if (debouncedSearchQuery) params.search = debouncedSearchQuery;
 
-      const fetched = res.data.data || [];
+      const res = await getMachineCategories(params);
+
+      const fetched = res.data?.data || [];
+      const totalPagesRes = res.data?.pagination?.totalPages || 1;
+      setTotalPages(totalPagesRes);
 
       // Normalize image paths to full URLs
       const fixed = fetched.map((cat) => ({
@@ -102,44 +123,13 @@ const MachineCategoriesScreen = () => {
     }
   };
 
-  // ✅ Fetch on mount
+  // ✅ Fetch on mount and parameter changes
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [currentPage, debouncedSearchQuery, sortOption]);
 
-  // ✅ Filter categories based on search query
-  const filteredCategories = categories
-    .filter((category) => {
-      const nameEn = category.name?.en?.toLowerCase() || "";
-      const nameVi = category.name?.vi?.toLowerCase() || "";
-      const descEn = category.description?.en?.toLowerCase() || "";
-      const descVi = category.description?.vi?.toLowerCase() || "";
-      const slug = category.slug?.toLowerCase() || "";
-      const query = searchQuery.toLowerCase();
-
-      return (
-        nameEn.includes(query) ||
-        nameVi.includes(query) ||
-        descEn.includes(query) ||
-        descVi.includes(query) ||
-        slug.includes(query)
-      );
-    })
-    .sort((a, b) => {
-      const nameA = isVietnamese
-        ? a.name?.vi || a.name?.en
-        : a.name?.en || a.name?.vi;
-      const nameB = isVietnamese
-        ? b.name?.vi || b.name?.en
-        : b.name?.en || b.name?.vi;
-
-      if (sortOption === "az") return nameA?.localeCompare(nameB);
-      if (sortOption === "za") return nameB?.localeCompare(nameA);
-      if (sortOption === "oldest")
-        return new Date(a.createdAt) - new Date(b.createdAt);
-
-      return new Date(b.createdAt) - new Date(a.createdAt); // newest
-    });
+  // API handles filtering and pagination
+  const currentCategories = categories;
 
 
   // ✅ Language text map
@@ -254,7 +244,10 @@ const MachineCategoriesScreen = () => {
               type="text"
               placeholder={lang.searchPlaceholder}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full pl-10 pr-3 py-4 bg-[#1F1F1F] border border-[#2E2F2F] rounded-full text-sm !text-white placeholder-gray-400 focus:ring-2 focus:ring-[#0085C8] outline-none"
             />
 
@@ -321,6 +314,7 @@ const MachineCategoriesScreen = () => {
                     onClick={() => {
                       setSortOption(option.value);
                       setShowDropdown(false);
+                      setCurrentPage(1);
                     }}
                     className={`block w-full text-left px-4 py-2 text-sm cursor-pointer ${sortOption === option.value
                         ? "bg-[#2E2F2F] !text-white rounded-xl"
@@ -341,7 +335,7 @@ const MachineCategoriesScreen = () => {
         <div className="flex justify-center items-center h-48">
           <Spin size="large" />
         </div>
-      ) : filteredCategories.length === 0 ? (
+      ) : currentCategories.length === 0 ? (
         <p className="text-center text-gray-400">
           {searchQuery
             ? isVietnamese
@@ -351,7 +345,7 @@ const MachineCategoriesScreen = () => {
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCategories.map((category) => (
+          {currentCategories.map((category) => (
             <div
               key={category._id}
               className="bg-[#171717] rounded-lg shadow-sm border border-[#2E2F2F] overflow-hidden hover:shadow-md transition-transform transform hover:-translate-y-1 duration-200 group "
@@ -466,6 +460,39 @@ const MachineCategoriesScreen = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {currentCategories.length > 0 && (
+        <div className="flex justify-center items-center gap-2 my-6">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className={`px-4 py-2 rounded-full border text-sm transition-all duration-200
+        ${currentPage === 1
+                ? "opacity-40 cursor-not-allowed"
+                : "hover:bg-[#2A2A2A] cursor-pointer"
+              } text-gray-200`}
+          >
+            {isVietnamese ? "Trước" : "Prev"}
+          </button>
+
+          <span className="text-gray-200 font-medium">
+            {isVietnamese ? "Trang" : "Page"} {currentPage} / {totalPages || 1}
+          </span>
+
+          <button
+            disabled={currentPage === totalPages || totalPages === 0}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className={`px-4 py-2 rounded-full border text-sm transition-all duration-200
+        ${currentPage === totalPages || totalPages === 0
+                ? "opacity-40 cursor-not-allowed"
+                : "hover:bg-[#2A2A2A] cursor-pointer"
+              } text-gray-200`}
+          >
+            {isVietnamese ? "Tiếp" : "Next"}
+          </button>
         </div>
       )}
 

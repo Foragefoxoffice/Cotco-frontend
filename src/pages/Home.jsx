@@ -35,7 +35,7 @@ const Home = () => {
 
   useEffect(() => {
     // Wait for critical data to load before rendering the layout
-    Promise.all([getHomepage(), getBlogs()]).finally(() => setLoading(false));
+    getHomepage().finally(() => setLoading(false));
   }, []);
 
   if (loading) return <PageLoader />;

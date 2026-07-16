@@ -12,7 +12,7 @@ import {
   Pencil,
 } from "lucide-react";
 import NewsArticleForm from "../components/forms/NewsArticleForm";
-import { getBlogs, createBlog, updateBlog, deleteBlog } from "../Api/api";
+import { getBlogs, createBlog, updateBlog, deleteBlog, getCategories, getMainBlogCategories } from "../Api/api";
 import { CommonToaster } from "../Common/CommonToaster";
 import BlogCardSkeleton from "./BlogCardSkeleton";
 
@@ -32,7 +32,8 @@ const NewsScreen = () => {
 
   // 🔹 Pagination & sorting
   const [currentPage, setCurrentPage] = useState(1);
-  const [articlesPerPage] = useState(6);
+  const [totalPages, setTotalPages] = useState(1);
+  const [articlesPerPage] = useState(10);
   const [sortOption, setSortOption] = useState("newest");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
@@ -44,6 +45,46 @@ const NewsScreen = () => {
   const [mainCategoryFilter, setMainCategoryFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [uniqueCategories, setUniqueCategories] = useState([]);
+  const [uniqueMainCategories, setUniqueMainCategories] = useState([]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setCurrentPage(1); // Reset to page 1 on search
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    // Fetch categories for dropdowns
+    const fetchCats = async () => {
+      try {
+        const [catsRes, mainCatsRes] = await Promise.all([
+          getCategories(),
+          getMainBlogCategories()
+        ]);
+        const catData = catsRes.data?.data || catsRes.data || [];
+        const mainCatData = mainCatsRes.data?.data || mainCatsRes.data || [];
+
+        setUniqueCategories(catData.map(c => ({
+          id: c._id,
+          name: c.name || { en: "Uncategorized", vi: "Chưa phân loại" },
+          main: c.mainCategory?._id || c.mainCategory || "uncategorized-main"
+        })));
+
+        setUniqueMainCategories(mainCatData.map(mc => ({
+          id: mc._id,
+          name: mc.name || { en: "Uncategorized", vi: "Chưa phân loại" }
+        })));
+      } catch (err) {
+        console.error("Error fetching categories", err);
+      }
+    };
+    fetchCats();
+  }, []);
 
   // ✅ Watch language (body class)
   useEffect(() => {
@@ -140,31 +181,34 @@ const NewsScreen = () => {
     };
   };
 
-  // ✅ Fetch blogs
-  // ✅ Fetch ALL blogs (no pagination)
-const fetchBlogs = async () => {
-  try {
-    const res = await getBlogs({
-      page: 1,
-      limit: 99999, // <-- THIS FIXES MISSING BLOGS
-    });
+  // ✅ Fetch blogs with pagination and filters
+  const fetchBlogs = async () => {
+    setLoading(true);
+    try {
+      const params = {
+        page: currentPage,
+        limit: articlesPerPage,
+        sortOption: sortOption
+      };
+      if (debouncedSearchQuery) params.search = debouncedSearchQuery;
+      if (statusFilter !== "all") params.status = statusFilter;
+      if (categoryFilter !== "all") params.category = categoryFilter;
+      if (mainCategoryFilter !== "all") params.mainCategory = mainCategoryFilter;
 
-    const raw = res.data?.data || res.data || [];
-    const blogs = raw.map((b) => normalizeBlog(b));
+      const res = await getBlogs(params);
 
-    // Ensure newest first
-    const sorted = blogs.sort(
-      (a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)
-    );
+      const raw = res.data?.data || res.data || [];
+      const blogs = raw.map((b) => normalizeBlog(b));
 
-    setNewsArticles(sorted);
-  } catch (err) {
-    console.error("Error fetching blogs:", err);
-    CommonToaster(t.loadFail, "error");
-  } finally {
-    setLoading(false);
-  }
-};
+      setNewsArticles(blogs);
+      setTotalPages(res.data?.pagination?.totalPages || 1);
+    } catch (err) {
+      console.error("Error fetching blogs:", err);
+      CommonToaster(t.loadFail, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   useEffect(() => {
@@ -187,7 +231,7 @@ const fetchBlogs = async () => {
 
   useEffect(() => {
     fetchBlogs();
-  }, []);
+  }, [currentPage, debouncedSearchQuery, sortOption, statusFilter, categoryFilter, mainCategoryFilter]);
 
   // ✅ Create/Edit/Delete Handlers
   const handleCreate = () => {
@@ -300,70 +344,8 @@ const fetchBlogs = async () => {
     }
   };
 
-  // 🔹 Unique categories (derived from current list)
-  const uniqueMainCategories = Array.from(
-  new Map(
-    newsArticles.map((a) => [
-      a.mainCategoryId || "uncategorized-main",
-      {
-        id: a.mainCategoryId || "uncategorized-main",
-        name: a.mainCategoryName || { en: "Uncategorized", vi: "Chưa phân loại" },
-      },
-    ])
-  ).values()
-);
-
-
-  const uniqueCategories = Array.from(
-  new Map(
-    newsArticles.map((a) => [
-      a.categoryId || "uncategorized",
-      {
-        id: a.categoryId || "uncategorized",
-        name: a.categoryName || { en: "Uncategorized", vi: "Chưa phân loại" },
-        main: a.mainCategoryId || "uncategorized-main",
-      },
-    ])
-  ).values()
-);
-
-  // 🔹 Sorted according to selected sort option
-  const sortedArticles = [...newsArticles].sort((a, b) => {
-    if (sortOption === "newest")
-      return new Date(b.publishedAt) - new Date(a.publishedAt);
-    if (sortOption === "oldest")
-      return new Date(a.publishedAt) - new Date(b.publishedAt);
-    if (sortOption === "title")
-      return (a.title?.en || "").localeCompare(b.title?.en || "");
-    return 0;
-  });
-
-  // 🔹 Filter by search, main category, category and status
-  const filteredArticles = sortedArticles.filter((article) => {
-    const title = isVietnamese
-      ? article.title?.vi || article.title?.en
-      : article.title?.en;
-    const matchesSearch = (title || "")
-      .toLowerCase()
-      .includes((searchQuery || "").toLowerCase());
-
-    const matchesMain =
-      mainCategoryFilter === "all" ||
-      (article.mainCategoryId && article.mainCategoryId === mainCategoryFilter);
-
-    const matchesCat =
-      categoryFilter === "all" || article.categoryId === categoryFilter;
-    const matchesStatus =
-      statusFilter === "all" || article.status === statusFilter;
-
-    return matchesSearch && matchesMain && matchesCat && matchesStatus;
-  });
-
-  // 🔹 Pagination
-  const indexOfLast = currentPage * articlesPerPage;
-  const indexOfFirst = indexOfLast - articlesPerPage;
-  const currentArticles = filteredArticles.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
+  // We no longer need to derive uniqueCategories locally or filter/slice locally.
+  const currentArticles = newsArticles;
 
   // Loading state (dark style)
   if (loading) {
@@ -741,8 +723,8 @@ const fetchBlogs = async () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="p-5 flex flex-col flex-grow">
-                <h3 className="text-lg font-medium mb-2">
+              <div className="p-5 flex flex-col flex-grow relative">
+                <h3 className="text-lg font-medium mb-2 pt-2">
                   {isVietnamese
                     ? article.title?.vi || article.title?.en
                     : article.title?.en}
@@ -761,7 +743,7 @@ const fetchBlogs = async () => {
                   </div>
 
                   <span
-                    className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${article.status === "published"
+                    className={`px-2 py-0.5 rounded-tl-lg rounded-bl-lg absolute top-[-8px] right-0 text-xs mt-2 font-medium ${article.status === "published"
                       ? "bg-green-100 text-green-700"
                       : "bg-yellow-100 text-yellow-700"
                       }`}

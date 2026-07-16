@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { message } from "antd";
 import { getMachinePages, deleteMachinePage } from "../Api/api";
 import DeleteConfirm from "../components/DeleteConfirm";
@@ -11,8 +11,19 @@ const MachinePagesList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("oldest");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
+
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // ✅ Language detection (no extra file)
   const [isVietnamese, setIsVietnamese] = useState(false);
@@ -77,15 +88,24 @@ const MachinePagesList = () => {
     (async () => {
       try {
         setLoading(true);
-        const res = await getMachinePages();
-        setPages(res.data.data || []);
+        const params = {
+          page: currentPage,
+          limit: itemsPerPage,
+          sortOption: sortOption
+        };
+        if (debouncedSearchQuery) params.search = debouncedSearchQuery;
+
+        const res = await getMachinePages(params);
+        setPages(res.data?.data || []);
+        setTotalPages(res.data?.pagination?.totalPages || 1);
+        setTotalItems(res.data?.pagination?.total || 0);
       } catch {
         message.error("❌ Failed to load machine list");
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [currentPage, debouncedSearchQuery, sortOption, itemsPerPage]);
 
   const handleCreate = () => navigate("/admin/machines/new");
 
@@ -99,29 +119,8 @@ const MachinePagesList = () => {
     }
   };
 
-  // ✅ Filter + Sort
-  const filteredPages = pages
-    .filter((p) => {
-      const query = searchQuery.toLowerCase();
-      const title =
-        (isVietnamese ? p.title?.vi || p.title?.en : p.title?.en)?.toLowerCase() || "";
-      return title.includes(query);
-    })
-    .sort((a, b) => {
-      const titleA = isVietnamese ? a.title?.vi || a.title?.en : a.title?.en;
-      const titleB = isVietnamese ? b.title?.vi || b.title?.en : b.title?.en;
-      if (sortOption === "az") return titleA?.localeCompare(titleB);
-      if (sortOption === "za") return titleB?.localeCompare(titleA);
-      if (sortOption === "oldest")
-        return new Date(a.createdAt) - new Date(b.createdAt);
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
-
-  // ✅ Pagination
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentPages = filteredPages.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredPages.length / itemsPerPage);
+  // ✅ API handles filtering and pagination
+  const currentPages = pages;
 
   return (
     <div className="p-6 bg-[#0A0A0A] min-h-screen text-white">
@@ -167,7 +166,10 @@ const MachinePagesList = () => {
             type="text"
             placeholder={t.searchPlaceholder}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full pl-10 pr-3 py-4 bg-[#1F1F1F] border border-[#2E2F2F] rounded-full text-sm !text-white placeholder-gray-400 focus:ring-2 focus:ring-[#0085C8] outline-none"
           />
           <svg
@@ -231,6 +233,7 @@ const MachinePagesList = () => {
                   onClick={() => {
                     setSortOption(option.value);
                     setShowDropdown(false);
+                    setCurrentPage(1);
                   }}
                   className={`block w-full text-left px-4 py-2 text-sm cursor-pointer ${sortOption === option.value
                     ? "bg-[#2E2F2F] !text-white rounded-xl"
@@ -282,7 +285,7 @@ const MachinePagesList = () => {
                     className="border-b border-[#2E2F2F] hover:bg-[#222] transition-colors"
                   >
                     <td className="px-6 py-4 text-gray-400">
-                      {(indexOfFirst + index + 1).toString().padStart(2, "0")}
+                      {((currentPage - 1) * itemsPerPage + index + 1).toString().padStart(2, "0")}
                     </td>
                     <td className="px-6 py-4 text-gray-200">
                       {isVietnamese
@@ -303,7 +306,9 @@ const MachinePagesList = () => {
                           <Pencil size={16} className="text-white" />
                         </Link>
                         <DeleteConfirm onConfirm={() => handleDelete(page._id)}>
-                          <div className="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-md cursor-pointer transition"></div>
+                          <div className="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-md cursor-pointer transition">
+                            <Trash2 size={16} className="text-red-400" />
+                          </div>
                         </DeleteConfirm>
                       </div>
                     </td>
@@ -316,7 +321,7 @@ const MachinePagesList = () => {
       </div>
 
       {/* ---------- PAGINATION ---------- */}
-      {!loading && filteredPages.length > 0 && (
+      {!loading && totalItems > 0 && (
         <div className="flex flex-col sm:flex-row justify-end w-full bg-[#171717] items-center gap-4 py-2 px-4 rounded-br-lg rounded-bl-lg">
           {/* Rows per page dropdown */}
           <div className="flex items-center gap-3">
@@ -339,8 +344,7 @@ const MachinePagesList = () => {
           {/* Page info and navigation */}
           <div className="flex items-center gap-4">
             <span className="text-gray-400 text-sm">
-              {indexOfFirst + 1}-{Math.min(indexOfLast, filteredPages.length)} {t.of}{" "}
-              {filteredPages.length}
+              {t.pageText} {currentPage} {t.of} {totalPages} ({totalItems} items)
             </span>
 
             <div className="flex items-center gap-2">
