@@ -5,10 +5,10 @@ const ContactToday = () => {
     <section className="relative h-[300px] md:h-[400px] overflow-hidden ">
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/img/home/upperFooter.jpg')", backgroundAttachment: "fixed"}}
+        style={{ backgroundImage: "url('/img/home/upperFooter.jpg')", backgroundAttachment: "fixed" }}
       ></div>
 
-      <div style={{backgroundColor: "#1F90D8CC"}} className="absolute inset-0 bg-opacity-60"></div>
+      <div style={{ backgroundColor: "#1F90D8CC" }} className="absolute inset-0 bg-opacity-60"></div>
 
       <div className="relative z-10 flex items-center h-full page-width">
         <div>
@@ -20,7 +20,7 @@ const ContactToday = () => {
           </p>
           <a
             href="#"
-            className="bg-white text-blue-900 font-medium px-5 py-3 rounded-md hover:bg-gray-100 transition-all inline-flex items-center gap-2"
+            className="bg-white text-black-900 font-medium px-5 py-3 hover:bg-black hover:text-white transition-all inline-flex items-center gap-2 rounded-full"
           >
             Get Started
             <span className="text-lg">→</span>

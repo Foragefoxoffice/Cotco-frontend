@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { FiPlus } from "react-icons/fi";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getCottonPage } from "../../Api/api";
 
 function PlusIcon({ open }) {
   return (
@@ -40,9 +39,8 @@ function MemberCard({ name, role, phone, email }) {
   );
 }
 
-export default function MeetOurTeam() {
+export default function MeetOurTeam({ data: teamData }) {
   const [openIndex, setOpenIndex] = useState(null);
-  const [teamData, setTeamData] = useState(null);
   const [activeLang, setActiveLang] = useState("en");
 
   // Detect & sync language
@@ -70,14 +68,7 @@ export default function MeetOurTeam() {
 
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
-  // ✅ Fetch Team Data
-  useEffect(() => {
-    getCottonPage()
-      .then((res) => {
-        if (res.data?.cottonTeam) setTeamData(res.data.cottonTeam);
-      })
-      .catch((err) => console.error("Failed to load cotton team:", err));
-  }, []);
+
 
   if (!teamData) return null;
 

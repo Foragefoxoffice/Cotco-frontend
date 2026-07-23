@@ -144,12 +144,11 @@ const MachinePageDetail = () => {
               }`}
           >
             <button
-              style={{ color: "white" }}
               onClick={() => {
                 if (section.button?.link)
                   window.open(section.button.link, "_blank");
               }}
-              className="px-6 py-3 bg-[#11456C] !text-white font-medium text-sm md:text-base rounded-full shadow-md hover:bg-[#0E3A5D] transition-all duration-300 hover:scale-105"
+              className="px-6 py-2.5 bg-white border border-black text-black font-semibold text-sm md:text-base rounded-full shadow-md hover:bg-black hover:text-white transition-all duration-300"
             >
               {pick(section.button?.name) || (activeLang === "vi" ? "Tìm hiểu thêm" : "Learn More")}
             </button>

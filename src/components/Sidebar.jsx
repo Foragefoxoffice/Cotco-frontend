@@ -209,9 +209,8 @@ const Sidebar = () => {
     return (
       <Link
         to={to}
-        className={`flex items-center gap-3 px-4 py-2 rounded-full text-sm transition-colors duration-200 ${
-          isActive ? activeClass : inactiveClass
-        }`}
+        className={`flex items-center gap-3 px-4 py-2 mt-3 rounded-full text-sm transition-colors duration-200 ${isActive ? activeClass : inactiveClass
+          }`}
       >
         {children}
       </Link>
@@ -233,14 +232,13 @@ const Sidebar = () => {
       <nav className="flex-1 overflow-y-auto py-4 scrollbar-hide">
         <ul className="space-y-1">
           {filteredMenu.map((item) => (
-            <li key={item.key || item.path} className="px-2">
+            <li key={item.key || item.path} className="px-2 mb-5">
               {item.subItems ? (
                 <>
                   <button
                     onClick={() => toggleMenu(item.key)}
-                    className={`flex items-center justify-between w-full px-4 py-2 text-sm rounded-full text-left transition-colors text-gray-300 hover:bg-[#1E1E1E] ${
-                      openMenus[item.key] ? "font-semibold" : "font-normal"
-                    }`}
+                    className={`flex items-center justify-between w-full px-4 py-2 text-sm rounded-full text-left transition-colors text-gray-300 hover:bg-[#1E1E1E] ${openMenus[item.key] ? "font-semibold" : "font-normal"
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       {item.icon}
@@ -248,9 +246,8 @@ const Sidebar = () => {
                     </div>
                     <ChevronRight
                       size={16}
-                      className={`transition-transform ${
-                        openMenus[item.key] ? "rotate-90" : ""
-                      }`}
+                      className={`transition-transform ${openMenus[item.key] ? "rotate-90" : ""
+                        }`}
                       style={{ color: "#fff" }}
                     />
                   </button>
@@ -260,7 +257,7 @@ const Sidebar = () => {
                       {item.subItems.map((subItem) => (
                         <li key={subItem.path}>
                           <NavLink to={subItem.path}>
-                            
+
                             <span>{subItem.label}</span>
                           </NavLink>
                         </li>

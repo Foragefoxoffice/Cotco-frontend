@@ -27,18 +27,25 @@ const PageLoader = () => (
 );
 
 import { getContactPage } from "../Api/api";
+import SEO from "../components/SEO";
 
 const Contactus = () => {
   const [loading, setLoading] = useState(true);
+  const [seoData, setSeoData] = useState(null);
 
   useEffect(() => {
-    getContactPage().finally(() => setLoading(false));
+    getContactPage().then((res) => {
+      if (res.data?.seoMeta) {
+        setSeoData(res.data.seoMeta);
+      }
+    }).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <PageLoader />;
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO seoMeta={seoData} defaultTitle="COTCO Vietnam | Contact Us" />
       <Navbar />
       <Suspense fallback={<PageLoader />}>
         <main className="flex-grow">

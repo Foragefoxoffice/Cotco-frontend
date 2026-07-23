@@ -2,10 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import clsx from "clsx";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getCottonPage } from "../../Api/api";
 
-export default function SuppliersSection() {
-  const [suppliers, setSuppliers] = useState([]);
+export default function SuppliersSection({ data: suppliers = [] }) {
   const [index, setIndex] = useState(0);
   const [activeLang, setActiveLang] = useState("en"); // ✅ language state
 
@@ -38,14 +36,7 @@ export default function SuppliersSection() {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Fetch suppliers data
-  useEffect(() => {
-    getCottonPage().then((res) => {
-      if (res.data?.cottonSupplier) {
-        setSuppliers(res.data.cottonSupplier);
-      }
-    });
-  }, []);
+
 
   // ✅ pick helper for bilingual content
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";

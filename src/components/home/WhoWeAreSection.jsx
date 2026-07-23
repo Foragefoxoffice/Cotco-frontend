@@ -80,7 +80,7 @@ const WhoWeAreSection = () => {
           {data.whoWeArebuttonLink?.[activeLang] && (
             <a
               href={data.whoWeArebuttonLink[activeLang]}
-              className="w-fit px-5 py-4 rounded-full flex gap-2 items-center border border-gray-400 hover:bg-black hover:text-white transition-all text-sm font-semibold"
+              className="w-fit px-6 py-2.5 rounded-full flex gap-2 items-center border border-black bg-white text-black hover:bg-black hover:text-white transition-all text-sm font-semibold"
             >
               {pick(data.whoWeArebuttonText, activeLang) || "SEE MORE"}{" "}
               <ArrowUpRight />

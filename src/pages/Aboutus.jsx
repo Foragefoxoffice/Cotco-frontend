@@ -2,6 +2,7 @@ import React, { useEffect, useState, lazy, Suspense } from "react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { getAboutPage } from "../Api/api";
+import SEO from "../components/SEO";
 
 // ✅ Lazy load components
 const HeroSection = lazy(() => import("../components/aboutus/HeroSection"));
@@ -76,6 +77,7 @@ const Aboutus = () => {
   // ✅ Safely pass props only if they exist
   return (
     <div>
+      <SEO seoMeta={data.seoMeta} defaultTitle="COTCO Vietnam | About Us" />
       <Navbar />
       <Suspense fallback={<PageLoader />}>
         {data.aboutHero && <HeroSection data={data.aboutHero} />}

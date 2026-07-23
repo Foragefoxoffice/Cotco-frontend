@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   FileText,
   Home,
@@ -7,306 +8,163 @@ import {
   Newspaper,
   Phone,
   Settings,
-  BarChart2,
-  Users,
-  ArrowUp,
-  ArrowDown,
-  ChevronUp,
-  ChevronDown,
+  ArrowRight,
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 
 const Dashboard = () => {
-  const [showStats, setShowStats] = useState(true);
-  const [showActivity, setShowActivity] = useState(true);
-
-  // Always dark variant
-  const darkTickColor = "#9ca3af";
-  const darkGridStroke = "#374151";
-  const darkBarFill = "#8B5CF6";
-
-  const statsData = [
-    { name: "Pages", value: 5, change: 1, increasing: true },
-    { name: "Products", value: 24, change: 3, increasing: true },
-    { name: "News", value: 12, change: 2, increasing: true },
-    { name: "Contacts", value: 8, change: 1, increasing: false },
-  ];
-
-  const activityData = [
-    {
-      id: 1,
-      action: "New contact form submission",
-      time: "10 minutes ago",
-      user: "System",
-    },
-    {
-      id: 2,
-      action: 'Product "Cotton Yarn" updated',
-      time: "2 hours ago",
-      user: "Admin User",
-    },
-    {
-      id: 3,
-      action: "New news article published",
-      time: "5 hours ago",
-      user: "Admin User",
-    },
-    {
-      id: 4,
-      action: "Global settings updated",
-      time: "1 day ago",
-      user: "Admin User",
-    },
-  ];
-
-  const visitData = [
-    { name: "Mon", visits: 120 },
-    { name: "Tue", visits: 150 },
-    { name: "Wed", visits: 180 },
-    { name: "Thu", visits: 190 },
-    { name: "Fri", visits: 160 },
-    { name: "Sat", visits: 100 },
-    { name: "Sun", visits: 85 },
-  ];
-
   const dashboardCards = [
     {
       title: "Pages",
-      icon: <FileText size={24} />,
+      icon: <FileText size={26} />,
       description: "Manage static pages like About Us, Privacy Policy",
-      count: 5,
-      // path: "/pages",
-      color: "bg-blue-500",
+      path: "/admin/about",
+      color: "from-blue-500 to-cyan-400",
+      bgHover: "hover:bg-blue-500/10",
+      borderColor: "border-blue-500/20",
     },
     {
       title: "Homepage",
-      icon: <Home size={24} />,
+      icon: <Home size={26} />,
       description: "Configure homepage sections and content",
-      count: 7,
-      // path: "/pages/homepage",
-      color: "bg-green-500",
+      path: "/admin/home",
+      color: "from-green-500 to-emerald-400",
+      bgHover: "hover:bg-green-500/10",
+      borderColor: "border-green-500/20",
     },
     {
       title: "Products",
-      icon: <Package size={24} />,
+      icon: <Package size={26} />,
       description: "Manage Cotton, Fiber, and Machine products",
-      count: 24,
-      // path: "/products",
-      color: "bg-yellow-500",
+      path: "/admin/cotton",
+      color: "from-yellow-500 to-orange-400",
+      bgHover: "hover:bg-yellow-500/10",
+      borderColor: "border-yellow-500/20",
     },
     {
-      title: "News",
-      icon: <Newspaper size={24} />,
+      title: "News & Events",
+      icon: <Newspaper size={26} />,
       description: "Manage news articles and categories",
-      count: 12,
-      // path: "/news",
-      color: "bg-purple-500",
+      path: "/admin/resources",
+      color: "from-purple-500 to-pink-400",
+      bgHover: "hover:bg-purple-500/10",
+      borderColor: "border-purple-500/20",
     },
     {
       title: "Contact",
-      icon: <Phone size={24} />,
+      icon: <Phone size={26} />,
       description: "Manage contact information and form submissions",
-      count: 8,
-      // path: "/contact",
-      color: "bg-red-500",
+      path: "/admin/contact",
+      color: "from-red-500 to-rose-400",
+      bgHover: "hover:bg-red-500/10",
+      borderColor: "border-red-500/20",
     },
     {
       title: "Global Settings",
-      icon: <Settings size={24} />,
+      icon: <Settings size={26} />,
       description: "Configure site-wide settings, footer, and header",
-      count: 1,
-      // path: "/settings",
-      color: "bg-indigo-500",
+      path: "/admin/header",
+      color: "from-indigo-500 to-violet-400",
+      bgHover: "hover:bg-indigo-500/10",
+      borderColor: "border-indigo-500/20",
     },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 300, damping: 24 },
+    },
+  };
+
   return (
-    <div className="bg-[#171717] p-6 rounded-2xl">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1 text-gray-100">Dashboard</h1>
-        <p className="text-gray-400">Welcome to the COTCO CMS</p>
-      </div>
+    <div className="bg-[#0A0A0A] p-4 md:p-8 rounded-3xl min-h-full">
+      {/* Header Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mb-10"
+      >
+        <h1 className="text-4xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-gray-100 to-gray-500">
+          Dashboard
+        </h1>
+        <p className="text-gray-400 text-lg">Welcome back to the COTCO CMS</p>
+      </motion.div>
 
-      {/* Stats Section */}
-      {/* <div className="rounded-lg shadow-sm border overflow-hidden mb-6 bg-gray-800 border-gray-700">
-        <div
-          className="p-4 border-b border-gray-700 flex justify-between items-center cursor-pointer hover:bg-gray-700/50"
-          onClick={() => setShowStats(!showStats)}
-        >
-          <div className="flex items-center">
-            <div className="p-2 bg-indigo-100 rounded-md mr-3">
-              <BarChart2 size={20} className="text-indigo-600" />
-            </div>
-            <h2 className="text-lg font-medium text-gray-100">
-              Statistics Overview
-            </h2>
-          </div>
-          <button className="text-gray-400">
-            {showStats ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </button>
+      {/* Quick Access Section */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        <div className="flex items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-100 mr-3">
+            Quick Access
+          </h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-gray-700 to-transparent"></div>
         </div>
 
-        {showStats && (
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              {statsData.map((stat, index) => (
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {dashboardCards.map((card) => (
+            <motion.div key={card.title} variants={itemVariants}>
+              <Link to={card.path} className="block group h-full">
                 <div
-                  key={index}
-                  className="rounded-lg p-4 border bg-gray-700/40 border-gray-600"
+                  className={`relative h-full overflow-hidden rounded-2xl border ${card.borderColor} bg-[#111111] p-6 transition-all duration-300 ${card.bgHover} hover:-translate-y-2 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-gray-500/30`}
                 >
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-sm font-medium text-gray-400">
-                      {stat.name}
+                  {/* Subtle background glow effect on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-6">
+                      <div
+                        className={`p-4 rounded-xl bg-gradient-to-br ${card.color} text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300`}
+                      >
+                        {card.icon}
+                      </div>
+                      <div className="p-2 rounded-full bg-gray-800/50 text-gray-400 group-hover:text-white group-hover:bg-gray-700 transition-colors duration-300">
+                        <ArrowRight
+                          size={20}
+                          className="transform group-hover:translate-x-1 transition-transform duration-300"
+                        />
+                      </div>
+                    </div>
+
+                    <h3 className="text-xl font-bold mb-2 text-gray-100 group-hover:text-white transition-colors duration-300">
+                      {card.title}
                     </h3>
-                    <span
-                      className={`flex items-center text-xs font-semibold ${
-                        stat.increasing
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }`}
-                    >
-                      {stat.increasing ? (
-                        <ArrowUp size={12} className="mr-1" />
-                      ) : (
-                        <ArrowDown size={12} className="mr-1" />
-                      )}
-                      {stat.change}%
-                    </span>
+
+                    <p className="text-gray-400 text-sm leading-relaxed group-hover:text-gray-300 transition-colors duration-300">
+                      {card.description}
+                    </p>
                   </div>
-                  <h3 className="text-sm font-medium text-gray-100">
-                    {stat.value}
-                  </h3>
+
+                  {/* Decorative bottom line */}
+                  <div
+                    className={`absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r ${card.color} transition-all duration-500 group-hover:w-full`}
+                  ></div>
                 </div>
-              ))}
-            </div>
-            <div className="h-80 w-full">
-              <h3 className="text-sm font-medium text-gray-400 mb-4">
-                Weekly Website Visits
-              </h3>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={visitData}
-                  margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
-                >
-                  <CartesianGrid
-                    stroke={darkGridStroke}
-                    strokeDasharray="3 3"
-                  />
-                  <XAxis
-                    dataKey="name"
-                    stroke={darkTickColor}
-                    tick={{ fill: darkTickColor }}
-                  />
-                  <YAxis
-                    stroke={darkTickColor}
-                    tick={{ fill: darkTickColor }}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "rgba(107,114,128,0.3)" }}
-                    contentStyle={{
-                      backgroundColor: "#1f2937",
-                      borderColor: "#374151",
-                      color: "#f9fafb",
-                    }}
-                  />
-                  <Bar
-                    dataKey="visits"
-                    fill={darkBarFill}
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-      </div> */}
-
-      {/* Activity Section */}
-      {/* <div className="rounded-lg shadow-sm border overflow-hidden mb-6 bg-gray-800 border-gray-700">
-        <div
-          className="p-4 border-b border-gray-700 flex justify-between items-center cursor-pointer hover:bg-gray-700/50"
-          onClick={() => setShowActivity(!showActivity)}
-        >
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-md mr-3">
-              <Users size={20} className="text-green-600" />
-            </div>
-            <h2 className="text-lg font-medium text-gray-100">
-              Recent Activity
-            </h2>
-          </div>
-          <button className="text-gray-400">
-            {showActivity ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </button>
-        </div>
-
-        {showActivity && (
-          <div className="p-4">
-            <ul className="space-y-2">
-              {activityData.map((activity) => (
-                <li
-                  key={activity.id}
-                  className="p-4 rounded-lg border bg-gray-700/40 border-gray-600 hover:bg-gray-700 text-gray-100"
-                >
-                  <p className="text-sm font-semibold">{activity.action}</p>
-                  <div className="flex text-xs mt-1 text-gray-400">
-                    <p>{activity.time}</p>
-                    <span className="mx-1">•</span>
-                    <p>{activity.user}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-4 text-center">
-              <button className="text-sm text-indigo-400 hover:text-indigo-300 font-medium">
-                View All Activity
-              </button>
-            </div>
-          </div>
-        )}
-      </div> */}
-
-      {/* Quick Access */}
-      <h2 className="text-lg font-semibold mb-3 text-gray-100">Quick Access</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {dashboardCards.map((card) => (
-          <Link
-            // to={card.path}
-            key={card.title}
-            className="rounded-lg shadow-sm border overflow-hidden transition transform hover:-translate-y-1 hover:shadow-lg duration-200 bg-gray-800 border-gray-700"
-          >
-            <div className="p-5">
-              {/* Icon + Count */}
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-lg ${card.color} text-white`}>
-                  {card.icon}
-                </div>
-                {/* <span className="text-sm font-medium px-2.5 py-0.5 rounded bg-gray-700 text-gray-300">
-                  {card.count}
-                </span> */}
-              </div>
-
-              {/* Title */}
-              <h3 className="text-lg font-semibold mb-1 text-gray-100">
-                {card.title}
-              </h3>
-
-              {/* Description */}
-              <p className="text-gray-400 text-sm">{card.description}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

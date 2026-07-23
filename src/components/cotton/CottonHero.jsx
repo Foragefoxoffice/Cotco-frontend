@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useAnimation, useInView } from "framer-motion";
-import { getCottonPage } from "../../Api/api";
 
-export default function CottonHero() {
+export default function CottonHero({ data: bannerData }) {
   const [isMobile, setIsMobile] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [bannerData, setBannerData] = useState(null);
   const [activeLang, setActiveLang] = useState("en"); // ✅ bilingual support
 
   const controls = useAnimation();
@@ -14,14 +12,6 @@ export default function CottonHero() {
   const ref = useRef(null);
   const isInView = useInView(ref, { threshold: 0.4 });
 
-  // ✅ Fetch CMS data
-  useEffect(() => {
-    getCottonPage().then((res) => {
-      if (res.data?.cottonBanner) {
-        setBannerData(res.data.cottonBanner);
-      }
-    });
-  }, []);
 
   // ✅ Detect screen size + scroll
   useEffect(() => {

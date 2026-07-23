@@ -83,7 +83,7 @@ const ContactToday = () => {
           </p>
           <a
             href={banner.bannerButtonLink || "#contact"}
-            className="bg-white text-blue-900 font-medium px-5 py-3 rounded-md hover:bg-gray-100 transition-all inline-flex items-center gap-2"
+            className="bg-white text-black-900 font-medium px-5 py-3 hover:bg-black hover:text-white transition-all inline-flex items-center gap-2 rounded-full"
           >
             {pick(banner.bannerButtonText, activeLang)}
             <span className="text-lg">→</span>

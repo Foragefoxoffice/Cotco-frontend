@@ -28,13 +28,18 @@ const PageLoader = () => (
 );
 
 import { getFiberPage } from "../Api/api";
+import SEO from "../components/SEO";
 
 const Fiber = () => {
   const [loading, setLoading] = useState(true);
+  const [seoData, setSeoData] = useState(null);
 
   useEffect(() => {
     getFiberPage()
       .then((res) => {
+        if (res.data?.seoMeta) {
+          setSeoData(res.data.seoMeta);
+        }
         const banner = res.data?.fiberBanner;
         const bannerMedia = banner?.fiberBannerMedia || banner?.fiberBannerImg;
         if (bannerMedia) {
@@ -68,6 +73,7 @@ const Fiber = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO seoMeta={seoData} defaultTitle="COTCO Vietnam | Fiber" />
       <Navbar />
       <Suspense fallback={<PageLoader />}>
         <main className="flex-grow">

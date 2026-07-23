@@ -364,7 +364,7 @@ export default function FiberPage() {
   const handleSave = async (sectionName, formState) => {
     try {
       // 🧩 Validation (skip language check for fiberTeam, since it's complex structured)
-      if (sectionName !== "fiberTeam" && !validateVietnamese(formState)) {
+      if (sectionName !== "fiberTeam" && sectionName !== "fiberSeoMeta" && !validateVietnamese(formState)) {
         CommonToaster(
           "Please fill both English and Vietnamese fields.",
           "error"

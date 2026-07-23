@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import TitleAnimation from "../common/AnimatedTitle";
-import { getCottonPage } from "../../Api/api";
 
-export default function CottonTrustSection() {
-  const [trust, setTrust] = useState(null);
+export default function CottonTrustSection({ data: trust }) {
   const [activeLang, setActiveLang] = useState("en");
   const [hoverImage, setHoverImage] = useState(null); // 🆕 current hovered image
   const [defaultImage, setDefaultImage] = useState(null); // 🆕 first logo
@@ -25,20 +23,12 @@ export default function CottonTrustSection() {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Fetch CMS data
+  // 🧩 Set first logo as default image
   useEffect(() => {
-    getCottonPage().then((res) => {
-      if (res.data?.cottonTrust) {
-        const trustData = res.data.cottonTrust;
-        setTrust(trustData);
-
-        // 🧩 Set first logo as default image
-        if (trustData.cottonTrustLogo?.length > 0) {
-          setDefaultImage(trustData.cottonTrustLogo[0]);
-        }
-      }
-    });
-  }, []);
+    if (trust?.cottonTrustLogo?.length > 0) {
+      setDefaultImage(trust.cottonTrustLogo[0]);
+    }
+  }, [trust]);
 
   if (!trust) return null;
 

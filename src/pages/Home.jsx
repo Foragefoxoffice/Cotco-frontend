@@ -11,6 +11,7 @@ const WhoWeAreSection = lazy(() => import("../components/home/WhoWeAreSection"))
 const WhatDefineUs = lazy(() => import("../components/home/WhatDefineUs"));
 const CoreValues = lazy(() => import("../components/aboutus/CoreValues"));
 const NewSection = lazy(() => import("../components/home/NewSection"));
+import SEO from "../components/SEO";
 
 // ✅ Shared Premium Page Loader (Full screen blocking)
 const PageLoader = () => (
@@ -32,16 +33,22 @@ import { getHomepage, getBlogs } from "../Api/api";
 
 const Home = () => {
   const [loading, setLoading] = useState(true);
+  const [seoData, setSeoData] = useState(null);
 
   useEffect(() => {
     // Wait for critical data to load before rendering the layout
-    getHomepage().finally(() => setLoading(false));
+    getHomepage().then((res) => {
+      if (res.data?.seoMeta) {
+        setSeoData(res.data.seoMeta);
+      }
+    }).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <PageLoader />;
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO seoMeta={seoData} defaultTitle="COTCO Vietnam | Home" />
       <Navbar />
       <main className="flex-grow flex flex-col">
         <Suspense fallback={<PageLoader />}>

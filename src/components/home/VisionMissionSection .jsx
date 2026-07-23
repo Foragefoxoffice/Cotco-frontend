@@ -18,7 +18,7 @@ const VisionMissionSection = () => {
             competitive solutions through excellent sales and logistics guidance,
             adapting and responding to market capacity needs.
           </p>
-          <button className="border text-white px-6 py-2 rounded-md hover:bg-white hover:text-[#0D3B66] transition-all">
+          <button className="px-6 py-2.5 rounded-full flex gap-2 items-center border border-black bg-white text-black hover:bg-black hover:text-white transition-all text-sm font-semibold w-fit">
             Learn More →
           </button>
         </SlideIn>

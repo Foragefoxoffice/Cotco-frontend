@@ -14,9 +14,6 @@ export default function PinnedExpertiseTimeline() {
   const [prevIndex, setPrevIndex] = useState(0);
   const [activeLang, setActiveLang] = useState("en");
 
-  // Lock to avoid multiple scroll updates at once
-  const scrollLock = useRef(false);
-
   // Detect active language
   useEffect(() => {
     const detectLanguage = () =>
@@ -66,28 +63,37 @@ export default function PinnedExpertiseTimeline() {
       ? obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? ""
       : obj ?? "";
 
-  // ⭐ One-scroll = one-step logic
+  // ⭐ Native smooth scroll tied to scroll position
   useEffect(() => {
-    const handleWheel = (e) => {
-      if (scrollLock.current || historyData.length === 0) return;
-
-      if (e.deltaY > 0 && currentIndex < historyData.length - 1) {
-        scrollLock.current = true;
-        setPrevIndex(currentIndex);
-        setCurrentIndex((prev) => prev + 1);
-      } else if (e.deltaY < 0 && currentIndex > 0) {
-        scrollLock.current = true;
-        setPrevIndex(currentIndex);
-        setCurrentIndex((prev) => prev - 1);
+    const handleScroll = () => {
+      if (!sectionRef.current || historyData.length === 0) return;
+      
+      const rect = sectionRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      
+      const scrolledIntoSection = -rect.top;
+      
+      if (scrolledIntoSection < 0) {
+        if (currentIndex !== 0) {
+           setPrevIndex(currentIndex);
+           setCurrentIndex(0);
+        }
+        return;
       }
-
-      setTimeout(() => {
-        scrollLock.current = false;
-      }, 800); // matches your animation speed
+      
+      const index = Math.floor(scrolledIntoSection / windowHeight);
+      const clampedIndex = Math.max(0, Math.min(index, historyData.length - 1));
+      
+      if (clampedIndex !== currentIndex) {
+        setPrevIndex(currentIndex);
+        setCurrentIndex(clampedIndex);
+      }
     };
 
-    window.addEventListener("wheel", handleWheel, { passive: true });
-    return () => window.removeEventListener("wheel", handleWheel);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [currentIndex, historyData.length]);
 
   // Guard
@@ -134,8 +140,7 @@ export default function PinnedExpertiseTimeline() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  delay: i * 0.1,
-                  duration: 0.4,
+                  duration: 0.5,
                   ease: "easeOut",
                 }}
                 className="text-3xl text-end font-semibold text-[#000]"
@@ -166,7 +171,7 @@ export default function PinnedExpertiseTimeline() {
             />
           )}
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {historyData[currentIndex]?.image && (
               <motion.img
                 key={historyData[currentIndex].image}
@@ -175,7 +180,7 @@ export default function PinnedExpertiseTimeline() {
                 initial={{ y: "100%", opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.4, ease: "easeInOut" }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
                 className="absolute inset-0 w-full h-full object-cover z-10"
               />
             )}
@@ -193,7 +198,7 @@ export default function PinnedExpertiseTimeline() {
           />
         )}
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {historyData[currentIndex]?.image && (
             <motion.img
               key={historyData[currentIndex].image}
@@ -202,7 +207,7 @@ export default function PinnedExpertiseTimeline() {
               initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
               className="absolute inset-0 w-full h-full object-cover z-10"
             />
           )}

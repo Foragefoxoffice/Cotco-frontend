@@ -78,9 +78,8 @@ export default function HeroSection() {
         scrolled ? { scale: 0.95, opacity: 0.9 } : { scale: 1, opacity: 1 }
       }
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`relative overflow-hidden hero min-h-screen transition-all duration-500 ease-out ${
-        scrolled ? "rounded-2xl shadow-2xl" : ""
-      }`}
+      className={`relative overflow-hidden hero min-h-screen transition-all duration-500 ease-out ${scrolled ? "rounded-2xl shadow-2xl" : ""
+        }`}
     >
       {/* ---------- Background ---------- */}
       {isVideo ? (
@@ -96,9 +95,8 @@ export default function HeroSection() {
         >
           <source
             src={`${BASE_URL}${heroData.bgUrl}`}
-            type={`video/${
-              (heroData.bgUrl.split(".").pop() || "mp4").split("?")[0]
-            }`}
+            type={`video/${(heroData.bgUrl.split(".").pop() || "mp4").split("?")[0]
+              }`}
           />
           Your browser does not support the video tag.
         </video>
@@ -136,7 +134,7 @@ export default function HeroSection() {
         {heroData.heroButtonLink?.[activeLang] && (
           <a
             href={heroData.heroButtonLink[activeLang]}
-            className="w-fit mt-6 px-3 py-3 md:px-5 md:py-4 rounded-full flex justify-between gap-3 items-center border border-gray-400 hover:bg-black hover:text-white transition-all !text-[32] !font-[400]"
+            className="w-fit mt-6 px-6 py-3 rounded-full flex justify-between gap-3 items-center bg-white !text-black hover:!bg-black hover:!text-white transition-all"
           >
             {pick(heroData.heroButtonText) || "Explore Products"}{" "}
             <MoveUpRight />

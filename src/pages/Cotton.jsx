@@ -26,13 +26,16 @@ const PageLoader = () => (
 );
 
 import { getCottonPage } from "../Api/api";
+import SEO from "../components/SEO";
 
 const Cotton = () => {
   const [loading, setLoading] = useState(true);
+  const [cottonData, setCottonData] = useState(null);
 
   useEffect(() => {
     getCottonPage()
       .then((res) => {
+        setCottonData(res.data);
         const bannerImg = res.data?.cottonBanner?.cottonBannerImg;
         if (bannerImg) {
           const url = bannerImg.startsWith("http")
@@ -65,14 +68,15 @@ const Cotton = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO seoMeta={cottonData?.seoMeta} defaultTitle="COTCO Vietnam | Cotton" />
       <Navbar />
       <Suspense fallback={<PageLoader />}>
         <main className="flex-grow">
-          <CottonHero />
-          <SuppliersSection />
-          <CottonTrustSection />
-          <CertificationSliderSection />
-          <MeetOurTeam />
+          <CottonHero data={cottonData?.cottonBanner} />
+          <SuppliersSection data={cottonData?.cottonSupplier} />
+          <CottonTrustSection data={cottonData?.cottonTrust} />
+          <CertificationSliderSection data={cottonData?.cottonMember} />
+          <MeetOurTeam data={cottonData?.cottonTeam} />
         </main>
       </Suspense>
       <Footer />

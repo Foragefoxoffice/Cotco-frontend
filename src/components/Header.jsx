@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Bell, User, X, Lock, Eye, EyeOff, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import TranslateToggle from "./TranslateToggle";
-import { getMe, updatePassword } from "../Api/api";
+import { getMe, updatePassword, getAllContacts, markContactAsRead } from "../Api/api";
 import { CommonToaster } from "../Common/CommonToaster";
 
 const Header = () => {
@@ -91,20 +91,56 @@ const Header = () => {
     signout: isVietnamese ? "Đăng xuất" : "Sign out",
   };
 
-  // ✅ Mock notifications
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      message: "New contact form submission received",
-      time: "10 minutes ago",
-      read: false,
-    },
-  ]);
+  // ✅ Dynamic notifications
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await getAllContacts();
+        const data = res.data?.data || [];
+
+        const unread = data
+          .filter(c => !c.isRead)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .map(c => {
+            const date = new Date(c.createdAt);
+            const now = new Date();
+            const diffMin = Math.floor((now - date) / 60000);
+            let timeStr = "";
+            if (diffMin < 1) timeStr = "Just now";
+            else if (diffMin < 60) timeStr = `${diffMin} minutes ago`;
+            else if (diffMin < 1440) timeStr = `${Math.floor(diffMin / 60)} hours ago`;
+            else timeStr = `${Math.floor(diffMin / 1440)} days ago`;
+
+            return {
+              id: c._id,
+              message: `New contact from ${c.name || "User"}`,
+              time: timeStr,
+              read: false,
+            };
+          });
+
+        setNotifications(unread);
+      } catch (err) {
+        console.error("Failed to fetch notifications:", err);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000); // refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const markAllAsRead = async () => {
+    try {
+      await Promise.all(notifications.map((n) => markContactAsRead(n.id)));
+      setNotifications([]);
+    } catch (err) {
+      console.error("Failed to mark all as read:", err);
+    }
   };
 
   const handleSignout = () => {
@@ -179,15 +215,15 @@ const Header = () => {
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
-              <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] z-10 border border-gray-100 overflow-hidden">
+              <div className="p-4 flex justify-between items-center bg-gray-50/80 border-b border-gray-100">
+                <h3 className="text-sm font-bold text-gray-800">
                   {t.notifications}
                 </h3>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-xs text-indigo-600 hover:text-indigo-800"
+                    className="text-xs text-blue-600 hover:text-blue-800 font-semibold transition-colors bg-blue-50 px-2 py-1 rounded-md"
                   >
                     {t.markAll}
                   </button>
@@ -198,14 +234,33 @@ const Header = () => {
                 {notifications.map((n) => (
                   <div
                     key={n.id}
-                    className={`p-3 text-sm border-b ${
-                      n.read ? "bg-gray-50" : "bg-white"
-                    } text-gray-700`}
+                    onClick={() => {
+                      setShowNotifications(false);
+                      navigate('/admin/contacts');
+                    }}
+                    className={`px-4 text-sm border-b border-gray-50 transition-colors cursor-pointer hover:bg-gray-50 ${n.read ? "bg-white" : "bg-blue-50/30"
+                      }`}
                   >
-                    {n.message}
-                    <p className="text-xs text-gray-500 mt-1">{n.time}</p>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className={`font-medium leading-snug mb-1 ${n.read ? "text-gray-600" : "text-gray-900"}`}>
+                          {n.message}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1.5 font-medium">
+                          {n.time}
+                        </p>
+                      </div>
+                      {!n.read && (
+                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 flex-shrink-0"></div>
+                      )}
+                    </div>
                   </div>
                 ))}
+                {notifications.length === 0 && (
+                  <div className="p-6 text-center text-gray-500 text-sm">
+                    No new notifications
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -238,7 +293,7 @@ const Header = () => {
                   }}
                   className="px-4 py-2 text-gray-300 cursor-pointer flex items-center gap-2"
                 >
-                  <Eye size={14}/>
+                  <Eye size={14} />
                   {t.viewProfile}
                 </li>
                 <li
@@ -290,12 +345,11 @@ const Header = () => {
                       document.body.classList.remove("vi-mode");
                     }
                   }}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
-                    document.body.classList.contains("vi-mode") ===
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${document.body.classList.contains("vi-mode") ===
                     (lang.code === "vi")
-                      ? "bg-white !text-black shadow-md"
-                      : "bg-transparent text-gray-300 hover:text-white"
-                  }`}
+                    ? "bg-white !text-black shadow-md"
+                    : "bg-transparent text-gray-300 hover:text-white"
+                    }`}
                 >
                   {lang.label}
                 </button>
@@ -317,11 +371,9 @@ const Header = () => {
                     : "Name:"}
                 </span>{" "}
                 {document.body.classList.contains("vi-mode")
-                  ? `${userDetails.firstName?.vi || ""} ${
-                      userDetails.middleName?.vi || ""
+                  ? `${userDetails.firstName?.vi || ""} ${userDetails.middleName?.vi || ""
                     } ${userDetails.lastName?.vi || ""}`.trim() || "—"
-                  : `${userDetails.firstName?.en || ""} ${
-                      userDetails.middleName?.en || ""
+                  : `${userDetails.firstName?.en || ""} ${userDetails.middleName?.en || ""
                     } ${userDetails.lastName?.en || ""}`.trim() || "—"}
               </p>
 
@@ -354,8 +406,8 @@ const Header = () => {
                     ? userDetails.gender === "Male"
                       ? "Nam"
                       : userDetails.gender === "Female"
-                      ? "Nữ"
-                      : "Khác"
+                        ? "Nữ"
+                        : "Khác"
                     : userDetails.gender
                   : "—"}
               </p>
@@ -399,8 +451,8 @@ const Header = () => {
                 </span>{" "}
                 {userDetails.dateOfBirth
                   ? new Date(userDetails.dateOfBirth).toLocaleDateString(
-                      "en-GB"
-                    )
+                    "en-GB"
+                  )
                   : "—"}
               </p>
 
@@ -412,8 +464,8 @@ const Header = () => {
                 </span>{" "}
                 {userDetails.dateOfJoining
                   ? new Date(userDetails.dateOfJoining).toLocaleDateString(
-                      "en-GB"
-                    )
+                    "en-GB"
+                  )
                   : "—"}
               </p>
             </div>

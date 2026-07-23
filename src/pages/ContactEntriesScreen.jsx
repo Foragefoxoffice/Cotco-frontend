@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { User, Mail, Phone, Tag, Trash2, Search, Eye } from "lucide-react";
-import { getAllContacts, deleteContact } from "../Api/api";
+import { getAllContacts, deleteContact, markContactAsRead } from "../Api/api";
 import { CommonToaster } from "../Common/CommonToaster";
 
 const ContactEntriesScreen = () => {
@@ -15,15 +15,15 @@ const ContactEntriesScreen = () => {
   const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (!e.target.closest(".dropdown-container")) {
-      setShowDropdown(false);
-    }
-  };
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".dropdown-container")) {
+        setShowDropdown(false);
+      }
+    };
 
-  document.addEventListener("click", handleClickOutside);
-  return () => document.removeEventListener("click", handleClickOutside);
-}, []);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
 
   // 🌐 Detect language mode from navbar toggle (vi-mode)
@@ -113,6 +113,23 @@ const ContactEntriesScreen = () => {
     }
   };
 
+  const handleViewContact = async (contact) => {
+    setSelectedContact(contact);
+    if (!contact.isRead) {
+      try {
+        await markContactAsRead(contact._id);
+        // Update local state to reflect read status
+        setContacts((prevContacts) =>
+          prevContacts.map((c) =>
+            c._id === contact._id ? { ...c, isRead: true } : c
+          )
+        );
+      } catch (err) {
+        console.error("Failed to mark contact as read", err);
+      }
+    }
+  };
+
   // 🔍 Filter + Sort
   const filteredContacts = contacts
     .filter((c) => {
@@ -171,61 +188,59 @@ const ContactEntriesScreen = () => {
         <div className="flex items-center gap-2">
           <span className="text-gray-400 text-sm">{t.sortBy}</span>
           <div className="relative dropdown-container">
-  <button
-    onClick={(e) => {
-      e.stopPropagation();
-      setShowDropdown((prev) => !prev);
-    }}
-    className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 transition-all cursor-pointer"
-  >
-    {sortOption === "oldest"
-      ? t.oldest
-      : sortOption === "newest"
-      ? t.newest
-      : sortOption === "az"
-      ? t.az
-      : t.za}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDropdown((prev) => !prev);
+              }}
+              className="flex items-center justify-between w-48 px-4 py-3 text-sm rounded-full bg-[#1F1F1F] border border-[#2E2F2F] text-white hover:border-gray-500 transition-all cursor-pointer"
+            >
+              {sortOption === "oldest"
+                ? t.oldest
+                : sortOption === "newest"
+                  ? t.newest
+                  : sortOption === "az"
+                    ? t.az
+                    : t.za}
 
-    <svg
-      className={`ml-2 w-4 h-4 transform transition-transform ${
-        showDropdown ? "rotate-180" : ""
-      }`}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-    </svg>
-  </button>
+              <svg
+                className={`ml-2 w-4 h-4 transform transition-transform ${showDropdown ? "rotate-180" : ""
+                  }`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
 
-  {showDropdown && (
-    <div className="absolute right-0 mt-2 w-48 rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-10 animate-fadeIn">
-      {[
-        { value: "newest", label: t.newest },
-        { value: "oldest", label: t.oldest },
-        { value: "az", label: t.az },
-        { value: "za", label: t.za },
-      ].map((option) => (
-        <button
-          key={option.value}
-          onClick={() => {
-            setSortOption(option.value);
-            setShowDropdown(false);
-            setCurrentPage(1);
-          }}
-          className={`block w-full text-left px-4 py-2 text-sm ${
-            sortOption === option.value
-              ? "bg-[#2E2F2F] text-white rounded-lg"
-              : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
-          }`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  )}
-</div>
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-48 rounded-xl bg-[#1F1F1F] border border-[#2E2F2F] shadow-lg z-10 animate-fadeIn">
+                {[
+                  { value: "newest", label: t.newest },
+                  { value: "oldest", label: t.oldest },
+                  { value: "az", label: t.az },
+                  { value: "za", label: t.za },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setSortOption(option.value);
+                      setShowDropdown(false);
+                      setCurrentPage(1);
+                    }}
+                    className={`block w-full text-left px-4 py-2 text-sm ${sortOption === option.value
+                      ? "bg-[#2E2F2F] text-white rounded-lg"
+                      : "text-gray-300 hover:bg-[#2A2A2A] hover:text-white rounded-lg"
+                      }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
         </div>
       </div>
@@ -265,7 +280,15 @@ const ContactEntriesScreen = () => {
                   className="hover:bg-[#2A2A2A] transition-colors border-b border-[#2E2F2F]"
                 >
                   <td className="px-6 py-4 flex items-center gap-2 text-white">
-                    <User size={18} className="text-[#0085C8]" /> {c.name}
+                    <div className="relative">
+                      <User size={18} className="text-[#0085C8]" />
+                      {!c.isRead && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-[#1F1F1F]"></span>
+                      )}
+                    </div>
+                    <span className={!c.isRead ? "font-bold text-white" : "text-gray-300"}>
+                      {c.name}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-gray-300">{c.email}</td>
                   <td className="px-6 py-4 text-gray-300">{c.phone}</td>
@@ -275,7 +298,7 @@ const ContactEntriesScreen = () => {
                   <td className="px-6 py-4 flex items-center justify-center gap-2">
                     {/* 👁 View Button */}
                     <button
-                      onClick={() => setSelectedContact(c)}
+                      onClick={() => handleViewContact(c)}
                       className="bg-[#0085C8] hover:bg-[#009FE3] text-white p-2 rounded-md transition"
                       title={t.view}
                     >
@@ -324,7 +347,7 @@ const ContactEntriesScreen = () => {
       {/* View Modal */}
       {selectedContact && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/50 bg-opacity-70 flex items-center justify-center z-50"
           onClick={() => setSelectedContact(null)}
         >
           <div
@@ -332,7 +355,7 @@ const ContactEntriesScreen = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition cursor-pointer"
               onClick={() => setSelectedContact(null)}
             >
               ✖

@@ -102,9 +102,15 @@ export default function BlogsSection() {
         .then((res) => setBlog(res.data?.data || res.data))
         .finally(() => setLoading(false));
     } else {
-      getBlogs()
+      getBlogs({ status: "published", limit: 8 })
         .then((res) => {
-          const items = res.data?.data || res.data || [];
+          let items = res.data?.data || res.data || [];
+          if (Array.isArray(items)) {
+            items = items
+              .filter(b => b.status === "published")
+              .sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt))
+              .slice(0, 8);
+          }
           setBlogs(items);
         })
         .finally(() => setLoading(false));
@@ -194,12 +200,10 @@ export default function BlogsSection() {
 
                 <button
                   onClick={() => navigate("/blog")}
-                  className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[#0F3A56]"
+                  className="w-fit mt-6 px-6 py-2.5 rounded-full flex gap-2 items-center border border-black bg-white text-black hover:bg-black hover:text-white transition-all text-sm font-semibold group"
                 >
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-[#1276BD] text-white text-[16px]">
-                    <RxArrowTopRight />
-                  </span>
                   {activeLang === "vi" ? "Quay lại Blog" : "Back to Blogs"}
+                  <RxArrowTopRight className="text-[16px] text-black group-hover:text-white" />
                 </button>
               </article>
             </div>
@@ -242,10 +246,10 @@ export default function BlogsSection() {
         </div>
 
         {/* ---------- Right column: Carousel ---------- */}
-        <div className="col-span-12 md:col-span-9 overflow-x-hidden relative md:mt-0 mt-6">
-          <div className="absolute inset-y-0 left-[50%] right-[50%] translate-x-[-50%] w-[90%] bg-[#0E2F47] rounded-[16px] md:rounded-l-[48px] max-md:w-[100%]" />
+        <div className="col-span-12 md:col-span-9 relative md:mt-0 mt-6">
+          <div className="absolute inset-0 bg-[#0E2F47] rounded-[16px] md:rounded-l-[48px]" />
 
-          <div className="relative pt-2 pb-3 md:pt-20 md:pb-10 md:pl-2 md:pr-2 overflow-hidden">
+          <div className="relative pt-2 pb-3 md:pt-20 md:pb-10 px-4 md:px-8 overflow-hidden">
 
             {/* Carousel */}
             <div ref={emblaRef}>
@@ -266,8 +270,8 @@ export default function BlogsSection() {
                     >
                       <article
                         className={[
-                          "origin-center rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden p-4 shadow-md transition-transform duration-300 will-change-transform",
-                          isActive ? "scale-100 z-20" : "scale-90 z-10",
+                          "origin-center rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden p-4 shadow-md transition-all duration-300 will-change-transform",
+                          isActive ? "scale-105 shadow-xl z-20" : "scale-90 z-10 opacity-80",
                         ].join(" ")}
                       >
                         <img
@@ -285,15 +289,10 @@ export default function BlogsSection() {
                           </p>
                           <Link
                             to={link}
-                            className={[
-                              "mt-4 inline-flex items-center gap-2 text-sm font-medium",
-                              isActive ? "text-[#0F3A56]" : "text-[#0F3A56]/80",
-                            ].join(" ")}
+                            className="w-fit mt-4 px-6 py-2.5 rounded-full flex gap-2 items-center border border-black bg-white text-black hover:bg-black hover:text-white transition-all text-sm font-semibold group"
                           >
-                            <span className="grid h-8 w-8 place-items-center rounded-full bg-[#1276BD] text-white text-[16px]">
-                              <RxArrowTopRight />
-                            </span>
                             {activeLang === "vi" ? "Xem thêm" : "Learn More"}
+                            <RxArrowTopRight className="text-[16px] text-black group-hover:text-white" />
                           </Link>
                         </div>
                       </article>
@@ -308,7 +307,7 @@ export default function BlogsSection() {
               <button
                 onClick={scrollNext}
                 disabled={!canNext}
-                className={`grid h-10 w-10 place-items-center rounded-full bg-white ring-1 ring-black/5 shadow ${!canPrev ? "cursor-not-allowed opacity-40" : "hover:shadow-md"
+                className={`grid h-10 w-10 place-items-center rounded-full cursor-pointer bg-white ring-1 ring-black/5 shadow ${!canPrev ? "cursor-not-allowed opacity-40" : "hover:shadow-md"
                   }`}
                 aria-label="Previous"
               >
@@ -318,7 +317,7 @@ export default function BlogsSection() {
 
                 onClick={scrollPrev}
                 disabled={!canPrev}
-                className={`grid h-10 w-10 place-items-center rounded-full bg-white ring-1 ring-black/5 shadow ${!canNext ? "cursor-not-allowed opacity-40" : "hover:shadow-md"
+                className={`grid h-10 w-10 place-items-center rounded-full cursor-pointer bg-white ring-1 ring-black/5 shadow ${!canNext ? "cursor-not-allowed opacity-40" : "hover:shadow-md"
                   }`}
                 aria-label="Next"
               >

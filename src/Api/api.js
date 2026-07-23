@@ -378,6 +378,9 @@ export const updateKnowledge = (data) => API.post("/knowledge", data);
 // Get all contact entries (admin)
 export const getAllContacts = () => API.get("/contactentries");
 
+// Mark a contact entry as read (admin)
+export const markContactAsRead = (id) => API.patch(`/contactentries/${id}/read`);
+
 // Delete a contact entry by ID (admin)
 export const deleteContact = (id) => API.delete(`/contactentries/${id}`);
 

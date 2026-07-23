@@ -145,11 +145,11 @@ export default function BlogLists({ onLoaded }) {
   useEffect(() => {
     const fetchRecent = async () => {
       try {
-        const res = await getBlogs();
+        const res = await getBlogs({ status: "published", limit: 6 });
         const allBlogs = res.data.data || [];
         const published = allBlogs
           .filter((b) => b.status === "published")
-          .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
+          .sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt))
           .slice(0, 6);
 
         const formattedRecent = published.map((b) => ({
@@ -334,8 +334,8 @@ export default function BlogLists({ onLoaded }) {
                     <p className="text-gray-700 text-sm leading-6 mb-4">
                       {b.desc}
                     </p>
-                    <button className="text-[#164B8B] font-semibold flex items-center gap-1 hover:underline">
-                      Detail <FiChevronRight />
+                    <button className="w-fit mt-2 px-6 py-2.5 bg-white border border-black text-black font-semibold text-sm rounded-full flex items-center gap-2 cursor-pointer hover:text-white transition-all group">
+                      Detail <FiChevronRight className="text-black group-hover:text-white" />
                     </button>
                   </div>
                 </div>
@@ -375,8 +375,8 @@ export default function BlogLists({ onLoaded }) {
                     <p className="text-gray-700 text-sm leading-6 mb-4">
                       {featuredBlog.desc}
                     </p>
-                    <button className="text-[#164B8B] font-semibold flex items-center gap-1 hover:underline">
-                      Detail <FiChevronRight />
+                    <button className="w-fit mt-2 px-6 py-2.5 bg-white border border-black text-black font-semibold text-sm rounded-full flex items-center cursor-pointer gap-2 transition-all group">
+                      Detail <FiChevronRight className="text-black" />
                     </button>
                   </div>
                 </div>

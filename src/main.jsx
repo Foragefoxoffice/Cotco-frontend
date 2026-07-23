@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { HeadProvider } from "react-head";   // ⭐ Add this line
@@ -89,95 +88,94 @@ const ProtectedRoute = ({ children }) => {
 
 // 🚀 Render App With HEAD PROVIDER FIXED ✔
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <HeadProvider>
-      {/* ⭐ IMPORTANT: Helmet / Title / Meta now works everywhere */}
-      <BrowserRouter>
-        <ScrollToTop />
-        <ToastContainer />
+  <HeadProvider>
+    {/* ⭐ IMPORTANT: Helmet / Title / Meta now works everywhere */}
+    <BrowserRouter>
+      <ScrollToTop />
+      <ToastContainer />
 
-        <Routes>
-          {/* Maintenance Page */}
-          <Route path="/maintenance" element={<Maintenance />} />
+      <Routes>
+        {/* Maintenance Page */}
+        <Route path="/maintenance" element={<Maintenance />} />
 
-          {/* PUBLIC ROUTES - Wrapped by MaintenanceMode */}
-          <Route element={<MaintenanceMode />}>
-            {/* <Route path="/" element={<Maintenance />} /> */}
-            <Route path="/" element={<Home />} />
-            <Route path="/aboutus" element={<Aboutus />} />
-            <Route path="/cotton" element={<Cotton />} />
-            <Route path="/fiber" element={<Fiber />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/contact" element={<Contactus />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-conditions" element={<TermsConditions />} />
+        {/* PUBLIC ROUTES - Wrapped by MaintenanceMode */}
+        <Route element={<MaintenanceMode />}>
+          {/* <Route path="/" element={<Maintenance />} /> */}
+          <Route path="/" element={<Home />} />
+          <Route path="/aboutus" element={<Aboutus />} />
+          <Route path="/cotton" element={<Cotton />} />
+          <Route path="/fiber" element={<Fiber />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/contact" element={<Contactus />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-conditions" element={<TermsConditions />} />
 
-            {/* Machines */}
-            <Route path="/machines" element={<MachinesMain />} />
-            <Route path="/machines/:categorySlug" element={<MachineList />} />
-            <Route path="/machines/:categorySlug/:pageSlug" element={<MachinePage />} />
+          {/* Machines */}
+          <Route path="/machines" element={<MachinesMain />} />
+          <Route path="/machines/:categorySlug" element={<MachineList />} />
+          <Route path="/machines/:categorySlug/:pageSlug" element={<MachinePage />} />
 
-            {/* Blogs */}
-            <Route path="/blog" element={<BlogList />} />
-            <Route path="/:mainCategorySlug" element={<Blogs />} />
-            <Route path="/:mainCategorySlug/:slug" element={<BlogOverview />} />
-          </Route>
+          {/* Blogs */}
+          <Route path="/blog" element={<BlogList />} />
+          <Route path="/:mainCategorySlug" element={<Blogs />} />
+          <Route path="/:mainCategorySlug/:slug" element={<BlogOverview />} />
+        </Route>
 
-          {/* ADMIN ROUTES */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route index element={<Navigate to="dashboard" replace />} />
+        {/* ADMIN ROUTES */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
 
-            {/* CMS */}
-            <Route path="header" element={<HeaderPage />} />
-            <Route path="footer" element={<FooterPage />} />
-            <Route path="home" element={<Homepage />} />
-            <Route path="about" element={<AboutPage />} />
-            <Route path="cotton" element={<CottonPage />} />
-            <Route path="fiber" element={<FiberPage />} />
-            <Route path="machine" element={<MachineCMSPage />} />
-            <Route path="contact" element={<ContactPage />} />
-            <Route path="privacy-policy" element={<PrivacyPage />} />
-            <Route path="terms-conditions" element={<TermsConditionsPage />} />
-            <Route path="knowledge" element={<KnowledgeManagementPage />} />
+          {/* CMS */}
+          <Route path="header" element={<HeaderPage />} />
+          <Route path="footer" element={<FooterPage />} />
+          <Route path="home" element={<Homepage />} />
+          <Route path="about" element={<AboutPage />} />
+          <Route path="cotton" element={<CottonPage />} />
+          <Route path="fiber" element={<FiberPage />} />
+          <Route path="machine" element={<MachineCMSPage />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="privacy-policy" element={<PrivacyPage />} />
+          <Route path="terms-conditions" element={<TermsConditionsPage />} />
+          <Route path="knowledge" element={<KnowledgeManagementPage />} />
 
-            {/* Resources */}
-            <Route path="resources" element={<NewsScreen />} />
-            <Route path="resources/main-categories" element={<NewsMainCategoriesScreen />} />
-            <Route path="resources/categories" element={<NewsCategoriesScreen />} />
+          {/* Resources */}
+          <Route path="resources" element={<NewsScreen />} />
+          <Route path="resources/main-categories" element={<NewsMainCategoriesScreen />} />
+          <Route path="resources/categories" element={<NewsCategoriesScreen />} />
 
-            {/* CMS Content */}
-            <Route path="pages" element={<PagesScreen />} />
-            <Route path="pages/:pageSlug" element={<PageEditScreen />} />
-            <Route path="products" element={<ProductsScreen />} />
-            <Route path="products/:categorySlug" element={<ProductListScreen />} />
-            <Route path="settings" element={<GlobalSettingsScreen />} />
+          {/* CMS Content */}
+          <Route path="pages" element={<PagesScreen />} />
+          <Route path="pages/:pageSlug" element={<PageEditScreen />} />
+          <Route path="products" element={<ProductsScreen />} />
+          <Route path="products/:categorySlug" element={<ProductListScreen />} />
+          <Route path="settings" element={<GlobalSettingsScreen />} />
 
-            {/* Machines */}
-            <Route path="machines/categories" element={<MachineCategoriesScreen />} />
-            <Route path="machines/list" element={<MachineListScreen />} />
-            <Route path="machines/new" element={<MachineEditScreen />} />
-            <Route path="machines/pages/:id/edit" element={<EditMachinePage />} />
+          {/* Machines */}
+          <Route path="machines/categories" element={<MachineCategoriesScreen />} />
+          <Route path="machines/list" element={<MachineListScreen />} />
+          <Route path="machines/new" element={<MachineEditScreen />} />
+          <Route path="machines/pages/:id/edit" element={<EditMachinePage />} />
 
-            {/* Contacts */}
-            <Route path="contacts" element={<ContactEntriesScreen />} />
+          {/* Contacts */}
+          <Route path="contacts" element={<ContactEntriesScreen />} />
 
-            {/* Staff */}
-            <Route path="roles" element={<RoleManagement />} />
-            <Route path="staffmanagement" element={<StaffManagement />} />
-          </Route>
+          {/* Staff */}
+          <Route path="roles" element={<RoleManagement />} />
+          <Route path="staffmanagement" element={<StaffManagement />} />
+        </Route>
 
-          {/* Login */}
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </BrowserRouter>
-    </HeadProvider>
-  </StrictMode>
+        {/* Login */}
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </BrowserRouter>
+  </HeadProvider>
 );
+

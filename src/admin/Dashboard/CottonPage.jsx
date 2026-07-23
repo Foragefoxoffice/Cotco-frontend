@@ -402,7 +402,7 @@ const CottonPage = () => {
   // ---------------------- SAVE HANDLER ---------------------- //
   const handleSave = async (sectionName, formState, files = []) => {
     try {
-      if (!validateVietnamese(formState)) {
+      if (sectionName !== "cottonSeoMeta" && !validateVietnamese(formState)) {
         CommonToaster(
           "Please fill both English and Vietnamese fields.",
           "error"

@@ -4,10 +4,8 @@ import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import TitleAnimation from "../common/AnimatedTitle";
 import { ArrowUpRight } from "lucide-react";
-import { getCottonPage } from "../../Api/api";
 
-export default function CertificationSliderSection() {
-  const [certData, setCertData] = useState(null);
+export default function CertificationSliderSection({ data: certData }) {
   const [current, setCurrent] = useState(0);
   const [activeLang, setActiveLang] = useState("en");
   const [popupOpen, setPopupOpen] = useState(false);
@@ -46,14 +44,7 @@ export default function CertificationSliderSection() {
 
   const pick = (obj) => obj?.[activeLang] ?? obj?.en ?? obj?.vi ?? "";
 
-  // ✅ Fetch data from API
-  useEffect(() => {
-    getCottonPage()
-      .then((res) => {
-        if (res.data?.cottonMember) setCertData(res.data.cottonMember);
-      })
-      .catch(console.error);
-  }, []);
+
 
   // ✅ Slider navigation (manual only)
   const prevSlide = () => {

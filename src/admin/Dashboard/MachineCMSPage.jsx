@@ -56,6 +56,9 @@ const MachineCMSPage = () => {
       .then((res) => {
         if (res.data?.machinePage) {
           setMachine(res.data.machinePage);
+          if (res.data.machinePage.seoMeta) {
+            setSeoMeta(res.data.machinePage.seoMeta);
+          }
         } else {
           setMachine({
             heroSection: { heroVideo: "", heroTitle: { en: "", vi: "" } },
