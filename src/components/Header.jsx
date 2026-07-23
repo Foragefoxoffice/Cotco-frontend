@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, User, X, Lock, Eye, EyeOff, LogOut } from "lucide-react";
+import { Bell, User, X, Lock, Eye, EyeOff, LogOut, Mail, Phone, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import TranslateToggle from "./TranslateToggle";
 import { getMe, updatePassword, getAllContacts, markContactAsRead } from "../Api/api";
@@ -15,6 +15,7 @@ const Header = () => {
   const [userDetails, setUserDetails] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [selectedContact, setSelectedContact] = useState(null);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -100,9 +101,9 @@ const Header = () => {
         const res = await getAllContacts();
         const data = res.data?.data || [];
 
-        const unread = data
-          .filter(c => !c.isRead)
+        const allContacts = data
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 50)
           .map(c => {
             const date = new Date(c.createdAt);
             const now = new Date();
@@ -117,11 +118,12 @@ const Header = () => {
               id: c._id,
               message: `New contact from ${c.name || "User"}`,
               time: timeStr,
-              read: false,
+              read: c.isRead,
+              rawContact: c,
             };
           });
 
-        setNotifications(unread);
+        setNotifications(allContacts);
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
       }
@@ -136,8 +138,9 @@ const Header = () => {
 
   const markAllAsRead = async () => {
     try {
-      await Promise.all(notifications.map((n) => markContactAsRead(n.id)));
-      setNotifications([]);
+      const unreadNotifications = notifications.filter(n => !n.read);
+      await Promise.all(unreadNotifications.map((n) => markContactAsRead(n.id)));
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     } catch (err) {
       console.error("Failed to mark all as read:", err);
     }
@@ -234,9 +237,17 @@ const Header = () => {
                 {notifications.map((n) => (
                   <div
                     key={n.id}
-                    onClick={() => {
+                    onClick={async () => {
                       setShowNotifications(false);
-                      navigate('/admin/contacts');
+                      if (!n.read) {
+                        try {
+                          await markContactAsRead(n.id);
+                          setNotifications(prev => prev.filter(p => p.id !== n.id));
+                        } catch (err) {
+                          console.error("Failed to mark as read", err);
+                        }
+                      }
+                      setSelectedContact(n.rawContact);
                     }}
                     className={`px-4 text-sm border-b border-gray-50 transition-colors cursor-pointer hover:bg-gray-50 ${n.read ? "bg-white" : "bg-blue-50/30"
                       }`}
@@ -628,6 +639,77 @@ const Header = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Contact Modal */}
+      {selectedContact && (
+        <div
+          className="fixed inset-0 bg-black/50 bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setSelectedContact(null)}
+        >
+          <div
+            className="bg-[#171717] border border-[#2E2F2F] rounded-lg shadow-xl w-full max-w-lg p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-4 right-4 text-white hover:text-white transition cursor-pointer"
+              onClick={() => setSelectedContact(null)}
+            >
+              ✖
+            </button>
+
+            <h2 className="text-xl font-semibold mb-4 text-white">
+              {selectedContact.name}
+            </h2>
+
+            <div className="space-y-3 text-gray-300">
+              <p className="flex items-center gap-2">
+                <Mail size={18} className="text-[#0085C8]" />{" "}
+                {selectedContact.email}
+              </p>
+              <p className="flex items-center gap-2">
+                <Phone size={18} className="text-[#0085C8]" />{" "}
+                {selectedContact.phone}
+              </p>
+              {selectedContact.company && (
+                <p className="flex items-center gap-2">
+                  <Tag size={18} className="text-[#0085C8]" />{" "}
+                  {selectedContact.company}
+                </p>
+              )}
+              {selectedContact.product && (
+                <p>
+                  {isVietnamese ? "Quan tâm đến:" : "Interested in:"}{" "}
+                  <span className="font-medium text-white capitalize">
+                    {selectedContact.product === "viscose" 
+                      ? (isVietnamese ? "Xơ" : "Fiber") 
+                      : selectedContact.product === "cotton" 
+                        ? (isVietnamese ? "Bông" : "Cotton") 
+                        : selectedContact.product === "machinery"
+                          ? (isVietnamese ? "Máy móc" : "Machinery")
+                          : selectedContact.product}
+                  </span>
+                </p>
+              )}
+              {selectedContact.message && (
+                <p className="mt-2 text-gray-300">{selectedContact.message}</p>
+              )}
+              {selectedContact.fileUrl && (
+                <p className="mt-2">
+                  File:{" "}
+                  <a
+                    href={`${import.meta.env.VITE_API_URL.replace(/\/$/, "")}${selectedContact.fileUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#0085C8] underline hover:text-blue-400"
+                  >
+                    {isVietnamese ? "Xem / Tải xuống" : "View / Download"}
+                  </a>
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}

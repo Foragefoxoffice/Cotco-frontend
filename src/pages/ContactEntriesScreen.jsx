@@ -116,16 +116,22 @@ const ContactEntriesScreen = () => {
   const handleViewContact = async (contact) => {
     setSelectedContact(contact);
     if (!contact.isRead) {
+      // Optimistically update local state to reflect read status instantly
+      setContacts((prevContacts) =>
+        prevContacts.map((c) =>
+          c._id === contact._id ? { ...c, isRead: true } : c
+        )
+      );
       try {
         await markContactAsRead(contact._id);
-        // Update local state to reflect read status
-        setContacts((prevContacts) =>
-          prevContacts.map((c) =>
-            c._id === contact._id ? { ...c, isRead: true } : c
-          )
-        );
       } catch (err) {
         console.error("Failed to mark contact as read", err);
+        // Rollback if the API fails
+        setContacts((prevContacts) =>
+          prevContacts.map((c) =>
+            c._id === contact._id ? { ...c, isRead: false } : c
+          )
+        );
       }
     }
   };
@@ -267,6 +273,9 @@ const ContactEntriesScreen = () => {
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">
                   {isVietnamese ? "Công ty" : "Company"}
                 </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">
+                  {isVietnamese ? "Trạng thái" : "Status"}
+                </th>
                 <th className="px-6 py-3 text-center text-sm font-semibold text-gray-300">
                   {isVietnamese ? "Hành động" : "Actions"}
                 </th>
@@ -294,6 +303,11 @@ const ContactEntriesScreen = () => {
                   <td className="px-6 py-4 text-gray-300">{c.phone}</td>
                   <td className="px-6 py-4 text-gray-300">
                     {c.company || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-300">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${c.isRead ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                      {c.isRead ? (isVietnamese ? "Đã đọc" : "Read") : (isVietnamese ? "Chưa đọc" : "Unread")}
+                    </span>
                   </td>
                   <td className="px-6 py-4 flex items-center justify-center gap-2">
                     {/* 👁 View Button */}
@@ -351,7 +365,7 @@ const ContactEntriesScreen = () => {
           onClick={() => setSelectedContact(null)}
         >
           <div
-            className="bg-[#171717] border border-[#2E2F2F] rounded-lg shadow-xl w-full max-w-lg p-6 relative"
+            className="bg-[#171717] border border-[#2E2F2F] rounded-lg shadow-xl w-full max-w-lg p-6 relative overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -383,8 +397,14 @@ const ContactEntriesScreen = () => {
               {selectedContact.product && (
                 <p>
                   {isVietnamese ? "Quan tâm đến:" : "Interested in:"}{" "}
-                  <span className="font-medium text-white">
-                    {selectedContact.product}
+                  <span className="font-medium text-white capitalize">
+                    {selectedContact.product === "viscose" 
+                      ? (isVietnamese ? "Xơ" : "Fiber") 
+                      : selectedContact.product === "cotton" 
+                        ? (isVietnamese ? "Bông" : "Cotton") 
+                        : selectedContact.product === "machinery"
+                          ? (isVietnamese ? "Máy móc" : "Machinery")
+                          : selectedContact.product}
                   </span>
                 </p>
               )}
@@ -395,7 +415,7 @@ const ContactEntriesScreen = () => {
                 <p className="mt-2">
                   File:{" "}
                   <a
-                    href={`${selectedContact.fileUrl}`}
+                    href={`${import.meta.env.VITE_API_URL.replace(/\/$/, "")}${selectedContact.fileUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#0085C8] underline hover:text-blue-400"

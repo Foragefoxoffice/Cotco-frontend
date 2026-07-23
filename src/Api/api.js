@@ -20,7 +20,13 @@ export default API;
 ========================================================= */
 export const registerUser = (data) => API.post("/auth/register", data);
 export const loginUser = (data) => API.post("/auth/login", data);
-export const getMe = () => API.get("/auth/me");
+let mePromise = null;
+export const getMe = () => {
+  if (!mePromise) {
+    mePromise = API.get("/auth/me").finally(() => setTimeout(() => mePromise = null, 5000));
+  }
+  return mePromise;
+};
 export const updateDetails = (data) => API.put("/auth/updatedetails", data);
 export const updatePassword = (data) => API.put("/auth/update-password", data);
 export const logoutUser = () => API.get("/auth/logout");
@@ -376,7 +382,13 @@ export const updateKnowledge = (data) => API.post("/knowledge", data);
 
 
 // Get all contact entries (admin)
-export const getAllContacts = () => API.get("/contactentries");
+let allContactsPromise = null;
+export const getAllContacts = () => {
+  if (!allContactsPromise) {
+    allContactsPromise = API.get("/contactentries").finally(() => setTimeout(() => allContactsPromise = null, 5000));
+  }
+  return allContactsPromise;
+};
 
 // Mark a contact entry as read (admin)
 export const markContactAsRead = (id) => API.patch(`/contactentries/${id}/read`);

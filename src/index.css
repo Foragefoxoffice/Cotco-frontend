@@ -16,15 +16,18 @@
   --bg-light: #fff;
 }
 
-*{
+* {
   font-family: "Lexend", sans-serif;
 }
-input{
+
+input {
   font-family: "Lexend", sans-serif !important;
 }
-textarea{
+
+textarea {
   font-family: "Lexend", sans-serif !important;
 }
+
 body {
   font-family: "Lexend", sans-serif;
   overflow-x: hidden;
@@ -57,6 +60,7 @@ p {
 a {
   @apply transition duration-200;
 }
+
 /* styles.css or global.css */
 .outlined-text {
   color: transparent;
@@ -94,18 +98,27 @@ body.vi-mode .hero {
 .heading {
   @apply md:text-4xl text-3xl text-[#121E2B] font-bold;
 }
+
 .fontbold {
   font-weight: 700;
 }
+
+.blog_description a {
+  color: #0D8FCA !important;
+}
+
 /* increase side padding at breakpoints */
 @media (min-width: 640px) {
+
   /* sm */
   .page-width {
     padding-left: 20px;
     padding-right: 20px;
   }
 }
+
 @media (min-width: 1024px) {
+
   /* lg */
   .page-width {
     padding-left: 32px;
@@ -115,24 +128,31 @@ body.vi-mode .hero {
 
 /* optional staged max-widths (like your Tailwind plan) */
 @media (min-width: 768px) {
+
   /* md */
   .page-width {
     max-width: 720px;
   }
 }
+
 @media (min-width: 1024px) {
+
   /* lg */
   .page-width {
     max-width: 960px;
   }
 }
+
 @media (min-width: 1200px) {
+
   /* xl */
   .page-width {
     max-width: 1200px;
   }
 }
+
 @media (min-width: 1440px) {
+
   /* 2xl */
   .page-width {
     max-width: 1360px;
@@ -140,6 +160,7 @@ body.vi-mode .hero {
 }
 
 @media (min-width: 1600px) {
+
   /* 3xl */
   .page-width {
     max-width: 1600px;
@@ -149,7 +170,8 @@ body.vi-mode .hero {
 /* Custom Tab Styles */
 .custom-tabs .ant-tabs-nav {
   margin: 0 !important;
-  background-color: #133955; /* dark navy bar */
+  background-color: #133955;
+  /* dark navy bar */
   padding: 0 10px;
 }
 
@@ -162,20 +184,26 @@ body.vi-mode .hero {
 }
 
 .custom-tabs .ant-tabs-nav .ant-tabs-tab-active {
-  background-color: #1d70b8; /* active lighter blue */
+  background-color: #1d70b8;
+  /* active lighter blue */
   border-radius: 0 !important;
 }
 
 .custom-tabs .ant-tabs-ink-bar {
-  display: none !important; /* remove underline */
+  display: none !important;
+  /* remove underline */
 }
 
 .custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: #fff !important; /* active tab text white */
+  color: #fff !important;
+  /* active tab text white */
 }
+
 .custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn:focus {
-  color: #fff !important; /* active tab text white */
+  color: #fff !important;
+  /* active tab text white */
 }
+
 .custom-tabs .ant-tabs-nav-list {
   justify-content: center;
   width: 100%;
@@ -192,14 +220,14 @@ body.vi-mode .hero {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
-:where(.css-dev-only-do-not-override-1odpy5d).ant-tabs
-  .ant-tabs-tab.ant-tabs-tab-active
-  .ant-tabs-tab-btn {
+:where(.css-dev-only-do-not-override-1odpy5d).ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
   color: #000000 !important;
 }
-

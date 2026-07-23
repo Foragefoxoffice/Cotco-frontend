@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getBlogBySlug, getBlogs } from "../Api/api";
-import { motion } from "framer-motion";
-import { FiChevronRight } from "react-icons/fi";
 import Header from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { FaShare } from "react-icons/fa6";
 import { Title, Meta, Link as MetaLink } from "react-head";
-
-
-
 
 export default function BlogOverview() {
   const { slug } = useParams();
@@ -21,12 +16,25 @@ export default function BlogOverview() {
   const [activeLang, setActiveLang] = useState("en");
   const [copyTooltip, setCopyTooltip] = useState(false);
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopyTooltip(true);
-      setTimeout(() => setCopyTooltip(false), 1500);
-    });
+    const shareTitle = pick(blog?.title, activeLang) || pick(blog?.name, activeLang) || "";
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          url: url
+        });
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopyTooltip(true);
+        setTimeout(() => setCopyTooltip(false), 1500);
+      });
+    }
   };
 
   // Helper: pick multilingual or fallback values
@@ -294,7 +302,7 @@ export default function BlogOverview() {
             <div
               className="prose prose-lg max-w-none text-gray-800
               prose-p:leading-relaxed prose-img:rounded-lg prose-img:shadow-sm
-              prose-headings:text-[#0A1C2E] prose-h1:text-3xl prose-h2:text-2xl"
+              prose-headings:text-[#0A1C2E] prose-h1:text-3xl prose-h2:text-2xl blog_description"
             >
               {blog.blocks?.map((block, idx) => {
                 if (block.type === "richtext") {
@@ -355,9 +363,9 @@ export default function BlogOverview() {
                   <span className="font-medium text-gray-800">Share</span>
                 </button>
 
-                {/* Tooltip */}
+                {/* Tooltip for fallback */}
                 {copyTooltip && (
-                  <div className="absolute left-1/2 -translate-x-1/2 mt-2 bg-black text-white text-xs px-3 py-1 rounded-full whitespace-nowrap">
+                  <div className="absolute bottom-full right-0 mb-2 bg-black text-white text-xs px-3 py-1 rounded-full whitespace-nowrap z-50">
                     Link copied!
                   </div>
                 )}
@@ -366,7 +374,7 @@ export default function BlogOverview() {
           </div>
 
           {/* RIGHT: RECENT BLOGS */}
-          <aside className="space-y-6">
+          <aside className="space-y-6 sticky top-32 self-start">
             <h3 className="text-[#164B8B] font-bold uppercase text-lg border-b border-gray-200 pb-2">
               Recent
             </h3>

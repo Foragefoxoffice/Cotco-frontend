@@ -164,7 +164,21 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
   }, []);
 
   useEffect(() => {
-    if (article) setFormData(article);
+    if (article) {
+      setFormData({
+        ...article,
+        title: article.title || { en: "", vi: "" },
+        excerpt: article.excerpt || { en: "", vi: "" },
+        seo: {
+          title: article.seo?.title || { en: "", vi: "" },
+          description: article.seo?.description || { en: "", vi: "" },
+          keywords: article.seo?.keywords || { en: "", vi: "" },
+          ogImage: article.seo?.ogImage || "",
+        },
+        blocks: article.blocks || [],
+        tags: article.tags || [],
+      });
+    }
   }, [article]);
 
   useEffect(() => {
@@ -727,7 +741,7 @@ const NewsArticleForm = ({ article, onClose, onSave }) => {
             {activeLanguage === "vi" ? "Khối nội dung" : "Content Blocks"}
           </label>
           <div className="space-y-4 mt-2">
-            {formData.blocks.map((block, i) => (
+            {formData.blocks?.map((block, i) => (
               <div
                 key={i}
                 className="p-4 border border-[#2E2F2F] rounded-xl bg-[#141414]"

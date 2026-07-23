@@ -418,7 +418,7 @@ function ContactForm({ heading, isVietnamese }) {
               {values.product
                 ? {
                     cotton: t("Cotton", "Bông"),
-                    Fiber: t("Fiber", "Xơ"),
+                    viscose: t("Fiber", "Xơ"),
                     machinery: t("Machinery", "Máy móc"),
                   }[values.product]
                 : t("Select an option", "Chọn một tuỳ chọn")}
@@ -434,7 +434,7 @@ function ContactForm({ heading, isVietnamese }) {
             <div className="absolute mt-2 w-full bg-white shadow-xl rounded-xl border border-slate-200 py-2 z-20">
               {[
                 { value: "cotton", label: t("Cotton", "Bông") },
-                { value: "Fiber", label: t("Fiber", "Xơ") },
+                { value: "viscose", label: t("Fiber", "Xơ") },
                 { value: "machinery", label: t("Machinery", "Máy móc") },
               ].map((opt) => (
                 <div
